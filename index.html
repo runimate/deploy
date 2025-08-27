@@ -544,7 +544,6 @@
           final.flags.push('pace_matched');
         }else{
           final.flags.push('pace_mismatch');
-          final.flags.push(`diff=${Math.round(absDiff)}s`);
         }
       }else if(!isFinite(paceSecCalc) && isFinite(paceSecOCR) && isFinite(timeSec)){
         const distFromPace = distanceFrom(timeSec, paceSecOCR);
