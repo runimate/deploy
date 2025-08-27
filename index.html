@@ -626,6 +626,13 @@
       });
     }
 
+    // NEW: 풀 텍스트 OCR 전용(플래튼+샤픈+이진화)
+    async function preprocessForFullOCR(imgDataURL){
+      const sharp1 = await unsharp(imgDataURL, 0.9);
+      const bin1   = await preprocessImageToDataURL(sharp1, 2.0, 190);
+      return bin1;
+    }
+
     async function unsharp(srcDataURL, amount=0.9){
       const {img,w,h} = await toCanvas(srcDataURL);
       const c=document.createElement('canvas'); c.width=w; c.height=h;
@@ -659,6 +666,15 @@
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, x, y, cw, ch, 0, 0, c.width, c.height);
       return c.toDataURL('image/png');
+    }
+
+    // STRAVA: 페이스/타임 ROI
+    async function cropStravaStatsROI(imgDataURL, variant = 0){
+      const params = [
+        { topPct: 0.32, heightPct: 0.34, sidePct: 0.08, scale: 2.4 },
+        { topPct: 0.50, heightPct: 0.40, sidePct: 0.06, scale: 2.6 }
+      ][variant];
+      return cropTopNumberROI(imgDataURL, params.topPct, params.heightPct, params.sidePct, params.scale);
     }
 
     const KM_LINE_OCR_OPTS_7 = {
@@ -756,7 +772,7 @@
       ctx.drawImage(img,0,0);
       function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(ctx.getImageData(x,y,1,1).data[0]<128) s++; } return s; }
       let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
+      for(let x=0;x>w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
       const digitW = Math.max(8, Math.floor(w*0.18));
       const R = Math.min(w-1, L+digitW);
 
@@ -858,7 +874,7 @@
       return { cands: out, roiBin: bin2 || bin1 };
     }
 
-    /* ===== OCR 파서 (runs/pace/time) — STRAVA & NRC 모두 커버 ===== */
+    /* ===== OCR 파서 (runs/pace/time) — 공용 파서 ===== */
     function parseFromOCR(textRaw){
       const text = normalizeOCR(textRaw);
 
@@ -944,25 +960,51 @@
       return { km: kmFromLabel, runs, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
 
+    /* ===== STRAVA/NRC 래퍼 ===== */
+    const STRAVA_TEXT_OPTS = { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK };
+
+    // STRAVA: 풀 OCR(전처리) + 통계 ROI 보강
+    async function ocrStravaStats(imgDataURL){
+      const roiA = await cropStravaStatsROI(imgDataURL, 0);
+      const roiB = await cropStravaStatsROI(imgDataURL, 1);
+      const prepA = await preprocessForFullOCR(roiA);
+      const prepB = await preprocessForFullOCR(roiB);
+      const [rA, rB] = await Promise.all([
+        Tesseract.recognize(prepA, 'eng', STRAVA_TEXT_OPTS),
+        Tesseract.recognize(prepB, 'eng', STRAVA_TEXT_OPTS),
+      ]);
+      return [rA?.data?.text||'', rB?.data?.text||''].join('\n');
+    }
+
+    async function parseStrava(imgDataURL){
+      const fullPrep = await preprocessForFullOCR(imgDataURL);
+      const rFull = await Tesseract.recognize(fullPrep, 'eng', STRAVA_TEXT_OPTS);
+      const statsText = await ocrStravaStats(imgDataURL);
+      const text = (rFull?.data?.text||'') + '\n' + (statsText||'');
+      return parseFromOCR(text);
+    }
+
+    async function parseNRC(imgDataURL){
+      const fullPrep = await preprocessForFullOCR(imgDataURL);
+      const rFull = await Tesseract.recognize(fullPrep, 'eng+kor', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
+      return parseFromOCR(rFull?.data?.text || '');
+    }
+
     /* ===== 표기 유틸 (절사) ===== */
     function truncate(value, digits){
       const f = Math.pow(10, digits);
       return Math.floor((Number(value)||0) * f) / f;
     }
-
-    // 데일리: x.xx 또는 xx.x — 절사
     function formatKmDailyThreeDigits(value){
       const v = Math.max(0, Number(value) || 0);
       if (v < 10) return truncate(v, 2).toFixed(2);
       return truncate(v, 1).toFixed(1);
     }
-
     function formatKm(value){
       const v = Math.max(0, Number(value) || 0);
       if (recordType === 'monthly') return truncate(v, 1).toFixed(1);
       return formatKmDailyThreeDigits(v);
     }
-
     function renderKm(value){
       document.getElementById('km').textContent = formatKm(value);
     }
@@ -1077,18 +1119,26 @@
         try{
           const img = reader.result;
 
+          // 1) 상단 거리 후보(ROI)
           const fast = await multiPassKmCandidates_FAST(img);
           let kmCandidates = fast.cands;
           const roiBinForFiveGuard = fast.roiBin;
 
-          const baseOpts = { preserve_interword_spaces: '1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK };
-          const rFull = await Tesseract.recognize(img, 'eng+kor', baseOpts);
-          const p = parseFromOCR(rFull.data.text || "");
-          if(p.km) kmCandidates.push({ val: parseFloat(String(p.km).replace(',','.')), dec: (String(p.km).split(/[.,]/)[1]||'').length, src:'aux' });
+          // 2) 소스 타입별 풀 OCR + (STRAVA는 하단 통계 ROI 보강 포함)
+          const parsedBySource = (sourceType === 'strava')
+            ? await parseStrava(img)
+            : await parseNRC(img);
 
+          if(parsedBySource.km){
+            kmCandidates.push({
+              val: parseFloat(String(parsedBySource.km).replace(',','.')),
+              dec: (String(parsedBySource.km).split(/[.,]/)[1]||'').length,
+              src: 'aux'
+            });
+          }
+
+          // 3) km 최종 + 5-가드
           let kmBest = pickBestKm(kmCandidates);
-
-          // 5-가드
           if (kmBest!=null){
             const intPart = Math.floor(kmBest);
             if (intPart===2 || intPart===3){
@@ -1110,31 +1160,8 @@
             }
           }
 
-          function extractRunsFromWords(words){
-            if(!Array.isArray(words) || !words.length) return null;
-            const anchors = words.filter(w => {
-              const t = (w.text||"").trim().toLowerCase();
-              return t === 'runs' || t === '러닝';
-            });
-            const sameLineNear = (anchor)=>{
-              const same = words.filter(w => w.line === anchor.line);
-              const nums = same
-                .filter(w => /^\d{1,3}$/.test((w.text||'').trim()))
-                .map(w => ({
-                  n: +w.text.trim(),
-                  dx: Math.abs(((w.bbox&&w.bbox.x0)||0) - ((anchor.bbox&&anchor.bbox.x1)||0))
-                }));
-              if(nums.length){ nums.sort((a,b)=>a.dx-b.dx); return nums[0].n; }
-              return null;
-            };
-            const picks = anchors.map(a=>sameLineNear(a)).filter(v=>Number.isInteger(v));
-            if(!picks.length) return null;
-            picks.sort((a,b)=>a-b);
-            return picks[Math.floor(picks.length/2)];
-          }
-          const rWords = extractRunsFromWords(rFull.data.words||[]);
-
-          // pace를 콜론 표기로 넘겨서 parsePaceToSecPerKm와 호환
+          // 4) 페이스/타임 결합
+          const p = parsedBySource;
           const paceOCRStr = (p.paceMin!=null && p.paceSec!=null) ? `${p.paceMin}:${zero2txt(p.paceSec)}` : null;
           const distStr = (kmBest ?? p.km ?? '').toString();
           const cv = reconcile({
@@ -1174,7 +1201,7 @@
             paceSec: isFinite(finalPaceSec) ? (finalPaceSec%60) : null,
             timeH: p.timeH, timeM: p.timeM, timeS: p.timeS,
             timeRaw: p.timeRaw || null,
-            runs: (recordType==='monthly') ? (p.runs ?? rWords ?? null) : null,
+            runs: (recordType==='monthly') ? (p.runs ?? null) : null,
             cv
           };
 
@@ -1539,7 +1566,7 @@
 
     // 초기화
     window.onload = ()=>{
-      setSourceType('nrc');        // 기본 NRC (초록 포인트 컬러 적용됨)
+      setSourceType('nrc');        // 기본 NRC
       setRecordType('daily');      // 기본 Daily
       setLayout('type1');
       setBackground('white');
