@@ -16,6 +16,10 @@
       --gapBelowKm: 12px;
       --radius:14px;
 
+      /* 하이라이트 컬러 (소스별 전환) */
+      --accent: #FF9000;          /* 기본값: STRAVA */
+      --accent-border: #CD6B00;   /* 기본값: STRAVA */
+
       /* 공통 기본값 */
       --kmWordSize: 28px;
       --kmWordGap: 0px;
@@ -120,13 +124,14 @@
     .upload-box{ border:1px solid #ddd; border-radius:10px; padding:16px; }
     .upload-label{
       display:flex; align-items:center; justify-content:center; gap:10px;
-      background:#000; color:#FF9000; padding:14px 16px; font-weight:800;
+      background:#000; color: var(--accent); /* ← 변수 적용 */
+      padding:14px 16px; font-weight:800;
       border-radius:12px; text-align:center; margin-bottom:10px;
     }
-    .upload-icon{ display:inline-flex; width:18px; height:18px; }
-    .upload-icon svg{ width:18px; height:18px; display:block; }
+    .upload-icon{ display:inline-flex; width:18px; height:18px; color: var(--accent); } /* 아이콘 색을 변수로 */
+    .upload-icon svg{ width:18px; height:18px; display:block; stroke: var(--accent); } /* ← 변수 적용 */
 
-    .status{ color:#FF9000; font-weight:700; font-size:13px; }
+    .status{ color: var(--accent); font-weight:700; font-size:13px; } /* ← 변수 적용 */
 
     .row-head{ display:flex; justify-content:space-between; gap:10px; margin:10px 0 6px; }
     .row-head .label{ font-size:13px; font-weight:800; }
@@ -160,7 +165,10 @@
 
     .run-button{
       width:100%; height:52px; border-radius:16px;
-      background:#FF9000; color:#000; border:3px solid #CD6B00; margin-top:10px; font-size:18px; font-weight:900;
+      background: var(--accent);            /* ← 변수 적용 */
+      color:#000;
+      border:3px solid var(--accent-border);/* ← 변수 적용 */
+      margin-top:10px; font-size:18px; font-weight:900;
     }
 
     /* ===== OUTPUT STAGE ===== */
@@ -316,7 +324,7 @@
         <label for="file-upload" class="upload-label">
           <span class="upload-icon" aria-hidden="true">
             <!-- 라인 업로드 아이콘 -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="#FF9000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <path d="M7 10l5-5 5 5"/>
               <path d="M12 5v12"/>
@@ -723,7 +731,7 @@
       ctx.drawImage(img,0,0);
       function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(ctx.getImageData(x,y,1,1).data[0]<128) s++; } return s; }
       let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x>w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
+      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
       const digitW = Math.max(8, Math.floor(w*0.18));
       const R = Math.min(w-1, L+digitW);
 
@@ -750,7 +758,7 @@
 
       function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(im[(y*w+x)*4]<128) s++; } return s; }
       let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x>w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
+      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
       const digitW = Math.max(8, Math.floor(w*0.18));
       const R = Math.min(w-1, L+digitW);
 
@@ -1303,11 +1311,15 @@
       btnNrc.classList.toggle('is-active', src==='nrc');
       btnStrava.classList.toggle('is-active', src==='strava');
 
-      // STRAVA는 Monthly 비활성 + 강제 Daily
+      // 소스별 포인트 컬러 적용
       if (src === 'strava'){
+        document.documentElement.style.setProperty('--accent', '#FF9000');
+        document.documentElement.style.setProperty('--accent-border', '#CD6B00');
         setRecordType('daily');
         btnMonthly.setAttribute('disabled','');
       } else {
+        document.documentElement.style.setProperty('--accent', '#32D600');
+        document.documentElement.style.setProperty('--accent-border', '#2AB500');
         btnMonthly.removeAttribute('disabled');
       }
 
@@ -1457,7 +1469,7 @@
 
     // 초기화
     window.onload = ()=>{
-      setSourceType('nrc');        // 기본 NRC
+      setSourceType('nrc');        // 기본 NRC (초록 포인트 컬러 적용됨)
       setRecordType('daily');      // 기본 Daily
       setLayout('type1');
       setBackground('white');
