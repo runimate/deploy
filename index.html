@@ -105,17 +105,13 @@
 
     /* 헤더 */
     header{ padding:var(--pad); }
-    .header-row{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
+    .header-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .title-wrap{ text-align:left; }
     h1{ margin:6px 0 2px; font-size:18px; font-weight:800; }
     .subtitle{ font-size:12px; opacity:.8 }
 
     /* 소스 토글 (NRC / STRAVA) */
-    .source-toggle{
-      display:flex; gap:8px; align-items:center; justify-content:flex-end;
-    }
+    .source-toggle{ display:flex; gap:8px; align-items:center; justify-content:flex-end; }
     .source-toggle .pill-btn{ height:36px; padding:0 12px; font-size:14px; }
 
     .wrap{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
@@ -224,31 +220,17 @@
       column-gap: var(--statGap);
       row-gap: 8px;
       margin-top:0; color:inherit; text-align:left;
-      justify-content:start;
-      justify-items:start;
-      align-items: baseline;
+      justify-content:start; justify-items:start; align-items: baseline;
     }
 
-    body.type2 .grid > div{
-      display:flex;
-      flex-direction: column-reverse;
-      gap:6px;
-      margin-left:0;
-    }
+    body.type2 .grid > div{ display:flex; flex-direction: column-reverse; gap:6px; margin-left:0; }
     body.type2 .grid > div .stat { order:0; }
     body.type2 .grid > div .label{ order:1; }
 
-    body.type1 .grid{
-      --cols: 1;
-      grid-template-columns: 1fr;
-    }
+    body.type1 .grid{ --cols: 1; grid-template-columns: 1fr; }
     body.type1 .grid > div{
-      display:flex;
-      flex-direction: column;
-      gap:6px;
-      margin-left: var(--gridFirstColIndent);
-      transform:none !important;
-      grid-column: 1 / 2 !important;
+      display:flex; flex-direction: column; gap:6px;
+      margin-left: var(--gridFirstColIndent); transform:none !important; grid-column: 1 / 2 !important;
     }
     body.type1 .grid > div + div{ margin-top:12px; }
 
@@ -257,8 +239,7 @@
     .stat{
       display:inline-block;
       font-size: var(--statSize);
-      font-weight:800;
-      line-height:1;
+      font-weight:800; line-height:1;
       font-variant-numeric: tabular-nums;
       -moz-font-feature-settings: "tnum";
       font-feature-settings: "tnum";
@@ -284,11 +265,8 @@
 
     body.focus .stage-outer{
       min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      padding-top:0;
-      padding-bottom:0;
+      display:flex; align-items:center; justify-content:flex-start;
+      padding-top:0; padding-bottom:0;
     }
     body.focus .stage-canvas{ margin-left:0; margin-right:0; }
   </style>
@@ -300,7 +278,6 @@
         <h1>RUNIMATE V.0.9.7 BETA</h1>
         <div class="subtitle">by JS @runarchive.js</div>
       </div>
-      <!-- ▼ 우측 정렬: NRC / STRAVA 토글 -->
       <div class="source-toggle" id="source-toggle">
         <button class="pill-btn is-active" data-source="nrc" id="btn-nrc">NRC</button>
         <button class="pill-btn" data-source="strava" id="btn-strava">STRAVA</button>
@@ -308,22 +285,17 @@
     </div>
   </header>
 
-  <!-- 설정 UI -->
   <div class="top-ui">
     <div class="wrap">
-
-      <!-- 기록 유형 -->
       <div class="row-head"><div class="label">Record Type</div></div>
       <div class="seg-row cols-2" id="mode-row">
         <button class="pill-btn" data-mode="daily" id="btn-daily">Daily</button>
         <button class="pill-btn" data-mode="monthly" id="btn-monthly">Monthly</button>
       </div>
 
-      <!-- 업로드 -->
       <section class="section upload-box">
         <label for="file-upload" class="upload-label">
           <span class="upload-icon" aria-hidden="true">
-            <!-- 라인 업로드 아이콘 -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <path d="M7 10l5-5 5 5"/>
@@ -336,7 +308,6 @@
         <div class="status" id="upload-status"></div>
       </section>
 
-      <!-- 레이아웃 & BG -->
       <div class="two-col">
         <div>
           <div class="control-title title-left">Layout</div>
@@ -354,13 +325,11 @@
         </div>
       </div>
 
-      <!-- 날짜 (Type2/M1 전용 노출) -->
       <div class="date-row" id="date-section">
         <div class="control-title title-left">Date</div>
         <input id="date-input" class="date-input" type="date"/>
       </div>
 
-      <!-- 폰트 -->
       <section class="section">
         <div class="control-title">Font</div>
         <div class="font-grid" id="font-grid">
@@ -383,7 +352,6 @@
 
   <button id="exit-focus" title="Close" onclick="exitFocus()">✕</button>
 
-  <!-- ====== OUTPUT (픽셀 고정 캔버스) ====== -->
   <section class="stage-outer">
     <div id="stage-canvas" class="stage-canvas">
       <div class="stage-inner fixed" id="stage">
@@ -397,7 +365,6 @@
         </div>
         <div id="km-word">Kilometers</div>
 
-        <!-- 하단 통계 -->
         <div class="grid" id="stats-grid">
           <div id="runs-wrap" style="display:none;">
             <div class="label">Runs</div>
@@ -519,17 +486,11 @@
       if(Number.isNaN(m) || Number.isNaN(s)) return NaN;
       return m*60 + (s||0);
     }
-    function paceFrom(timeSec, distKm){
-      if(!timeSec || !distKm) return NaN;
-      return timeSec / distKm;
-    }
-    function distanceFrom(timeSec, paceSecPerKm){
-      if(!timeSec || !paceSecPerKm) return NaN;
-      return timeSec / paceSecPerKm;
-    }
+    function paceFrom(timeSec, distKm){ if(!timeSec || !distKm) return NaN; return timeSec / distKm; }
+    function distanceFrom(timeSec, paceSecPerKm){ if(!timeSec || !paceSecPerKm) return NaN; return timeSec / paceSecPerKm; }
+
     function reconcile(inputs){
       const toKm = (d,unit)=> unit==='mi' ? d*1.609344 : d;
-
       const timeSec = parseTimeToSec(inputs.timeStr||'');
       const distKm  = toKm(parseFloat((inputs.distStr||'').replace(',','.')), inputs.unit||'km');
       const paceSecOCR = inputs.paceStr ? parsePaceToSecPerKm(inputs.paceStr) : NaN;
@@ -572,7 +533,7 @@
       };
     }
 
-    /* ▼ 추가: 셋 중 2개로 나머지 자동 계산 + 형식 변환 */
+    /* ▼ 셋 중 2개로 나머지 자동 계산 + 형식 변환 */
     function hmsFromSeconds(sec){
       if(!isFinite(sec)) return {H:null,M:null,S:null};
       sec = Math.max(0, Math.round(sec));
@@ -605,23 +566,28 @@
       });
     }
 
-    // ▼ 투명 PNG 대응: 검정으로 플래튼 → 이진화 → 배경이 어두우면 반전(검은 글자/흰 배경)
+    // 안전 스케일링(최대 한 변 제한) + 이진화 + 필요 시 반전
     async function preprocessImageToDataURL(imgDataURL, scale = 2.4, threshold = 190){
       return new Promise(async (resolve)=>{
         const {img, w:W, h:H} = await toCanvas(imgDataURL);
-        const w = Math.round(W * scale);
-        const h = Math.round(H * scale);
+
+        // ★ 추가: 캔버스 과대 생성 방지
+        const MAX_DIM = 3000;
+        const sByW = MAX_DIM / W;
+        const sByH = MAX_DIM / H;
+        const safeScale = Math.min(scale, sByW, sByH);
+
+        const w = Math.round(W * safeScale);
+        const h = Math.round(H * safeScale);
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
         const ctx = c.getContext('2d', { willReadFrequently:true });
         ctx.imageSmoothingEnabled = false;
 
-        // 1) 투명 배경을 검정으로 플래튼(흰 글자 대비 확보)
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
 
-        // 2) 이진화
         const im = ctx.getImageData(0,0,w,h);
         const data = im.data;
         let whiteCount = 0, blackCount = 0;
@@ -634,7 +600,6 @@
         }
         ctx.putImageData(im,0,0);
 
-        // 3) 배경이 어두우면 반전해서 "검은 글자 / 흰 배경"으로
         if (blackCount > whiteCount) {
           const im2 = ctx.getImageData(0,0,w,h);
           const d2 = im2.data;
@@ -683,20 +648,27 @@
       const ch = Math.round(h*heightPct);
 
       const c = document.createElement('canvas');
-      c.width = Math.round(cw*scale);
-      c.height= Math.round(ch*scale);
+
+      // ★ ROI도 안전 스케일
+      const MAX_DIM = 2500;
+      const sByW = MAX_DIM / cw;
+      const sByH = MAX_DIM / ch;
+      const safeScale = Math.min(scale, sByW, sByH);
+
+      c.width  = Math.round(cw*safeScale);
+      c.height = Math.round(ch*safeScale);
       const ctx = c.getContext('2d', { willReadFrequently:true });
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, x, y, cw, ch, 0, 0, c.width, c.height);
       return c.toDataURL('image/png');
     }
 
-    // ▼ STRAVA 상단 여백 대응: ROI를 두 위치에서 시도 (거리용)
+    // STRAVA: ROI 두 위치에서 후보 추출 (★OCR 동시→순차로 메모리 안정화)
     async function multiPassKmCandidates_FAST(imgDataURL){
       const out = [];
 
       const roi0 = await cropTopNumberROI(imgDataURL, 0.06, 0.30, 0.06, 2.8);
-      const roi1 = await cropTopNumberROI(imgDataURL, 0.10, 0.30, 0.06, 2.8); // 보조 ROI
+      const roi1 = await cropTopNumberROI(imgDataURL, 0.10, 0.30, 0.06, 2.8);
 
       const KM_LINE_OCR_OPTS_7 = {
         tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
@@ -713,17 +685,17 @@
         const sharp = await unsharp(roi, 0.9);
         const bin   = await preprocessImageToDataURL(sharp, 1.0, 190);
 
-        const [rA, rB, rC] = await Promise.all([
-          Tesseract.recognize(sharp, 'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_8)
-        ]);
-
-        [['A',rA],['B',rB],['C',rC]].forEach(([s,res])=>{
+        const pushRes = (suffix, res)=>{
           const conf = (res.data?.confidence ?? 60)/100;
-          numsFromText(res.data.text).forEach(o=> out.push({ ...o, src:`${tag}${s}-text`,  score:(o.score||0)+conf*12 }));
-          kmCandidatesFromWords(res.data.words).forEach(o=> out.push({ ...o, src:`${tag}${s}-words`, score:(o.score||0)+conf*12 }));
-        });
+          numsFromText(res.data.text).forEach(o=> out.push({ ...o, src:`${tag}${suffix}-text`,  score:(o.score||0)+conf*12 }));
+          kmCandidatesFromWords(res.data.words).forEach(o=> out.push({ ...o, src:`${tag}${suffix}-words`, score:(o.score||0)+conf*12 }));
+        };
+
+        try{ const rA = await Tesseract.recognize(sharp, 'eng', KM_LINE_OCR_OPTS_7); pushRes('A', rA); }catch(e){ console.warn('ROI A fail', e); }
+        await new Promise(r=>setTimeout(r,0));
+        try{ const rB = await Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_7); pushRes('B', rB); }catch(e){ console.warn('ROI B fail', e); }
+        await new Promise(r=>setTimeout(r,0));
+        try{ const rC = await Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_8); pushRes('C', rC); }catch(e){ console.warn('ROI C fail', e); }
 
         return bin;
       };
@@ -887,8 +859,7 @@
       }
       return best;
     }
-
-    /* ===== STRAVA 전용 ===== */
+        /* ===== STRAVA 전용 ===== */
     const STRAVA_FIND_OPTS = { preserve_interword_spaces: '1', tessedit_pageseg_mode: Tesseract.PSM.AUTO };
     const STRAVA_LINE_NUM_ONLY = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789.,:' };
     const STRAVA_LINE_MIXED    = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789:/kmshm ' };
@@ -896,7 +867,6 @@
     /* ▼ 유연한 파서 (fallback용) */
     function parseAnyPace(raw){
       const t = normalizeOCR(raw||'');
-      // 5:12 /km, 5'12, 5:12/km, 5:12 min/km
       const m = t.match(/(\d{1,2})\s*[:'’]\s*(\d{2})(?=\s*(?:\/|per|min)?\s*km\b|[^0-9]|$)/i)
              || t.match(/\b(\d{1,2})\s*[:]\s*(\d{2})\b/);
       if(!m) return {min:null, sec:null};
@@ -905,11 +875,11 @@
     function parseAnyTime(raw){
       const t = normalizeOCR(raw||'');
       let m = t.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
-      if(m) return {H:+m[1], M:+m[2], S:+m[3], raw:`${+m[1]}:${zero2(+m[2])}:${zero2(+m[3])}`};
+      if(m) return {H:+m[1], M:+m[2], S:+m[3], raw:`${+m[1]}:${String(+m[2]).padStart(2,'0')}:${String(+m[3]).padStart(2,'0')}`};
       m = t.match(/\b(\d{1,2})\s*h\s*(\d{1,2})\s*m(?:\s*(\d{1,2})\s*s)?/i);
-      if(m){ const H=+m[1], M=+m[2], S=+(m[3]||0); return {H,M,S,raw:`${H}:${zero2(M)}:${zero2(S)}`}; }
+      if(m){ const H=+m[1], M=+m[2], S=+(m[3]||0); return {H,M,S,raw:`${H}:${String(M).padStart(2,'0')}:${String(S).padStart(2,'0')}`}; }
       m = t.match(/\b(\d{1,2}):(\d{2})\b/);
-      if(m) return {H:0, M:+m[1], S:+m[2], raw:`${+m[1]}:${zero2(+m[2])}`};
+      if(m) return {H:0, M:+m[1], S:+m[2], raw:`${+m[1]}:${String(+m[2]).padStart(2,'0')}`};
       return {H:null,M:null,S:null,raw:null};
     }
     function extractKmFromText(raw){
@@ -923,7 +893,6 @@
         const m1 = (before.match(/\b(\d{1,3})\b/) || after.match(/\b(\d{1,3})\b/));
         if(m1) return parseFloat(m1[1]);
       }
-      // 마지막 보루: 전체에서 12.3 같은 수치
       const m = t.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
       return m ? parseFloat(m[1].replace(',','.')) : null;
     }
@@ -966,15 +935,14 @@
     }
 
     async function ocrStravaPipeline(imgDataURL){
-      // 1) 전처리 + 전체 스캔
-      const pre = await preprocessImageToDataURL(imgDataURL, 2.2, 180);
+      // ★ 전처리 배율 완화(메모리 여유)
+      const pre = await preprocessImageToDataURL(imgDataURL, 1.8, 180);
       const full = await Tesseract.recognize(pre, 'eng', STRAVA_FIND_OPTS);
       const words = full.data.words||[];
       const rawAllText = full?.data?.text || '';
       const labels = findLabelBoxes(words, ['Distance','Pace','Time']);
       const {w,h} = await toCanvas(pre);
 
-      // 2) 라벨 기반 1차 추출
       let kmVal=null, paceMin=null, paceSec=null, timeH=null,timeM=null,timeS=null,timeRaw=null;
 
       if(labels['distance']){
@@ -996,7 +964,7 @@
         timeH = t.H; timeM = t.M; timeS = t.S; timeRaw = t.raw;
       }
 
-      // 3) 라벨 실패 시 전역 텍스트 fallback
+      // fallback
       if(paceMin==null || paceSec==null){
         const p = parseAnyPace(rawAllText);
         if(p.min!=null){ paceMin=p.min; paceSec=p.sec; }
@@ -1010,7 +978,7 @@
         if(k!=null) kmVal = k;
       }
 
-      // 4) 상호 검증(크게 어긋나면 pace 재계산)
+      // 상호 검증
       if(kmVal!=null && paceMin!=null && paceSec!=null && (timeH!=null || timeM!=null || timeS!=null)){
         const timeSec = (timeH||0)*3600 + (timeM||0)*60 + (timeS||0);
         const paceSec = paceMin*60 + paceSec;
@@ -1034,10 +1002,8 @@
       // Pace
       let paceMin=null, paceSec=null;
       {
-        let m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\s*"?\b/); // NRC
-        if(!m){
-          m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})(?:\s*\/\s*km)?\b/i); // fallback
-        }
+        let m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\s*"?\b/);
+        if(!m){ m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})(?:\s*\/\s*km)?\b/i); }
         if(m){ paceMin = parseInt(m[1],10); paceSec = parseInt(m[2],10); }
       }
 
@@ -1046,12 +1012,12 @@
       let tm = text.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
       if(tm){
         timeH=+tm[1]; timeM=+tm[2]; timeS=+tm[3];
-        timeRaw=`${zero2(timeH)}:${zero2(timeM)}:${zero2(timeS)}`;
+        timeRaw=`${String(timeH).padStart(2,'0')}:${String(timeM).padStart(2,'0')}:${String(timeS).padStart(2,'0')}`;
       }else{
         tm = text.match(/\b(\d{1,2}):(\d{2})\b/);
         if(tm){
           timeM=+tm[1]; timeS=+tm[2];
-          timeRaw=`${zero2(timeM)}:${zero2(timeS)}`;
+          timeRaw=`${String(timeM).padStart(2,'0')}:${String(timeS).padStart(2,'0')}`;
         }else{
           const h = (text.match(/(\d{1,2})\s*h\b/i)||[])[1];
           const m = (text.match(/(\d{1,3})\s*m\b/i)||[])[1];
@@ -1060,12 +1026,12 @@
             timeH = h? +h : 0;
             timeM = m? +m : 0;
             timeS = s? +s : 0;
-            timeRaw = timeH>0 ? `${timeH}:${zero2(timeM)}:${zero2(timeS)}` : `${timeM}:${zero2(timeS)}`;
+            timeRaw = timeH>0 ? `${timeH}:${String(timeM).padStart(2,'0')}:${String(timeS).padStart(2,'0')}` : `${timeM}:${String(timeS).padStart(2,'0')}`;
           }
         }
       }
 
-      // Distance backup around "km"
+      // Distance backup
       const re2dec  = /(\d{1,3})\s*[.,]\s*(\d{2})\b/;
       const re1dec  = /(\d{1,3})\s*[.,]\s*(\d{1})\b/;
       const reInt   = /\b(\d{1,3})\b/;
@@ -1107,45 +1073,23 @@
       return { km: kmFromLabel, runs, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
 
-    async function parseStrava(imgDataURL){
-      return await ocrStravaPipeline(imgDataURL);
-    }
+    async function parseStrava(imgDataURL){ return await ocrStravaPipeline(imgDataURL); }
     async function parseNRC(imgDataURL){
       const fullPrep = await preprocessForFullOCR(imgDataURL);
       const rFull = await Tesseract.recognize(fullPrep, 'eng+kor', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
       return parseFromOCR(rFull?.data?.text || '');
     }
 
-    /* ===== 표기 유틸 (절사) ===== */
-    function truncate(value, digits){
-      const f = Math.pow(10, digits);
-      return Math.floor((Number(value)||0) * f) / f;
-    }
-    function formatKmDailyThreeDigits(value){
-      const v = Math.max(0, Number(value) || 0);
-      if (v < 10) return truncate(v, 2).toFixed(2);
-      return truncate(v, 1).toFixed(1);
-    }
-    function formatKm(value){
-      const v = Math.max(0, Number(value) || 0);
-      if (recordType === 'monthly') return truncate(v, 1).toFixed(1);
-      return formatKmDailyThreeDigits(v);
-    }
-    function renderKm(value){
-      document.getElementById('km').textContent = formatKm(value);
-    }
+    /* ===== 표기 유틸 ===== */
+    function truncate(value, digits){ const f = Math.pow(10, digits); return Math.floor((Number(value)||0) * f) / f; }
+    function formatKmDailyThreeDigits(value){ const v = Math.max(0, Number(value) || 0); if (v < 10) return truncate(v, 2).toFixed(2); return truncate(v, 1).toFixed(1); }
+    function formatKm(value){ const v = Math.max(0, Number(value) || 0); if (recordType === 'monthly') return truncate(v, 1).toFixed(1); return formatKmDailyThreeDigits(v); }
+    function renderKm(value){ document.getElementById('km').textContent = formatKm(value); }
 
-    function updateGridCols(){
-      const cols = (layoutType==='type1') ? 1 : (recordType==='monthly' ? 3 : 2);
-      statsGrid.style.setProperty('--cols', cols);
-    }
+    function updateGridCols(){ const cols = (layoutType==='type1') ? 1 : (recordType==='monthly' ? 3 : 2); statsGrid.style.setProperty('--cols', cols); }
     function layoutStatsGrid(){
       if (layoutType === 'type1'){
-        [runsWrap, paceWrap, timeWrap].forEach(el=>{
-          el.style.gridColumn = '';
-          el.style.transform = '';
-          el.style.marginLeft = '';
-        });
+        [runsWrap, paceWrap, timeWrap].forEach(el=>{ el.style.gridColumn = ''; el.style.transform = ''; el.style.marginLeft = ''; });
         return;
       }
       if (recordType === 'daily'){
@@ -1153,8 +1097,7 @@
         timeWrap.style.gridColumn = '2 / 3';
         paceWrap.style.transform = 'translateX(0)';
         timeWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull').trim()})`;
-        paceWrap.style.marginLeft = '0';
-        timeWrap.style.marginLeft = '0';
+        paceWrap.style.marginLeft = '0'; timeWrap.style.marginLeft = '0';
       } else {
         runsWrap.style.gridColumn = '1 / 2';
         paceWrap.style.gridColumn = '2 / 3';
@@ -1162,18 +1105,13 @@
         runsWrap.style.transform = 'translateX(0)';
         paceWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull').trim()})`;
         timeWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull2').trim()})`;
-        runsWrap.style.marginLeft = '0';
-        paceWrap.style.marginLeft = '0';
-        timeWrap.style.marginLeft = '0';
+        runsWrap.style.marginLeft = '0'; paceWrap.style.marginLeft = '0'; timeWrap.style.marginLeft = '0';
       }
     }
     function zero2txt(n){ return String(n).padStart(2,'0'); }
     function formatPaceByType(){
-      if(parsedData.paceMin==null || parsedData.paceSec==null){
-        return (layoutType==='type1') ? '0:00 /km' : '0:00';
-      }
-      const mm = String(parsedData.paceMin);
-      const ss = zero2txt(parsedData.paceSec);
+      if(parsedData.paceMin==null || parsedData.paceSec==null){ return (layoutType==='type1') ? '0:00 /km' : '0:00'; }
+      const mm = String(parsedData.paceMin); const ss = zero2txt(parsedData.paceSec);
       return (layoutType==='type1') ? `${mm}:${ss} /km` : `${mm}:${ss}`;
     }
     function formatTimeByType(){
@@ -1185,20 +1123,12 @@
     function alignStatsBaseline(){
       if(layoutType !== 'type2') return;
       const stats = [];
-      const addIfVisible = (id)=>{
-        const wrap = document.getElementById(id+'-wrap');
-        if(getComputedStyle(wrap).display!=='none'){
-          stats.push(document.getElementById(id));
-        }
-      };
+      const addIfVisible = (id)=>{ const wrap = document.getElementById(id+'-wrap'); if(getComputedStyle(wrap).display!=='none'){ stats.push(document.getElementById(id)); } };
       addIfVisible('runs'); addIfVisible('pace'); addIfVisible('time');
       stats.forEach(el=>{ el.style.transform = ''; });
       const bottoms = stats.map(el=>el.getBoundingClientRect().bottom);
       const maxBottom = Math.max(...bottoms);
-      stats.forEach((el,i)=>{
-        const dy = Math.round(maxBottom - bottoms[i]);
-        if (dy) el.style.transform = `translateY(${dy}px)`;
-      });
+      stats.forEach((el,i)=>{ const dy = Math.round(maxBottom - bottoms[i]); if (dy) el.style.transform = `translateY(${dy}px)`; });
     }
     function renderStats(){
       document.getElementById('pace-label').textContent = 'Avg. Pace';
@@ -1212,23 +1142,16 @@
       document.getElementById('time').textContent = formatTimeByType();
 
       const hint = document.getElementById('cv-hint');
-      hint.style.display = 'none';
-      hint.textContent = '';
+      hint.style.display = 'none'; hint.textContent = '';
 
-      updateGridCols();
-      layoutStatsGrid();
-      alignStatsBaseline();
+      updateGridCols(); layoutStatsGrid(); alignStatsBaseline();
     }
 
-    /* ===== 업로드 라벨 ===== */
     function updateUploadLabel(){
       if(!uploadLabelText) return;
-      uploadLabelText.textContent = (sourceType === 'strava')
-        ? 'Upload your STRAVA record image'
-        : 'Upload your NRC record image';
+      uploadLabelText.textContent = (sourceType === 'strava') ? 'Upload your STRAVA record image' : 'Upload your NRC record image';
     }
 
-    /* ===== 업로드 → OCR ===== */
     function leadingDigit(n){
       if(!isFinite(n)) return null;
       const s = Math.floor(Math.abs(n)).toString();
@@ -1251,9 +1174,7 @@
           const roiBinForFiveGuard = fast.roiBin;
 
           // 2) 소스 타입별 파서
-          const parsedBySource = (sourceType === 'strava')
-            ? await parseStrava(img)
-            : await parseNRC(img);
+          const parsedBySource = (sourceType === 'strava') ? await parseStrava(img) : await parseNRC(img);
 
           if(parsedBySource.km){
             kmCandidates.push({
@@ -1286,7 +1207,7 @@
             }
           }
 
-          // 4) 페이스/타임 결합 (삼각 보정 → reconcile)
+          // 4) 페이스/타임 결합
           const p = parsedBySource;
 
           const timeSecOCR =
@@ -1354,7 +1275,8 @@
           status.textContent = "Done";
         }catch(err){
           console.error(err);
-          document.getElementById("upload-status").textContent = "Upload failed";
+          const msg = (err && (err.message || err.toString())) || 'Unknown error';
+          document.getElementById("upload-status").textContent = "Error: " + msg;  // ★ 에러 상세 표시
         }
       };
       reader.readAsDataURL(file);
@@ -1530,7 +1452,6 @@
       updateActive(bgRow, targetBtn);
     }
 
-    /* ===== Record Type ===== */
     function setRecordType(mode){
       recordType = mode;
       document.body.classList.toggle('mode-daily', mode==='daily');
@@ -1538,21 +1459,14 @@
       updateActive(modeRow, modeRow.querySelector(`button[data-mode="${CSS.escape(mode)}"]`));
       runsWrap.style.display = (mode==='monthly') ? 'block' : 'none';
       renderKm(document.getElementById('km').textContent.replace(/[^\d.]/g,'') || 0);
-      renderStats();
-      updateGridCols();
-      fitKmRow();
-      applyLayoutVisual();
-      applyFontStatsOffset(selectedFont);
+      renderStats(); updateGridCols(); fitKmRow(); applyLayoutVisual(); applyFontStatsOffset(selectedFont);
     }
 
-    /* ===== Source Type (NRC / STRAVA) ===== */
     function setSourceType(src){
-      sourceType = src; // 'nrc' | 'strava'
-      // 토글 UI
+      sourceType = src;
       btnNrc.classList.toggle('is-active', src==='nrc');
       btnStrava.classList.toggle('is-active', src==='strava');
 
-      // 소스별 포인트 컬러 적용
       if (src === 'strava'){
         document.documentElement.style.setProperty('--accent', '#FF9000');
         document.documentElement.style.setProperty('--accent-border', '#CD6B00');
@@ -1563,8 +1477,6 @@
         document.documentElement.style.setProperty('--accent-border', '#2AB500');
         btnMonthly.removeAttribute('disabled');
       }
-
-      // 업로드 라벨 갱신
       updateUploadLabel();
     }
 
@@ -1574,23 +1486,15 @@
       selectedDate = new Date(y, m-1, d);
       renderDateDisplay(); syncDateWidth();
     }
-    function renderDateDisplay(){
-      dateDisplay.textContent = formatDateText(selectedDate);
-    }
+    function renderDateDisplay(){ dateDisplay.textContent = formatDateText(selectedDate); }
     function applyLayoutVisual(){
       const word = document.getElementById('km-word');
 
-      if(layoutType==='type1'){
-        dateSection.style.display = (recordType==='monthly') ? 'grid' : 'none';
-      }else{
-        dateSection.style.display = 'grid';
-      }
+      if(layoutType==='type1'){ dateSection.style.display = (recordType==='monthly') ? 'grid' : 'none'; }
+      else{ dateSection.style.display = 'grid'; }
 
-      if (layoutType==='type2' || (layoutType==='type1' && recordType==='monthly')) {
-        dateDisplay.style.display = 'block';
-      } else {
-        dateDisplay.style.display = 'none';
-      }
+      if (layoutType==='type2' || (layoutType==='type1' && recordType==='monthly')) { dateDisplay.style.display = 'block'; }
+      else { dateDisplay.style.display = 'none'; }
 
       word.style.display = 'block';
 
@@ -1609,11 +1513,7 @@
       applyFontIndents(selectedFont, layoutType);
       applyFontStatsOffset(selectedFont);
 
-      renderStats();
-      updateGridCols();
-      layoutStatsGrid();
-      fitKmRow();
-      alignStatsBaseline();
+      renderStats(); updateGridCols(); layoutStatsGrid(); fitKmRow(); alignStatsBaseline();
     }
     function setLayout(type){
       layoutType = type;
@@ -1628,12 +1528,10 @@
       renderDateDisplay();
     }
 
-    /* ===== 이벤트 ===== */
     fontGridEl.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-font]'); if(btn) setFont(btn.dataset.font); });
     bgRow.addEventListener('click',   (e)=>{ const btn=e.target.closest('button[data-bg]');    if(btn) setBackground(btn.dataset.bg); });
     modeRow.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button[data-mode]');
-      if(!btn) return;
+      const btn=e.target.closest('button[data-mode]'); if(!btn) return;
       if(btn.hasAttribute('disabled')) return;
       setRecordType(btn.dataset.mode);
     });
@@ -1641,8 +1539,7 @@
     dateInput.addEventListener('change', setDateFromInput);
 
     document.getElementById('source-toggle').addEventListener('click', (e)=>{
-      const btn = e.target.closest('button[data-source]');
-      if(!btn) return;
+      const btn = e.target.closest('button[data-source]'); if(!btn) return;
       setSourceType(btn.dataset.source);
     });
 
@@ -1679,13 +1576,8 @@
     }
     function setTypeKmWordStyle(type, { size, gap } = {}){
       const root = document.documentElement.style;
-      if(type==='type1'){
-        if (size) root.setProperty('--t1-kmWordSize', size);
-        if (gap)  root.setProperty('--t1-kmWordGap', gap);
-      }else{
-        if (size) root.setProperty('--t2-kmWordSize', size);
-        if (gap)  root.setProperty('--t2-kmWordGap', gap);
-      }
+      if(type==='type1'){ if (size) root.setProperty('--t1-kmWordSize', size); if (gap)  root.setProperty('--t1-kmWordGap', gap); }
+      else{ if (size) root.setProperty('--t2-kmWordSize', size); if (gap)  root.setProperty('--t2-kmWordGap', gap); }
     }
     function setTypeKmScale(type, scale){
       const root = document.documentElement.style;
