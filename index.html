@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>RUNIMATE BETA</title>
+  <title>RUNIMATE</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
 
   <!-- Google Fonts -->
@@ -297,7 +297,7 @@
   <header>
     <div class="header-row">
       <div class="title-wrap">
-        <h1>RUNIMATE V.0.9.5 BETA</h1>
+        <h1>RUNIMATE V.0.9.7 BETA</h1>
         <div class="subtitle">by JS @runarchive.js</div>
       </div>
       <!-- ▼ 우측 정렬: NRC / STRAVA 토글 -->
@@ -570,6 +570,30 @@
         pace: isFinite(final.paceSec) ? final.paceSec : NaN,
         meta: final
       };
+    }
+
+    /* ▼ 추가: 셋 중 2개로 나머지 자동 계산 + 형식 변환 */
+    function hmsFromSeconds(sec){
+      if(!isFinite(sec)) return {H:null,M:null,S:null};
+      sec = Math.max(0, Math.round(sec));
+      const H = Math.floor(sec/3600);
+      const M = Math.floor((sec%3600)/60);
+      const S = sec%60;
+      return {H,M,S};
+    }
+    function mmssFromSeconds(sec){
+      if(!isFinite(sec)) return {M:null,S:null};
+      sec = Math.max(0, Math.round(sec));
+      const M = Math.floor(sec/60);
+      const S = sec%60;
+      return {M,S};
+    }
+    function solveTPD({ timeSec, paceSec, distKm }){
+      let t = timeSec, p = paceSec, d = distKm;
+      if(!isFinite(t) && isFinite(p) && isFinite(d) && d>0) t = p*d;
+      if(!isFinite(p) && isFinite(t) && isFinite(d) && d>0) p = t/d;
+      if((!isFinite(d) || d<=0) && isFinite(t) && isFinite(p) && p>0) d = t/p;
+      return { timeSec:t, paceSec:p, distKm:d };
     }
 
     /* ===== 이미지 전처리/ROI ===== */
@@ -1231,47 +1255,71 @@
             }
           }
 
-          // 4) 페이스/타임 결합
+          // 4) 페이스/타임 결합 (삼각 보정 우선 → 문자열 결합 검증)
           const p = parsedBySource;
-          const paceOCRStr = (p.paceMin!=null && p.paceSec!=null) ? `${p.paceMin}:${zero2txt(p.paceSec)}` : null;
-          const distStr = (kmBest ?? p.km ?? '').toString();
+
+          // OCR→초 단위
+          const timeSecOCR =
+            (p.timeH!=null || p.timeM!=null || p.timeS!=null)
+              ? ((p.timeH||0)*3600 + (p.timeM||0)*60 + (p.timeS||0))
+              : (p.timeRaw ? parseTimeToSec(p.timeRaw) : NaN);
+          const paceSecOCR =
+            (p.paceMin!=null && p.paceSec!=null) ? (p.paceMin*60 + p.paceSec) : NaN;
+          const distKmOCR = (kmBest ?? p.km);
+          const distKmNum = isFinite(distKmOCR) ? parseFloat(String(distKmOCR)) : NaN;
+
+          // 4-1) 셋 중 2개로 나머지 1개 메우기
+          let { timeSec:t0, paceSec:p0, distKm:d0 } = solveTPD({
+            timeSec: timeSecOCR,
+            paceSec: paceSecOCR,
+            distKm:  distKmNum
+          });
+
+          // 4-2) reconcile로 한 번 더 평탄화(허용 오차 내 교정)
+          const paceStrForCv = isFinite(p0) ? `${Math.floor(p0/60)}:${zero2txt(p0%60)}` : null;
           const cv = reconcile({
-            timeStr: p.timeRaw || '',
-            distStr,
-            paceStr: paceOCRStr,
+            timeStr: (isFinite(t0) && t0>=0)
+                      ? (p.timeRaw || (t0>=3600
+                          ? `${Math.floor(t0/3600)}:${zero2txt(Math.floor((t0%3600)/60))}:${zero2txt(t0%60)}`
+                          : `${Math.floor(t0/60)}:${zero2txt(t0%60)}`))
+                      : (p.timeRaw || ''),
+            distStr: isFinite(d0) ? String(d0) : (isFinite(distKmNum) ? String(distKmNum) : ''),
+            paceStr: paceStrForCv,
             unit: 'km'
           });
 
-          const timeSecForCalc = parseTimeToSec(p.timeRaw || '');
-          const paceSecOCR = (p.paceMin!=null && p.paceSec!=null) ? (p.paceMin*60 + p.paceSec) : NaN;
-          const paceSecForCalc = isFinite(paceSecOCR) ? paceSecOCR : (isFinite(cv.pace) ? cv.pace : NaN);
-          const calcKmCandidate = (recordType==='daily' && isFinite(timeSecForCalc) && isFinite(paceSecForCalc))
-            ? (timeSecForCalc / paceSecForCalc)
-            : NaN;
+          // 4-3) 최종값 확정(삼각 보정값 우선, 없으면 cv/계산 대체)
+          const finalTimeSec = isFinite(t0) ? t0 : (cv.meta && isFinite(cv.meta.timeSec) ? cv.meta.timeSec : NaN);
+          const finalPaceSec = isFinite(p0) ? p0 : (isFinite(cv.pace) ? Math.round(cv.pace) : NaN);
+          const finalDistKm  = isFinite(d0) ? d0 : (isFinite(cv.distance) ? cv.distance : (isFinite(distKmNum) ? distKmNum : NaN));
 
-          const ocrKmRaw = (kmBest ?? (p.km ? parseFloat(String(p.km).replace(',','.')) : NaN));
+          // 4-4) km 리더 숫자 불일치 시(예: 5가 3으로 잘못 읽힘) 거리 보정 유지
+          const timeSecForCalc = finalTimeSec;
+          const paceSecForCalc = finalPaceSec;
+          const calcKmCandidate = (recordType==='daily' && isFinite(timeSecForCalc) && isFinite(paceSecForCalc))
+            ? (timeSecForCalc / paceSecForCalc) : NaN;
+
+          const ocrKmRaw = finalDistKm;
           const ldOCR  = leadingDigit(ocrKmRaw);
           const ldCALC = leadingDigit(calcKmCandidate);
           const leadMismatch = (ldOCR!==null && ldCALC!==null && ldOCR !== ldCALC);
+          const finalKm = (leadMismatch && isFinite(calcKmCandidate)) ? calcKmCandidate : finalDistKm;
 
-          let finalKm;
-          const fallbackKm = isFinite(cv.distance) ? cv.distance : (isFinite(ocrKmRaw) ? ocrKmRaw : (isFinite(calcKmCandidate) ? calcKmCandidate : 0));
-          if (leadMismatch && isFinite(calcKmCandidate)){
-            finalKm = calcKmCandidate;
-          } else if (!isFinite(ocrKmRaw) && isFinite(calcKmCandidate)) {
-            finalKm = calcKmCandidate;
-          } else {
-            finalKm = fallbackKm;
-          }
-
-          let finalPaceSec = isFinite(cv.pace) ? Math.round(cv.pace) : ((p.paceMin!=null&&p.paceSec!=null)? (p.paceMin*60+p.paceSec) : NaN);
+          // 4-5) 화면 표시용으로 변환해서 저장
+          const {H:FH, M:FM, S:FS} = hmsFromSeconds(finalTimeSec);
+          const {M:PM, S:PS}       = mmssFromSeconds(finalPaceSec);
 
           parsedData = {
-            km: finalKm ?? 0,
-            paceMin: isFinite(finalPaceSec) ? Math.floor(finalPaceSec/60) : null,
-            paceSec: isFinite(finalPaceSec) ? (finalPaceSec%60) : null,
-            timeH: p.timeH, timeM: p.timeM, timeS: p.timeS,
-            timeRaw: p.timeRaw || null,
+            km: isFinite(finalKm) ? finalKm : 0,
+            paceMin: isFinite(finalPaceSec) ? PM : null,
+            paceSec: isFinite(finalPaceSec) ? PS : null,
+            timeH: isFinite(finalTimeSec) ? FH : null,
+            timeM: isFinite(finalTimeSec) ? FM : null,
+            timeS: isFinite(finalTimeSec) ? FS : null,
+            timeRaw: (isFinite(finalTimeSec)
+                      ? (FH>0 ? `${FH}:${zero2txt(FM)}:${zero2txt(FS)}`
+                              : `${FM}:${zero2txt(FS)}`)
+                      : (p.timeRaw || null)),
             runs: (recordType==='monthly') ? (p.runs ?? null) : null,
             cv
           };
