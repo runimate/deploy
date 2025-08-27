@@ -626,7 +626,6 @@
       });
     }
 
-    // NEW: 풀 텍스트 OCR 전용(플래튼+샤픈+이진화)
     async function preprocessForFullOCR(imgDataURL){
       const sharp1 = await unsharp(imgDataURL, 0.9);
       const bin1   = await preprocessImageToDataURL(sharp1, 2.0, 190);
@@ -668,25 +667,48 @@
       return c.toDataURL('image/png');
     }
 
-    // STRAVA: 페이스/타임 ROI
-    async function cropStravaStatsROI(imgDataURL, variant = 0){
-      const params = [
-        { topPct: 0.32, heightPct: 0.34, sidePct: 0.08, scale: 2.4 },
-        { topPct: 0.50, heightPct: 0.40, sidePct: 0.06, scale: 2.6 }
-      ][variant];
-      return cropTopNumberROI(imgDataURL, params.topPct, params.heightPct, params.sidePct, params.scale);
-    }
+    // ▼ STRAVA 상단 여백 대응: ROI를 두 위치에서 시도 (거리용)
+    async function multiPassKmCandidates_FAST(imgDataURL){
+      const out = [];
 
-    const KM_LINE_OCR_OPTS_7 = {
-      tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-      tessedit_char_whitelist: '0123456789.,',
-      classify_bln_numeric_mode: '1'
-    };
-    const KM_LINE_OCR_OPTS_8 = {
-      tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
-      tessedit_char_whitelist: '0123456789.,',
-      classify_bln_numeric_mode: '1'
-    };
+      const roi0 = await cropTopNumberROI(imgDataURL, 0.06, 0.30, 0.06, 2.8);
+      const roi1 = await cropTopNumberROI(imgDataURL, 0.10, 0.30, 0.06, 2.8); // 보조 ROI
+
+      const KM_LINE_OCR_OPTS_7 = {
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+        tessedit_char_whitelist: '0123456789.,',
+        classify_bln_numeric_mode: '1'
+      };
+      const KM_LINE_OCR_OPTS_8 = {
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
+        tessedit_char_whitelist: '0123456789.,',
+        classify_bln_numeric_mode: '1'
+      };
+
+      const tryOne = async (tag, roi) => {
+        const sharp = await unsharp(roi, 0.9);
+        const bin   = await preprocessImageToDataURL(sharp, 1.0, 190);
+
+        const [rA, rB, rC] = await Promise.all([
+          Tesseract.recognize(sharp, 'eng', KM_LINE_OCR_OPTS_7),
+          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_7),
+          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_8)
+        ]);
+
+        [['A',rA],['B',rB],['C',rC]].forEach(([s,res])=>{
+          const conf = (res.data?.confidence ?? 60)/100;
+          numsFromText(res.data.text).forEach(o=> out.push({ ...o, src:`${tag}${s}-text`,  score:(o.score||0)+conf*12 }));
+          kmCandidatesFromWords(res.data.words).forEach(o=> out.push({ ...o, src:`${tag}${s}-words`, score:(o.score||0)+conf*12 }));
+        });
+
+        return bin;
+      };
+
+      const bin1 = await tryOne('roi0', roi0);
+      const bin2 = await tryOne('roi1', roi1);
+
+      return { cands: out, roiBin: bin2 || bin1 };
+    }
 
     /* ===== 파서/후보 선택 ===== */
     function numsFromText(s){
@@ -772,7 +794,7 @@
       ctx.drawImage(img,0,0);
       function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(ctx.getImageData(x,y,1,1).data[0]<128) s++; } return s; }
       let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x>w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
+      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } } /* bugfix: <w */
       const digitW = Math.max(8, Math.floor(w*0.18));
       const R = Math.min(w-1, L+digitW);
 
@@ -842,53 +864,129 @@
       return best;
     }
 
-    // ▼ STRAVA 상단 여백 대응: ROI를 두 위치에서 시도
-    async function multiPassKmCandidates_FAST(imgDataURL){
-      const out = [];
+    /* ===== STRAVA 전용: 라벨-기반 싱글라인 OCR ===== */
+    const STRAVA_FIND_OPTS = { preserve_interword_spaces: '1', tessedit_pageseg_mode: Tesseract.PSM.AUTO };
+    const STRAVA_LINE_NUM_ONLY = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789.,:' };
+    const STRAVA_LINE_MIXED    = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789:/kmshm ' };
 
-      const roi0 = await cropTopNumberROI(imgDataURL, 0.06, 0.30, 0.06, 2.8);
-      const roi1 = await cropTopNumberROI(imgDataURL, 0.10, 0.30, 0.06, 2.8); // 보조 ROI
+    function findLabelBoxes(words, labels){
+      const found = {};
+      const lower = new Set(labels.map(s=>s.toLowerCase()));
+      for(const w of (words||[])){
+        const t = (w.text||'').trim().toLowerCase();
+        if(lower.has(t)){
+          found[t] = {
+            x0: Math.max(0, Math.floor(w.bbox.x0)),
+            y0: Math.max(0, Math.floor(w.bbox.y0)),
+            x1: Math.max(0, Math.floor(w.bbox.x1)),
+            y1: Math.max(0, Math.floor(w.bbox.y1)),
+            line: w.line
+          };
+        }
+      }
+      return found;
+    }
+    function rectBelow(labelBox, imgW, imgH){
+      const x0 = Math.max(0, labelBox.x0);
+      const x1 = Math.min(imgW, labelBox.x1);
+      const y0 = Math.min(imgH, labelBox.y1 + Math.round((labelBox.y1-labelBox.y0)*0.25));
+      const h  = Math.round((labelBox.y1-labelBox.y0) * 2.2);
+      const y1 = Math.min(imgH, y0 + h);
+      return {x:x0, y:y0, w:x1-x0, h:y1-y0};
+    }
+    async function ocrSingleLine(imgUrl, rect, opts){
+      const {img,w,h} = await toCanvas(imgUrl);
+      const c = document.createElement('canvas');
+      c.width = rect.w; c.height = rect.h;
+      const ctx = c.getContext('2d', {willReadFrequently:true});
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+      const dataURL = c.toDataURL('image/png');
+      const { data } = await Tesseract.recognize(dataURL, 'eng', opts);
+      return (data.text||'').trim();
+    }
+    function parseStravaPace(raw){
+      const m = raw.match(/(\d{1,2})\s*:\s*(\d{2})/);
+      if(!m) return {min:null, sec:null};
+      return {min:+m[1], sec:+m[2]};
+    }
+    function parseStravaTime(raw){
+      let H=null,M=null,S=null, rawOut=null;
+      let m = raw.match(/(\d+)\s*h\s*(\d+)\s*m/i);
+      if(m){ H=+m[1]; M=+m[2]; S=0; rawOut=`${H}:${String(M).padStart(2,'0')}:${String(S).padStart(2,'0')}`; return {H,M,S,raw:rawOut}; }
+      m = raw.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
+      if(m){ H=+m[1]; M=+m[2]; S=+m[3]; rawOut=`${H}:${String(M).padStart(2,'0')}:${String(S).padStart(2,'0')}`; return {H,M,S,raw:rawOut}; }
+      m = raw.match(/\b(\d{1,2}):(\d{2})\b/);
+      if(m){ H=0; M=+m[1]; S=+m[2]; rawOut=`${M}:${String(S).padStart(2,'0')}`; return {H,M,S,raw:rawOut}; }
+      return {H:null,M:null,S:null,raw:null};
+    }
+    async function ocrStravaPipeline(imgDataURL){
+      // 전처리
+      const pre = await preprocessImageToDataURL(imgDataURL, 2.2, 180);
+      const full = await Tesseract.recognize(pre, 'eng', STRAVA_FIND_OPTS);
+      const words = full.data.words||[];
+      const labels = findLabelBoxes(words, ['Distance','Pace','Time']);
+      const {w,h} = await toCanvas(pre);
 
-      const tryOne = async (tag, roi) => {
-        const sharp = await unsharp(roi, 0.9);
-        const bin   = await preprocessImageToDataURL(sharp, 1.0, 190);
+      // Distance
+      let kmVal = null;
+      if(labels['distance']){
+        const r = rectBelow(labels['distance'], w, h);
+        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_NUM_ONLY);
+        const m = tx.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
+        if(m) kmVal = parseFloat(m[1].replace(',', '.'));
+      }
 
-        const [rA, rB, rC] = await Promise.all([
-          Tesseract.recognize(sharp, 'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_8)
-        ]);
+      // Pace
+      let paceMin=null, paceSec=null;
+      if(labels['pace']){
+        const r = rectBelow(labels['pace'], w, h);
+        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
+        const p = parseStravaPace(tx);
+        paceMin = p.min; paceSec = p.sec;
+      }
 
-        [['A',rA],['B',rB],['C',rC]].forEach(([s,res])=>{
-          const conf = (res.data?.confidence ?? 60)/100;
-          numsFromText(res.data.text).forEach(o=> out.push({ ...o, src:`${tag}${s}-text`,  score:(o.score||0)+conf*12 }));
-          kmCandidatesFromWords(res.data.words).forEach(o=> out.push({ ...o, src:`${tag}${s}-words`, score:(o.score||0)+conf*12 }));
-        });
+      // Time
+      let timeH=null,timeM=null,timeS=null,timeRaw=null;
+      if(labels['time']){
+        const r = rectBelow(labels['time'], w, h);
+        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
+        const t = parseStravaTime(tx);
+        timeH = t.H; timeM = t.M; timeS = t.S; timeRaw = t.raw;
+      }
 
-        return bin;
-      };
+      // 상호 검증(크게 어긋나면 pace 재계산)
+      if(kmVal!=null && paceMin!=null && paceSec!=null && (timeH!=null || timeM!=null || timeS!=null)){
+        const timeSec = (timeH||0)*3600 + (timeM||0)*60 + (timeS||0);
+        const paceSec = paceMin*60 + paceSec;
+        if(isFinite(timeSec) && isFinite(paceSec) && kmVal>0){
+          const paceFromTime = timeSec / kmVal;
+          const diff = Math.abs(paceFromTime - paceSec);
+          if(diff > 6 && diff / Math.max(1, paceSec) > 0.05){
+            const adj = Math.round(paceFromTime);
+            paceMin = Math.floor(adj/60); paceSec = adj%60;
+          }
+        }
+      }
 
-      const bin1 = await tryOne('roi0', roi0);
-      const bin2 = await tryOne('roi1', roi1);
-
-      return { cands: out, roiBin: bin2 || bin1 };
+      return { km: kmVal, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
 
-    /* ===== OCR 파서 (runs/pace/time) — 공용 파서 ===== */
+    /* ===== 공용 OCR 파서 (NRC용) ===== */
     function parseFromOCR(textRaw){
       const text = normalizeOCR(textRaw);
 
-      // Pace: NRC 5'53", STRAVA 5:53 /km
+      // Pace
       let paceMin=null, paceSec=null;
       {
         let m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\s*"?\b/); // NRC
         if(!m){
-          m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})(?:\s*\/\s*km)?\b/i); // STRAVA
+          m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})(?:\s*\/\s*km)?\b/i); // fallback
         }
         if(m){ paceMin = parseInt(m[1],10); paceSec = parseInt(m[2],10); }
       }
 
-      // Time: HH:MM:SS | MM:SS | 2h 11m | 36m 55s | 1h 2m 등
+      // Time
       let timeH=null,timeM=null,timeS=null,timeRaw=null;
       let tm = text.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
       if(tm){
@@ -912,7 +1010,7 @@
         }
       }
 
-      // Distance backup from label around "km" or "킬로미터"
+      // Distance backup around "km"
       const re2dec  = /(\d{1,3})\s*[.,]\s*(\d{2})\b/;
       const re1dec  = /(\d{1,3})\s*[.,]\s*(\d{1})\b/;
       const reInt   = /\b(\d{1,3})\b/;
@@ -929,12 +1027,6 @@
           kmFromLabel = first2Dec(before) || first2Dec(after) ||
                         first1Dec(before) || first1Dec(after) ||
                         firstInt(before)  || firstInt(after);
-        }else{
-          idx = text.search(/킬로미터|kilometer/i);
-          if (idx !== -1){
-            const before = text.slice(Math.max(0, idx - 60), idx);
-            kmFromLabel = first2Dec(before) || first1Dec(before) || firstInt(before);
-          }
         }
       }
 
@@ -960,30 +1052,9 @@
       return { km: kmFromLabel, runs, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
 
-    /* ===== STRAVA/NRC 래퍼 ===== */
-    const STRAVA_TEXT_OPTS = { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK };
-
-    // STRAVA: 풀 OCR(전처리) + 통계 ROI 보강
-    async function ocrStravaStats(imgDataURL){
-      const roiA = await cropStravaStatsROI(imgDataURL, 0);
-      const roiB = await cropStravaStatsROI(imgDataURL, 1);
-      const prepA = await preprocessForFullOCR(roiA);
-      const prepB = await preprocessForFullOCR(roiB);
-      const [rA, rB] = await Promise.all([
-        Tesseract.recognize(prepA, 'eng', STRAVA_TEXT_OPTS),
-        Tesseract.recognize(prepB, 'eng', STRAVA_TEXT_OPTS),
-      ]);
-      return [rA?.data?.text||'', rB?.data?.text||''].join('\n');
-    }
-
     async function parseStrava(imgDataURL){
-      const fullPrep = await preprocessForFullOCR(imgDataURL);
-      const rFull = await Tesseract.recognize(fullPrep, 'eng', STRAVA_TEXT_OPTS);
-      const statsText = await ocrStravaStats(imgDataURL);
-      const text = (rFull?.data?.text||'') + '\n' + (statsText||'');
-      return parseFromOCR(text);
+      return await ocrStravaPipeline(imgDataURL);
     }
-
     async function parseNRC(imgDataURL){
       const fullPrep = await preprocessForFullOCR(imgDataURL);
       const rFull = await Tesseract.recognize(fullPrep, 'eng+kor', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
@@ -1124,10 +1195,10 @@
           let kmCandidates = fast.cands;
           const roiBinForFiveGuard = fast.roiBin;
 
-          // 2) 소스 타입별 풀 OCR + (STRAVA는 하단 통계 ROI 보강 포함)
+          // 2) 소스 타입별 파서 완전 분리
           const parsedBySource = (sourceType === 'strava')
-            ? await parseStrava(img)
-            : await parseNRC(img);
+            ? await parseStrava(img)   // 라벨-기반 파이프라인
+            : await parseNRC(img);     // 공용 텍스트 파서
 
           if(parsedBySource.km){
             kmCandidates.push({
