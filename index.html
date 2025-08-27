@@ -978,19 +978,20 @@
         if(k!=null) kmVal = k;
       }
 
-      // 상호 검증
-      if(kmVal!=null && paceMin!=null && paceSec!=null && (timeH!=null || timeM!=null || timeS!=null)){
-        const timeSec = (timeH||0)*3600 + (timeM||0)*60 + (timeS||0);
-        const paceSec = paceMin*60 + paceSec;
-        if(isFinite(timeSec) && isFinite(paceSec) && kmVal>0){
-          const paceFromTime = timeSec / kmVal;
-          const diff = Math.abs(paceFromTime - paceSec);
-          if(diff > 6 && diff / Math.max(1, paceSec) > 0.05){
-            const adj = Math.round(paceFromTime);
-            paceMin = Math.floor(adj/60); paceSec = adj%60;
-          }
-        }
-      }
+      // 4) 상호 검증(크게 어긋나면 pace 재계산)
+if(kmVal!=null && paceMin!=null && paceSec!=null && (timeH!=null || timeM!=null || timeS!=null)){
+  const timeSec = (timeH||0)*3600 + (timeM||0)*60 + (timeS||0);
+  const paceSecVal = paceMin*60 + (paceSec ?? 0);   // ✅ 새 이름으로 선언
+  if(isFinite(timeSec) && isFinite(paceSecVal) && kmVal>0){
+    const paceFromTime = timeSec / kmVal;
+    const diff = Math.abs(paceFromTime - paceSecVal);
+    if(diff > 6 && diff / Math.max(1, paceSecVal) > 0.05){
+      const adj = Math.round(paceFromTime);
+      paceMin = Math.floor(adj/60);
+      paceSec = adj%60;
+    }
+  }
+}
 
       return { km: kmVal, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
