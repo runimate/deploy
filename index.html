@@ -896,7 +896,107 @@
       const m = t.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
       return m ? parseFloat(m[1].replace(',','.')) : null;
     }
+/* ===== STRAVA Pace 전용 보강 유틸 ===== */
+// OCR 노이즈를 숫자·콜론 형태로 정규화
+function normalizePaceGlyphs(t){
+  if(!t) return "";
+  return t
+    .replace(/[Ood]/g,'0')   // O, o, d → 0
+    .replace(/[Ss]/g,'5')    // S, s → 5
+    .replace(/[Il]/g,'1')    // I, l → 1
+    .replace(/[,·•]/g,':')   // 콤마/점표기 → :
+    .replace(/[^0-9:]/g,'')  // 숫자/콜론만 유지
+    .replace(/:{2,}/g,':')   // 콜론 연속 → 한 개
+    .trim();
+}
 
+// "mm:ss" 유효성 & 점수화 (러닝 pace 합리범위 대강 2:30~12:00)
+function scorePaceCandidate(mm, ss, { km, timeSec } = {}){
+  if(mm==null || ss==null) return -1e9;
+  if(mm<0 || ss<0 || ss>=60) return -1e9;
+
+  // 기본 가중: 정상 범위에 가까울수록 가점
+  const sec = mm*60 + ss;
+  let score = 0;
+
+  // 러닝으로 흔한 구간
+  if(sec>=150 && sec<=720) score += 30;      // 2:30 ~ 12:00
+  if(sec>=210 && sec<=420) score += 15;      // 3:30 ~ 7:00 sweet spot
+
+  // 보조 정보로 일관성 검증 (km & time 있으면 pace≈time/km)
+  if(km && timeSec && km>0){
+    const expect = timeSec / km;
+    const diff = Math.abs(expect - sec);
+    // 3초 이내면 강한 가점, 10초 이내도 가점
+    if(diff<=3) score += 40;
+    else if(diff<=6) score += 25;
+    else if(diff<=12) score += 10;
+  }
+
+  // mm:ss 형태면 가점 (분이 2자리일 필요 없음)
+  if(ss<=59) score += 5;
+
+  return score;
+}
+
+// 다양한 전처리×PSM×화이트리스트로 복수 시도 → 최고 득점 1개 반환
+async function readPaceCandidates(preImgURL, rect, hints={}){
+  // rect 영역 crop
+  const {img} = await toCanvas(preImgURL);
+  const c = document.createElement('canvas');
+  c.width = rect.w; c.height = rect.h;
+  const ctx = c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+  const roi = c.toDataURL('image/png');
+
+  // 전처리 버전 세트
+  const sharp = await unsharp(roi, 0.9);
+  const bin180 = await preprocessImageToDataURL(roi, 1.2, 180);
+  const bin195 = await preprocessImageToDataURL(roi, 1.2, 195);
+
+  const images = [roi, sharp, bin180, bin195];
+
+  // OCR 옵션 세트 (라인/워드, 화이트리스트 다변화)
+  const OPTS = [
+    { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist:'0123456789:/' },
+    { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD, tessedit_char_whitelist:'0123456789:' },
+    { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist:'0123456789:/kmshm ' },
+  ];
+
+  const cands = [];
+
+  // 병렬로 모든 조합 시도
+  for(const im of images){
+    for(const opts of OPTS){
+      try{
+        const { data } = await Tesseract.recognize(im, 'eng', opts);
+        const raw = (data.text||'').trim();
+        if(!raw) continue;
+
+        // 정규화 → mm:ss 추출 시도
+        const nz = normalizePaceGlyphs(raw);       // 예: "5:12", "512" 등
+        const pat = /(\d{1,2})[:]?(\d{2})/g;       // 콜론이 빠진 "512" 형태도 허용
+        let m;
+        while((m = pat.exec(nz))){
+          const mm = parseInt(m[1],10);
+          const ss = parseInt(m[2],10);
+          const sc = scorePaceCandidate(mm, ss, hints);
+          // OCR 신뢰도도 반영(조금)
+          const conf = (data.confidence ?? 60)/100;
+          cands.push({ mm, ss, score: sc + conf*8, src:'pace-robust', raw, nz });
+        }
+      }catch(e){ /* noop */ }
+    }
+  }
+
+  if(!cands.length) return { min:null, sec:null, debug:{ tried:true, total:0 } };
+
+  // 최고 득점 Pace 하나 고르기
+  cands.sort((a,b)=> b.score - a.score);
+  const best = cands[0];
+  return { min: best.mm, sec: best.ss, debug:{ tried:true, total:cands.length, best } };
+}
     function findLabelBoxes(words, labels){
       const found = {};
       const lower = new Set(labels.map(s=>s.toLowerCase()));
@@ -951,12 +1051,39 @@
         const m = tx.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
         if(m) kmVal = parseFloat(m[1].replace(',', '.'));
       }
-      if(labels['pace']){
-        const r = rectBelow(labels['pace'], w, h);
-        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
-        const p = parseAnyPace(tx);
-        paceMin = p.min; paceSec = p.sec;
-      }
+   // Pace
+let paceMin=null, paceSec=null;
+if(labels['pace']){
+  const r = rectBelow(labels['pace'], w, h);
+
+  // 🔥 강화된 Pace 리더 호출 (km/time 힌트로 스코어 향상)
+  const timeSecHint = (() => {
+    // 아직 timeH/M/S가 결정 전일 수 있어 초기엔 null, 아래서 다시 교정함
+    const t = parseAnyTime(rawAllText);
+    if(t && (t.H!=null || t.M!=null || t.S!=null)){
+      return (t.H||0)*3600 + (t.M||0)*60 + (t.S||0);
+    }
+    return null;
+  })();
+
+  const kmHint = (() => {
+    // distance 라벨에서 먼저 잡혔으면 그것, 아니면 fallback 텍스트에서
+    if(kmVal != null) return kmVal;
+    const k = extractKmFromText(rawAllText);
+    return k!=null ? k : null;
+  })();
+
+  const robust = await readPaceCandidates(pre, r, { km: kmHint, timeSec: timeSecHint });
+  if(robust.min!=null){
+    paceMin = robust.min;
+    paceSec = robust.sec;
+  }else{
+    // 최후의 보루: 기존 단순 파서도 한 번 더
+    const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
+    const p = parseAnyPace(tx);
+    if(p.min!=null){ paceMin=p.min; paceSec=p.sec; }
+  }
+}
       if(labels['time']){
         const r = rectBelow(labels['time'], w, h);
         const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
