@@ -516,8 +516,7 @@
       if(!p) return NaN;
       const clean = p.replace(/[^\d:]/g,':');
       const [m,s] = clean.split(':').map(n=>parseInt(n||'0',10));
-      if(Number.isNaN(m) || Number.isNaN(s)) return NaN;
-      return m*60 + (s||0);
+      return (Number.isNaN(m)||Number.isNaN(s)) ? NaN : (m*60 + (s||0));
     }
     function paceFrom(timeSec, distKm){
       if(!timeSec || !distKm) return NaN;
@@ -733,7 +732,8 @@
 
       return { cands: out, roiBin: bin2 || bin1 };
     }
-        /* ===== 파서/후보 선택 ===== */
+
+    /* ===== 파서/후보 선택 ===== */
     function numsFromText(s){
       const t = normalizeOCR(s||'');
       const m = t.match(/\b\d{1,3}[.,]\d{1,2}\b/g) || [];
@@ -1231,7 +1231,8 @@
       const s = Math.floor(Math.abs(n)).toString();
       return s.length ? s[0] : null;
     }
-        document.getElementById("file-upload").addEventListener("change", async (e)=>{
+
+    document.getElementById("file-upload").addEventListener("change", async (e)=>{
       const file = e.target.files[0]; if(!file) return;
       const status = document.getElementById("upload-status");
       status.textContent = "Processing…";
@@ -1282,16 +1283,26 @@
             }
           }
 
-          // 4) 페이스/타임 결합 (삼각 보정 → reconcile)
+          // 4) STRAVA Pace 안정화 보정 → 이후 solve/reconcile로 이어감
+          let stabilized = null;
+          if (sourceType === 'strava'){
+            stabilized = stabilizeStravaPace(parsedBySource, (kmBest ?? parsedBySource.km));
+          }
+
+          // 5) 페이스/타임 결합 (삼각 보정 → reconcile)
           const p = parsedBySource;
 
           const timeSecOCR =
-            (p.timeH!=null || p.timeM!=null || p.timeS!=null)
+            stabilized ? stabilized.timeSec :
+            ((p.timeH!=null || p.timeM!=null || p.timeS!=null)
               ? ((p.timeH||0)*3600 + (p.timeM||0)*60 + (p.timeS||0))
-              : (p.timeRaw ? parseTimeToSec(p.timeRaw) : NaN);
+              : (p.timeRaw ? parseTimeToSec(p.timeRaw) : NaN));
+
           const paceSecOCR =
-            (p.paceMin!=null && p.paceSec!=null) ? (p.paceMin*60 + p.paceSec) : NaN;
-          const distKmOCR = (kmBest ?? p.km);
+            stabilized ? ((stabilized.paceMin!=null && stabilized.paceSec!=null) ? (stabilized.paceMin*60 + stabilized.paceSec) : NaN)
+                       : ((p.paceMin!=null && p.paceSec!=null) ? (p.paceMin*60 + p.paceSec) : NaN);
+
+          const distKmOCR = stabilized ? stabilized.distKm : (kmBest ?? p.km);
           const distKmNum = isFinite(distKmOCR) ? parseFloat(String(distKmOCR)) : NaN;
 
           let { timeSec:t0, paceSec:p0, distKm:d0 } = solveTPD({
@@ -1316,7 +1327,7 @@
           const finalPaceSec = isFinite(p0) ? p0 : (isFinite(cv.pace) ? Math.round(cv.pace) : NaN);
           const finalDistKm  = isFinite(d0) ? d0 : (isFinite(cv.distance) ? cv.distance : (isFinite(distKmNum) ? distKmNum : NaN));
 
-          // ✅ Pace 안정화: (시간 ÷ 거리) 계산값으로 교체 조건 보정
+          // (보정 2차 안전망) 시간÷거리 기반 pace 교체 조건
           let finalPaceSecUsed = finalPaceSec;
           if (isFinite(finalTimeSec) && isFinite(finalDistKm) && finalDistKm > 0){
             const calc = Math.round(finalTimeSec / finalDistKm);
@@ -1751,5 +1762,49 @@
       updateUploadLabel();
     };
   </script>
+
+  <!-- ========= Part3: STRAVA Pace 안정화 보정 ========= -->
+  <script>
+    /**
+     * STRAVA Pace 보정기:
+     * OCR Pace와 (Time ÷ Distance) 계산 Pace를 비교하여
+     * 조건을 만족하면 계산값으로 교체.
+     *
+     * @param {Object} parsed - parseStrava 결과(또는 유사 구조)
+     * @param {Number} kmBest - 거리 후보 최종값
+     * @returns {Object} { timeSec, distKm, paceMin, paceSec }
+     */
+    function stabilizeStravaPace(parsed, kmBest){
+      const timeSec =
+        (parsed.timeH||0)*3600 +
+        (parsed.timeM||0)*60 +
+        (parsed.timeS||0);
+
+      const paceSecOCR = (parsed.paceMin!=null && parsed.paceSec!=null)
+        ? (parsed.paceMin*60 + parsed.paceSec) : NaN;
+
+      const distKm = isFinite(kmBest) ? kmBest : parsed.km;
+
+      let finalPaceSec = paceSecOCR;
+
+      if (isFinite(timeSec) && isFinite(distKm) && distKm > 0){
+        const calc = Math.round(timeSec / distKm);
+        if (!isFinite(paceSecOCR) ||
+            Math.abs(paceSecOCR - calc) > 4 ||
+            Math.abs(paceSecOCR - calc) / Math.max(1, paceSecOCR) > 0.03){
+          // 교체
+          finalPaceSec = calc;
+        }
+      }
+
+      return {
+        timeSec,
+        distKm,
+        paceMin: isFinite(finalPaceSec) ? Math.floor(finalPaceSec/60) : null,
+        paceSec: isFinite(finalPaceSec) ? finalPaceSec%60 : null
+      };
+    }
+  </script>
+  <!-- ========= /Part3 ========= -->
 </body>
 </html>
