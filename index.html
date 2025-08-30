@@ -690,47 +690,113 @@
       return c.toDataURL('image/png');
     }
 
-    // ▼ STRAVA 상단 여백 대응: ROI를 두 위치에서 시도 (거리용)
+       <!-- ===== [NEW] 라벨 근처 숫자 추출/다중 OCR 유틸 ===== -->
+    function extractKmNearLabel(words, labelRegex=/^km$/i){
+      if (!Array.isArray(words)) return null;
+      const byLine = new Map();
+      for (const w of words){
+        const lineId = w.line ?? Math.round(((w.bbox?.y0||0)+(w.bbox?.y1||0))/2);
+        if(!byLine.has(lineId)) byLine.set(lineId, []);
+        byLine.get(lineId).push(w);
+      }
+      for (const arr of byLine.values()){
+        arr.sort((a,b)=> (a.bbox?.x0||0) - (b.bbox?.x0||0));
+        const texts = arr.map(w=> (w.text||'').trim());
+        for(let i=0;i<texts.length;i++){
+          if(labelRegex.test(texts[i])){
+            const candidates = [];
+            const pushNum = (s)=>{ const m = s.match(/^\d{1,3}(?:[.,]\d{1,2})?$/); if(m) candidates.push(m[0]); };
+            for(let span=1; span<=3; span++){
+              const slice = texts.slice(Math.max(0,i-span), i).join('');
+              pushNum(slice);
+            }
+            for(let span=1; span<=3; span++){
+              const slice = texts.slice(i+1, i+1+span).join('');
+              pushNum(slice);
+            }
+            if (candidates.length){
+              candidates.sort((a,b)=> b.length - a.length);
+              const v = parseFloat(candidates[0].replace(',','.'));
+              if (isFinite(v)) return v;
+            }
+          }
+        }
+      }
+      return null;
+    }
+    async function tryNumberOCR(dataURL, {psm=7, whitelist='0123456789.,'} = {}){
+      const opts = {
+        tessedit_pageseg_mode: psm,
+        tessedit_char_whitelist: whitelist,
+        classify_bln_numeric_mode: '1'
+      };
+      const res = await Tesseract.recognize(dataURL, 'eng', opts);
+      const text = (res.data?.text || '').trim();
+      const conf = (res.data?.confidence ?? 60) / 100;
+      const nums = text.match(/\b\d{1,3}[.,]\d{1,2}\b/g) || text.match(/\b\d{1,3}\b/g) || [];
+      return nums.map(s=> ({ val: parseFloat(s.replace(',','.')), dec: (s.includes('.')||s.includes(',')) ? (s.split(/[.,]/)[1]||'').length : 0, score: conf*10, src:`psm${psm}` }));
+    }
+    async function multiBinarizeAndRead(imgDataURL, roiRectOrNull){
+      const scales = [1.0, 1.3, 1.6];
+      const thresholds = [170, 185, 200];
+      const psms = [7, 8, 6]; // SINGLE_LINE, SINGLE_WORD, SINGLE_BLOCK
+
+      const src = await toCanvas(imgDataURL);
+      const cropToDataURL = async (rect) => {
+        if(!rect) return imgDataURL;
+        const c = document.createElement('canvas');
+        c.width = rect.w; c.height = rect.h;
+        const ctx = c.getContext('2d',{willReadFrequently:true});
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(src.img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+        return c.toDataURL('image/png');
+      };
+
+      const base = await cropToDataURL(roiRectOrNull);
+      const out = [];
+      for (const sc of scales){
+        for (const th of thresholds){
+          const bin = await preprocessImageToDataURL(base, sc, th);
+          for (const psm of psms){
+            const arr = await tryNumberOCR(bin, {psm});
+            arr.forEach(a=> out.push({...a, src:`roi-multi(sc${sc}-th${th}-psm${psm})`, score:(a.score||0)+2}));
+          }
+        }
+      }
+      return out;
+    }
+
+    // ▼ STRAVA 상단 여백 대응 + 라벨근처/다중이진화까지 포함: 거리 후보 수집
     async function multiPassKmCandidates_FAST(imgDataURL){
       const out = [];
 
-      const roi0 = await cropTopNumberROI(imgDataURL, 0.06, 0.30, 0.06, 2.8);
-      const roi1 = await cropTopNumberROI(imgDataURL, 0.10, 0.30, 0.06, 2.8); // 보조 ROI
+      // 다양한 ROI: 상단/상단조금아래/하이탑/센터
+      const rois = [
+        { topPct:0.05, heightPct:0.28, sidePct:0.06, scale:2.8 },
+        { topPct:0.09, heightPct:0.28, sidePct:0.06, scale:2.8 },
+        { topPct:0.14, heightPct:0.28, sidePct:0.06, scale:2.8 },
+        { topPct:0.22, heightPct:0.24, sidePct:0.06, scale:2.6 },
+      ];
 
-      const KM_LINE_OCR_OPTS_7 = {
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-        tessedit_char_whitelist: '0123456789.,',
-        classify_bln_numeric_mode: '1'
-      };
-      const KM_LINE_OCR_OPTS_8 = {
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
-        tessedit_char_whitelist: '0123456789.,',
-        classify_bln_numeric_mode: '1'
-      };
+      let lastPreview = null;
+      for (let i=0;i<rois.length;i++){
+        const r = rois[i];
+        const roiURL = await cropTopNumberROI(imgDataURL, r.topPct, r.heightPct, r.sidePct, r.scale);
+        const cand = await multiBinarizeAndRead(roiURL, null);
+        cand.forEach(c => out.push({ ...c, src:`roi${i}` }));
+        lastPreview = roiURL;
+      }
 
-      const tryOne = async (tag, roi) => {
-        const sharp = await unsharp(roi, 0.9);
-        const bin   = await preprocessImageToDataURL(sharp, 1.0, 190);
+      // 전체 전처리 + words → "km" 라벨 주변에서 수치 찾아 보강
+      const pre = await preprocessImageToDataURL(imgDataURL, 2.2, 180);
+      const full = await Tesseract.recognize(pre, 'eng', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.AUTO });
+      const words = full.data?.words || [];
+      const near = extractKmNearLabel(words, /^km$/i);
+      if (isFinite(near)){
+        out.push({ val: near, dec: (String(near).split('.')[1]||'').length, score: 18, src: 'near-km-label' });
+      }
 
-        const [rA, rB, rC] = await Promise.all([
-          Tesseract.recognize(sharp, 'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_7),
-          Tesseract.recognize(bin,   'eng', KM_LINE_OCR_OPTS_8)
-        ]);
-
-        [['A',rA],['B',rB],['C',rC]].forEach(([s,res])=>{
-          const conf = (res.data?.confidence ?? 60)/100;
-          numsFromText(res.data.text).forEach(o=> out.push({ ...o, src:`${tag}${s}-text`,  score:(o.score||0)+conf*12 }));
-          kmCandidatesFromWords(res.data.words).forEach(o=> out.push({ ...o, src:`${tag}${s}-words`, score:(o.score||0)+conf*12 }));
-        });
-
-        return bin;
-      };
-
-      const bin1 = await tryOne('roi0', roi0);
-      const bin2 = await tryOne('roi1', roi1);
-
-      return { cands: out, roiBin: bin2 || bin1 };
+      return { cands: out, roiBin: lastPreview };
     }
 
     /* ===== 파서/후보 선택 ===== */
@@ -778,11 +844,11 @@
         if (m){ totalSec = (m[3]? (+m[1]*3600 + +m[2]*60 + +m[3]) : (+m[1]*60 + +m[2])); }
       }
       const paceSecOCR = (parsedData.paceMin!=null && parsedData.paceSec!=null)
-    ? (parsedData.paceMin * 60 + parsedData.paceSec)
-    : NaN;
-  if (!isFinite(paceSecOCR) || paceSecOCR <= 0) return null;
-  if (recordType === 'monthly') return null;
-  return totalSec / paceSecOCR;
+        ? (parsedData.paceMin * 60 + parsedData.paceSec)
+        : NaN;
+      if (!isFinite(paceSecOCR) || paceSecOCR <= 0) return null;
+      if (recordType === 'monthly') return null;
+      return totalSec / paceSecOCR;
     }
     function pickBestKm(cands){
       if(!cands || !cands.length) return null;
@@ -1009,19 +1075,19 @@
       }
 
       // 4) 상호 검증(크게 어긋나면 pace 재계산)
-    if (kmVal != null && paceMin != null && paceSec != null && (timeH != null || timeM != null || timeS != null)) {
-  const timeSec = (timeH || 0) * 3600 + (timeM || 0) * 60 + (timeS || 0);
-  const paceSecCalc = paceMin * 60 + paceSec; // ← 이름 변경
-  if (isFinite(timeSec) && isFinite(paceSecCalc) && kmVal > 0) {
-    const paceFromTime = timeSec / kmVal;
-    const diff = Math.abs(paceFromTime - paceSecCalc);
-    if (diff > 6 && diff / Math.max(1, paceSecCalc) > 0.05) {
-      const adj = Math.round(paceFromTime);
-      paceMin = Math.floor(adj / 60);
-      paceSec = adj % 60;
-    }
-  }
-}
+      if (kmVal != null && paceMin != null && paceSec != null && (timeH != null || timeM != null || timeS != null)) {
+        const timeSec = (timeH || 0) * 3600 + (timeM || 0) * 60 + (timeS || 0);
+        const paceSecCalc = paceMin * 60 + paceSec;
+        if (isFinite(timeSec) && isFinite(paceSecCalc) && kmVal > 0) {
+          const paceFromTime = timeSec / kmVal;
+          const diff = Math.abs(paceFromTime - paceSecCalc);
+          if (diff > 6 && diff / Math.max(1, paceSecCalc) > 0.05) {
+            const adj = Math.round(paceFromTime);
+            paceMin = Math.floor(adj / 60);
+            paceSec = adj % 60;
+          }
+        }
+      }
 
       return { km: kmVal, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
@@ -1244,7 +1310,7 @@
         try{
           const img = reader.result;
 
-          // 1) 상단 거리 후보(ROI)
+          // 1) 상단 거리 후보(ROI) + 라벨근처/다중이진화 강화
           const fast = await multiPassKmCandidates_FAST(img);
           let kmCandidates = fast.cands;
           const roiBinForFiveGuard = fast.roiBin;
@@ -1373,10 +1439,10 @@
           renderKm(0);
           renderStats();
           status.textContent = "Done";
-     }catch(err){
-  console.error(err);
-  status.textContent = "Error: " + (err.message || err);
-}
+        }catch(err){
+          console.error(err);
+          status.textContent = "Error: " + (err.message || err);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1807,6 +1873,5 @@
       };
     }
   </script>
-  <!-- ========= /Part3 ========= -->
 </body>
 </html>
