@@ -777,11 +777,12 @@
         const m = parsedData.timeRaw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
         if (m){ totalSec = (m[3]? (+m[1]*3600 + +m[2]*60 + +m[3]) : (+m[1]*60 + +m[2])); }
       }
-      if (!totalSec) return null;
-      const paceSec = parsedData.paceMin*60 + parsedData.paceSec;
-      if (!paceSec) return null;
-      if (recordType === 'monthly') return null;
-      return totalSec / paceSec;
+      const paceSecOCR = (parsedData.paceMin!=null && parsedData.paceSec!=null)
+    ? (parsedData.paceMin * 60 + parsedData.paceSec)
+    : NaN;
+  if (!isFinite(paceSecOCR) || paceSecOCR <= 0) return null;
+  if (recordType === 'monthly') return null;
+  return totalSec / paceSecOCR;
     }
     function pickBestKm(cands){
       if(!cands || !cands.length) return null;
