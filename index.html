@@ -1371,10 +1371,10 @@
           renderKm(0);
           renderStats();
           status.textContent = "Done";
-        }catch(err){
-          console.error(err);
-          document.getElementById("upload-status").textContent = "Upload failed";
-        }
+     }catch(err){
+  console.error(err);
+  status.textContent = "Error: " + (err.message || err);
+}
       };
       reader.readAsDataURL(file);
     });
