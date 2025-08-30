@@ -1009,18 +1009,19 @@
       }
 
       // 4) 상호 검증(크게 어긋나면 pace 재계산)
-      if(kmVal!=null && paceMin!=null && paceSec!=null && (timeH!=null || timeM!=null || timeS!=null)){
-        const timeSec = (timeH||0)*3600 + (timeM||0)*60 + (timeS||0);
-        const paceSec = paceMin*60 + paceSec;
-        if(isFinite(timeSec) && isFinite(paceSec) && kmVal>0){
-          const paceFromTime = timeSec / kmVal;
-          const diff = Math.abs(paceFromTime - paceSec);
-          if(diff > 6 && diff / Math.max(1, paceSec) > 0.05){
-            const adj = Math.round(paceFromTime);
-            paceMin = Math.floor(adj/60); paceSec = adj%60;
-          }
-        }
-      }
+    if (kmVal != null && paceMin != null && paceSec != null && (timeH != null || timeM != null || timeS != null)) {
+  const timeSec = (timeH || 0) * 3600 + (timeM || 0) * 60 + (timeS || 0);
+  const paceSecCalc = paceMin * 60 + paceSec; // ← 이름 변경
+  if (isFinite(timeSec) && isFinite(paceSecCalc) && kmVal > 0) {
+    const paceFromTime = timeSec / kmVal;
+    const diff = Math.abs(paceFromTime - paceSecCalc);
+    if (diff > 6 && diff / Math.max(1, paceSecCalc) > 0.05) {
+      const adj = Math.round(paceFromTime);
+      paceMin = Math.floor(adj / 60);
+      paceSec = adj % 60;
+    }
+  }
+}
 
       return { km: kmVal, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
     }
