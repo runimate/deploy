@@ -4,373 +4,313 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>RUNIMATE</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Big+Shoulders+Inline+Text:wght@800&family=Alfa+Slab+One&family=Orbitron:wght@700&family=Special+Gothic+Expanded+One&family=Graduate&family=Gloria+Hallelujah&family=Rock+Salt&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Anta&family=Arvo:ital,wght@0,700;1,700&family=Big+Shoulders+Inline+Text:wght@800&family=Iceberg&family=Londrina+Shadow&family=Permanent+Marker&family=Rock+Salt&family=Tourney:ital,wght@0,800;1,200&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
 
   <style>
     :root{
-      --pad:16px;
-      --maxw:480px;
-      --gapBelowKm: 12px;
-      --radius:14px;
+      /* pill 버튼 규격 (JS에서 실측 동기화) */
+      --pill-h: 64px; --pill-radius: 22px; --pill-bw: 4px;
+      --pill-fz: 24px; --pill-fw: 800; --gap: 16px;
 
-      /* 하이라이트 컬러 (소스별 전환) */
-      --accent: #FF9000;          /* 기본값: STRAVA */
-      --accent-border: #CD6B00;   /* 기본값: STRAVA */
+      /* 레이스 보드 폰트/크기 조절 포인트 */
+      --race-title-size: 44px;
+      --race-subtype-size: 66px;
+      --race-time-size: 110px;
+      --race-pace-size: 56px;
+      --race-time-translate: 0px,0px;
+      --race-time-letter: -4px;
 
-      /* 공통 기본값 */
-      --kmWordSize: 28px;
-      --kmWordGap: 0px;
+      /* 레이스 보드 수직 간격(요청대로 타이트) */
+      --race-gap-subtype-b: 8px;
+      --race-gap-time-b: 8px;
+      --race-gap-pace-t: 6px;
 
-      --statSize: 40px;
-      --labelSize: 20px;
-      --statGap: 49px;
-      --statPull: 0px;
-      --statPull2: 0px;
-
-      --kmScale: 1;
-      --modeKmScale: 1;
-
-      --gridFirstColIndent: 5px;
-      --kmWordIndent: 0px;
-
-      --statsLeftOffset: 0px;
-
-      --kmWordLiftTop: 0px;
-      --kmWordBottomGap: 26px;
-
-      /* ▼ Type1 */
-      --t1-kmScale: 1;
-      --t1-kmWordSize: 50px;
-      --t1-kmWordGap: 0px;
-      --t1-statSize: 40px;
-      --t1-labelSize: 20px;
-      --t1-statGap: 30px;
-      --t1-statPull: 0px;
-      --t1-statPull2: 0px;
-      --t1-kmWordLiftTop: -15px;
-      --t1-kmWordBottomGap: 26px;
-
-      /* ▼ Type2 */
-      --t2-kmScale: 1;
-      --t2-kmWordSize: 50px;
-      --t2-kmWordGap: 0px;
-      --t2-statSize: 30px;
-      --t2-labelSize: 20px;
-      --t2-statGap: 30px;
-      --t2-statPull: 0px;
-      --t2-statPull2: 0px;
-      --t2-kmWordLiftTop: -15px;
-      --t2-kmWordBottomGap: 26px;
-
-      /* ▼ 모드 매핑 베이스 */
-      --m-statGap: var(--statGap);
-      --m-kmWordBottomGap: var(--kmWordBottomGap);
-      --m-kmScale: 1;
-
-      --d-statGap: var(--statGap);
-      --d-kmWordBottomGap: var(--kmWordBottomGap);
-      --d-kmScale: 1;
-
-      /* 날짜 스타일 변수 */
-      --d2-dateSize: 60px;
-      --d2-dateGap: 10px;
-      --d2-dateTranslate: 0px, 0px;
-
-      --m1-dateSize: 50px;
-      --m1-dateGap: 10px;
-      --m1-dateTranslate: 0px, 0px;
-
-      --m2-dateSize: 50px;
-      --m2-dateGap: 10px;
-      --m2-dateTranslate: 0px, 0px;
-
-      /* 현재 활성 조합 매핑 */
-      --dateSize: 42px;
-      --dateGap: 12px;
-      --dateTranslate: 0px, 0px;
+      /* 전역 폰트(선택적 확장 적용) */
+      --wideFontFamily: Helvetica, Arial, sans-serif;
     }
 
-    *{box-sizing:border-box}
-    html, body { background:#fff; color:#000; min-height:100%; }
-    body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
-
-    /* 전체 테마 */
-    html.bg-white{ background:#fff; color:#000; }
-    html.bg-black{ background:#000; color:#fff; }
-    .bg-white{ --bg:#fff; --fg:#000; background:#fff; color:#000; }
-    .bg-black{ --bg:#000; --fg:#fff; background:#000; color:#fff; }
-
-    /* 헤더 */
-    header{ padding:var(--pad); }
-    .header-row{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    /* 입력/셀렉트도 pill 비주얼로 */
+    .pill-like{
+      height:var(--pill-h); width:100%; box-sizing:border-box;
+      border:var(--pill-bw) solid #000; border-radius:var(--pill-radius);
+      font-size:var(--pill-fz); font-weight:var(--pill-fw); padding:0 18px; background:#fff;
     }
-    .title-wrap{ text-align:left; }
-    h1{ margin:6px 0 2px; font-size:18px; font-weight:800; }
-    .subtitle{ font-size:12px; opacity:.8 }
+    .pill-select{appearance:none;background:#fff}
+    .pill-input{background:#fff}
 
-    /* 소스 토글 (NRC / STRAVA) */
-    .source-toggle{
-      display:flex; gap:8px; align-items:center; justify-content:flex-end;
-    }
-    .source-toggle .pill-btn{ height:36px; padding:0 12px; font-size:14px; }
+    .seg-row.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap)}
+    .seg-row.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
 
-    .wrap{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
-    .section{ margin:14px 0; }
-
-    .upload-box{ border:1px solid #ddd; border-radius:10px; padding:16px; }
-    .upload-label{
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      background:#000; color: var(--accent);
-      padding:14px 16px; font-weight:800;
-      border-radius:12px; text-align:center; margin-bottom:10px;
-    }
-    .upload-icon{ display:inline-flex; width:18px; height:18px; color: var(--accent); }
-    .upload-icon svg{ width:18px; height:18px; display:block; stroke: var(--accent); }
-
-    .status{ color: var(--accent); font-weight:700; font-size:13px; }
-
-    .row-head{ display:flex; justify-content:space-between; gap:10px; margin:10px 0 6px; }
-    .row-head .label{ font-size:13px; font-weight:800; }
-
-    .seg-row, .bg-row{ display:grid; gap:10px; }
-    .seg-row.cols-2{ grid-template-columns:repeat(2,1fr); }
-    .bg-row{ grid-template-columns:repeat(2,1fr); }
-
-    .pill-btn{
-      width:100%; height:48px; border-radius:var(--radius);
-      border:3px solid var(--fg);
-      background:transparent; color:var(--fg);
-      font-size:16px; font-weight:800; cursor:pointer;
-      transition:transform .04s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
-      box-shadow:0 0 0 0 rgba(0,0,0,0);
-    }
-    .pill-btn:active { transform:scale(0.99); }
-    .pill-btn.is-active{ background:var(--fg); color:var(--bg); }
-    .pill-btn[disabled]{ opacity:.35; cursor:not-allowed; pointer-events:none; }
-
-    .control-title{ font-size:13px; font-weight:800; margin:14px 0 8px; }
-
-    .font-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .font-grid button{
-      height:48px; border-radius:var(--radius); border:3px solid var(--fg);
-      background:transparent; color:var(--fg); font-size:16px; font-weight:800; cursor:pointer;
-      transition:transform .04s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
-    }
-    .font-grid button:active{ transform:scale(0.99); }
-    .font-grid button.is-active{ background:var(--fg); color:var(--bg); }
-
-    .run-button{
-      width:100%; height:52px; border-radius:16px;
-      background: var(--accent);
-      color:#000;
-      border:3px solid var(--accent-border);
-      margin-top:10px; font-size:18px; font-weight:900;
-    }
-
-    /* ===== OUTPUT STAGE ===== */
-    .stage-outer{ padding:10px 0 24px; }
-
-    .stage-canvas{
-      width:720px;
-      transform-origin: top left;
-      will-change: transform;
-      margin:0 auto;
-    }
-    .stage-inner{ padding:0 var(--pad); }
-
-    .stage-inner.fixed{
-      max-width:720px; width:720px;
-      padding-left:24px; padding-right:24px;
-    }
-
-    .date-display{
-      display:none;
-      font-weight:900;
-      font-size: var(--dateSize);
-      line-height:1.05;
-      margin:6px 0 var(--dateGap);
-      white-space:nowrap;
-      transform: translate(var(--dateTranslate));
-      transform-origin:left bottom;
-      text-align:left;
-    }
-
-    .km-row-wrap{ display:flex; justify-content:flex-start; margin:6px auto var(--gapBelowKm); width:100%; }
-    .km-row{ display:flex; align-items:baseline; gap:10px; transform-origin:left bottom; will-change:transform; }
-    #km{
-      font-family:'Anton', sans-serif;
-      font-size:200px; line-height:1; white-space:nowrap; letter-spacing:.5px;
-    }
-    #km-unit{ display:none; }
-
-    #km-word{
-      display:none;
-      font-size: var(--kmWordSize);
-      line-height:1.05;
-      margin-top: calc(var(--kmWordGap) + var(--kmWordLiftTop));
-      margin-bottom: var(--kmWordBottomGap);
-      font-weight:700;
-      margin-left: calc(var(--gridFirstColIndent) + var(--kmWordIndent));
-    }
-
-    .grid{
-      --cols: 2;
+    /* 레이스 드롭다운: 3열 그리드에서 1:2 배치 */
+    .race-select-grid{
       display:grid;
-      grid-template-columns: repeat(var(--cols), max-content);
-      column-gap: var(--statGap);
-      row-gap: 8px;
-      margin-top:0; color:inherit; text-align:left;
-      justify-content:start;
-      justify-items:start;
-      align-items: baseline;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:var(--gap);
+      align-items:start;
+      margin-top:8px; /* (기존 12px → 8px) */
     }
+    .race-month-cell{grid-column:1/2;}
+    .race-list-cell{grid-column:2/4;}
 
-    body.type2 .grid > div{
-      display:flex;
-      flex-direction: column-reverse;
-      gap:6px;
-      margin-left:0;
+    /* Time/Pace 입력: Pace를 Time 아래로, 간격 타이트 */
+    .tp-col{display:grid; gap:6px;} /* (기존 10px → 6px) */
+    .time-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:6px;align-items:center}
+    .pace-grid{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center}
+    .colon,.quote{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px}
+
+    #race-dist-grid.font-grid{grid-template-columns:repeat(4,1fr)}
+    #race-dist-grid.font-grid button{font-size:var(--pill-fz);font-weight:var(--pill-fw);height:var(--pill-h)}
+
+    /* 레이스 출력 보드 */
+    #race-board{padding:18px 0}
+    .race-title{
+      font-weight:900;font-size:var(--race-title-size);letter-spacing:-.02em;margin-bottom:6px
     }
-    body.type2 .grid > div .stat { order:0; }
-    body.type2 .grid > div .label{ order:1; }
-
-    body.type1 .grid{
-      --cols: 1;
-      grid-template-columns: 1fr;
+    .race-subtype{
+      font-family:Helvetica, Arial, sans-serif!important;
+      font-weight:900;
+      font-size:var(--race-subtype-size);
+      line-height:1.05;
+      margin:8px 0 var(--race-gap-subtype-b);
     }
-    body.type1 .grid > div{
-      display:flex;
-      flex-direction: column;
-      gap:6px;
-      margin-left: var(--gridFirstColIndent);
-      transform:none !important;
-      grid-column: 1 / 2 !important;
+    .race-time{
+      font-weight:900;
+      font-size:var(--race-time-size);
+      line-height:.9;
+      letter-spacing:var(--race-time-letter);
+      margin:10px 0 var(--race-gap-time-b);
+      transform:translate(var(--race-time-translate));
     }
-    body.type1 .grid > div + div{ margin-top:12px; }
-
-    body.type2 #stats-grid{ margin-left: var(--statsLeftOffset); }
-
-    .stat{
-      display:inline-block;
-      font-size: var(--statSize);
-      font-weight:800;
+    .race-pace-wrap{display:block;margin-top:var(--race-gap-pace-t)}
+    /* ↓ 기본은 시스템 폰트로, 선택 폰트는 JS에서 강제 적용 */
+    .race-pace-wrap .label{
+      font-family:Helvetica, Arial, sans-serif;
+      font-size:22px;
+      margin:0 0 4px;
       line-height:1;
-      font-variant-numeric: tabular-nums;
-      -moz-font-feature-settings: "tnum";
-      font-feature-settings: "tnum";
     }
-    .label{ font-size: var(--labelSize); opacity:.9 }
-
-    body.focus header{ display:none; }
-    body.focus .top-ui{ display:none; }
-    body.focus #exit-focus{ display:block; position:fixed; z-index:20; top: env(safe-area-inset-top, 8px); right:10px; width:40px; height:40px; border-radius:20px; border:2px solid currentColor; background:transparent; color:inherit; font-weight:800; }
-    #exit-focus{ display:none; }
-
-    #km-measure{ position:absolute; visibility:hidden; left:-9999px; top:-9999px; white-space:nowrap; }
-
-    .two-col { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
-    .control-title.title-left { text-align:left; margin:14px 0 8px; }
-
-    .date-row{ display:none; grid-template-columns:1fr; gap:8px; margin-top:12px; }
-    .date-input{
-      height:44px; border:3px solid var(--fg); border-radius:var(--radius);
-      background:transparent; color:#000; font-weight:700; padding:0 12px; font-size:16px;
+    .race-pace{
+      font-family:Helvetica, Arial, sans-serif!important;
+      font-weight:900;
+      font-size:clamp(40px, 6.5vw, var(--race-pace-size));
+      line-height:1.1
     }
-    body.bg-black .date-input{ color:#fff; }
 
-    body.focus .stage-outer{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      padding-top:0;
-      padding-bottom:0;
+    /* 배지 영역: 레이아웃 밀림 방지용 높이 확보 */
+    .race-badges{
+      display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:center;
+      min-height:56px; /* 이미지 높이만큼 예약 → 위 콘텐츠가 밀리지 않음 */
     }
-    body.focus .stage-canvas{ margin-left:0; margin-right:0; }
+    .race-badges img{height:56px}
+
+    /* 선택 폰트를 앱 전반에 강제 적용(옵션) */
+    body.wide-font header h1,
+    body.wide-font .subtitle,
+    body.wide-font .pill-btn,
+    body.wide-font .pill-like,
+    body.wide-font .control-title,
+    body.wide-font .font-grid button,
+    body.wide-font #km, body.wide-font #km-unit, body.wide-font #km-word,
+    body.wide-font #stats-grid .label, body.wide-font #stats-grid .stat,
+    body.wide-font .date-display,
+    body.wide-font .run-button {
+      font-family: var(--wideFontFamily) !important;
+    }
+
+    /* ▼ 드롭다운 어포던스 */
+    .select-wrap{ position:relative; }
+    .select-wrap::after{
+      content:"";
+      position:absolute;
+      right:18px;
+      top:50%;
+      transform:translateY(-50%);
+      width:0;height:0;
+      border-left:7px solid transparent;
+      border-right:7px solid transparent;
+      border-top:10px solid #000;
+      pointer-events:none;
+    }
+    .select-wrap .pill-select{ padding-right:48px; }
+    .bg-black .select-wrap::after{ border-top-color:#fff; }
+
+    /* 상단 타이틀 Anta 고정 */
+    header h1#app-title{ font-family:'Anta', sans-serif; font-weight:700; letter-spacing:.02em; }
+    /* ===== Kilometers 라벨 복구 & 폰트별 스케일/간격 반영 ===== */
+#dm-board #km-word{
+  display:block;
+  font-weight:900;
+  line-height:1;
+  margin-left: var(--kmWordIndent, 0px);           /* fonts.js → applyFontIndents */
+  /* 아래 margin-top과 font-size는 타입별 변수 사용 */
+}
+
+/* Type1 (Daily/Monthly 공통) */
+body.type1 #km-word{
+  font-size: var(--t1-kmWordSize, 36px);           /* ui.js → setTypeKmWordStyle('type1', { size }) */
+  margin-top: var(--t1-kmWordGap, 12px);           /* ui.js → setTypeKmWordStyle('type1', { gap }) */
+}
+
+/* Type2 (Daily/Monthly 공통) */
+body.type2 #km-word{
+  font-size: var(--t2-kmWordSize, 36px);           /* ui.js → setTypeKmWordStyle('type2', { size }) */
+  margin-top: var(--t2-kmWordGap, 12px);           /* ui.js → setTypeKmWordStyle('type2', { gap }) */
+}
+
+/* 배경색 전환 시 가독성 보정(선택) */
+.bg-black #km-word{ color:#fff; }
   </style>
 </head>
 <body class="bg-white type1 mode-daily">
   <header>
-    <div class="header-row">
-      <div class="title-wrap">
-        <h1>RUNIMATE V.0.9.7 BETA</h1>
-        <div class="subtitle">by JS @runarchive.js</div>
-      </div>
-      <!-- ▼ 우측 정렬: NRC / STRAVA 토글 -->
-      <div class="source-toggle" id="source-toggle">
-        <button class="pill-btn is-active" data-source="nrc" id="btn-nrc">NRC</button>
-        <button class="pill-btn" data-source="strava" id="btn-strava">STRAVA</button>
-      </div>
-    </div>
+    <h1 id="app-title">RUNIMATE V.1.5</h1>
+    <div class="subtitle">by JS @runarchive.js</div>
   </header>
 
-  <!-- 설정 UI -->
   <div class="top-ui">
     <div class="wrap">
-
-      <!-- 기록 유형 -->
       <div class="row-head"><div class="label">Record Type</div></div>
-      <div class="seg-row cols-2" id="mode-row">
-        <button class="pill-btn" data-mode="daily" id="btn-daily">Daily</button>
-        <button class="pill-btn" data-mode="monthly" id="btn-monthly">Monthly</button>
+
+      <div class="seg-row cols-3" id="mode-row">
+        <button class="pill-btn" data-mode="daily">Daily</button>
+        <button class="pill-btn" data-mode="monthly">Monthly</button>
+        <button class="pill-btn" data-mode="race">Race(Beta)</button>
       </div>
 
-      <!-- 업로드 -->
-      <section class="section upload-box">
-        <label for="file-upload" class="upload-label">
-          <span class="upload-icon" aria-hidden="true">
-            <!-- 라인 업로드 아이콘 -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <path d="M7 10l5-5 5 5"/>
-              <path d="M12 5v12"/>
-            </svg>
-          </span>
-          <span id="upload-label-text">Upload your NRC record image</span>
-        </label>
-        <input type="file" id="file-upload" accept="image/*" style="display:none;" />
-        <div class="status" id="upload-status"></div>
-      </section>
+      <!-- Daily/Monthly 패널 -->
+      <div id="dm-panel">
+        <section class="section upload-box">
+          <label for="file-upload" class="upload-label">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF9000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <path d="M7 10l5-5 5 5"/>
+                <path d="M12 5v12"/>
+              </svg>
+            </span>
+            <span id="upload-label-text">Upload your NRC record for TODAY</span>
+          </label>
+          <input type="file" id="file-upload" accept="image/*" style="display:none;" />
+          <div class="status" id="upload-status"></div>
+        </section>
 
-      <!-- 레이아웃 & BG -->
-      <div class="two-col">
-        <div>
-          <div class="control-title title-left">Layout</div>
-          <div class="seg-row cols-2" id="layout-row">
-            <button class="pill-btn" data-layout="type1">Type 1</button>
-            <button class="pill-btn" data-layout="type2">Type 2</button>
+        <div class="two-col">
+          <div>
+            <div class="control-title title-left">Layout</div>
+            <div class="seg-row cols-2" id="layout-row">
+              <button class="pill-btn" data-layout="type1">Type 1</button>
+              <button class="pill-btn" data-layout="type2">Type 2</button>
+            </div>
+          </div>
+          <div>
+            <div class="control-title title-left">BG Color</div>
+            <div class="bg-row" id="bg-row">
+              <button class="pill-btn" data-bg="white">White</button>
+              <button class="pill-btn" data-bg="black">Black</button>
+            </div>
           </div>
         </div>
-        <div>
-          <div class="control-title title-left">BG Color</div>
-          <div class="bg-row" id="bg-row">
+
+        <div class="date-row" id="date-section">
+          <div class="control-title title-left">Date</div>
+          <input id="date-input" class="date-input pill-like pill-input" type="date"/>
+        </div>
+      </div>
+
+      <!-- Race 패널 -->
+      <div id="race-panel" style="display:none;">
+        <!-- 1:2 정렬 (Monthly 시작점과 정렬) -->
+        <div class="race-select-grid">
+          <div class="race-month-cell">
+            <div class="select-wrap">
+              <select id="race-month" class="pill-like pill-select"></select>
+            </div>
+          </div>
+          <div class="race-list-cell">
+            <div class="select-wrap">
+              <select id="race-list" class="pill-like pill-select"></select>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px;">
+          <input id="race-name-input" class="pill-like pill-input" placeholder="대회명을 직접 입력하세요" style="display:none;">
+        </div>
+
+        <section class="section" style="margin-top:8px;">
+          <div class="font-grid" id="race-dist-grid">
+            <button data-dist="5K">5K</button>
+            <button data-dist="10K">10K</button>
+            <button data-dist="Half">21K(Half)</button>
+            <button data-dist="Marathon">Marathon</button>
+          </div>
+          <div class="seg-row cols-3" style="align-items:center;margin-top:6px;">
+            <label class="checkbox"><input type="checkbox" id="race-dist-manual-check"> Enter manually</label>
+            <input id="race-dist-manual" type="number" class="pill-like pill-input" placeholder="" style="display:none;">
+            <div style="font-weight:bold">K</div>
+          </div>
+        </section>
+
+        <!-- Pace를 Time 아래로 -->
+        <div class="tp-col" style="margin-top:2px;">
+          <section class="section seg">
+            <div class="control-title title-left">Time</div>
+            <div class="time-grid">
+              <input id="race-hh" type="number" min="0" max="99" class="pill-like pill-input" placeholder="">
+              <div class="colon">:</div>
+              <input id="race-mm" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="colon">:</div>
+              <input id="race-ss" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+            </div>
+          </section>
+
+          <section class="section seg">
+            <div class="control-title title-left">Pace</div>
+            <div class="pace-grid">
+              <input id="race-pace-mm" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="quote">′</div>
+              <input id="race-pace-ss" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="quote">″</div>
+            </div>
+          </section>
+        </div>
+
+        <section class="section" style="margin-top:6px;">
+          <label class="checkbox">
+            <input id="race-pb" type="checkbox">
+            PB (Personal Best)
+            <span id="race-pb-congrats" style="display:none;color:#FF6A00;font-weight:800;margin-left:10px;">Congraturation!</span>
+          </label>
+        </section>
+
+        <section class="section">
+          <div class="control-title">BG Color</div>
+          <div class="bg-row" id="race-bg-row">
             <button class="pill-btn" data-bg="white">White</button>
             <button class="pill-btn" data-bg="black">Black</button>
           </div>
-        </div>
+        </section>
       </div>
 
-      <!-- 날짜 (Type2/M1 전용 노출) -->
-      <div class="date-row" id="date-section">
-        <div class="control-title title-left">Date</div>
-        <input id="date-input" class="date-input" type="date"/>
-      </div>
-
-      <!-- 폰트 -->
       <section class="section">
         <div class="control-title">Font</div>
         <div class="font-grid" id="font-grid">
+          <button data-font="Helvetica Neue" style="font-family:Helvetica, Arial, sans-serif;">Basic</button>
           <button data-font="Anton" style="font-family:'Anton', sans-serif;">Anton</button>
           <button data-font="Big Shoulders Inline Text" style="font-family:'Big Shoulders Inline Text', cursive;">Inline</button>
-          <button data-font="Alfa Slab One" style="font-family:'Alfa Slab One', cursive;">Alfa</button>
-          <button data-font="Orbitron" style="font-family:'Orbitron', sans-serif;">Tron</button>
-          <button data-font="Special Gothic Expanded One" style="font-family:'Special Gothic Expanded One', sans-serif;">Gothic</button>
-          <button data-font="Graduate" style="font-family:'Graduate', serif;">School</button>
-          <button data-font="Gloria Hallelujah" style="font-family:'Gloria Hallelujah', cursive;">Gloria</button>
+          <button data-font="Tourney" style="font-family:'Tourney', cursive; font-style:italic; font-weight:200;">Tour</button>
+          <button data-font="Anta" style="font-family:'Anta', sans-serif;">Anta</button>
+          <button data-font="Arvo" style="font-family:'Arvo', serif; font-style:italic; font-weight:700;">Arvo</button>
+          <button data-font="Iceberg" style="font-family:'Iceberg', cursive;">Ice</button>
+          <button data-font="Permanent Marker" style="font-family:'Permanent Marker', cursive;">Marker</button>
+          <button data-font="Londrina Shadow" style="font-family:'Londrina Shadow', cursive;">Lond</button>
           <button data-font="Rock Salt" style="font-family:'Rock Salt', cursive;">Rock</button>
         </div>
       </section>
@@ -383,1495 +323,296 @@
 
   <button id="exit-focus" title="Close" onclick="exitFocus()">✕</button>
 
-  <!-- ====== OUTPUT (픽셀 고정 캔버스) ====== -->
   <section class="stage-outer">
     <div id="stage-canvas" class="stage-canvas">
       <div class="stage-inner fixed" id="stage">
-        <div id="km-measure">99.99</div>
-        <div id="date-display" class="date-display"></div>
-        <div class="km-row-wrap">
-          <div class="km-row" id="km-row">
-            <div id="km">0.00</div>
-            <div id="km-unit">km</div>
+        <!-- Daily/Monthly 보드 -->
+        <div id="dm-board">
+          <div id="km-measure">99.99</div>
+          <div id="date-display" class="date-display"></div>
+          <div class="km-row-wrap">
+            <div class="km-row" id="km-row">
+              <div id="km">0.00</div>
+              <div id="km-unit">km</div>
+            </div>
           </div>
-        </div>
-        <div id="km-word">Kilometers</div>
+          <div id="km-word">Kilometers</div>
 
-        <!-- 하단 통계 -->
-        <div class="grid" id="stats-grid">
-          <div id="runs-wrap" style="display:none;">
-            <div class="label">Runs</div>
-            <div class="stat" id="runs">--</div>
+          <div class="grid" id="stats-grid">
+            <div id="runs-wrap" style="display:none;">
+              <div class="label">Runs</div>
+              <div class="stat" id="runs">--</div>
+            </div>
+            <div id="pace-wrap">
+              <div class="label" id="pace-label">Avg. Pace</div>
+              <div class="stat" id="pace">-</div>
+            </div>
+            <div id="time-wrap">
+              <div class="label" id="time-label">Time</div>
+              <div class="stat" id="time">-</div>
+            </div>
           </div>
-          <div id="pace-wrap">
-            <div class="label" id="pace-label">Avg. Pace</div>
-            <div class="stat" id="pace">-</div>
+          <div id="cv-hint" style="display:none;"></div>
+        </div>
+
+        <!-- Race 보드 -->
+        <div id="race-board" style="display:none;">
+          <div id="race-title" class="race-title">대회명을 선택하세요</div>
+          <div id="race-subtype" class="race-subtype">Half Marathon</div>
+          <div id="race-time" class="race-time">0:00</div>
+          <div class="race-pace-wrap">
+            <div id="race-pace-label" class="label">Pace</div>
+            <div id="race-pace" class="race-pace">0:00 /km</div>
           </div>
-          <div id="time-wrap">
-            <div class="label" id="time-label">Time</div>
-            <div class="stat" id="time">-</div>
+          <div id="race-badges" class="race-badges">
+            <img id="badge-pb"   src="./js/pb.png"   alt="PB"   style="display:none;">
+            <img id="badge-sub3" src="./js/sub3.png" alt="SUB3" style="display:none;">
+            <img id="badge-sub4" src="./js/sub4.png" alt="SUB4" style="display:none;">
           </div>
         </div>
-        <div id="cv-hint" style="display:none;"></div>
       </div>
     </div>
   </section>
 
-  <script>
-    /* =============================
-       상태
-       ============================= */
-    let sourceType = 'nrc'; // 'nrc' | 'strava'
-    let recordType = 'daily';
-    let layoutType = 'type1';
-    let selectedFont = 'Anton';
-    let selectedDate = new Date();
-
-    /* =============================
-       폰트/레이아웃 설정
-       ============================= */
-    const fontSettings = {
-      "Anton": { base: 200, weight: 700, dateSize: "60px", dateGap: "10px", dateWeight: 700 },
-      "Big Shoulders Inline Text": { base: 200, weight: 800, dateSize: "40px", dateGap: "20px", dateWeight: 800, dateTranslate: "8px, 0px" },
-      "Alfa Slab One": { base: 180, weight: 700, dateSize: "45px", dateGap: "15px", dateWeight: 900, dateTranslate: "0px, 20px" },
-      "Orbitron": { base: 160, weight: 700, dateSize: "38px", dateGap: "10px", dateWeight: 700, dateTranslate: "10px, 20px" },
-      "Special Gothic Expanded One": { base: 160, weight: 700, dateSize: "36px", dateGap: "0px", dateWeight: 700, dateTranslate: "0px, 20px" },
-      "Graduate": { base: 200, weight: 700, dateSize: "42px", dateGap: "10px", dateWeight: 700, dateTranslate: "7px, 20px" },
-      "Gloria Hallelujah": { base: 190, weight: 700, dateSize: "44px", dateGap: "0px", dateWeight: 700, dateTranslate: "7px, 20px" },
-      "Rock Salt": { base: 140, weight: 700, dateSize: "36px", dateGap: "40px", dateWeight: 600, kmWordGap: "40px", translate: "25px,-25px", dateTranslate: "20px,0px" }
-    };
-
-    const fontStatsOffsetMap = {
-      "Anton": { daily: "5px", monthly: "5px" },
-      "Big Shoulders Inline Text": { daily: "8px", monthly: "8px" },
-      "Alfa Slab One": { daily: "4px", monthly: "6px" },
-      "Orbitron": { daily: "10px", monthly: "12px" },
-      "Special Gothic Expanded One": { daily: "6px", monthly: "6px" },
-      "Graduate": { daily: "6px", monthly: "8px" },
-      "Gloria Hallelujah": { daily: "8px", monthly: "10px" },
-      "Rock Salt": { daily: "24px", monthly: "24px" }
-    };
-
-    let parsedData = {
-      km: null,
-      runs: null,
-      paceMin: null, paceSec: null,
-      timeH: null, timeM: null, timeS: null,
-      timeRaw: null,
-      cv: null
-    };
-
-    const fontGridEl  = document.getElementById('font-grid');
-    const bgRow       = document.getElementById('bg-row');
-    const modeRow     = document.getElementById('mode-row');
-    const layoutRow   = document.getElementById('layout-row');
-    const dateSection = document.getElementById('date-section');
-    const dateInput   = document.getElementById('date-input');
-    const dateDisplay = document.getElementById('date-display');
-    const statsGrid   = document.getElementById('stats-grid');
-    const runsWrap    = document.getElementById('runs-wrap');
-    const paceWrap    = document.getElementById('pace-wrap');
-    const timeWrap    = document.getElementById('time-wrap');
-    const uploadLabelText = document.getElementById('upload-label-text');
-    const btnMonthly  = document.getElementById('btn-monthly');
-    const btnDaily    = document.getElementById('btn-daily');
-    const btnNrc      = document.getElementById('btn-nrc');
-    const btnStrava   = document.getElementById('btn-strava');
-
-    const MONTH_ABBR = ["JAN.","FEB.","MAR.","APR.","MAY.","JUN.","JUL.","AUG.","SEP.","OCT.","NOV.","DEC."];
-
-    function formatDateText(d){
-      const day = String(d.getDate());
-      const yr  = d.getFullYear();
-      if (recordType === 'daily' && layoutType === 'type2') {
-        const monShort = MONTH_ABBR[d.getMonth()];
-        return `${day} ${monShort} ${yr}`;
-      }
-      if (recordType === 'monthly') {
-        const monLong = d.toLocaleString('en-US', { month: 'long' });
-        return `${monLong} ${yr}`;
-      }
-      return ``;
-    }
-
-    function zero2(n){ return String(n).padStart(2,'0'); }
-    function normalizeOCR(s){
-      return s.replace(/[\u2018\u2019\u2032\u2035]/g,"'")
-              .replace(/[\u201C\u201D\u2033]/g,'"')
-              .replace(/[·•]/g,'.')
-              .replace(/\u200B|\u00A0/g,' ')
-              .replace(/[ ]{2,}/g,' ')
-              .trim();
-    }
-
-    /* ===== 시간·페이스 유틸 ===== */
-    function parseTimeToSec(t){
-      if(!t) return NaN;
-      const parts = t.split(':').map(n=>parseInt(n,10));
-      if(parts.length===2) return parts[0]*60 + parts[1];
-      if(parts.length===3) return parts[0]*3600 + parts[1]*60 + parts[2];
-      return NaN;
-    }
-    function parsePaceToSecPerKm(p){
-      if(!p) return NaN;
-      const clean = p.replace(/[^\d:]/g,':');
-      const [m,s] = clean.split(':').map(n=>parseInt(n||'0',10));
-      return (Number.isNaN(m)||Number.isNaN(s)) ? NaN : (m*60 + (s||0));
-    }
-    function paceFrom(timeSec, distKm){
-      if(!timeSec || !distKm) return NaN;
-      return timeSec / distKm;
-    }
-    function distanceFrom(timeSec, paceSecPerKm){
-      if(!timeSec || !paceSecPerKm) return NaN;
-      return timeSec / paceSecPerKm;
-    }
-    function reconcile(inputs){
-      const toKm = (d,unit)=> unit==='mi' ? d*1.609344 : d;
-
-      const timeSec = parseTimeToSec(inputs.timeStr||'');
-      const distKm  = toKm(parseFloat((inputs.distStr||'').replace(',','.')), inputs.unit||'km');
-      const paceSecOCR = inputs.paceStr ? parsePaceToSecPerKm(inputs.paceStr) : NaN;
-
-      const paceSecCalc = paceFrom(timeSec, distKm);
-      let final = {
-        timeSec, distKm: isFinite(distKm)? distKm : NaN,
-        paceSec: isFinite(paceSecCalc)? paceSecCalc : NaN,
-        source: { time:'ocr', dist:'ocr', pace:'calc' },
-        flags: []
-      };
-
-      if(isFinite(paceSecOCR) && isFinite(paceSecCalc)){
-        const absDiff = Math.abs(paceSecOCR - paceSecCalc);
-        const relDiff = absDiff / Math.max(1, paceSecCalc);
-        const withinTolerance = (absDiff <= 3) || (relDiff <= 0.02);
-        if(withinTolerance){
-          final.paceSec = (paceSecCalc*2 + paceSecOCR)/3;
-          final.source.pace = 'calc+ocr';
-          final.flags.push('pace_matched');
-        }else{
-          final.flags.push('pace_mismatch');
-        }
-      }else if(!isFinite(paceSecCalc) && isFinite(paceSecOCR) && isFinite(timeSec)){
-        const distFromPace = distanceFrom(timeSec, paceSecOCR);
-        if(isFinite(distFromPace)){
-          final.distKm = distFromPace;
-          final.paceSec = paceSecOCR;
-          final.source.dist = 'pace/time';
-          final.source.pace = 'ocr';
-          final.flags.push('distance_inferred_from_time_pace');
-        }
-      }
-
-      return {
-        time: isFinite(timeSec) ? inputs.timeStr : '—',
-        distance: isFinite(final.distKm) ? final.distKm : NaN,
-        pace: isFinite(final.paceSec) ? final.paceSec : NaN,
-        meta: final
-      };
-    }
-
-    /* ▼ 추가: 셋 중 2개로 나머지 자동 계산 + 형식 변환 */
-    function hmsFromSeconds(sec){
-      if(!isFinite(sec)) return {H:null,M:null,S:null};
-      sec = Math.max(0, Math.round(sec));
-      const H = Math.floor(sec/3600);
-      const M = Math.floor((sec%3600)/60);
-      const S = sec%60;
-      return {H,M,S};
-    }
-    function mmssFromSeconds(sec){
-      if(!isFinite(sec)) return {M:null,S:null};
-      sec = Math.max(0, Math.round(sec));
-      const M = Math.floor(sec/60);
-      const S = sec%60;
-      return {M,S};
-    }
-    function solveTPD({ timeSec, paceSec, distKm }){
-      let t = timeSec, p = paceSec, d = distKm;
-      if(!isFinite(t) && isFinite(p) && isFinite(d) && d>0) t = p*d;
-      if(!isFinite(p) && isFinite(t) && isFinite(d) && d>0) p = t/d;
-      if((!isFinite(d) || d<=0) && isFinite(t) && isFinite(p) && p>0) d = t/p;
-      return { timeSec:t, paceSec:p, distKm:d };
-    }
-
-    /* ===== 이미지 전처리/ROI ===== */
-    async function toCanvas(imgDataURL){
-      return new Promise(res=>{
-        const img = new Image();
-        img.onload = ()=>{ res({img, w: img.width, h: img.height}); };
-        img.src = imgDataURL;
-      });
-    }
-
-    // ▼ 투명 PNG 대응: 검정으로 플래튼 → 이진화 → 배경이 어두우면 반전(검은 글자/흰 배경)
-    async function preprocessImageToDataURL(imgDataURL, scale = 2.4, threshold = 190){
-      return new Promise(async (resolve)=>{
-        const {img, w:W, h:H} = await toCanvas(imgDataURL);
-        const w = Math.round(W * scale);
-        const h = Math.round(H * scale);
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        const ctx = c.getContext('2d', { willReadFrequently:true });
-        ctx.imageSmoothingEnabled = false;
-
-        // 1) 투명 배경을 검정으로 플래튼(흰 글자 대비 확보)
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-
-        // 2) 이진화
-        const im = ctx.getImageData(0,0,w,h);
-        const data = im.data;
-        let whiteCount = 0, blackCount = 0;
-        for(let i=0;i<data.length;i+=4){
-          const r=data[i], g=data[i+1], b=data[i+2];
-          const gray = (r*0.299 + g*0.587 + b*0.114);
-          const v = gray > threshold ? 255 : 0;
-          data[i]=data[i+1]=data[i+2]=v;
-          if(v===255) whiteCount++; else blackCount++;
-        }
-        ctx.putImageData(im,0,0);
-
-        // 3) 배경이 어두우면 반전해서 "검은 글자 / 흰 배경"으로
-        if (blackCount > whiteCount) {
-          const im2 = ctx.getImageData(0,0,w,h);
-          const d2 = im2.data;
-          for(let i=0;i<d2.length;i+=4){
-            d2[i]   = 255 - d2[i];
-            d2[i+1] = 255 - d2[i+1];
-            d2[i+2] = 255 - d2[i+2];
-          }
-          ctx.putImageData(im2,0,0);
-        }
-
-        resolve(c.toDataURL("image/png"));
-      });
-    }
-
-    async function preprocessForFullOCR(imgDataURL){
-      const sharp1 = await unsharp(imgDataURL, 0.9);
-      const bin1   = await preprocessImageToDataURL(sharp1, 2.0, 190);
-      return bin1;
-    }
-
-    async function unsharp(srcDataURL, amount=0.9){
-      const {img,w,h} = await toCanvas(srcDataURL);
-      const c=document.createElement('canvas'); c.width=w; c.height=h;
-      const ctx=c.getContext('2d',{willReadFrequently:true});
-      ctx.drawImage(img,0,0);
-      const im=ctx.getImageData(0,0,w,h);
-      const d=im.data;
-      for(let y=0;y<h;y++){
-        for(let x=1;x<w;x++){
-          const i=(y*w+x)*4, j=(y*w+x-1)*4;
-          d[i]   = Math.min(255, Math.max(0, d[i]   + amount*(d[i]   - d[j])));
-          d[i+1] = Math.min(255, Math.max(0, d[i+1] + amount*(d[i+1] - d[j+1])));
-          d[i+2] = Math.min(255, Math.max(0, d[i+2] + amount*(d[i+2] - d[j+2])));
-        }
-      }
-      ctx.putImageData(im,0,0);
-      return c.toDataURL('image/png');
-    }
-
-    async function cropTopNumberROI(imgDataURL, topPct=0.06, heightPct=0.30, sidePct=0.06, scale=2.8){
-      const {img, w, h} = await toCanvas(imgDataURL);
-      const x = Math.round(w*sidePct);
-      const y = Math.round(h*topPct);
-      const cw = Math.round(w*(1-2*sidePct));
-      const ch = Math.round(h*heightPct);
-
-      const c = document.createElement('canvas');
-      c.width = Math.round(cw*scale);
-      c.height= Math.round(ch*scale);
-      const ctx = c.getContext('2d', { willReadFrequently:true });
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, x, y, cw, ch, 0, 0, c.width, c.height);
-      return c.toDataURL('image/png');
-    }
-
-       <!-- ===== [NEW] 라벨 근처 숫자 추출/다중 OCR 유틸 ===== -->
-    function extractKmNearLabel(words, labelRegex=/^km$/i){
-      if (!Array.isArray(words)) return null;
-      const byLine = new Map();
-      for (const w of words){
-        const lineId = w.line ?? Math.round(((w.bbox?.y0||0)+(w.bbox?.y1||0))/2);
-        if(!byLine.has(lineId)) byLine.set(lineId, []);
-        byLine.get(lineId).push(w);
-      }
-      for (const arr of byLine.values()){
-        arr.sort((a,b)=> (a.bbox?.x0||0) - (b.bbox?.x0||0));
-        const texts = arr.map(w=> (w.text||'').trim());
-        for(let i=0;i<texts.length;i++){
-          if(labelRegex.test(texts[i])){
-            const candidates = [];
-            const pushNum = (s)=>{ const m = s.match(/^\d{1,3}(?:[.,]\d{1,2})?$/); if(m) candidates.push(m[0]); };
-            for(let span=1; span<=3; span++){
-              const slice = texts.slice(Math.max(0,i-span), i).join('');
-              pushNum(slice);
-            }
-            for(let span=1; span<=3; span++){
-              const slice = texts.slice(i+1, i+1+span).join('');
-              pushNum(slice);
-            }
-            if (candidates.length){
-              candidates.sort((a,b)=> b.length - a.length);
-              const v = parseFloat(candidates[0].replace(',','.'));
-              if (isFinite(v)) return v;
-            }
-          }
-        }
-      }
-      return null;
-    }
-    async function tryNumberOCR(dataURL, {psm=7, whitelist='0123456789.,'} = {}){
-      const opts = {
-        tessedit_pageseg_mode: psm,
-        tessedit_char_whitelist: whitelist,
-        classify_bln_numeric_mode: '1'
-      };
-      const res = await Tesseract.recognize(dataURL, 'eng', opts);
-      const text = (res.data?.text || '').trim();
-      const conf = (res.data?.confidence ?? 60) / 100;
-      const nums = text.match(/\b\d{1,3}[.,]\d{1,2}\b/g) || text.match(/\b\d{1,3}\b/g) || [];
-      return nums.map(s=> ({ val: parseFloat(s.replace(',','.')), dec: (s.includes('.')||s.includes(',')) ? (s.split(/[.,]/)[1]||'').length : 0, score: conf*10, src:`psm${psm}` }));
-    }
-    async function multiBinarizeAndRead(imgDataURL, roiRectOrNull){
-      const scales = [1.0, 1.3, 1.6];
-      const thresholds = [170, 185, 200];
-      const psms = [7, 8, 6]; // SINGLE_LINE, SINGLE_WORD, SINGLE_BLOCK
-
-      const src = await toCanvas(imgDataURL);
-      const cropToDataURL = async (rect) => {
-        if(!rect) return imgDataURL;
-        const c = document.createElement('canvas');
-        c.width = rect.w; c.height = rect.h;
-        const ctx = c.getContext('2d',{willReadFrequently:true});
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(src.img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
-        return c.toDataURL('image/png');
-      };
-
-      const base = await cropToDataURL(roiRectOrNull);
-      const out = [];
-      for (const sc of scales){
-        for (const th of thresholds){
-          const bin = await preprocessImageToDataURL(base, sc, th);
-          for (const psm of psms){
-            const arr = await tryNumberOCR(bin, {psm});
-            arr.forEach(a=> out.push({...a, src:`roi-multi(sc${sc}-th${th}-psm${psm})`, score:(a.score||0)+2}));
-          }
-        }
-      }
-      return out;
-    }
-
-    // ▼ STRAVA 상단 여백 대응 + 라벨근처/다중이진화까지 포함: 거리 후보 수집
-    async function multiPassKmCandidates_FAST(imgDataURL){
-      const out = [];
-
-      // 다양한 ROI: 상단/상단조금아래/하이탑/센터
-      const rois = [
-        { topPct:0.05, heightPct:0.28, sidePct:0.06, scale:2.8 },
-        { topPct:0.09, heightPct:0.28, sidePct:0.06, scale:2.8 },
-        { topPct:0.14, heightPct:0.28, sidePct:0.06, scale:2.8 },
-        { topPct:0.22, heightPct:0.24, sidePct:0.06, scale:2.6 },
-      ];
-
-      let lastPreview = null;
-      for (let i=0;i<rois.length;i++){
-        const r = rois[i];
-        const roiURL = await cropTopNumberROI(imgDataURL, r.topPct, r.heightPct, r.sidePct, r.scale);
-        const cand = await multiBinarizeAndRead(roiURL, null);
-        cand.forEach(c => out.push({ ...c, src:`roi${i}` }));
-        lastPreview = roiURL;
-      }
-
-      // 전체 전처리 + words → "km" 라벨 주변에서 수치 찾아 보강
-      const pre = await preprocessImageToDataURL(imgDataURL, 2.2, 180);
-      const full = await Tesseract.recognize(pre, 'eng', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.AUTO });
-      const words = full.data?.words || [];
-      const near = extractKmNearLabel(words, /^km$/i);
-      if (isFinite(near)){
-        out.push({ val: near, dec: (String(near).split('.')[1]||'').length, score: 18, src: 'near-km-label' });
-      }
-
-      return { cands: out, roiBin: lastPreview };
-    }
-
-    /* ===== 파서/후보 선택 ===== */
-    function numsFromText(s){
-      const t = normalizeOCR(s||'');
-      const m = t.match(/\b\d{1,3}[.,]\d{1,2}\b/g) || [];
-      return m.map(x => ({ val: parseFloat(x.replace(',','.')), dec: (x.split(/[.,]/)[1]||'').length }));
-    }
-    function kmCandidatesFromWords(words){
-      if(!Array.isArray(words) || !words.length) return [];
-      const lines = new Map();
-      for(const w of words){
-        const id = w.line ?? `y${Math.round(((w.bbox?.y0||0)+(w.bbox?.y1||0))/2)}`;
-        const h  = (w.bbox ? Math.max(0,(w.bbox.y1 - w.bbox.y0)) : 0);
-        const y  = (w.bbox ? (w.bbox.y0 + w.bbox.y1)/2 : 0);
-        const t  = (w.text||'').trim();
-        if(!lines.has(id)) lines.set(id, { text:[], maxH:0, y:Infinity });
-        const L = lines.get(id);
-        L.text.push(t);
-        L.maxH = Math.max(L.maxH, h);
-        L.y    = Math.min(L.y, y);
-      }
-      const arr = [...lines.values()];
-      arr.sort((a,b)=> (a.y - b.y) || (b.maxH - a.maxH));
-      const top = arr.slice(0, 4);
-      const out = [];
-      for(const L of top){
-        const joined = L.text.join(' ');
-        const onlyNum = L.text.filter(t=>/^[0-9.,]+$/.test(t)).join('');
-        const c1 = numsFromText(joined);
-        const c2 = numsFromText(onlyNum);
-        c1.concat(c2).forEach(o=> out.push({ ...o, src:'word-top', score:L.maxH }));
-      }
-      return out;
-    }
-    function estimateDistanceFromPaceTime(){
-      if (parsedData.paceMin==null || parsedData.paceSec==null) return null;
-      let totalSec = null;
-      if (parsedData.timeH!=null || parsedData.timeM!=null || parsedData.timeS!=null){
-        const H = parsedData.timeH||0, M=parsedData.timeM||0, S=parsedData.timeS||0;
-        totalSec = H*3600 + M*60 + S;
-      }
-      if (!totalSec && parsedData.timeRaw){
-        const m = parsedData.timeRaw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-        if (m){ totalSec = (m[3]? (+m[1]*3600 + +m[2]*60 + +m[3]) : (+m[1]*60 + +m[2])); }
-      }
-      const paceSecOCR = (parsedData.paceMin!=null && parsedData.paceSec!=null)
-        ? (parsedData.paceMin * 60 + parsedData.paceSec)
-        : NaN;
-      if (!isFinite(paceSecOCR) || paceSecOCR <= 0) return null;
-      if (recordType === 'monthly') return null;
-      return totalSec / paceSecOCR;
-    }
-    function pickBestKm(cands){
-      if(!cands || !cands.length) return null;
-      const preferDec = (recordType==='monthly') ? 1 : 2;
-
-      const groups = new Map();
-      for(const c of cands){
-        const key = (Math.round(c.val*100)/100).toFixed(2);
-        if(!groups.has(key)) groups.set(key, { val:parseFloat(key), count:0, roi:0, decHits:0, score:0 });
-        const g = groups.get(key);
-        g.count++;
-        if(String(c.src||'').includes('roi')) g.roi += 1;
-        g.decHits += (c.dec===preferDec) ? 2 : 0.5;
-        g.score += (c.score||0);
-      }
-      const ranked = [...groups.values()].sort((a,b)=>{
-        return (b.roi - a.roi) || (b.decHits - a.decHits) || (b.count - a.count) || (b.score - a.score);
-      });
-
-      const est = estimateDistanceFromPaceTime();
-      if (ranked.length >= 2 && est!=null){
-        const [a,b] = ranked;
-        const d1 = Math.abs(a.val - est), d2 = Math.abs(b.val - est);
-        if (Math.abs(d1 - d2) > 0.12) return d1 < d2 ? a.val : b.val;
-      }
-      return ranked[0]?.val ?? null;
-    }
-
-    async function recognizeLeadingChar(roiBinDataURL){
-      const {img,w,h} = await toCanvas(roiBinDataURL);
-      const c=document.createElement('canvas'); c.width=w; c.height=h;
-      const ctx=c.getContext('2d',{willReadFrequently:true});
-      ctx.drawImage(img,0,0);
-      function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(ctx.getImageData(x,y,1,1).data[0]<128) s++; } return s; }
-      let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
-      const digitW = Math.max(8, Math.floor(w*0.18));
-      const R = Math.min(w-1, L+digitW);
-
-      const cc=document.createElement('canvas');
-      cc.width = R-L+1; cc.height = h;
-      cc.getContext('2d').drawImage(c, L, 0, R-L+1, h, 0, 0, R-L+1, h);
-      const cropURL = cc.toDataURL('image/png');
-
-      const charRes = await Tesseract.recognize(cropURL, 'eng', {
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_CHAR,
-        tessedit_char_whitelist: '235',
-        classify_bln_numeric_mode: '1'
-      });
-      const ch = (charRes.data.text||'').trim().charAt(0) || '';
-      const conf = Number(charRes.data.confidence ?? 0);
-      return { ch, conf };
-    }
-
-    async function looksLikeLeadingFive(roiBinDataURL){
-      const {img,w,h} = await toCanvas(roiBinDataURL);
-      const c=document.createElement('canvas'); c.width=w; c.height=h;
-      const ctx=c.getContext('2d',{willReadFrequently:true});
-      ctx.drawImage(img,0,0);
-      const im=ctx.getImageData(0,0,w,h).data;
-
-      function colBlackCount(x){ let s=0; for(let y=0;y<h;y++){ if(im[(y*w+x)*4]<128) s++; } return s; }
-      let L=0; const need = Math.max(3, Math.floor(h*0.12));
-      for(let x=0;x<w;x++){ if(colBlackCount(x)>need){ L=x; break; } }
-      const digitW = Math.max(8, Math.floor(w*0.18));
-      const R = Math.min(w-1, L+digitW);
-
-      function bandDensity(y0,y1){
-        let black=0; const total=(y1-y0)*(R-L+1);
-        for(let y=y0; y<y1; y++){
-          for(let x=L; x<=R; x++){ if(im[(y*w+x)*4]<128) black++; }
-        }
-        return black/Math.max(1,total);
-      }
-      const topDensity = bandDensity(0, Math.floor(h*0.14));
-      const midDensity = bandDensity(Math.floor(h*0.47), Math.floor(h*0.62));
-
-      let leftVert=0, total=0;
-      const vx0 = Math.min(R, L + Math.max(2, Math.floor(digitW*0.18)));
-      for(let y=Math.floor(h*0.35); y<Math.floor(h*0.85); y++){
-        total++;
-        if(im[(y*w+vx0)*4] < 128) leftVert++;
-      }
-      const leftVertRatio = leftVert/Math.max(1,total);
-
-      return (topDensity>0.62 && midDensity>0.46 && leftVertRatio>0.32);
-    }
-
-    function groupScores(cands){
-      const m=new Map();
-      for(const c of cands){
-        const key=(Math.round(c.val*100)/100).toFixed(2);
-        const s=(c.score||0)+ (String(c.src||'').includes('roi')?4:0);
-        m.set(key,(m.get(key)||0)+s);
-      }
-      return m;
-    }
-    function bestScoreAround(scoresMap, center, tol=0.25){
-      let best=0;
-      for(const [k,v] of scoresMap){
-        const x=parseFloat(k); if(Math.abs(x-center)<=tol) best=Math.max(best,v);
-      }
-      return best;
-    }
-
-    /* ===== STRAVA 전용 ===== */
-    const STRAVA_FIND_OPTS = { preserve_interword_spaces: '1', tessedit_pageseg_mode: Tesseract.PSM.AUTO };
-    const STRAVA_LINE_NUM_ONLY = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789.,:' };
-    const STRAVA_LINE_MIXED    = { tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE, tessedit_char_whitelist: '0123456789:/kmshm ' };
-
-    /* ▼ 유연한 파서 (fallback용) */
-    function parseAnyPace(raw){
-      const t = normalizeOCR(raw||'');
-      const m = t.match(/(\d{1,2})\s*[:'’]\s*(\d{2})\s*(?:\/\s*km|per\s*km|min\/km)?/i)
-             || t.match(/\b(\d{1,2})\s*[:]\s*(\d{2})\b/);
-      if(!m) return {min:null, sec:null};
-      return {min:+m[1], sec:+m[2]};
-    }
-    function parseAnyTime(raw){
-      const t = normalizeOCR(raw||'');
-      let m = t.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
-      if(m) return {H:+m[1], M:+m[2], S:+m[3], raw:`${+m[1]}:${zero2(+m[2])}:${zero2(+m[3])}`};
-      m = t.match(/\b(\d{1,2})\s*h\s*(\d{1,2})\s*m(?:\s*(\d{1,2})\s*s)?/i);
-      if(m){ const H=+m[1], M=+m[2], S=+(m[3]||0); return {H,M,S,raw:`${H}:${zero2(M)}:${zero2(S)}`}; }
-      m = t.match(/\b(\d{1,2}):(\d{2})\b/);
-      if(m) return {H:0, M:+m[1], S:+m[2], raw:`${+m[1]}:${zero2(+m[2])}`};
-      return {H:null,M:null,S:null,raw:null};
-    }
-    function extractKmFromText(raw){
-      const t = normalizeOCR(raw||'');
-      const idx = t.search(/\bkm\b/i);
-      if(idx>=0){
-        const before = t.slice(Math.max(0, idx-50), idx);
-        const after  = t.slice(idx, idx+50);
-        const m2 = (before.match(/(\d{1,3})\s*[.,]\s*(\d{1,2})/) || after.match(/(\d{1,3})\s*[.,]\s*(\d{1,2})/));
-        if(m2) return parseFloat(`${m2[1]}.${m2[2]}`);
-        const m1 = (before.match(/\b(\d{1,3})\b/) || after.match(/\b(\d{1,3})\b/));
-        if(m1) return parseFloat(m1[1]);
-      }
-      const m = t.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
-      return m ? parseFloat(m[1].replace(',','.')) : null;
-    }
-
-    function findLabelBoxes(words, labels){
-      const found = {};
-      const lower = new Set(labels.map(s=>s.toLowerCase()));
-      for(const w of (words||[])){
-        const t = (w.text||'').trim().toLowerCase();
-        if(lower.has(t)){
-          found[t] = {
-            x0: Math.max(0, Math.floor(w.bbox.x0)),
-            y0: Math.max(0, Math.floor(w.bbox.y0)),
-            x1: Math.max(0, Math.floor(w.bbox.x1)),
-            y1: Math.max(0, Math.floor(w.bbox.y1)),
-            line: w.line
-          };
-        }
-      }
-      return found;
-    }
-    function rectBelow(labelBox, imgW, imgH){
-      const x0 = Math.max(0, labelBox.x0);
-      const x1 = Math.min(imgW, labelBox.x1);
-      const y0 = Math.min(imgH, labelBox.y1 + Math.round((labelBox.y1-labelBox.y0)*0.25));
-      const h  = Math.round((labelBox.y1-labelBox.y0) * 2.2);
-      const y1 = Math.min(imgH, y0 + h);
-      return {x:x0, y:y0, w:x1-x0, h:y1-y0};
-    }
-    async function ocrSingleLine(imgUrl, rect, opts){
-      const {img} = await toCanvas(imgUrl);
-      const c = document.createElement('canvas');
-      c.width = rect.w; c.height = rect.h;
-      const ctx = c.getContext('2d', {willReadFrequently:true});
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
-      const dataURL = c.toDataURL('image/png');
-      const { data } = await Tesseract.recognize(dataURL, 'eng', opts);
-      return (data.text||'').trim();
-    }
-
-    async function ocrStravaPipeline(imgDataURL){
-      // 1) 전처리 + 전체 스캔
-      const pre = await preprocessImageToDataURL(imgDataURL, 2.2, 180);
-      const full = await Tesseract.recognize(pre, 'eng', STRAVA_FIND_OPTS);
-      const words = full.data.words||[];
-      const rawAllText = full?.data?.text || '';
-      const labels = findLabelBoxes(words, ['Distance','Pace','Time']);
-      const {w,h} = await toCanvas(pre);
-
-      // 2) 라벨 기반 1차 추출
-      let kmVal=null, paceMin=null, paceSec=null, timeH=null,timeM=null,timeS=null,timeRaw=null;
-
-      if(labels['distance']){
-        const r = rectBelow(labels['distance'], w, h);
-        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_NUM_ONLY);
-        const m = tx.match(/\b(\d{1,3}[.,]\d{1,2})\b/);
-        if(m) kmVal = parseFloat(m[1].replace(',', '.'));
-      }
-      if(labels['pace']){
-        const r = rectBelow(labels['pace'], w, h);
-        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
-        const p = parseAnyPace(tx);
-        paceMin = p.min; paceSec = p.sec;
-      }
-      if(labels['time']){
-        const r = rectBelow(labels['time'], w, h);
-        const tx = await ocrSingleLine(pre, r, STRAVA_LINE_MIXED);
-        const t = parseAnyTime(tx);
-        timeH = t.H; timeM = t.M; timeS = t.S; timeRaw = t.raw;
-      }
-
-      // 3) 라벨 실패 시 전역 텍스트 fallback
-      if(paceMin==null || paceSec==null){
-        const p = parseAnyPace(rawAllText);
-        if(p.min!=null){ paceMin=p.min; paceSec=p.sec; }
-      }
-      if(timeRaw==null){
-        const t = parseAnyTime(rawAllText);
-        if(t.raw){ timeH=t.H; timeM=t.M; timeS=t.S; timeRaw=t.raw; }
-      }
-      if(kmVal==null){
-        const k = extractKmFromText(rawAllText);
-        if(k!=null) kmVal = k;
-      }
-
-      // 4) 상호 검증(크게 어긋나면 pace 재계산)
-      if (kmVal != null && paceMin != null && paceSec != null && (timeH != null || timeM != null || timeS != null)) {
-        const timeSec = (timeH || 0) * 3600 + (timeM || 0) * 60 + (timeS || 0);
-        const paceSecCalc = paceMin * 60 + paceSec;
-        if (isFinite(timeSec) && isFinite(paceSecCalc) && kmVal > 0) {
-          const paceFromTime = timeSec / kmVal;
-          const diff = Math.abs(paceFromTime - paceSecCalc);
-          if (diff > 6 && diff / Math.max(1, paceSecCalc) > 0.05) {
-            const adj = Math.round(paceFromTime);
-            paceMin = Math.floor(adj / 60);
-            paceSec = adj % 60;
-          }
-        }
-      }
-
-      return { km: kmVal, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
-    }
-
-    /* ===== 공용 OCR 파서 (NRC용) ===== */
-    function parseFromOCR(textRaw){
-      const text = normalizeOCR(textRaw);
-
-      // Pace
-      let paceMin=null, paceSec=null;
-      {
-        let m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\s*"?\b/); // NRC
-        if(!m){
-          m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})(?:\s*\/\s*km)?\b/i); // fallback
-        }
-        if(m){ paceMin = parseInt(m[1],10); paceSec = parseInt(m[2],10); }
-      }
-
-      // Time
-      let timeH=null,timeM=null,timeS=null,timeRaw=null;
-      let tm = text.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
-      if(tm){
-        timeH=+tm[1]; timeM=+tm[2]; timeS=+tm[3];
-        timeRaw=`${zero2(timeH)}:${zero2(timeM)}:${zero2(timeS)}`;
-      }else{
-        tm = text.match(/\b(\d{1,2}):(\d{2})\b/);
-        if(tm){
-          timeM=+tm[1]; timeS=+tm[2];
-          timeRaw=`${zero2(timeM)}:${zero2(timeS)}`;
-        }else{
-          const h = (text.match(/(\d{1,2})\s*h\b/i)||[])[1];
-          const m = (text.match(/(\d{1,3})\s*m\b/i)||[])[1];
-          const s = (text.match(/(\d{1,2})\s*s\b/i)||[])[1];
-          if(h || m || s){
-            timeH = h? +h : 0;
-            timeM = m? +m : 0;
-            timeS = s? +s : 0;
-            timeRaw = timeH>0 ? `${timeH}:${zero2(timeM)}:${zero2(timeS)}` : `${timeM}:${zero2(timeS)}`;
-          }
-        }
-      }
-
-      // Distance backup around "km"
-      const re2dec  = /(\d{1,3})\s*[.,]\s*(\d{2})\b/;
-      const re1dec  = /(\d{1,3})\s*[.,]\s*(\d{1})\b/;
-      const reInt   = /\b(\d{1,3})\b/;
-      const first2Dec = (s)=>{ const mm = s.match(re2dec); return mm ? `${mm[1]}.${mm[2]}` : null; };
-      const first1Dec = (s)=>{ const mm = s.match(re1dec); return mm ? `${mm[1]}.${mm[2]}` : null; };
-      const firstInt  = (s)=>{ const mm = s.match(reInt ); return mm ? mm[1] : null; };
-
-      let kmFromLabel = null;
-      {
-        let idx = text.search(/\bkm\b/i);
-        if (idx !== -1){
-          const before = text.slice(Math.max(0, idx - 60), idx);
-          const after  = text.slice(idx, idx + 60);
-          kmFromLabel = first2Dec(before) || first2Dec(after) ||
-                        first1Dec(before) || first1Dec(after) ||
-                        firstInt(before)  || firstInt(after);
-        }
-      }
-
-      // Runs (monthly)
-      const runs = (() => {
-        const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-        for(let i=0;i<lines.length;i++){
-          const L = lines[i];
-          if (/^(Runs?|러닝)\b/i.test(L)){
-            const prev = lines[i-1]||"", next = lines[i+1]||"";
-            let mm;
-            if ((mm = prev.match(/^\s*(\d{1,3})\s*$/))) return +mm[1];
-            if ((mm = next.match(/^\s*(\d{1,3})\s*$/))) return +mm[1];
-            if ((mm = L.match(/\b(\d{1,3})\b/)))       return +mm[1];
-          }
-        }
-        const pacePos = text.search(/\d{1,2}\s*(?:'|:)\s*\d{2}/);
-        const scope = pacePos>0 ? text.slice(0, pacePos) : text;
-        const cands = (scope.match(/\b\d{1,3}\b/g) || []).map(s=>+s).filter(n=>n>=0 && n<=999);
-        return cands.length ? cands[cands.length-1] : null;
-      })();
-
-      return { km: kmFromLabel, runs, paceMin, paceSec, timeH, timeM, timeS, timeRaw };
-    }
-
-    async function parseStrava(imgDataURL){
-      return await ocrStravaPipeline(imgDataURL);
-    }
-    async function parseNRC(imgDataURL){
-      const fullPrep = await preprocessForFullOCR(imgDataURL);
-      const rFull = await Tesseract.recognize(fullPrep, 'eng+kor', { preserve_interword_spaces:'1', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
-      return parseFromOCR(rFull?.data?.text || '');
-    }
-
-    /* ===== 표기 유틸 (절사) ===== */
-    function truncate(value, digits){
-      const f = Math.pow(10, digits);
-      return Math.floor((Number(value)||0) * f) / f;
-    }
-    function formatKmDailyThreeDigits(value){
-      const v = Math.max(0, Number(value) || 0);
-      if (v < 10) return truncate(v, 2).toFixed(2);
-      return truncate(v, 1).toFixed(1);
-    }
-    function formatKm(value){
-      const v = Math.max(0, Number(value) || 0);
-      if (recordType === 'monthly') return truncate(v, 1).toFixed(1);
-      return formatKmDailyThreeDigits(v);
-    }
-    function renderKm(value){
-      document.getElementById('km').textContent = formatKm(value);
-    }
-
-    function updateGridCols(){
-      const cols = (layoutType==='type1') ? 1 : (recordType==='monthly' ? 3 : 2);
-      statsGrid.style.setProperty('--cols', cols);
-    }
-    function layoutStatsGrid(){
-      if (layoutType === 'type1'){
-        [runsWrap, paceWrap, timeWrap].forEach(el=>{
-          el.style.gridColumn = '';
-          el.style.transform = '';
-          el.style.marginLeft = '';
-        });
-        return;
-      }
-      if (recordType === 'daily'){
-        paceWrap.style.gridColumn = '1 / 2';
-        timeWrap.style.gridColumn = '2 / 3';
-        paceWrap.style.transform = 'translateX(0)';
-        timeWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull').trim()})`;
-        paceWrap.style.marginLeft = '0';
-        timeWrap.style.marginLeft = '0';
-      } else {
-        runsWrap.style.gridColumn = '1 / 2';
-        paceWrap.style.gridColumn = '2 / 3';
-        timeWrap.style.gridColumn = '3 / 4';
-        runsWrap.style.transform = 'translateX(0)';
-        paceWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull').trim()})`;
-        timeWrap.style.transform = `translateX(${getComputedStyle(document.documentElement).getPropertyValue('--statPull2').trim()})`;
-        runsWrap.style.marginLeft = '0';
-        paceWrap.style.marginLeft = '0';
-        timeWrap.style.marginLeft = '0';
-      }
-    }
-    function zero2txt(n){ return String(n).padStart(2,'0'); }
-    function formatPaceByType(){
-      if(parsedData.paceMin==null || parsedData.paceSec==null){
-        return (layoutType==='type1') ? '0:00 /km' : '0:00';
-      }
-      const mm = String(parsedData.paceMin);
-      const ss = zero2txt(parsedData.paceSec);
-      return (layoutType==='type1') ? `${mm}:${ss} /km` : `${mm}:${ss}`;
-    }
-    function formatTimeByType(){
-      if(layoutType==='type2') return parsedData.timeRaw ? parsedData.timeRaw : '00:00';
-      const H = parsedData.timeH ?? 0, M = parsedData.timeM ?? 0, S = parsedData.timeS ?? 0;
-      if (H > 0) return `${H}h ${zero2txt(M)}m ${zero2txt(S)}s`;
-      return `${String(M)}m ${zero2txt(S)}s`;
-    }
-    function alignStatsBaseline(){
-      if(layoutType !== 'type2') return;
-      const stats = [];
-      const addIfVisible = (id)=>{
-        const wrap = document.getElementById(id+'-wrap');
-        if(getComputedStyle(wrap).display!=='none'){
-          stats.push(document.getElementById(id));
-        }
-      };
-      addIfVisible('runs'); addIfVisible('pace'); addIfVisible('time');
-      stats.forEach(el=>{ el.style.transform = ''; });
-      const bottoms = stats.map(el=>el.getBoundingClientRect().bottom);
-      const maxBottom = Math.max(...bottoms);
-      stats.forEach((el,i)=>{
-        const dy = Math.round(maxBottom - bottoms[i]);
-        if (dy) el.style.transform = `translateY(${dy}px)`;
-      });
-    }
-    function renderStats(){
-      document.getElementById('pace-label').textContent = 'Avg. Pace';
-      document.getElementById('time-label').textContent = 'Time';
-      runsWrap.style.display = (recordType === 'monthly') ? 'block' : 'none';
-      if (recordType === 'monthly') {
-        const runsVal = (parsedData.runs == null || Number.isNaN(parsedData.runs)) ? '--' : parsedData.runs;
-        document.getElementById('runs').textContent = String(runsVal);
-      }
-      document.getElementById('pace').textContent = formatPaceByType();
-      document.getElementById('time').textContent = formatTimeByType();
-
-      const hint = document.getElementById('cv-hint');
-      hint.style.display = 'none';
-      hint.textContent = '';
-
-      updateGridCols();
-      layoutStatsGrid();
-      alignStatsBaseline();
-    }
-
-    /* ===== 업로드 라벨 ===== */
-    function updateUploadLabel(){
-      if(!uploadLabelText) return;
-      uploadLabelText.textContent = (sourceType === 'strava')
-        ? 'Upload your STRAVA record image'
-        : 'Upload your NRC record image';
-    }
-
-    /* ===== 업로드 → OCR ===== */
-    function leadingDigit(n){
-      if(!isFinite(n)) return null;
-      const s = Math.floor(Math.abs(n)).toString();
-      return s.length ? s[0] : null;
-    }
-
-    document.getElementById("file-upload").addEventListener("change", async (e)=>{
-      const file = e.target.files[0]; if(!file) return;
-      const status = document.getElementById("upload-status");
-      status.textContent = "Processing…";
-
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try{
-          const img = reader.result;
-
-          // 1) 상단 거리 후보(ROI) + 라벨근처/다중이진화 강화
-          const fast = await multiPassKmCandidates_FAST(img);
-          let kmCandidates = fast.cands;
-          const roiBinForFiveGuard = fast.roiBin;
-
-          // 2) 소스 타입별 파서
-          const parsedBySource = (sourceType === 'strava')
-            ? await parseStrava(img)
-            : await parseNRC(img);
-
-          if(parsedBySource.km){
-            kmCandidates.push({
-              val: parseFloat(String(parsedBySource.km).replace(',','.')),
-              dec: (String(parsedBySource.km).split(/[.,]/)[1]||'').length,
-              src: 'aux'
-            });
-          }
-
-          // 3) km 최종 + 5-가드
-          let kmBest = pickBestKm(kmCandidates);
-          if (kmBest!=null){
-            const intPart = Math.floor(kmBest);
-            if (intPart===2 || intPart===3){
-              const { ch:leadCh, conf:leadConf } = await recognizeLeadingChar(roiBinForFiveGuard).catch(()=>({ch:'',conf:0}));
-              const looks5 = await looksLikeLeadingFive(roiBinForFiveGuard).catch(()=>false);
-              const est = estimateDistanceFromPaceTime();
-              const estNear5 = (est!=null && est>=4.85 && est<=5.30);
-              const scores = groupScores(kmCandidates);
-              const s2 = bestScoreAround(scores, 2.0, 0.25);
-              const s3 = bestScoreAround(scores, 3.0, 0.25);
-              const s5 = bestScoreAround(scores, 5.0, 0.25);
-              const strongNotFive = (leadCh==='2' || leadCh==='3') && leadConf>=70;
-              const allowFixToFive =
-                (leadCh==='5' && leadConf>=82) ||
-                (looks5 && estNear5 && (s5 > Math.max(s2,s3) + 6));
-              if (!strongNotFive && allowFixToFive){
-                kmBest = 5 + (kmBest - intPart);
-              }
-            }
-          }
-
-          // 4) STRAVA Pace 안정화 보정 → 이후 solve/reconcile로 이어감
-          let stabilized = null;
-          if (sourceType === 'strava'){
-            stabilized = stabilizeStravaPace(parsedBySource, (kmBest ?? parsedBySource.km));
-          }
-
-          // 5) 페이스/타임 결합 (삼각 보정 → reconcile)
-          const p = parsedBySource;
-
-          const timeSecOCR =
-            stabilized ? stabilized.timeSec :
-            ((p.timeH!=null || p.timeM!=null || p.timeS!=null)
-              ? ((p.timeH||0)*3600 + (p.timeM||0)*60 + (p.timeS||0))
-              : (p.timeRaw ? parseTimeToSec(p.timeRaw) : NaN));
-
-          const paceSecOCR =
-            stabilized ? ((stabilized.paceMin!=null && stabilized.paceSec!=null) ? (stabilized.paceMin*60 + stabilized.paceSec) : NaN)
-                       : ((p.paceMin!=null && p.paceSec!=null) ? (p.paceMin*60 + p.paceSec) : NaN);
-
-          const distKmOCR = stabilized ? stabilized.distKm : (kmBest ?? p.km);
-          const distKmNum = isFinite(distKmOCR) ? parseFloat(String(distKmOCR)) : NaN;
-
-          let { timeSec:t0, paceSec:p0, distKm:d0 } = solveTPD({
-            timeSec: timeSecOCR,
-            paceSec: paceSecOCR,
-            distKm:  distKmNum
-          });
-
-          const paceStrForCv = isFinite(p0) ? `${Math.floor(p0/60)}:${zero2txt(p0%60)}` : null;
-          const cv = reconcile({
-            timeStr: (isFinite(t0) && t0>=0)
-                      ? (p.timeRaw || (t0>=3600
-                          ? `${Math.floor(t0/3600)}:${zero2txt(Math.floor((t0%3600)/60))}:${zero2txt(t0%60)}`
-                          : `${Math.floor(t0/60)}:${zero2txt(t0%60)}`))
-                      : (p.timeRaw || ''),
-            distStr: isFinite(d0) ? String(d0) : (isFinite(distKmNum) ? String(distKmNum) : ''),
-            paceStr: paceStrForCv,
-            unit: 'km'
-          });
-
-          const finalTimeSec = isFinite(t0) ? t0 : (cv.meta && isFinite(cv.meta.timeSec) ? cv.meta.timeSec : NaN);
-          const finalPaceSec = isFinite(p0) ? p0 : (isFinite(cv.pace) ? Math.round(cv.pace) : NaN);
-          const finalDistKm  = isFinite(d0) ? d0 : (isFinite(cv.distance) ? cv.distance : (isFinite(distKmNum) ? distKmNum : NaN));
-
-          // (보정 2차 안전망) 시간÷거리 기반 pace 교체 조건
-          let finalPaceSecUsed = finalPaceSec;
-          if (isFinite(finalTimeSec) && isFinite(finalDistKm) && finalDistKm > 0){
-            const calc = Math.round(finalTimeSec / finalDistKm);
-            if (!isFinite(finalPaceSec) ||
-                Math.abs(finalPaceSec - calc) > 4 ||
-                Math.abs(finalPaceSec - calc) / Math.max(1, finalPaceSec) > 0.03){
-              finalPaceSecUsed = calc; // 교체
-            }
-          }
-
-          const timeSecForCalc = finalTimeSec;
-          const paceSecForCalc = finalPaceSecUsed;
-          const calcKmCandidate = (recordType==='daily' && isFinite(timeSecForCalc) && isFinite(paceSecForCalc))
-            ? (timeSecForCalc / paceSecForCalc) : NaN;
-
-          const ocrKmRaw = (isFinite(finalDistKm) ? finalDistKm : NaN);
-          const ldOCR  = leadingDigit(ocrKmRaw);
-          const ldCALC = leadingDigit(calcKmCandidate);
-          const leadMismatch = (ldOCR!==null && ldCALC!==null && ldOCR !== ldCALC);
-          const finalKm = (leadMismatch && isFinite(calcKmCandidate)) ? calcKmCandidate : finalDistKm;
-
-          // 표기용 분해 (pace는 보정된 finalPaceSecUsed 기준)
-          const {H:FH, M:FM, S:FS} = hmsFromSeconds(finalTimeSec);
-          const {M:PM, S:PS}       = mmssFromSeconds(finalPaceSecUsed);
-
-          parsedData = {
-            km: isFinite(finalKm) ? finalKm : 0,
-            paceMin: isFinite(finalPaceSecUsed) ? PM : null,
-            paceSec: isFinite(finalPaceSecUsed) ? PS : null,
-            timeH: isFinite(finalTimeSec) ? FH : null,
-            timeM: isFinite(finalTimeSec) ? FM : null,
-            timeS: isFinite(finalTimeSec) ? FS : null,
-            timeRaw: (isFinite(finalTimeSec)
-                      ? (FH>0 ? `${FH}:${zero2txt(FM)}:${zero2txt(FS)}`
-                              : `${FM}:${zero2txt(FS)}`)
-                      : (p.timeRaw || null)),
-            runs: (recordType==='monthly') ? (p.runs ?? null) : null,
-            cv
-          };
-
-          renderKm(0);
-          renderStats();
-          status.textContent = "Done";
-        }catch(err){
-          console.error(err);
-          status.textContent = "Error: " + (err.message || err);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
-    /* ===== 애니메이션/스케일 ===== */
-    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-    function animateNumber(id,start,end,duration){
-      return new Promise(resolve=>{
-        const kmEl = document.getElementById(id);
-        let startTime;
-        function update(now){
-          if(!startTime) startTime = now;
-          const raw = Math.min((now - startTime)/duration,1);
-          const eased = easeOutCubic(raw);
-          const val = (start + (end-start)*eased);
-          kmEl.textContent = formatKm(val);
-          raw < 1 ? requestAnimationFrame(update) : resolve();
-        }
-        requestAnimationFrame(update);
-      });
-    }
-    function scaleStageCanvas(){
-      const canvas = document.getElementById('stage-canvas');
-      if(!canvas) return;
-      const vw = window.innerWidth;
-      const logicalWidth = (vw < 430) ? 540 : 720;
-      const scale = Math.min(vw / logicalWidth, 1);
-      canvas.style.transform = `scale(${scale})`;
-    }
-
-    const kmFontScale = {
-      "Anton": { type1: 0.90, type2: 1.00 },
-      "Big Shoulders Inline Text": { type1: 0.95, type2: 1.10 },
-      "Alfa Slab One": { type1: 0.85, type2: 0.89 },
-      "Orbitron": { type1: 0.93, type2: 0.98 },
-      "Special Gothic Expanded One": { type1: 0.80, type2: 0.85 },
-      "Graduate": { type1: 0.85, type2: 0.90 },
-      "Gloria Hallelujah": { type1: 0.85, type2: 0.90 },
-      "Rock Salt": { type1: 0.85, type2: 0.94 }
-    };
-    function setFontKmScale(font, type, scale){
-      if(!kmFontScale[font]) kmFontScale[font] = { type1:1, type2:1 };
-      kmFontScale[font][type] = Number(scale) || 1;
-      fitKmRow();
-    }
-    const fontIndentMap = {
-      "Anton": { type1: { grid: 5,  kmWord: 0 },  type2: { grid: 5,  kmWord: 0 } },
-      "Big Shoulders Inline Text": { type1: { grid: 8,  kmWord: 3 },  type2: { grid: 8,  kmWord: 3 } },
-      "Alfa Slab One": { type1: { grid: 6,  kmWord: 2 },  type2: { grid: 6,  kmWord: 2 } },
-      "Orbitron": { type1: { grid: 8,  kmWord: 0 },  type2: { grid: 6,  kmWord: 0 } },
-      "Special Gothic Expanded One": { type1: { grid: 4,  kmWord: 0 },  type2: { grid: 4,  kmWord: 0 } },
-      "Graduate": { type1: { grid: 8,  kmWord: 1 },  type2: { grid: 8,  kmWord: 1 } },
-      "Gloria Hallelujah": { type1: { grid: 5,  kmWord: 2 },  type2: { grid: 5,  kmWord: 2 } },
-      "Rock Salt": { type1: { grid: 25, kmWord: 0 },  type2: { grid: 25, kmWord: 0 } }
-    };
-    function applyFontIndents(font, type){
-      const defaults = { grid: 5, kmWord: 0 };
-      const conf = (fontIndentMap[font] && fontIndentMap[font][type]) || defaults;
-      document.documentElement.style.setProperty('--gridFirstColIndent', `${conf.grid}px`);
-      document.documentElement.style.setProperty('--kmWordIndent', `${conf.kmWord}px`);
-    }
-    function applyFontStatsOffset(font){
-      if (layoutType !== 'type2') {
-        document.documentElement.style.setProperty('--statsLeftOffset', '0px');
-        return;
-      }
-      const map = fontStatsOffsetMap[font] || { daily:"0px", monthly:"0px" };
-      const val = (recordType === 'daily') ? map.daily : map.monthly;
-      document.documentElement.style.setProperty('--statsLeftOffset', val || '0px');
-    }
-    function fitKmRow(){
-      const stage   = document.getElementById('stage');
-      const row     = document.getElementById('km-row');
-      const measure = document.getElementById('km-measure');
-      const kmEl    = document.getElementById('km');
-
-      const kmCS = window.getComputedStyle(kmEl);
-      measure.style.fontFamily = kmCS.fontFamily;
-      measure.style.fontSize   = kmCS.fontSize;
-      measure.style.fontStyle  = kmCS.fontStyle;
-      measure.style.fontWeight = kmCS.fontWeight;
-
-      measure.textContent = kmEl.textContent;
-
-      const stCS = window.getComputedStyle(stage);
-      const padL = parseFloat(stCS.paddingLeft)  || 0;
-      const padR = parseFloat(stCS.paddingRight) || 0;
-      const avail = stage.clientWidth - (padL + padR);
-
-      const safe  = 0.98;
-      const need  = measure.scrollWidth;
-      const baseFit  = need ? Math.min(1, (avail * safe) / need) : 1;
-
-      const css = getComputedStyle(document.body);
-      const typeScale = parseFloat(css.getPropertyValue('--kmScale')) || 1;
-      const modeScale = parseFloat(css.getPropertyValue('--modeKmScale')) || 1;
-      const fontScale = (kmFontScale[selectedFont] && kmFontScale[selectedFont][layoutType]) ? kmFontScale[selectedFont][layoutType] : 1;
-
-      row.style.transform = `scale(${baseFit * typeScale * fontScale * modeScale})`;
-      syncDateWidth();
-    }
-    function syncDateWidth(){
-      if (layoutType !== 'type2') return;
-      const row = document.getElementById('km-row');
-      const width = row.getBoundingClientRect().width;
-      dateDisplay.style.width = width + 'px';
-    }
-    async function runAnimation(){
-      fitKmRow();
-      await new Promise(r=>setTimeout(r, 500));
-      const endVal = parseFloat(parsedData.km || 0);
-      await animateNumber("km", 0, isNaN(endVal)?0:endVal, 2200);
-      fitKmRow();
-    }
-    function updateActive(groupEl, targetBtn){
-      [...groupEl.querySelectorAll('button')].forEach(b=>b.classList.remove('is-active'));
-      if(targetBtn) targetBtn.classList.add('is-active');
-    }
-    function setFont(font){
-      selectedFont = font;
-
-      const km       = document.getElementById("km");
-      const dateDisp = document.getElementById("date-display");
-      const fs = fontSettings[font] || {};
-
-      km.style.fontFamily = font + ", sans-serif";
-      km.style.fontSize   = ((fs.base ?? 200)) + "px";
-      km.style.fontWeight = (fs.weight ?? 700);
-      km.style.transform  = fs.translate ? `translate(${fs.translate})` : "translate(0,0)";
-
-      const dateFontWhitelist = new Set([
-        "Anton","Orbitron","Special Gothic Expanded One","Graduate","Gloria Hallelujah"
-      ]);
-      if (dateFontWhitelist.has(font)) {
-        dateDisp.style.fontFamily = font + ", sans-serif";
-        dateDisp.style.fontWeight = (fs.dateWeight ?? 700);
-      } else {
-        dateDisp.style.fontFamily = "";
-        dateDisp.style.fontWeight = 700;
-      }
-
-      const root = document.documentElement.style;
-      const dSize = fs.dateSize || "50px";
-      const dGap  = fs.dateGap  || "10px";
-      const dTrans= fs.dateTranslate || "0px,0px";
-      root.setProperty("--d2-dateSize", dSize);
-      root.setProperty("--d2-dateGap", dGap);
-      root.setProperty("--d2-dateTranslate", dTrans);
-      root.setProperty("--m1-dateSize", dSize);
-      root.setProperty("--m1-dateGap", dGap);
-      root.setProperty("--m1-dateTranslate", dTrans);
-      root.setProperty("--m2-dateSize", dSize);
-      root.setProperty("--m2-dateGap", dGap);
-      root.setProperty("--m2-dateTranslate", dTrans);
-
-      if (fs.kmWordGap) document.documentElement.style.setProperty('--kmWordGap', fs.kmWordGap);
-
-      const targetBtn = fontGridEl.querySelector(`button[data-font="${CSS.escape(font)}"]`);
-      updateActive(fontGridEl, targetBtn);
-
-      applyFontIndents(selectedFont, layoutType);
-      applyFontStatsOffset(selectedFont);
-      fitKmRow();
-      renderStats();
-      renderDateDisplay();
-    }
-    function setBackground(color){
-      const htmlEl = document.documentElement, bodyEl = document.body;
-      if(color==='black'){ htmlEl.classList.replace('bg-white','bg-black'); bodyEl.classList.replace('bg-white','bg-black'); }
-      else { htmlEl.classList.replace('bg-black','bg-white'); bodyEl.classList.replace('bg-black','bg-white'); }
-      const targetBtn = bgRow.querySelector(`button[data-bg="${CSS.escape(color)}"]`);
-      updateActive(bgRow, targetBtn);
-    }
-
-    /* ===== Record Type ===== */
-    function setRecordType(mode){
-      recordType = mode;
-      document.body.classList.toggle('mode-daily', mode==='daily');
-      document.body.classList.toggle('mode-monthly', mode==='monthly');
-      updateActive(modeRow, modeRow.querySelector(`button[data-mode="${CSS.escape(mode)}"]`));
-      runsWrap.style.display = (mode==='monthly') ? 'block' : 'none';
-      renderKm(document.getElementById('km').textContent.replace(/[^\d.]/g,'') || 0);
-      renderStats();
-      updateGridCols();
-      fitKmRow();
-      applyLayoutVisual();
-      applyFontStatsOffset(selectedFont);
-    }
-
-    /* ===== Source Type (NRC / STRAVA) ===== */
-    function setSourceType(src){
-      sourceType = src; // 'nrc' | 'strava'
-      // 토글 UI
-      btnNrc.classList.toggle('is-active', src==='nrc');
-      btnStrava.classList.toggle('is-active', src==='strava');
-
-      // 소스별 포인트 컬러 적용
-      if (src === 'strava'){
-        document.documentElement.style.setProperty('--accent', '#FF9000');
-        document.documentElement.style.setProperty('--accent-border', '#CD6B00');
-        setRecordType('daily');
-        btnMonthly.setAttribute('disabled','');
-      } else {
-        document.documentElement.style.setProperty('--accent', '#32D600');
-        document.documentElement.style.setProperty('--accent-border', '#2AB500');
-        btnMonthly.removeAttribute('disabled');
-      }
-
-      // 업로드 라벨 갱신
-      updateUploadLabel();
-    }
-
-    function setDateFromInput(){
-      const val = dateInput.value; if(!val) return;
-      const [y,m,d] = val.split('-').map(Number);
-      selectedDate = new Date(y, m-1, d);
-      renderDateDisplay(); syncDateWidth();
-    }
-    function renderDateDisplay(){
-      dateDisplay.textContent = formatDateText(selectedDate);
-    }
-    function applyLayoutVisual(){
-      const word = document.getElementById('km-word');
-
-      if(layoutType==='type1'){
-        dateSection.style.display = (recordType==='monthly') ? 'grid' : 'none';
-      }else{
-        dateSection.style.display = 'grid';
-      }
-
-      if (layoutType==='type2' || (layoutType==='type1' && recordType==='monthly')) {
-        dateDisplay.style.display = 'block';
-      } else {
-        dateDisplay.style.display = 'none';
-      }
-
-      word.style.display = 'block';
-
-      if(!dateInput.value){
-        const today = new Date();
-        const yyyy = today.getFullYear(), mm = String(today.getMonth()+1).padStart(2,'0'), dd = String(today.getDate()).padStart(2,'0');
-        dateInput.value = `${yyyy}-${mm}-${dd}`;
-        selectedDate = today;
-      }
-      renderDateDisplay();
-
-      document.body.classList.remove('type1','type2');
-      document.body.classList.add(layoutType);
-
-      setFont(selectedFont);
-      applyFontIndents(selectedFont, layoutType);
-      applyFontStatsOffset(selectedFont);
-
-      renderStats();
-      updateGridCols();
-      layoutStatsGrid();
-      fitKmRow();
-      alignStatsBaseline();
-    }
-    function setLayout(type){
-      layoutType = type;
-      updateActive(layoutRow, layoutRow.querySelector(`button[data-layout="${CSS.escape(type)}"]`));
-      applyLayoutVisual();
-    }
-    function setDateStyle(which, { size, gap, translate } = {}){
-      const root = document.documentElement.style;
-      if(which==='d2'){ if(size) root.setProperty('--d2-dateSize', size); if(gap) root.setProperty('--d2-dateGap', gap); if(translate) root.setProperty('--d2-dateTranslate', translate); }
-      else if(which==='m1'){ if(size) root.setProperty('--m1-dateSize', size); if(gap) root.setProperty('--m1-dateGap', gap); if(translate) root.setProperty('--m1-dateTranslate', translate); }
-      else if(which==='m2'){ if(size) root.setProperty('--m2-dateSize', size); if(gap) root.setProperty('--m2-dateGap', gap); if(translate) root.setProperty('--m2-dateTranslate', translate); }
-      renderDateDisplay();
-    }
-
-    /* ===== 이벤트 ===== */
-    fontGridEl.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-font]'); if(btn) setFont(btn.dataset.font); });
-    bgRow.addEventListener('click',   (e)=>{ const btn=e.target.closest('button[data-bg]');    if(btn) setBackground(btn.dataset.bg); });
-    modeRow.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button[data-mode]');
-      if(!btn) return;
-      if(btn.hasAttribute('disabled')) return;
-      setRecordType(btn.dataset.mode);
-    });
-    layoutRow.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-layout]'); if(btn) setLayout(btn.dataset.layout); });
-    dateInput.addEventListener('change', setDateFromInput);
-
-    document.getElementById('source-toggle').addEventListener('click', (e)=>{
-      const btn = e.target.closest('button[data-source]');
-      if(!btn) return;
-      setSourceType(btn.dataset.source);
-    });
-
-    function onRun(){
-      document.body.classList.add('focus');
-      document.getElementById('stage-canvas').scrollIntoView({behavior:'smooth', block:'start'});
-      runAnimation();
-    }
-    function exitFocus(){
-      document.body.classList.remove('focus');
-      window.scrollTo({top:0, behavior:'smooth'});
-      document.getElementById('km').textContent = recordType==='monthly' ? "0.0" : "0.00";
-    }
-
-    window.addEventListener('resize', ()=>{ scaleStageCanvas(); fitKmRow(); alignStatsBaseline(); });
-    window.addEventListener('orientationchange', ()=> { setTimeout(()=>{ scaleStageCanvas(); fitKmRow(); alignStatsBaseline(); }, 50); });
-
-    function setTypeStatsStyle(type, { size, labelSize, gap, pull, pull2 } = {}){
-      const root = document.documentElement.style;
-      if(type==='type1'){
-        if (size)      root.setProperty('--t1-statSize', size);
-        if (labelSize) root.setProperty('--t1-labelSize', labelSize);
-        if (gap!=null) root.setProperty('--t1-statGap', gap);
-        if (pull!=null)root.setProperty('--t1-statPull', pull);
-        if (pull2!=null)root.setProperty('--t1-statPull2', pull2);
-      }else{
-        if (size)      root.setProperty('--t2-statSize', size);
-        if (labelSize) root.setProperty('--t2-labelSize', labelSize);
-        if (gap!=null) root.setProperty('--t2-statGap', gap);
-        if (pull!=null) root.setProperty('--t2-statPull', pull);
-        if (pull2!=null)root.setProperty('--t2-statPull2', pull2);
-      }
-      renderStats();
-    }
-    function setTypeKmWordStyle(type, { size, gap } = {}){
-      const root = document.documentElement.style;
-      if(type==='type1'){
-        if (size) root.setProperty('--t1-kmWordSize', size);
-        if (gap)  root.setProperty('--t1-kmWordGap', gap);
-      }else{
-        if (size) root.setProperty('--t2-kmWordSize', size);
-        if (gap)  root.setProperty('--t2-kmWordGap', gap);
-      }
-    }
-    function setTypeKmScale(type, scale){
-      const root = document.documentElement.style;
-      const val = String(scale);
-      if(type==='type1') root.setProperty('--t1-kmScale', val);
-      else               root.setProperty('--t2-kmScale', val);
-      fitKmRow();
-    }
-    function setModeStyle(mode, { kmScale, statGap, kmWordBottomGap } = {}){
-      const root = document.documentElement.style;
-      if(mode==='daily'){
-        if (kmScale!=null) root.setProperty('--d-kmScale', String(kmScale));
-        if (statGap!=null) root.setProperty('--d-statGap', String(statGap));
-        if (kmWordBottomGap!=null) root.setProperty('--d-kmWordBottomGap', String(kmWordBottomGap));
-      }else{
-        if (kmScale!=null) root.setProperty('--m-kmScale', String(kmScale));
-        if (statGap!=null) root.setProperty('--m-statGap', String(statGap));
-        if (kmWordBottomGap!=null) root.setProperty('--m-kmWordBottomGap', String(kmWordBottomGap));
-      }
-      fitKmRow();
-    }
-
-    // 초기화
-    window.onload = ()=>{
-      setSourceType('nrc');        // 기본 NRC
-      setRecordType('daily');      // 기본 Daily
-      setLayout('type1');
-      setBackground('white');
-      setFont('Anton');
-
-      setTypeStatsStyle('type1', { size:'40px', labelSize:'18px', gap:'24px', pull:'0px' });
-      setTypeKmWordStyle('type1', { size:'36px', gap:'16px' });
-      setTypeKmScale('type1', 1.00);
-
-      setTypeStatsStyle('type2', { size:'40px', labelSize:'20px', gap:'16px', pull:'50px', pull2:'40px' });
-      setTypeKmWordStyle('type2', { size:'36px', gap:'16px' });
-      setTypeKmScale('type2', 1.00);
-
-      setModeStyle('daily',   { kmScale:1.0 });
-      setModeStyle('monthly', { kmScale:1.0 });
-
-      const t=new Date();
-      document.getElementById('date-input').value=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-      selectedDate = t;
-
-      scaleStageCanvas();
-      applyLayoutVisual();
-
-      renderKm(0);
-      applyFontIndents(selectedFont, layoutType);
-      applyFontStatsOffset(selectedFont);
-
-      fitKmRow();
-      renderStats();
-      updateUploadLabel();
-    };
+  <!-- schedule JSON을 HTML에 내장 (fetch 불가 대비) -->
+  <script id="race-schedule" type="application/json">
+  [
+  {"날짜":"9\/1(월)","대회명":"2025 아자러너 마라톤"},
+  {"날짜":"9\/5(금)","대회명":"나혼렙 x 글로벌 6K 국가권력급 스페셜런"},
+  {"날짜":"9\/6(토)","대회명":"2025 달빛소나타"},
+  {"날짜":"9\/6(토)","대회명":"2025 다이나핏 태백 트레일"},
+  {"날짜":"9\/6(토)","대회명":"제19회 순천만울트라마라톤"},
+  {"날짜":"9\/6(토)","대회명":"2025 초록우산 나눔 마라톤"},
+  {"날짜":"9\/6(토)","대회명":"2025 정선 동강마라톤"},
+  {"날짜":"9\/6(토)","대회명":"지리산 릿지 레이스"},
+  {"날짜":"9\/7(일)","대회명":"2025 창원 그란페스타 러닝"},
+  {"날짜":"9\/7(일)","대회명":"제17회 사이버 영토 수호 마라톤"},
+  {"날짜":"9\/7(일)","대회명":"2025 RUN SEOUL RUN(런서울런)"},
+  {"날짜":"9\/7(일)","대회명":"2025 광제산 트레일 런"},
+  {"날짜":"9\/7(일)","대회명":"제1회 영광 광풍 마라톤 대회"},
+  {"날짜":"9\/7(일)","대회명":"제11회 시각장애인과 함께하는 어울림 마라톤"},
+  {"날짜":"9\/7(일)","대회명":"2025 광산구 양성평등 동행마라톤"},
+  {"날짜":"9\/13(토)","대회명":"2025 영덕블루로드&코리아둘레길 트레일런"},
+  {"날짜":"9\/13(토)","대회명":"2025 에너지 히어로 레이스"},
+  {"날짜":"9\/13(토)","대회명":"구리시민건강걷기대회(걷기\/러닝5km)"},
+  {"날짜":"9\/13(토)","대회명":"2025 양양 강변 전국마라톤"},
+  {"날짜":"9\/13(토)","대회명":"구미 에코 트레일레이스"},
+  {"날짜":"9\/13(토)","대회명":"2025 금산인삼축제 투데이 마라톤(토)"},
+  {"날짜":"9\/14(일)","대회명":"2025 금산인삼축제 투데이 마라톤대회 (일)"},
+  {"날짜":"9\/14(일)","대회명":"2025 MARVEL RUN SEOUL"},
+  {"날짜":"9\/14(일)","대회명":"제15회 스마일런 페스티벌"},
+  {"날짜":"9\/14(일)","대회명":"2025 울진금강송배 전국마라톤"},
+  {"날짜":"9\/14(일)","대회명":"제4회 울산 동구 염포산 전국마라톤대회"},
+  {"날짜":"9\/14(일)","대회명":"2025 KTX 광명역 평화 마라톤"},
+  {"날짜":"9\/14(일)","대회명":"제18회 구로구청장배 치킨 마라톤"},
+  {"날짜":"9\/18(목)","대회명":"2025년 한반도횡단 308km"},
+  {"날짜":"9\/20(토)","대회명":"서울 100K"},
+  {"날짜":"9\/20(토)","대회명":"2025 장수 레드푸드레이스"},
+  {"날짜":"9\/20(토)","대회명":"2025 인천키즈마라톤"},
+  {"날짜":"9\/20(토)","대회명":"2025 산리오 올리브영 큐트런"},
+  {"날짜":"9\/20(토)","대회명":"2025 광주 청년 마라톤"},
+  {"날짜":"9\/20(토)","대회명":"이봉주 보스턴제패기념 제25회 홍성마라톤"},
+  {"날짜":"9\/20(토)","대회명":"2025 V런"},
+  {"날짜":"9\/20(토)","대회명":"2025 인천광역시장기 건강달리기대회"},
+  {"날짜":"9\/20(토)","대회명":"2025 글로벌 6k 마라톤 - 창원"},
+  {"날짜":"9\/21(일)","대회명":"2025 굿네이버스 레이스 with 띵크어스"},
+  {"날짜":"9\/21(일)","대회명":"2025 한돈런"},
+  {"날짜":"9\/21(일)","대회명":"조금 특별한 달리기 [조달런]"},
+  {"날짜":"9\/21(일)","대회명":"잠수교 10K 나이트런"},
+  {"날짜":"9\/21(일)","대회명":"제1회 대전 신채호 마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 철원DMZ국제평화마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 서울어스마라톤대회"},
+  {"날짜":"9\/21(일)","대회명":"제23회전국부부가족마라톤대회"},
+  {"날짜":"9\/21(일)","대회명":"2025 안산마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 강화해변 마리톤"},
+  {"날짜":"9\/26(금)","대회명":"G밸리 넥타이런 2025"},
+  {"날짜":"9\/27(토)","대회명":"2025 ROK Army 트레일러닝"},
+  {"날짜":"9\/27(토)","대회명":"런데이 9월 마라톤 [미션RUNDAY]"},
+  {"날짜":"9\/27(토)","대회명":"제1회 의성마늘마라톤"},
+  {"날짜":"9\/27(토)","대회명":"경북도청 이전 10주년 경북 하프 마라톤"},
+  {"날짜":"9\/27(토)","대회명":"2025 뉴시스 바다마라톤"},
+  {"날짜":"9\/27(토)","대회명":"제6회 천안삼거리 흥타령울트라마라톤"},
+  {"날짜":"9\/27(토)","대회명":"제21회 전우마라톤"},
+  {"날짜":"9\/27(토)","대회명":"2025 완주트레일런"},
+  {"날짜":"9\/27(토)","대회명":"글로벌 허브 부산 런페스타"},
+  {"날짜":"9\/27(토)","대회명":"제6회 장수트레일레이스"},
+  {"날짜":"9\/28(일)","대회명":"2025 중소기업기살리기마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제1회 마포 구청장배 마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 Run Your Way 10K"},
+  {"날짜":"9\/28(일)","대회명":"2025 서산 코스모스 황금들녘 마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 안동마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 달서하프마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 봉화송이 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제22회 경남마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"Green Step 2025 ESG실천마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 동대문마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 공주백제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 선사마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 인천송도국제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제18회 가평자라섬 전국마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"2025 포항2차전지 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 봉화송이 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제22회 경남마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"Green Step 2025 ESG실천마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 동대문마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 공주백제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 선사마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 인천송도국제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제18회 가평자라섬 전국마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"2025 포항2차전지 전국마라톤"},
+  {"날짜":"10\/3(금)","대회명":"2025 춘천연합마라톤"},
+  {"날짜":"10\/3(금)","대회명":"2025 천사데이기념 동두천천사마라톤"},
+  {"날짜":"10\/3(금)","대회명":"제2회 울트라서울"},
+  {"날짜":"10\/3(금)","대회명":"2025 김제새만금 지평선마라톤"},
+  {"날짜":"10\/9(목)","대회명":"2025 애니멀런 서울"},
+  {"날짜":"10\/9(목)","대회명":"2025 수원교구 생명사랑 마라톤"},
+  {"날짜":"10\/9(목)","대회명":"2025 한글런"},
+  {"날짜":"10\/11(토)","대회명":"2025 대전 DTrail 레이스"},
+  {"날짜":"10\/11(토)","대회명":"2025 라이트런 in Seoul"},
+  {"날짜":"10\/11(토)","대회명":"디즈니런 서울 2025"},
+  {"날짜":"10\/11(토)","대회명":"제1회 아산 이순신 트레일런"},
+  {"날짜":"10\/11(토)","대회명":"포켓몬런 제주 2025"},
+  {"날짜":"10\/11(토)","대회명":"제4회 무등산권 GEO 무등산마라톤"},
+  {"날짜":"10\/11(토)","대회명":"댕댕런2025 in 대전"},
+  {"날짜":"10\/12(일)","대회명":"제11회 시흥시 전국하프마라톤"},
+  {"날짜":"10\/12(일)","대회명":"2025 뉴런 한강마라톤"},
+  {"날짜":"10\/12(일)","대회명":"제13회 광명시장기 건강달리기"},
+  {"날짜":"10\/12(일)","대회명":"2025 핑크런"},
+  {"날짜":"10\/12(일)","대회명":"제18회 중랑구청장배 장미 마라톤대회"},
+  {"날짜":"10\/12(일)","대회명":"빵빵런 2025 in 대전"},
+  {"날짜":"10\/12(일)","대회명":"2025 서울 달리기(Seoul Race)"},
+  {"날짜":"10\/12(일)","대회명":"제8회 거제시장배 섬꽃 전국 마라톤"},
+  {"날짜":"10\/12(일)","대회명":"2025 MBN 전국 나주 마라톤"},
+  {"날짜":"10\/17(금)","대회명":"2025 Trans Jeju UTMB"},
+  {"날짜":"10\/18(토)","대회명":"제4회 구미시장배 금오산트레일 레이스"},
+  {"날짜":"10\/18(토)","대회명":"2025 가민런 코리아"},
+  {"날짜":"10\/18(토)","대회명":"2025 글로벌 6k 마라톤 - 전주"},
+  {"날짜":"10\/18(토)","대회명":"제3회 강서허준런(RUN)"},
+  {"날짜":"10\/18(토)","대회명":"제19회 충주 앙성 비내길 마라톤"},
+  {"날짜":"10\/18(토)","대회명":"2025 경포마라톤"},
+  {"날짜":"10\/18(토)","대회명":"제6회 충청남도 태안 전국어울림마라톤대회"},
+  {"날짜":"10\/18(토)","대회명":"2025 경주마라톤"},
+  {"날짜":"10\/18(토)","대회명":"제23회 청원생명쌀대청호마라톤"},
+  {"날짜":"10\/18(토)","대회명":"개원120주년광주기독병원 광주남구청장배 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 평택항마라톤대회"},
+  {"날짜":"10\/19(일)","대회명":"2025 파주북시티마라톤"},
+  {"날짜":"10\/19(일)","대회명":"천안 꽈자런2025"},
+  {"날짜":"10\/19(일)","대회명":"2025 영암모터피아 F1마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제22회 여주 세종대왕 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제14회 광주평화통일마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제24회 대청호마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제21회 대구 북구사랑 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 제26회 울산마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 최강 백령 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제1회 10.19 평화마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제22회 오산독산성 전국 하프마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제2회 효도밥상 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제21회 영등포구연맹회장배 육상"},
+  {"날짜":"10\/25(토)","대회명":"2025 배움이 자라는 기부런, 런앤런"},
+  {"날짜":"10\/25(토)","대회명":"2025 산림청장배 영양전국산악마라톤"},
+  {"날짜":"10\/25(토)","대회명":"2025정읍내장산트레일러닝"},
+  {"날짜":"10\/25(토)","대회명":"2025 글로벌 6k 마라톤 - 대구"},
+  {"날짜":"10\/25(토)","대회명":"제24회 충주마라톤"},
+  {"날짜":"10\/25(토)","대회명":"제20회 사천노을 마라톤"},
+  {"날짜":"10\/25(토)","대회명":"2025 대구 그란페스타"},
+  {"날짜":"10\/25(토)","대회명":"2025 의정부 하천마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제17회 아름다운제주국제마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제18회 청도반시 전국마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 아시아오픈마라톤 서울시리즈"},
+  {"날짜":"10\/26(일)","대회명":"10K 챌린지 서울"},
+  {"날짜":"10\/26(일)","대회명":"2025 정서진아라뱃길 전국 마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제7회 유성국화마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 감성런"},
+  {"날짜":"10\/26(일)","대회명":"2025 청양군 체육회장기 전국마라톤 대회"},
+  {"날짜":"10\/26(일)","대회명":"2025 천안 이봉주 마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 춘천마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 부산바다마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 부천마라톤"},
+  {"날짜":"11\/1(토)","대회명":"제2회 가든파이브 라이프 레이스"},
+  {"날짜":"11\/1(토)","대회명":"2025 금강산 누리길 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"제1회 샌드런 in 영덕"},
+  {"날짜":"11\/1(토)","대회명":"2025 서울 유아차 런"},
+  {"날짜":"11\/1(토)","대회명":"2025 무안해안 노을길 전국걷기 및 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"GIVE RUN 2025 구미"},
+  {"날짜":"11\/1(토)","대회명":"제2회 김천손 미륵산 임도 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"서울 대모산트레일런"},
+  {"날짜":"11\/2(일)","대회명":"유플러스 119 메모리얼런"},
+  {"날짜":"11\/2(일)","대회명":"2025 전마협 대전 코리아 마스터즈 최강전"},
+  {"날짜":"11\/2(일)","대회명":"제22회 부산마라톤"},
+  {"날짜":"11\/2(일)","대회명":"2025 DMZ OPEN 평화마라톤"},
+  {"날짜":"11\/2(일)","대회명":"정읍 공동체 프리마켓 마라톤"},
+  {"날짜":"11\/2(일)","대회명":"2025 jtbc 서울마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 문경 레전드 트레일 백두대간"},
+  {"날짜":"11\/8(토)","대회명":"제1회 온코런(OncoRun)"},
+  {"날짜":"11\/8(토)","대회명":"2025 글로벌 6k 마라톤 - 대전"},
+  {"날짜":"11\/8(토)","대회명":"제25회 순천 남승룡마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025년 제5회 평화 울트라마라톤"},
+  {"날짜":"11\/8(토)","대회명":"제18회 진해마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 해남 땅끝 전국마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 영천댐 마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 우이런"},
+  {"날짜":"11\/9(일)","대회명":"2025 과천마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제19회 자원봉사 사랑 굿펀마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제1회 완주 만경강마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제23회 나주금성 산숲길마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025년 제25회안성맞춤전국마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 서울구석구석 국제 트레일런"},
+  {"날짜":"11\/9(일)","대회명":"제11회 아산 은행나무길 전국마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 전국사상ECO마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 김천전국마라톤대회"},
+  {"날짜":"11\/9(일)","대회명":"2025 서울시민건강마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 Go Free Run"},
+  {"날짜":"11\/9(일)","대회명":"제14회 부여 굿뜨레 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제1회 세종특별자치시 전국 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 제4회 거제앵산트레일레이스"},
+  {"날짜":"11\/9(일)","대회명":"2025 홍천사랑마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 김해아름누리길 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 자유민주 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"버거강정런(제16회 강남구청장배 육상대회)"},
+  {"날짜":"11\/9(일)","대회명":"쥬라기런 2025"},
+  {"날짜":"11\/9(일)","대회명":"Save Race 2025"},
+  {"날짜":"11\/15(토)","대회명":"2025년 안산시장배 전국 마스터즈 최강전"},
+  {"날짜":"11\/15(토)","대회명":"2025 글로벌 6k 마라톤 - 고양"},
+  {"날짜":"11\/15(토)","대회명":"제3회 거제 노자산트레일런"},
+  {"날짜":"11\/15(토)","대회명":"2025 지리산 단감레이스"},
+  {"날짜":"11\/15(토)","대회명":"소외계층돕기 제14회 행복한가게 마라톤"},
+  {"날짜":"11\/15(토)","대회명":"GIVE RUN 2025 부산"},
+  {"날짜":"11\/16(일)","대회명":"제27회 국제신문 부산마라톤"},
+  {"날짜":"11\/16(일)","대회명":"제23회 고창고인돌마라톤(2025)"},
+  {"날짜":"11\/16(일)","대회명":"25회 창원통일마라톤 대회"},
+  {"날짜":"11\/16(일)","대회명":"2025 한강의 기적 마라톤"},
+  {"날짜":"11\/16(일)","대회명":"올림픽데이런 2025 in 전주"},
+  {"날짜":"11\/16(일)","대회명":"제20회 울산인권마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 평화통일마라톤"},
+  {"날짜":"11\/16(일)","대회명":"소아암환우돕기 제16회 행복트레일런 축제"},
+  {"날짜":"11\/16(일)","대회명":"2025 MBN 서울마라톤"},
+  {"날짜":"11\/16(일)","대회명":"가을철산불조심한국서울마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 손기정평화마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 마인드 런 페스티벌"},
+  {"날짜":"11\/16(일)","대회명":"제23회 상주 곶감 마라톤"},
+  {"날짜":"11\/22(토)","대회명":"2025 서울 라이프마라톤"},
+  {"날짜":"11\/22(토)","대회명":"2025 에버랜드 10K 서킷런"},
+  {"날짜":"11\/23(일)","대회명":"2025 인천마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 8회 서울평화마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 YTN서울투어마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 김대중마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 남원 춘향 전국 마라톤"},
+  {"날짜":"11\/29(토)","대회명":"제20회 광진구연맹회장배 육상대회"},
+  {"날짜":"11\/29(토)","대회명":"2025 슬로우런"},
+  {"날짜":"11\/29(토)","대회명":"2025 서울신문 월미도 런 및 펫 동반걷기"},
+  {"날짜":"11\/30(일)","대회명":"2025 전마협 별들의전쟁&꽃들의 전쟁(하프)"},
+  {"날짜":"11\/30(일)","대회명":"버닝런 일레븐"},
+  {"날짜":"11\/30(일)","대회명":"2025 안양천 단풍길 마라톤"},
+  {"날짜":"11\/30(일)","대회명":"2025 스포츠서울 하프 마라톤"},
+  {"날짜":"11\/30(일)","대회명":"제3회 영남알프스 전국 하프마라톤"},
+  {"날짜":"11\/30(일)","대회명":"2025 무등산 구석구석 트레일런"},
+  {"날짜":"12\/6(토)","대회명":"제19회 양산하프마라톤"},
+  {"날짜":"12\/7(일)","대회명":"2025 전마협 Gold Run Race"},
+  {"날짜":"12\/13(토)","대회명":"제3회 시즌오프레이스"}
+  ]
   </script>
 
-  <!-- ========= Part3: STRAVA Pace 안정화 보정 ========= -->
-  <script>
-    /**
-     * STRAVA Pace 보정기:
-     * OCR Pace와 (Time ÷ Distance) 계산 Pace를 비교하여
-     * 조건을 만족하면 계산값으로 교체.
-     *
-     * @param {Object} parsed - parseStrava 결과(또는 유사 구조)
-     * @param {Number} kmBest - 거리 후보 최종값
-     * @returns {Object} { timeSec, distKm, paceMin, paceSec }
-     */
-    function stabilizeStravaPace(parsed, kmBest){
-      const timeSec =
-        (parsed.timeH||0)*3600 +
-        (parsed.timeM||0)*60 +
-        (parsed.timeS||0);
-
-      const paceSecOCR = (parsed.paceMin!=null && parsed.paceSec!=null)
-        ? (parsed.paceMin*60 + parsed.paceSec) : NaN;
-
-      const distKm = isFinite(kmBest) ? kmBest : parsed.km;
-
-      let finalPaceSec = paceSecOCR;
-
-      if (isFinite(timeSec) && isFinite(distKm) && distKm > 0){
-        const calc = Math.round(timeSec / distKm);
-        if (!isFinite(paceSecOCR) ||
-            Math.abs(paceSecOCR - calc) > 4 ||
-            Math.abs(paceSecOCR - calc) / Math.max(1, paceSecOCR) > 0.03){
-          // 교체
-          finalPaceSec = calc;
-        }
-      }
-
-      return {
-        timeSec,
-        distKm,
-        paceMin: isFinite(finalPaceSec) ? Math.floor(finalPaceSec/60) : null,
-        paceSec: isFinite(finalPaceSec) ? finalPaceSec%60 : null
-      };
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+  <script type="module" src="./js/ui.js"></script>
 </body>
 </html>
