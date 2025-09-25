@@ -16,6 +16,12 @@ let isAnimatingRace = false;
 const raceState = { races: [], dist: null, bg: 'white' };
 const AUTO_SYNC = { timeToPace: true, paceToTime: true };
 let isSyncing = false;
+/* ==== Daily Manual 입력 상태/DOM ==== */
+let dmManual = { enabled: false }; // 데일리 수동모드 on/off
+let dmManualWrap, dmManualToggle;
+let dmDistA, dmDistB;              // Distance (정수/소수2자리)
+let dmPaceMM, dmPaceSS;            // Pace
+let dmTimeHH, dmTimeMM, dmTimeSS;  // Time
 
 /* =========================
    DOM
@@ -774,6 +780,69 @@ function enableMobileWheelPickers(){
       if (openedByPointer && (Date.now() - openedAt) < 350) return;
       openFn();
     });
+
+       // ===== 데일리 수동 입력 (모바일 탭-휠) =====
+  const openDailyTime = ()=>{
+    if (!dmManualWrap || dmManualWrap.style.display === 'none') return;
+    const h = Math.max(0, Math.min(99, +dmTimeHH?.value || 0));
+    const m = Math.max(0, Math.min(59, +dmTimeMM?.value || 0));
+    const s = Math.max(0, Math.min(59, +dmTimeSS?.value || 0));
+    openWheelPicker({
+      title:'Time',
+      cols:3,
+      fields:[
+        {label:'HH', min:0, max:99,  value:h},
+        {label:'MM', min:0, max:59, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [H,M,S] = vals;
+        if (dmTimeHH) dmTimeHH.value = String(H);
+        if (dmTimeMM) dmTimeMM.value = String(M);
+        if (dmTimeSS) dmTimeSS.value = String(S);
+        // 수동 입력 → 페이스/거리 영향 없음
+        if (dmManual.enabled){
+          parsedData.timeH=H; parsedData.timeM=M; parsedData.timeS=S; parsedData.timeRaw=null;
+          renderStats();
+        }
+      }
+    });
+  };
+  const openDailyPace = ()=>{
+    if (!dmManualWrap || dmManualWrap.style.display === 'none') return;
+    const m = Math.max(0, Math.min(20, +dmPaceMM?.value || 0));
+    const s = Math.max(0, Math.min(59, +dmPaceSS?.value || 0));
+    openWheelPicker({
+      title:'Pace (/km)',
+      cols:2,
+      fields:[
+        {label:'MM', min:0, max:20, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [M,S] = vals;
+        if (dmPaceMM) dmPaceMM.value = String(M);
+        if (dmPaceSS) dmPaceSS.value = String(S);
+        if (dmManual.enabled){
+          parsedData.paceMin=M; parsedData.paceSec=S;
+          // 거리/페이스 → 시간 자동계산
+          const km = Number(parsedData.km);
+          const psec = M*60+S;
+          if (isFinite(km) && km>0 && psec>0){
+            const tot = Math.round(km * psec);
+            const H = Math.floor(tot/3600), MM = Math.floor((tot%3600)/60), SS=tot%60;
+            dmTimeHH.value=String(H); dmTimeMM.value=String(MM); dmTimeSS.value=String(SS);
+            parsedData.timeH=H; parsedData.timeM=MM; parsedData.timeS=SS; parsedData.timeRaw=null;
+          }
+          renderStats();
+        }
+      }
+    });
+  };
+
+  // 데일리(수동) 인풋에 탭-휠 연결
+  const setTapIf = el => el && setTapToOpen(el, el===dmPaceMM||el===dmPaceSS ? openDailyPace : openDailyTime);
+  [dmTimeHH, dmTimeMM, dmTimeSS, dmPaceMM, dmPaceSS].forEach(setTapIf);
   };
 
 const openTime = ()=>{
@@ -1003,6 +1072,17 @@ function setRecordType(mode){
 
   applyWideFontScope();
 
+     // 데일리에서만 수동 입력 노출
+  if (dmManualWrap) {
+    const show = (mode==='daily') && (dmManualToggle?.checked === true);
+    dmManual.enabled = show;
+    dmManualWrap.style.display = show ? 'block' : 'none';
+    if (fileInputEl){
+      fileInputEl.disabled = show;
+      fileInputEl.style.opacity = show ? '0.5' : '1';
+    }
+  }
+
   if (runsWrap) runsWrap.style.display = (mode==='monthly') ? 'block' : 'none';
   renderKm(document.getElementById('km')?.textContent?.replace(/[^\d.]/g,'') || 0);
   renderStats();
@@ -1024,6 +1104,8 @@ function setRecordType(mode){
 
   // 레이스 숫자 & Pace 라벨 폰트 강제 보정
   applyRaceFontFaces();
+     // 레이스 라디오/체크박스 라벨 & 크기 보정
+  tweakRaceControlsTypography();
 }
 function setLayout(type){
   layoutType = type;
@@ -1230,6 +1312,11 @@ window.onload = ()=>{
 
   // 모바일 휠피커 활성화
   enableMobileWheelPickers();
+     // 데일리 수동 입력 UI 생성
+  createDailyManualUI();
+
+  // 레이스 라디오/체크박스 라벨/사이즈 보정
+  tweakRaceControlsTypography();
 };
 
 window.addEventListener('resize', ()=>{ syncPillLikeToPillBtn(); scaleStageCanvas(); fitKmRow(); });
