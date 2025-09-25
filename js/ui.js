@@ -1,4 +1,4 @@
-// ui.js — Daily/Monthly/Race + 모바일 휠피커 + Time↔Pace 자동계산 + 레이스 숫자 폰트 강제 고정
+// ui.js — Daily/Monthly/Race + 모바일 휠피커 + Time↔Pace 자동계산 + 레이스 숫자 폰트 강제 고정 + 데일리 수동입력
 /* eslint-disable */
 
 import { fontSettings, kmFontScale, applyFontIndents, applyFontStatsOffset } from './fonts.js';
@@ -16,12 +16,11 @@ let isAnimatingRace = false;
 const raceState = { races: [], dist: null, bg: 'white' };
 const AUTO_SYNC = { timeToPace: true, paceToTime: true };
 let isSyncing = false;
-/* ==== Daily Manual 입력 상태/DOM ==== */
-let dmManual = { enabled: false }; // 데일리 수동모드 on/off
-let dmManualWrap, dmManualToggle;
-let dmDistA, dmDistB;              // Distance (정수/소수2자리)
-let dmPaceMM, dmPaceSS;            // Pace
-let dmTimeHH, dmTimeMM, dmTimeSS;  // Time
+
+/* ----- Daily Manual mode 상태/참조 ----- */
+let dmManual = { enabled:false, autoTime:true }; // autoTime: 거리·페이스 입력 시 시간 자동 계산
+let dmManualWrap, dmManualToggle;                // 수동입력 섹션/토글
+let dmDistA, dmDistB, dmPaceMM, dmPaceSS, dmTimeHH, dmTimeMM, dmTimeSS; // 인풋
 
 /* =========================
    DOM
@@ -235,7 +234,6 @@ function renderStats(){
   updateGridCols();
   layoutStatsGrid();
 }
-
 /* =========================
    캔버스 스케일/애니
 ========================= */
@@ -408,7 +406,6 @@ function applyRaceVarsFromFont(){
 
 /* ─────────────────────────────────────
    레이스 숫자(시간/페이스) + Pace 라벨: 선택 폰트 강제(!important)
-   ※ 외부 CSS가 뺏어가도 항상 고정
 ───────────────────────────────────── */
 function applyRaceFontFaces(){
   if (recordType !== 'race') return;
@@ -579,7 +576,7 @@ function squeezeRacePanel(){
 }
 
 /* =========================
-   거리/시간/페이스 계산
+   거리/시간/페이스 계산 (Race)
 ========================= */
 function getCurrentDistKm(){
   if (raceState.dist==='5K') return 5;
@@ -643,261 +640,6 @@ function syncTimeFromPace(){
 }
 
 /* =========================
-   모바일 휠피커 (네이티브 select 활용)
-========================= */
-function injectPickerCSS(){
-  if (document.getElementById('wheel-picker-style')) return;
-  const css = `
-  .picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:flex-end;}
-  .picker-panel{background:#fff;width:100%;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -8px 24px rgba(0,0,0,.2);padding:12px;animation:slideUp .18s ease-out;}
-  .picker-head{display:flex;justify-content:space-between;align-items:center;padding:6px 4px 10px;}
-  .picker-title{font-weight:700}
-  .picker-actions button{appearance:none;border:none;background:#111;color:#fff;border-radius:10px;padding:8px 14px;font-weight:700}
-  .picker-actions .cancel{background:#e5e5e5;color:#111;margin-right:6px}
-  .picker-grid{display:grid;grid-template-columns: repeat(var(--cols,3),1fr);gap:8px;padding:6px 0 2px}
-  .picker-grid label{font-size:12px;color:#555;display:block;margin-bottom:4px}
-  .picker-grid select{width:100%;padding:10px;border-radius:12px;border:1px solid #e4e4e7;font-size:18px}
-  @keyframes slideUp{from{transform:translateY(12px);opacity:.6}to{transform:translateY(0);opacity:1}}
-  `;
-  const style = document.createElement('style');
-  style.id = 'wheel-picker-style';
-  style.textContent = css;
-  document.head.appendChild(style);
-}
-function buildSelect(min,max,cur,pad2=true){
-  // ⚙️ 안전하게 숫자로 강제변환 + step 지원
-  const _min  = Number(min);
-  const _max  = Number(max);
-  const step  = 1; // 필요하면 f.step으로 빼서 사용 가능
-  const _cur  = Number(cur);
-
-  const sel = document.createElement('select');
-  for(let v=_min; v<=_max; v+=step){
-    const opt = document.createElement('option');
-    opt.value = String(v);
-    opt.textContent = pad2 ? String(v).padStart(2,'0') : String(v);
-    if (v===_cur) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  return sel;
-}
-function openWheelPicker({ title='Select', cols=3, fields=[/* {label,min,max,value,pad2} */], onCancel, onOK }){
-  injectPickerCSS();
-  const ov = document.createElement('div'); ov.className='picker-overlay';
-  const panel = document.createElement('div'); panel.className='picker-panel'; panel.style.setProperty('--cols', String(cols));
-  const head = document.createElement('div'); head.className='picker-head';
-  const hTitle = document.createElement('div'); hTitle.className='picker-title'; hTitle.textContent = title;
-  const hActions = document.createElement('div'); hActions.className='picker-actions';
-  const btnCancel = document.createElement('button'); btnCancel.className='cancel'; btnCancel.textContent='Cancel';
-  const btnOK = document.createElement('button'); btnOK.textContent='Done';
-  hActions.appendChild(btnCancel); hActions.appendChild(btnOK);
-  head.appendChild(hTitle); head.appendChild(hActions);
-
-  const grid = document.createElement('div'); grid.className='picker-grid';
-  const selects = [];
-  fields.forEach(f=>{
-    const wrap = document.createElement('div');
-    const lab = document.createElement('label'); lab.textContent = f.label||'';
-    const sel = buildSelect(f.min, f.max, f.value, f.pad2!==false);
-    wrap.appendChild(lab); wrap.appendChild(sel);
-    grid.appendChild(wrap);
-    selects.push(sel);
-  });
-
-  panel.appendChild(head); panel.appendChild(grid);
-  ov.appendChild(panel);
-  document.body.appendChild(ov);
-
-  const close = ()=>{
-    ov.remove();
-    if (onCancel) onCancel();
-  };
-  btnCancel.addEventListener('click', close);
-  ov.addEventListener('click', (e)=>{ if (e.target===ov) close(); });
-
-  btnOK.addEventListener('click', ()=>{
-    const vals = selects.map(s=> +s.value);
-    ov.remove();
-    if (onOK) onOK(vals);
-  });
-}
-// ───────────────────────────────────────────────
-//  모바일 휠피커 (스크롤 오작동 방지: 탭 제스처 전용)
-// ───────────────────────────────────────────────
-function enableMobileWheelPickers(){
-  if (!isMobile()) return;
-
-  const setTapToOpen = (inp, openFn)=>{
-    if (!inp) return;
-
-    // 키보드 막고 스크롤은 허용
-    inp.readOnly = true;
-    inp.setAttribute('inputmode','none');
-    inp.style.touchAction = 'pan-y';
-
-    let startX=0, startY=0, startT=0, moved=false, pid=null, openedAt=0, openedByPointer=false;
-    const TAP_MOVE_PX = 10;   // 이동 임계치(px)
-    const TAP_TIME_MS = 400;  // 탭 최대 시간(ms)
-
-    // 터치(pointer) 기반 탭 감지
-    inp.addEventListener('pointerdown', (e)=>{
-      if (e.pointerType !== 'touch') return; // 마우스/펜은 아래 click 처리
-      pid = e.pointerId;
-      startX = e.clientX; startY = e.clientY; startT = e.timeStamp;
-      moved = false; openedByPointer = false;
-      inp.setPointerCapture?.(pid);
-    });
-
-    inp.addEventListener('pointermove', (e)=>{
-      if (e.pointerId !== pid) return;
-      if (Math.abs(e.clientX-startX) > TAP_MOVE_PX || Math.abs(e.clientY-startY) > TAP_MOVE_PX) {
-        moved = true; // 스크롤 의도
-      }
-    });
-
-    inp.addEventListener('pointercancel', ()=>{
-      pid = null;
-      moved = true; // 취소는 스크롤로 간주
-    });
-
-    inp.addEventListener('pointerup', (e)=>{
-      if (e.pointerId !== pid) return;
-      const dt = e.timeStamp - startT;
-      const isTap = !moved && dt <= TAP_TIME_MS;
-      pid = null;
-
-      if (isTap) {
-        e.preventDefault();           // 포커스/클릭 연쇄 방지
-        openedByPointer = true;
-        openedAt = Date.now();
-        openFn();
-      }
-    });
-
-    // 예외 케이스/데스크톱: click fallback
-    inp.addEventListener('click', (e)=>{
-      // 방금 pointerup로 열었으면 무시(중복 방지)
-      if (openedByPointer && (Date.now() - openedAt) < 350) return;
-      openFn();
-    });
-
-       // ===== 데일리 수동 입력 (모바일 탭-휠) =====
-  const openDailyTime = ()=>{
-    if (!dmManualWrap || dmManualWrap.style.display === 'none') return;
-    const h = Math.max(0, Math.min(99, +dmTimeHH?.value || 0));
-    const m = Math.max(0, Math.min(59, +dmTimeMM?.value || 0));
-    const s = Math.max(0, Math.min(59, +dmTimeSS?.value || 0));
-    openWheelPicker({
-      title:'Time',
-      cols:3,
-      fields:[
-        {label:'HH', min:0, max:99,  value:h},
-        {label:'MM', min:0, max:59, value:m},
-        {label:'SS', min:0, max:59, value:s},
-      ],
-      onOK(vals){
-        const [H,M,S] = vals;
-        if (dmTimeHH) dmTimeHH.value = String(H);
-        if (dmTimeMM) dmTimeMM.value = String(M);
-        if (dmTimeSS) dmTimeSS.value = String(S);
-        // 수동 입력 → 페이스/거리 영향 없음
-        if (dmManual.enabled){
-          parsedData.timeH=H; parsedData.timeM=M; parsedData.timeS=S; parsedData.timeRaw=null;
-          renderStats();
-        }
-      }
-    });
-  };
-  const openDailyPace = ()=>{
-    if (!dmManualWrap || dmManualWrap.style.display === 'none') return;
-    const m = Math.max(0, Math.min(20, +dmPaceMM?.value || 0));
-    const s = Math.max(0, Math.min(59, +dmPaceSS?.value || 0));
-    openWheelPicker({
-      title:'Pace (/km)',
-      cols:2,
-      fields:[
-        {label:'MM', min:0, max:20, value:m},
-        {label:'SS', min:0, max:59, value:s},
-      ],
-      onOK(vals){
-        const [M,S] = vals;
-        if (dmPaceMM) dmPaceMM.value = String(M);
-        if (dmPaceSS) dmPaceSS.value = String(S);
-        if (dmManual.enabled){
-          parsedData.paceMin=M; parsedData.paceSec=S;
-          // 거리/페이스 → 시간 자동계산
-          const km = Number(parsedData.km);
-          const psec = M*60+S;
-          if (isFinite(km) && km>0 && psec>0){
-            const tot = Math.round(km * psec);
-            const H = Math.floor(tot/3600), MM = Math.floor((tot%3600)/60), SS=tot%60;
-            dmTimeHH.value=String(H); dmTimeMM.value=String(MM); dmTimeSS.value=String(SS);
-            parsedData.timeH=H; parsedData.timeM=MM; parsedData.timeS=SS; parsedData.timeRaw=null;
-          }
-          renderStats();
-        }
-      }
-    });
-  };
-
-  // 데일리(수동) 인풋에 탭-휠 연결
-  const setTapIf = el => el && setTapToOpen(el, el===dmPaceMM||el===dmPaceSS ? openDailyPace : openDailyTime);
-  [dmTimeHH, dmTimeMM, dmTimeSS, dmPaceMM, dmPaceSS].forEach(setTapIf);
-  };
-
-const openTime = ()=>{
-  const h  = Math.max(0, Math.min(99, +raceHH?.value || 0));
-  const m  = Math.max(0, Math.min(59, +raceMM?.value || 0));
-  const s  = Math.max(0, Math.min(59, +raceSS?.value || 0));
-
-  openWheelPicker({
-    title:'Finish Time',
-    cols:3,
-    fields:[
-      {label:'HH', min:0, max:99,  value:h},  // ✅ 0~99
-      {label:'MM', min:0, max:59, value:m},
-      {label:'SS', min:0, max:59, value:s},
-    ],
-    onOK(vals){
-      const [H,M,S] = vals;
-      if (raceHH) raceHH.value = String(H);
-      if (raceMM) raceMM.value = String(M);
-      if (raceSS) raceSS.value = String(S);
-      syncPaceFromTime();
-      renderRaceBoard(true);
-      applyRaceFontFaces(); // 폰트 유지
-    }
-  });
-};
-
-const openPace = ()=>{
-  const m  = Math.max(0, Math.min(20, +racePaceMM?.value || 0)); // ✅ 0~20
-  const s  = Math.max(0, Math.min(59, +racePaceSS?.value || 0));
-
-  openWheelPicker({
-    title:'Pace (/km)',
-    cols:2,
-    fields:[
-      {label:'MM', min:0, max:20, value:m},   // ✅ 0~20
-      {label:'SS', min:0, max:59, value:s},
-    ],
-    onOK(vals){
-      const [M,S] = vals;
-      if (racePaceMM) racePaceMM.value = String(M);
-      if (racePaceSS) racePaceSS.value = String(S);
-      syncTimeFromPace();
-      renderRaceBoard(true);
-      applyRaceFontFaces(); // 폰트 유지
-    }
-  });
-};
-
-  // ★ 포커스/터치엔드 바인딩 제거! 탭(click/포인터탭)만 허용
-  [raceHH, raceMM, raceSS].forEach(inp => setTapToOpen(inp, openTime));
-  [racePaceMM, racePaceSS].forEach(inp => setTapToOpen(inp, openPace));
-}
-
-/* =========================
    레이스 보드 렌더링
 ========================= */
 function getRaceSelectedName(){
@@ -949,7 +691,7 @@ function renderRaceBoard(updateBadges=true){
     if (!isAnimatingRace) applyBadgeVisibilityNow();
   }
 
-  // 숫자 & Pace 라벨 폰트 강제 보정(텍스트 갱신 직후 재적용)
+  // 숫자 & Pace 라벨 폰트 강제 보정
   applyRaceFontFaces();
 }
 
@@ -1016,17 +758,22 @@ function populateRaceOptions(){
   toggleRaceManualField();
   renderRaceBoard(true);
 }
-function loadInlineScheduleJSON(){
-  const script = document.getElementById('race-schedule');
-  if (!script) return false;
-  const arr = parseLenientJSON((script.textContent || '').trim());
-  if (!Array.isArray(arr)) return false;
-  raceState.races = arr.map(normalizeRow).filter(r=>r.name);
-  populateRaceOptions();
-  return true;
-}
 async function loadRaceScheduleJSON(){
-  if (loadInlineScheduleJSON()) return;
+  // 인라인 <script id="race-schedule"> 먼저
+  const script = document.getElementById('race-schedule');
+  if (script){
+    const txt = (script.textContent || '').trim()
+      .replace(/^\uFEFF/, '').replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1').replace(/,\s*([}\]])/g, '$1');
+    try{
+      const arr = JSON.parse(txt);
+      if (Array.isArray(arr)) {
+        raceState.races = arr.map(normalizeRow).filter(r=>r.name);
+        populateRaceOptions();
+        return;
+      }
+    }catch{/*fallthrough*/}
+  }
 
   const urls = ['./schedule.json','./data/schedule.json','./schedule.jsaon'];
   for (const u of urls){
@@ -1045,7 +792,484 @@ async function loadRaceScheduleJSON(){
   raceState.races = [];
   populateRaceOptions();
 }
+/* =========================
+   모바일 휠피커 (네이티브 select 활용)
+========================= */
+function injectPickerCSS(){
+  if (document.getElementById('wheel-picker-style')) return;
+  const css = `
+  .picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:flex-end;}
+  .picker-panel{background:#fff;width:100%;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -8px 24px rgba(0,0,0,.2);padding:12px;animation:slideUp .18s ease-out;}
+  .picker-head{display:flex;justify-content:space-between;align-items:center;padding:6px 4px 10px;}
+  .picker-title{font-weight:700}
+  .picker-actions button{appearance:none;border:none;background:#111;color:#fff;border-radius:10px;padding:8px 14px;font-weight:700}
+  .picker-actions .cancel{background:#e5e5e5;color:#111;margin-right:6px}
+  .picker-grid{display:grid;grid-template-columns: repeat(var(--cols,3),1fr);gap:8px;padding:6px 0 2px}
+  .picker-grid label{font-size:12px;color:#555;display:block;margin-bottom:4px}
+  .picker-grid select{width:100%;padding:10px;border-radius:12px;border:1px solid #e4e4e7;font-size:18px}
+  @keyframes slideUp{from{transform:translateY(12px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  `;
+  const style = document.createElement('style');
+  style.id = 'wheel-picker-style';
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+function buildSelect(min,max,cur,pad2=true){
+  const _min  = Number(min);
+  const _max  = Number(max);
+  const step  = 1;
+  const _cur  = Number(cur);
 
+  const sel = document.createElement('select');
+  for(let v=_min; v<=_max; v+=step){
+    const opt = document.createElement('option');
+    opt.value = String(v);
+    opt.textContent = pad2 ? String(v).padStart(2,'0') : String(v);
+    if (v===_cur) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  return sel;
+}
+function openWheelPicker({ title='Select', cols=3, fields=[/* {label,min,max,value,pad2} */], onCancel, onOK }){
+  injectPickerCSS();
+  const ov = document.createElement('div'); ov.className='picker-overlay';
+  const panel = document.createElement('div'); panel.className='picker-panel'; panel.style.setProperty('--cols', String(cols));
+  const head = document.createElement('div'); head.className='picker-head';
+  const hTitle = document.createElement('div'); hTitle.className='picker-title'; hTitle.textContent = title;
+  const hActions = document.createElement('div'); hActions.className='picker-actions';
+  const btnCancel = document.createElement('button'); btnCancel.className='cancel'; btnCancel.textContent='Cancel';
+  const btnOK = document.createElement('button'); btnOK.textContent='Done';
+  hActions.appendChild(btnCancel); hActions.appendChild(btnOK);
+  head.appendChild(hTitle); head.appendChild(hActions);
+
+  const grid = document.createElement('div'); grid.className='picker-grid';
+  const selects = [];
+  fields.forEach(f=>{
+    const wrap = document.createElement('div');
+    const lab = document.createElement('label'); lab.textContent = f.label||'';
+    const sel = buildSelect(f.min, f.max, f.value, f.pad2!==false);
+    wrap.appendChild(lab); wrap.appendChild(sel);
+    grid.appendChild(wrap);
+    selects.push(sel);
+  });
+
+  panel.appendChild(head); panel.appendChild(grid);
+  ov.appendChild(panel);
+  document.body.appendChild(ov);
+
+  const close = ()=>{
+    ov.remove();
+    if (onCancel) onCancel();
+  };
+  btnCancel.addEventListener('click', close);
+  ov.addEventListener('click', (e)=>{ if (e.target===ov) close(); });
+
+  btnOK.addEventListener('click', ()=>{
+    const vals = selects.map(s=> +s.value);
+    ov.remove();
+    if (onOK) onOK(vals);
+  });
+}
+
+/* ───────────────────────────────────────────────
+  모바일 휠피커 (탭 제스처 전용: 스크롤 오작동 방지)
+─────────────────────────────────────────────── */
+function enableMobileWheelPickers(){
+  if (!isMobile()) return;
+
+  const setTapToOpen = (inp, openFn)=>{
+    if (!inp) return;
+
+    // 키보드 막고 스크롤은 허용
+    inp.readOnly = true;
+    inp.setAttribute('inputmode','none');
+    inp.style.touchAction = 'pan-y';
+
+    let startX=0, startY=0, startT=0, moved=false, pid=null, openedAt=0, openedByPointer=false;
+    const TAP_MOVE_PX = 10;
+    const TAP_TIME_MS = 400;
+
+    inp.addEventListener('pointerdown', (e)=>{
+      if (e.pointerType !== 'touch') return;
+      pid = e.pointerId;
+      startX = e.clientX; startY = e.clientY; startT = e.timeStamp;
+      moved = false; openedByPointer = false;
+      inp.setPointerCapture?.(pid);
+    });
+    inp.addEventListener('pointermove', (e)=>{
+      if (e.pointerId !== pid) return;
+      if (Math.abs(e.clientX-startX) > TAP_MOVE_PX || Math.abs(e.clientY-startY) > TAP_MOVE_PX) moved = true;
+    });
+    inp.addEventListener('pointercancel', ()=>{ pid=null; moved=true; });
+    inp.addEventListener('pointerup', (e)=>{
+      if (e.pointerId !== pid) return;
+      const dt = e.timeStamp - startT;
+      const isTap = !moved && dt <= TAP_TIME_MS;
+      pid = null;
+      if (isTap) {
+        e.preventDefault();
+        openedByPointer = true;
+        openedAt = Date.now();
+        openFn();
+      }
+    });
+    inp.addEventListener('click', ()=>{
+      if (openedByPointer && (Date.now() - openedAt) < 350) return;
+      openFn();
+    });
+  };
+
+  /* 기존 Race 피커 */
+  const openTime = ()=>{
+    const h  = Math.max(0, Math.min(99, +raceHH?.value || 0));
+    const m  = Math.max(0, Math.min(59, +raceMM?.value || 0));
+    const s  = Math.max(0, Math.min(59, +raceSS?.value || 0));
+    openWheelPicker({
+      title:'Finish Time',
+      cols:3,
+      fields:[
+        {label:'HH', min:0, max:99,  value:h},
+        {label:'MM', min:0, max:59, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [H,M,S] = vals;
+        if (raceHH) raceHH.value = String(H);
+        if (raceMM) raceMM.value = String(M);
+        if (raceSS) raceSS.value = String(S);
+        syncPaceFromTime();
+        renderRaceBoard(true);
+        applyRaceFontFaces();
+      }
+    });
+  };
+  const openPace = ()=>{
+    const m  = Math.max(0, Math.min(20, +racePaceMM?.value || 0));
+    const s  = Math.max(0, Math.min(59, +racePaceSS?.value || 0));
+    openWheelPicker({
+      title:'Pace (/km)',
+      cols:2,
+      fields:[
+        {label:'MM', min:0, max:20, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [M,S] = vals;
+        if (racePaceMM) racePaceMM.value = String(M);
+        if (racePaceSS) racePaceSS.value = String(S);
+        syncTimeFromPace();
+        renderRaceBoard(true);
+        applyRaceFontFaces();
+      }
+    });
+  };
+  [raceHH, raceMM, raceSS].forEach(inp => setTapToOpen(inp, openTime));
+  [racePaceMM, racePaceSS].forEach(inp => setTapToOpen(inp, openPace));
+
+  /* ── Daily Manual용 피커 ── */
+  const openDist = ()=>{
+    const a = Math.max(0, Math.min(150, +dmDistA?.value || 0));
+    const b = Math.max(0, Math.min(99,  +dmDistB?.value || 0));
+    openWheelPicker({
+      title:'Distance (km)',
+      cols:2,
+      fields:[
+        {label:'KMs',   min:0,   max:150, value:a, pad2:false},
+        {label:'x0.01', min:0,   max:99,  value:b, pad2:true},
+      ],
+      onOK(vals){
+        const [A,B] = vals;
+        if (dmDistA) dmDistA.value = String(A);
+        if (dmDistB) dmDistB.value = zero2txt(B);
+        dmManual_applyToParsedAndRender();
+      }
+    });
+  };
+  const openDmPace = ()=>{
+    const m = Math.max(0, Math.min(20, +dmPaceMM?.value || 0));
+    const s = Math.max(0, Math.min(59, +dmPaceSS?.value || 0));
+    openWheelPicker({
+      title:'Pace (/km)',
+      cols:2,
+      fields:[
+        {label:'MM', min:0, max:20, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [M,S] = vals;
+        if (dmPaceMM) dmPaceMM.value = String(M);
+        if (dmPaceSS) dmPaceSS.value = String(S);
+        dmManual_applyToParsedAndRender();
+      }
+    });
+  };
+  const openDmTime = ()=>{
+    const h = Math.max(0, Math.min(99, +dmTimeHH?.value || 0));
+    const m = Math.max(0, Math.min(59, +dmTimeMM?.value || 0));
+    const s = Math.max(0, Math.min(59, +dmTimeSS?.value || 0));
+    openWheelPicker({
+      title:'Time',
+      cols:3,
+      fields:[
+        {label:'HH', min:0, max:99, value:h},
+        {label:'MM', min:0, max:59, value:m},
+        {label:'SS', min:0, max:59, value:s},
+      ],
+      onOK(vals){
+        const [H,M,S] = vals;
+        if (dmTimeHH) dmTimeHH.value = String(H);
+        if (dmTimeMM) dmTimeMM.value = String(M);
+        if (dmTimeSS) dmTimeSS.value = String(S);
+        dmManual.autoTime = false; // 사용자가 시간 직접 편집 ⇒ 자동계산 비활성
+        dmManual_applyToParsedAndRender();
+      }
+    });
+  };
+  [dmDistA, dmDistB].forEach(inp => setTapToOpen(inp, openDist));
+  [dmPaceMM, dmPaceSS].forEach(inp => setTapToOpen(inp, openDmPace));
+  [dmTimeHH, dmTimeMM, dmTimeSS].forEach(inp => setTapToOpen(inp, openDmTime));
+}
+
+/* =========================
+   Daily Manual UI & 계산
+========================= */
+function getUILabelSample(){
+  // UI 타이틀 라벨과 동일한 폰트를 쓰기 위한 샘플 라벨 탐색
+  return document.querySelector('#stats-grid .label, .section .label, label.title, .ui-title, .seg .label');
+}
+function applyTitleFont(el){
+  const sample = getUILabelSample();
+  if (!sample || !el) return;
+  const cs = getComputedStyle(sample);
+  el.style.fontSize = cs.fontSize;
+  el.style.fontWeight = cs.fontWeight;
+  el.style.fontFamily = cs.fontFamily;
+  el.style.fontSynthesis = 'none';
+}
+function injectDailyManualCSS(){
+  if (document.getElementById('dm-manual-style')) return;
+  const style = document.createElement('style');
+  style.id = 'dm-manual-style';
+  style.textContent = `
+  .dm-manual-wrap{ margin-top:12px; margin-bottom:6px; display:none; }
+  .dm-manual-grid{ display:grid; grid-template-columns:1fr; gap:10px; }
+  .dm-row label.dm-title{ display:block; margin-bottom:6px; }
+  .dm-row .inline{ display:flex; align-items:center; gap:8px; flex-wrap:nowrap; }
+  .dm-row .inline input[type="text"]{ width:64px; padding:8px 10px; border:1px solid #e4e4e7; border-radius:10px; font-weight:700; text-align:center; }
+  .dm-row .inline .sep{ font-weight:700; }
+  .dm-toggle{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .dm-toggle label{ cursor:pointer; }
+  .dm-toggle input[type="radio"]{ transform:scale(1.35); } /* 데일리 토글은 레이스 라디오보다 더 큼 */
+  /* 레이스 패널의 라디오/체크박스도 키우기 */
+  #race-panel input[type="radio"],#race-panel input[type="checkbox"]{ transform:scale(1.2); }
+  `;
+  document.head.appendChild(style);
+}
+function findUploadSection(){
+  return fileInputEl?.closest('.section') || fileInputEl?.parentElement || dmPanel;
+}
+function insertAfter(ref, node){
+  if (!ref || !ref.parentNode) return;
+  ref.parentNode.insertBefore(node, ref.nextSibling);
+}
+function clampNum(val, min, max){
+  const n = Number(val||0);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+function dmManual_distanceKm(){
+  const A = clampNum(dmDistA?.value, 0, 150);
+  const B = clampNum(dmDistB?.value, 0, 99);
+  return A + (B/100);
+}
+function dmManual_paceSec(){
+  const mm = clampNum(dmPaceMM?.value, 0, 20);
+  const ss = clampNum(dmPaceSS?.value, 0, 59);
+  return (mm*60 + ss);
+}
+function dmManual_timeSec(){
+  const hh = clampNum(dmTimeHH?.value, 0, 99);
+  const mm = clampNum(dmTimeMM?.value, 0, 59);
+  const ss = clampNum(dmTimeSS?.value, 0, 59);
+  return hh*3600 + mm*60 + ss;
+}
+function dmManual_applyToParsedAndRender(){
+  if (!dmManual.enabled) return;
+
+  // 거리
+  const distKm = dmManual_distanceKm();
+  parsedData.km = +distKm.toFixed(2);
+
+  // 페이스
+  const psec = dmManual_paceSec();
+  parsedData.paceMin = Math.floor(psec/60);
+  parsedData.paceSec = psec%60;
+
+  // 시간: 자동계산(거리&페이스가 유효하고 autoTime=true) 또는 수동값 유지
+  if (distKm>0 && psec>0 && dmManual.autoTime){
+    const tot = Math.round(distKm * psec);
+    parsedData.timeH = Math.floor(tot/3600);
+    parsedData.timeM = Math.floor((tot%3600)/60);
+    parsedData.timeS = tot%60;
+
+    // UI 필드에도 반영
+    if (dmTimeHH) dmTimeHH.value = String(parsedData.timeH);
+    if (dmTimeMM) dmTimeMM.value = String(parsedData.timeM);
+    if (dmTimeSS) dmTimeSS.value = String(parsedData.timeS);
+  } else {
+    const ts = dmManual_timeSec();
+    parsedData.timeH = Math.floor(ts/3600);
+    parsedData.timeM = Math.floor((ts%3600)/60);
+    parsedData.timeS = ts%60;
+  }
+
+  // 보드 갱신
+  renderKm(parsedData.km);
+  renderStats();
+  fitKmRow();
+}
+
+/* 인풋 제약 & 이벤트 바인딩 */
+function bindDmManualInputs(){
+  if (!dmManualWrap) return;
+
+  const onlyDigits = (e)=>{
+    const v = e.target.value.replace(/[^\d]/g,'');
+    e.target.value = v;
+  };
+  const pad2 = (inp)=>{ inp.value = zero2txt(clampNum(inp.value,0,99)); };
+
+  // 거리
+  dmDistA?.addEventListener('input', (e)=>{ onlyDigits(e); e.target.value = String(clampNum(e.target.value,0,150)); dmManual_applyToParsedAndRender(); });
+  dmDistB?.addEventListener('input', (e)=>{ onlyDigits(e); e.target.value = String(clampNum(e.target.value,0,99)); dmManual_applyToParsedAndRender(); });
+  dmDistB?.addEventListener('blur', ()=>{ if(dmDistB) pad2(dmDistB); });
+
+  // 페이스
+  dmPaceMM?.addEventListener('input', (e)=>{ onlyDigits(e); e.target.value = String(clampNum(e.target.value,0,20)); dmManual_applyToParsedAndRender(); });
+  dmPaceSS?.addEventListener('input', (e)=>{ onlyDigits(e); e.target.value = String(clampNum(e.target.value,0,59)); dmManual_applyToParsedAndRender(); });
+
+  // 시간(수동 입력 시 autoTime OFF)
+  [dmTimeHH, dmTimeMM, dmTimeSS].forEach(inp=>{
+    inp?.addEventListener('input', (e)=>{ onlyDigits(e); dmManual.autoTime = false; dmManual_applyToParsedAndRender(); });
+  });
+}
+
+/* 레이스 라디오/체크박스 레이블의 폰트/사이즈 보정 */
+function tuneRaceCheckFonts(){
+  if (!racePanel) return;
+  const labels = [...racePanel.querySelectorAll('label.checkbox, label[for="race-dist-manual-check"], label[for="race-pb"]')];
+  labels.forEach(applyTitleFont);
+}
+
+/* 데일리 수동입력 UI 생성 + 토글 */
+function createDailyManualUI(){
+  if (!dmPanel) return;
+  injectDailyManualCSS();
+
+  // 업로드 박스 바로 아래에 토글 삽입
+  const uploadSec = findUploadSection();
+
+  // 토글
+  const toggleRow = document.createElement('div');
+  toggleRow.className = 'dm-toggle';
+  toggleRow.id = 'dm-manual-toggle';
+  toggleRow.innerHTML = `
+    <input type="radio" id="dm-manual-on" name="dm-manual" />
+    <label for="dm-manual-on">Enter records manually</label>
+  `;
+  applyTitleFont(toggleRow.querySelector('label'));
+
+  // 수동입력 섹션
+  dmManualWrap = document.createElement('div');
+  dmManualWrap.className = 'dm-manual-wrap';
+  dmManualWrap.innerHTML = `
+    <div class="dm-manual-grid">
+      <!-- Distance -->
+      <div class="dm-row dm-dist">
+        <label class="dm-title">Distance</label>
+        <div class="inline">
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="3" placeholder="0" id="dm-dist-a" />
+          <span class="sep">.</span>
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="00" id="dm-dist-b" />
+          <span class="sep">km</span>
+        </div>
+      </div>
+      <!-- Pace -->
+      <div class="dm-row dm-pace">
+        <label class="dm-title">Pace</label>
+        <div class="inline">
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="0" id="dm-pace-mm" />
+          <span class="sep">′</span>
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="00" id="dm-pace-ss" />
+          <span class="sep">″</span>
+          <span class="sep">/km</span>
+        </div>
+      </div>
+      <!-- Time -->
+      <div class="dm-row dm-time">
+        <label class="dm-title">Time</label>
+        <div class="inline">
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="0" id="dm-time-hh" />
+          <span class="sep">:</span>
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="00" id="dm-time-mm" />
+          <span class="sep">:</span>
+          <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="00" id="dm-time-ss" />
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 라벨 폰트 보정
+  dmManualWrap.querySelectorAll('.dm-title').forEach(applyTitleFont);
+
+  // DOM 연결(업로드 박스 아래·Layout 위)
+  if (uploadSec) insertAfter(uploadSec, toggleRow);
+  else dmPanel.insertBefore(toggleRow, layoutRow || dmPanel.firstChild);
+  dmPanel.insertBefore(dmManualWrap, layoutRow || null);
+
+  // 참조 캐시
+  dmManualToggle = toggleRow.querySelector('#dm-manual-on');
+  dmDistA  = dmManualWrap.querySelector('#dm-dist-a');
+  dmDistB  = dmManualWrap.querySelector('#dm-dist-b');
+  dmPaceMM = dmManualWrap.querySelector('#dm-pace-mm');
+  dmPaceSS = dmManualWrap.querySelector('#dm-pace-ss');
+  dmTimeHH = dmManualWrap.querySelector('#dm-time-hh');
+  dmTimeMM = dmManualWrap.querySelector('#dm-time-mm');
+  dmTimeSS = dmManualWrap.querySelector('#dm-time-ss');
+
+  // 토글 동작
+  dmManualToggle.addEventListener('change', ()=>{
+    dmManual.enabled = dmManualToggle.checked && (recordType==='daily');
+    dmManualWrap.style.display = (dmManual.enabled ? 'block':'none');
+
+    // 업로드 파일 인풋은 비활성화(수동과 중복 방지)
+    if (fileInputEl) fileInputEl.disabled = dmManual.enabled;
+    if (dmManual.enabled){
+      // 초기 0 세팅
+      if (dmDistA && !dmDistA.value) dmDistA.value = '0';
+      if (dmDistB && !dmDistB.value) dmDistB.value = '00';
+      if (dmPaceMM && !dmPaceMM.value) dmPaceMM.value = '0';
+      if (dmPaceSS && !dmPaceSS.value) dmPaceSS.value = '00';
+      if (dmTimeHH && !dmTimeHH.value) dmTimeHH.value = '0';
+      if (dmTimeMM && !dmTimeMM.value) dmTimeMM.value = '00';
+      if (dmTimeSS && !dmTimeSS.value) dmTimeSS.value = '00';
+      dmManual.autoTime = true; // 시작은 자동계산
+      dmManual_applyToParsedAndRender();
+      enableMobileWheelPickers(); // 모바일 피커 바인딩
+    }else{
+      // 수동모드 해제 시 OCR/업로드 라벨 복원 표시만
+      renderStats();
+      fitKmRow();
+      if (fileInputEl) fileInputEl.disabled = false;
+    }
+  });
+
+  // 레이스 패널 라디오/체크박스 폰트/사이즈 보정
+  tuneRaceCheckFonts();
+
+  // 입력 바인딩
+  bindDmManualInputs();
+}
 /* =========================
    이벤트 바인딩
 ========================= */
@@ -1072,17 +1296,6 @@ function setRecordType(mode){
 
   applyWideFontScope();
 
-     // 데일리에서만 수동 입력 노출
-  if (dmManualWrap) {
-    const show = (mode==='daily') && (dmManualToggle?.checked === true);
-    dmManual.enabled = show;
-    dmManualWrap.style.display = show ? 'block' : 'none';
-    if (fileInputEl){
-      fileInputEl.disabled = show;
-      fileInputEl.style.opacity = show ? '0.5' : '1';
-    }
-  }
-
   if (runsWrap) runsWrap.style.display = (mode==='monthly') ? 'block' : 'none';
   renderKm(document.getElementById('km')?.textContent?.replace(/[^\d.]/g,'') || 0);
   renderStats();
@@ -1091,6 +1304,17 @@ function setRecordType(mode){
   applyLayoutVisual();
   applyFontStatsOffset(selectedFont, layoutType, recordType);
   updateUploadLabel();
+
+  // Daily Manual UI 표시/숨김
+  if (dmManualWrap){
+    const onDaily = (mode==='daily');
+    dmManualWrap.style.display = (onDaily && dmManual.enabled) ? 'block' : 'none';
+    if (dmManualToggle) dmManualToggle.closest('.dm-toggle').style.display = onDaily ? 'flex' : 'none';
+    if (!onDaily) {
+      // 데일리 벗어나면 업로드 인풋 재활성
+      if (fileInputEl) fileInputEl.disabled = false;
+    }
+  }
 
   if (mode==='race') {
     applyRaceVarsFromFont();
@@ -1104,8 +1328,6 @@ function setRecordType(mode){
 
   // 레이스 숫자 & Pace 라벨 폰트 강제 보정
   applyRaceFontFaces();
-     // 레이스 라디오/체크박스 라벨 & 크기 보정
-  tweakRaceControlsTypography();
 }
 function setLayout(type){
   layoutType = type;
@@ -1199,6 +1421,7 @@ async function runOcrPipeline(imgDataURL){
 }
 fileInputEl?.addEventListener("change", async (e)=>{
   if (recordType==='race'){ fileInputEl.value=''; return; }
+  if (dmManual.enabled){ fileInputEl.value=''; return; } // 수동모드에서는 업로드 무시
   const file = e.target.files[0]; if(!file) return;
   const status = document.getElementById("upload-status");
   if (status) status.textContent = "Processing…";
@@ -1310,13 +1533,11 @@ window.onload = ()=>{
   squeezeRacePanel();
   setFixedTitleFont();
 
-  // 모바일 휠피커 활성화
-  enableMobileWheelPickers();
-     // 데일리 수동 입력 UI 생성
+  // 데일리 수동입력 UI 생성
   createDailyManualUI();
 
-  // 레이스 라디오/체크박스 라벨/사이즈 보정
-  tweakRaceControlsTypography();
+  // 모바일 휠피커 활성화(데일리/레이스 모두)
+  enableMobileWheelPickers();
 };
 
 window.addEventListener('resize', ()=>{ syncPillLikeToPillBtn(); scaleStageCanvas(); fitKmRow(); });
@@ -1328,7 +1549,20 @@ window.addEventListener('orientationchange', ()=> { setTimeout(()=>{ syncPillLik
 window.onRun = function onRun(){
   document.body.classList.add('focus');
   document.getElementById('stage-canvas')?.scrollIntoView({behavior:'smooth', block:'start'});
-  if (recordType==='race'){ prepBadgesForFade(); (async()=>{ isAnimatingRace=true; if (raceTimeEl) raceTimeEl.textContent='0:00'; if (racePaceEl) racePaceEl.textContent='0:00 /km'; await sleep(360); await animateRaceTime('race-time', computeRaceSeconds(), 2400); renderRaceBoard(true); fadeInVisibleBadges(); isAnimatingRace=false; })(); return; }
+  if (recordType==='race'){
+    prepBadgesForFade();
+    (async()=>{
+      isAnimatingRace=true;
+      if (raceTimeEl) raceTimeEl.textContent='0:00';
+      if (racePaceEl) racePaceEl.textContent='0:00 /km';
+      await sleep(360);
+      await animateRaceTime('race-time', computeRaceSeconds(), 2400);
+      renderRaceBoard(true);
+      fadeInVisibleBadges();
+      isAnimatingRace=false;
+    })();
+    return;
+  }
   runAnimation();
 };
 window.exitFocus = function exitFocus(){
