@@ -1337,7 +1337,6 @@ if (dmManualWrap && (dmManualCheck || dmManualToggle)) {
 
   // 업로드 인풋 상태 동기화
   if (fileInputEl) fileInputEl.disabled = shouldShow;
-}
   }
 
   if (mode==='race') {
