@@ -1035,8 +1035,10 @@ function enableMobileWheelPickers(){
    Daily Manual UI & 계산
 ========================= */
 function getUILabelSample(){
-  // UI 타이틀 라벨과 동일한 폰트를 쓰기 위한 샘플 라벨 탐색
-  return document.querySelector('#stats-grid .label, .section .label, label.title, .ui-title, .seg .label');
+  // 컨트롤 타이틀(폼 섹션 라벨) 스타일을 우선 기준으로 삼음
+  return document.querySelector(
+    '.control-title, #stats-grid .label, .section .label, label.title, .ui-title, .seg .label'
+  );
 }
 function applyTitleFont(el){
   const sample = getUILabelSample();
@@ -1072,6 +1074,15 @@ function injectDailyManualCSS(){
   body.mode-daily .dm-toggle{ display:flex; }
   body.mode-monthly .dm-toggle,
   body.mode-race .dm-toggle{ display:none; }
+
+    /* 수동입력 도움말 */
+  .dm-help{
+    margin-top:6px;
+    font-size:12px;
+    font-weight:600;
+    color:#666;
+  }
+  .bg-black .dm-help{ color:#bbb; }
   `;
   document.head.appendChild(style);
 }
@@ -1195,11 +1206,11 @@ function createDailyManualUI(){
   // 수동입력 섹션
   dmManualWrap = document.createElement('div');
   dmManualWrap.className = 'dm-manual-wrap';
-  dmManualWrap.innerHTML = `
+   dmManualWrap.innerHTML = `
     <div class="dm-manual-grid">
       <!-- Distance -->
       <div class="dm-row dm-dist">
-        <label class="dm-title">Distance</label>
+        <div class="dm-title control-title title-left">Distance</div>
         <div class="inline">
           <input type="text" inputmode="numeric" pattern="\\d*" maxlength="3" placeholder="0" id="dm-dist-a" />
           <span class="sep">.</span>
@@ -1209,7 +1220,7 @@ function createDailyManualUI(){
       </div>
       <!-- Pace -->
       <div class="dm-row dm-pace">
-        <label class="dm-title">Pace</label>
+        <div class="dm-title control-title title-left">Pace</div>
         <div class="inline">
           <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="0" id="dm-pace-mm" />
           <span class="sep">′</span>
@@ -1220,7 +1231,7 @@ function createDailyManualUI(){
       </div>
       <!-- Time -->
       <div class="dm-row dm-time">
-        <label class="dm-title">Time</label>
+        <div class="dm-title control-title title-left">Time</div>
         <div class="inline">
           <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="0" id="dm-time-hh" />
           <span class="sep">:</span>
@@ -1228,6 +1239,7 @@ function createDailyManualUI(){
           <span class="sep">:</span>
           <input type="text" inputmode="numeric" pattern="\\d*" maxlength="2" placeholder="00" id="dm-time-ss" />
         </div>
+        <div class="dm-help">당신이 땀 흘린 만큼만 입력해 주세요. </div>
       </div>
     </div>
   `;
