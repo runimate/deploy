@@ -1233,12 +1233,16 @@ function createDailyManualUI(){
   `;
   dmManualWrap.querySelectorAll('.dm-title').forEach(applyTitleFont);
 
-  // DOM 연결(업로드 박스 아래)
-  if (uploadSec) insertAfter(uploadSec, toggleRow);
-  else dmPanel.insertBefore(toggleRow, layoutRow || dmPanel.firstChild);
+// DOM 연결(업로드 박스 아래)
+if (uploadSec) insertAfter(uploadSec, toggleRow);
+else dmPanel.appendChild(toggleRow);
 
-  // ⬇️ 수동 섹션은 Layout 위에 오도록
-  dmPanel.insertBefore(dmManualWrap, layoutRow || null);
+// ⬇️ 수동 섹션은 Layout 위에 오도록 (layoutRow가 dmPanel 자식일 때만 before, 아니면 맨 끝에 append)
+if (layoutRow && layoutRow.parentNode === dmPanel) {
+  dmPanel.insertBefore(dmManualWrap, layoutRow);
+} else {
+  dmPanel.appendChild(dmManualWrap);
+}
 
   // 참조 캐시
   dmManualCheck = toggleRow.querySelector('#dm-manual-check');
@@ -1558,6 +1562,7 @@ window.onload = ()=>{
 
   // 데일리 수동입력 UI 생성
   createDailyManualUI();
+  setRecordType(recordType); // 수동 UI 생성 뒤 표시 규칙·disabled 동기화
 
   // 모바일 휠피커 활성화(데일리/레이스 모두)
   enableMobileWheelPickers();
