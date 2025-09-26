@@ -19,7 +19,8 @@ let isSyncing = false;
 
 /* ----- Daily Manual mode 상태/참조 ----- */
 let dmManual = { enabled:false, autoTime:true }; // autoTime: 거리·페이스 입력 시 시간 자동 계산
-let dmManualWrap, dmManualToggle;                // 수동입력 섹션/토글
+let dmManualWrap, dmManualToggle;   
+let dmManualCheck;// 수동입력 섹션/토글
 let dmDistA, dmDistB, dmPaceMM, dmPaceSS, dmTimeHH, dmTimeMM, dmTimeSS; // 인풋
 
 /* =========================
@@ -1051,17 +1052,26 @@ function injectDailyManualCSS(){
   const style = document.createElement('style');
   style.id = 'dm-manual-style';
   style.textContent = `
+  /* 데일리 수동입력 본문 */
   .dm-manual-wrap{ margin-top:12px; margin-bottom:6px; display:none; }
   .dm-manual-grid{ display:grid; grid-template-columns:1fr; gap:10px; }
   .dm-row label.dm-title{ display:block; margin-bottom:6px; }
   .dm-row .inline{ display:flex; align-items:center; gap:8px; flex-wrap:nowrap; }
   .dm-row .inline input[type="text"]{ width:64px; padding:8px 10px; border:1px solid #e4e4e7; border-radius:10px; font-weight:700; text-align:center; }
   .dm-row .inline .sep{ font-weight:700; }
-  .dm-toggle{ display:flex; align-items:center; gap:10px; margin-top:8px; }
-  .dm-toggle label{ cursor:pointer; }
-  .dm-toggle input[type="radio"]{ transform:scale(1.35); } /* 데일리 토글은 레이스 라디오보다 더 큼 */
-  /* 레이스 패널의 라디오/체크박스도 키우기 */
-  #race-panel input[type="radio"],#race-panel input[type="checkbox"]{ transform:scale(1.2); }
+
+  /* 토글: 레이스와 동일한 체크박스 UI */
+  .dm-toggle{ display:none; align-items:center; gap:10px; margin-top:10px; }
+  .dm-toggle label.checkbox{ display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+  .dm-toggle label.checkbox input[type="checkbox"]{ transform:scale(1.2); } /* ✅ 레이스와 동일 스케일 */
+
+  /* 레이스 패널의 라디오/체크박스도 동일 스케일 */
+  #race-panel input[type="radio"], #race-panel input[type="checkbox"]{ transform:scale(1.2); }
+
+  /* 모드별 표시: 데일리에서만 토글 보이기 */
+  body.mode-daily .dm-toggle{ display:flex; }
+  body.mode-monthly .dm-toggle,
+  body.mode-race .dm-toggle{ display:none; }
   `;
   document.head.appendChild(style);
 }
@@ -1169,15 +1179,18 @@ function createDailyManualUI(){
   // 업로드 박스 바로 아래에 토글 삽입
   const uploadSec = findUploadSection();
 
-  // 토글
+  // ✅ 토글: 레이스와 같은 체크박스 UI 사용
   const toggleRow = document.createElement('div');
   toggleRow.className = 'dm-toggle';
   toggleRow.id = 'dm-manual-toggle';
   toggleRow.innerHTML = `
-    <input type="radio" id="dm-manual-on" name="dm-manual" />
-    <label for="dm-manual-on">Enter records manually</label>
+    <label class="checkbox">
+      <input type="checkbox" id="dm-manual-check" />
+      <span>Enter records manually</span>
+    </label>
   `;
-  applyTitleFont(toggleRow.querySelector('label'));
+  const toggleLabel = toggleRow.querySelector('label.checkbox');
+  applyTitleFont(toggleLabel); // UI 타이틀 라벨 폰트 적용
 
   // 수동입력 섹션
   dmManualWrap = document.createElement('div');
@@ -1218,17 +1231,19 @@ function createDailyManualUI(){
       </div>
     </div>
   `;
-
-  // 라벨 폰트 보정
   dmManualWrap.querySelectorAll('.dm-title').forEach(applyTitleFont);
 
-  // DOM 연결(업로드 박스 아래·Layout 위)
+  // DOM 연결(업로드 박스 아래)
   if (uploadSec) insertAfter(uploadSec, toggleRow);
   else dmPanel.insertBefore(toggleRow, layoutRow || dmPanel.firstChild);
+
+  // ⬇️ 수동 섹션은 Layout 위에 오도록
   dmPanel.insertBefore(dmManualWrap, layoutRow || null);
 
   // 참조 캐시
-  dmManualToggle = toggleRow.querySelector('#dm-manual-on');
+  dmManualCheck = toggleRow.querySelector('#dm-manual-check');
+  dmManualToggle = dmManualCheck; // (하위 호환)
+
   dmDistA  = dmManualWrap.querySelector('#dm-dist-a');
   dmDistB  = dmManualWrap.querySelector('#dm-dist-b');
   dmPaceMM = dmManualWrap.querySelector('#dm-pace-mm');
@@ -1237,15 +1252,17 @@ function createDailyManualUI(){
   dmTimeMM = dmManualWrap.querySelector('#dm-time-mm');
   dmTimeSS = dmManualWrap.querySelector('#dm-time-ss');
 
-  // 토글 동작
-  dmManualToggle.addEventListener('change', ()=>{
-    dmManual.enabled = dmManualToggle.checked && (recordType==='daily');
-    dmManualWrap.style.display = (dmManual.enabled ? 'block':'none');
+  // 토글 동작: 체크 → 표시 / 해제 → 숨김
+  dmManualCheck.addEventListener('change', ()=>{
+    const onDaily = (recordType === 'daily');
+    dmManual.enabled = !!dmManualCheck.checked && onDaily;
+    dmManualWrap.style.display = (dmManual.enabled ? 'block' : 'none');
 
-    // 업로드 파일 인풋은 비활성화(수동과 중복 방지)
+    // 업로드 인풋 중복 방지
     if (fileInputEl) fileInputEl.disabled = dmManual.enabled;
+
     if (dmManual.enabled){
-      // 초기 0 세팅
+      // 초기값 세팅
       if (dmDistA && !dmDistA.value) dmDistA.value = '0';
       if (dmDistB && !dmDistB.value) dmDistB.value = '00';
       if (dmPaceMM && !dmPaceMM.value) dmPaceMM.value = '0';
@@ -1256,8 +1273,8 @@ function createDailyManualUI(){
       dmManual.autoTime = true; // 시작은 자동계산
       dmManual_applyToParsedAndRender();
       enableMobileWheelPickers(); // 모바일 피커 바인딩
-    }else{
-      // 수동모드 해제 시 OCR/업로드 라벨 복원 표시만
+    } else {
+      // 해제 시 보드만 리프레시, 업로드 재활성
       renderStats();
       fitKmRow();
       if (fileInputEl) fileInputEl.disabled = false;
@@ -1306,14 +1323,21 @@ function setRecordType(mode){
   updateUploadLabel();
 
   // Daily Manual UI 표시/숨김
-  if (dmManualWrap){
-    const onDaily = (mode==='daily');
-    dmManualWrap.style.display = (onDaily && dmManual.enabled) ? 'block' : 'none';
-    if (dmManualToggle) dmManualToggle.closest('.dm-toggle').style.display = onDaily ? 'flex' : 'none';
-    if (!onDaily) {
-      // 데일리 벗어나면 업로드 인풋 재활성
-      if (fileInputEl) fileInputEl.disabled = false;
-    }
+// setRecordType 내부의 수동입력 표시/숨김 블록 교체
+if (dmManualWrap && (dmManualCheck || dmManualToggle)) {
+  const onDaily = (mode === 'daily');
+  // 토글 UI 자체는 데일리에서만 보이도록
+  const toggleHost = (dmManualCheck || dmManualToggle).closest('.dm-toggle');
+  if (toggleHost) toggleHost.style.display = onDaily ? 'flex' : 'none';
+
+  // 섹션 본문 표시/숨김
+  const shouldShow = onDaily && !!(dmManualCheck && dmManualCheck.checked);
+  dmManualWrap.style.display = shouldShow ? 'block' : 'none';
+  dmManual.enabled = shouldShow;
+
+  // 업로드 인풋 상태 동기화
+  if (fileInputEl) fileInputEl.disabled = shouldShow;
+}
   }
 
   if (mode==='race') {
