@@ -1,134 +1,107 @@
-/* exporter.js v5 — Transparent GIF Export (html2canvas + gif.js.optimized)
- * Fixes:
- *  - Transparent: strict chroma-key (#ff00ff) compositing
- *  - Layout: keep IMG layout via visibility:hidden during capture
- *  - Worker: no more 404; fetch CDN worker → Blob URL (same-originable)
+/* exporter.js v6 — Transparent background only (no “holey” text)
+ * Strategy:
+ * 1) html2canvas snapshot with alpha
+ * 2) Pixel pass:
+ *    - if alpha <= 10 → set to CHROMA (opaque)  → will become transparent in GIF
+ *    - else alpha = 255 (fully opaque); if accidental chroma, nudge away
+ * 3) GIF encoder with transparent = CHROMA
  */
 
 (function () {
-  // 잘 안 쓰이는 마젠타를 크로마키로 사용 (콘텐츠 색과 충돌 최소화)
-  const CHROMA = '#ff00ff';
+  const CHROMA = { r: 255, g: 0, b: 255 }; // #ff00ff
   const CDN_WORKER = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
 
   const $ = (s) => document.querySelector(s);
   const setStatus = (t) => { const el = $('#export-status'); if (el) el.textContent = t; };
   const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
-  // ─────────────────────────────────────────────
-  // GIF worker: CDN 텍스트를 받아 Blob URL로 변환 (크로스오리진 차단 회피)
-  // ─────────────────────────────────────────────
-  async function getWorkerUrl({ preferLocal = false } = {}) {
-    // 1) (옵션) 로컬 파일 우선 시도 — 원하면 /js/gif.worker.js 추가해 사용 가능
-    if (preferLocal) {
-      try {
-        const local = '/js/gif.worker.js';
-        const resp = await fetch(local, { cache: 'no-cache' });
-        if (resp.ok) return local;
-      } catch { /* continue to CDN */ }
-    }
-    // 2) CDN에서 텍스트로 가져와 Blob URL 생성
+  function chromaCss() { return '#ff00ff'; }
+
+  async function getWorkerUrl() {
     const resp = await fetch(CDN_WORKER, { mode: 'cors', cache: 'no-cache' });
     if (!resp.ok) throw new Error(`Cannot fetch gif.worker.js (${resp.status})`);
     const txt = await resp.text();
-    const blob = new Blob([txt], { type: 'application/javascript' });
-    return URL.createObjectURL(blob);
+    return URL.createObjectURL(new Blob([txt], { type: 'application/javascript' }));
   }
 
-  // 캡처 동안만 subtree IMG를 visibility:hidden 처리해서 레이아웃 유지
-  function applyCaptureImageMask(rootEl) {
-    const style = document.createElement('style');
-    style.id = 'export-hide-img-style';
-    style.textContent = `
-      ${selectorOf(rootEl)} img { visibility: hidden !important; }
-    `;
-    document.head.appendChild(style);
-    return () => { style.remove(); };
-  }
-  function selectorOf(el){
-    // 간단한 스코프용 선택자 생성
-    if (el.id) return `#${cssEscape(el.id)}`;
-    const tag = el.tagName.toLowerCase();
-    return `${tag}[data-export-scope="1"]`;
-  }
-  function cssEscape(s){ return s.replace(/([#.;:[\](),>+~*^$|\\])/g, '\\$1'); }
-
-  // DOM → Canvas (투명 배경 스냅샷 + 크로마키 합성)
-  async function captureFrameCanvas(targetEl, scale = 1, { keepLayoutWithHiddenImgs = true } = {}) {
-    const cleanup = [];
-    try{
-      // 캡처 범위 스코프 지정(선택자용)
-      let scoped = false;
-      if (!targetEl.id) {
-        targetEl.setAttribute('data-export-scope','1');
-        scoped = true;
-        cleanup.push(()=> targetEl.removeAttribute('data-export-scope'));
-      }
-
-      // IMG를 레이아웃 유지한 채 픽셀만 숨김
-      if (keepLayoutWithHiddenImgs) {
-        cleanup.push(applyCaptureImageMask(targetEl));
-      }
-
-      // 폰트 로드 완료 대기(레이아웃 안정화)
-      if (document.fonts && document.fonts.ready) {
-        try { await document.fonts.ready; } catch {}
-      }
-
-      // DPR 반영 (또렷하게)
-      const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-      const snap = await html2canvas(targetEl, {
-        backgroundColor: null,              // 스냅샷은 완전 투명
-        scale: Math.max(1, scale) * dpr,    // 해상도 스케일 * DPR
-        useCORS: true,
-        allowTaint: false,
-        imageTimeout: 12000,
-        foreignObjectRendering: false       // 일반 렌더러가 더 안정적
-      });
-
-      // 스냅샷을 크로마키 바탕으로 합성
-      const c = document.createElement('canvas');
-      c.width = snap.width; c.height = snap.height;
-      const ctx = c.getContext('2d', { willReadFrequently: true });
-      ctx.fillStyle = CHROMA;               // 바닥을 마젠타로 채우기
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.drawImage(snap, 0, 0);            // 투명 영역은 마젠타가 비침 → GIF에서 투명화됨
-      return c;
-    } finally {
-      cleanup.forEach(fn=>{ try{ fn(); }catch{} });
+  async function ensureStableLayout() {
+    // 폰트 로드 대기
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch {}
     }
+    // km-row 같은 스케일 계산 함수가 있으면 호출
+    try { if (typeof window.fitKmRow === 'function') window.fitKmRow(); } catch {}
+    // transform/레이아웃 반영될 때까지 2프레임 대기
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }
+
+  // DOM -> Canvas snapshot
+  async function captureFrameCanvas(targetEl, scale = 1) {
+    await ensureStableLayout();
+
+    const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+    const snap = await html2canvas(targetEl, {
+      backgroundColor: null,                    // 완전 투명으로 스냅
+      scale: Math.max(1, scale) * dpr,
+      useCORS: true,
+      allowTaint: false,
+      imageTimeout: 12000,
+      foreignObjectRendering: false
+    });
+
+    // 픽셀 후처리: 배경(알파 낮음)만 크로마키로, 나머지는 완전 불투명
+    const w = snap.width, h = snap.height;
+    const out = document.createElement('canvas');
+    out.width = w; out.height = h;
+    const ctx = out.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(snap, 0, 0);
+
+    const img = ctx.getImageData(0, 0, w, h);
+    const data = img.data;
+    const thr = 10; // 배경 판정 알파 임계치(0~255)
+
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3]; // alpha
+      if (a <= thr) {
+        // 완전 투명 배경 → 크로마키로 채움 (GIF의 transparent index)
+        data[i]     = CHROMA.r;
+        data[i + 1] = CHROMA.g;
+        data[i + 2] = CHROMA.b;
+        data[i + 3] = 255;
+      } else {
+        // 콘텐츠 픽셀 → 완전 불투명
+        data[i + 3] = 255;
+        // 혹시 색이 우연히 크로마키와 동일하면 살짝 틀어준다(투명으로 잘못 인식 방지)
+        if (data[i] === CHROMA.r && data[i + 1] === CHROMA.g && data[i + 2] === CHROMA.b) {
+          data[i] = 254; // 1만 낮춤
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return out;
   }
 
   /**
-   * Capture → Transparent GIF
-   * @param {Object} opt
-   * @param {string} opt.areaSelector
-   * @param {number} opt.durationMs
-   * @param {number} opt.fps
-   * @param {number} opt.scale
-   * @param {string} opt.filename
-   * @param {boolean} opt.preferLocalWorker
+   * Capture → Transparent GIF (background only)
    */
   async function exportRunAsGif({
     areaSelector = '#stage',
     durationMs   = 2900,
     fps          = 20,
     scale        = 1,
-    filename     = 'runimate.gif',
-    preferLocalWorker = false
+    filename     = 'runimate.gif'
   } = {}) {
     const area = document.querySelector(areaSelector);
     if (!area) throw new Error('Capture area not found: ' + areaSelector);
 
-    setStatus?.('Preparing…');
-
-    // 애니메이션이 꺼져있다면 자동 실행 후 살짝 대기 (초반 0.00 홀드 보장)
+    // 애니메이션이 꺼져 있으면 시작 + 살짝 대기(초반 0.00 홀드 포함)
     if (typeof window.onRun === 'function') {
       window.onRun();
-      await wait(200);
+      await wait(180);
     }
 
-    // 워커 준비
-    const workerUrl = await getWorkerUrl({ preferLocal: preferLocalWorker });
+    setStatus?.('Preparing worker…');
+    const workerUrl = await getWorkerUrl();
 
     const frameDelay = Math.max(10, Math.round(1000 / Math.max(1, fps)));
     const frames = Math.max(1, Math.round(durationMs / frameDelay));
@@ -137,17 +110,17 @@
       workers: 2,
       quality: 10,
       workerScript: workerUrl,
-      transparent: CHROMA,      // 마젠타를 완전 투명으로 처리
+      transparent: chromaCss(), // #ff00ff → 투명
+      background: chromaCss(),  // 팔레트에 동일 색을 배경으로 등록
       dither: false
     });
 
-    // 캡처 루프
     const t0 = performance.now();
     for (let i = 0; i < frames; i++) {
       const tick = performance.now();
       if (tick - t0 > durationMs + frameDelay) break;
 
-      const frameCanvas = await captureFrameCanvas(area, scale, { keepLayoutWithHiddenImgs: true });
+      const frameCanvas = await captureFrameCanvas(area, scale);
       gif.addFrame(frameCanvas, { delay: frameDelay, copy: true });
 
       const spent = performance.now() - tick;
@@ -172,6 +145,5 @@
     });
   }
 
-  // 공개 API
   window.exportRunAsGif = exportRunAsGif;
 })();
