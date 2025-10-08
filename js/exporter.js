@@ -1,34 +1,47 @@
 /* eslint-disable */
 (function () {
-  const WKR = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
+  const CDN_WORKER = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
 
   function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-  // html2canvas로 두 번(흰/검) 렌더 → 알파/전경 복원
+  // --- 1) Worker URL 확보: 로컬 → CDN→ Blob URL ---
+  let workerUrlPromise = null;
+  async function getWorkerUrl() {
+    if (workerUrlPromise) return workerUrlPromise;
+    workerUrlPromise = (async () => {
+      // 1-a. 같은 저장소에 gif.worker.js가 있는 경우(권장): /js/gif.worker.js
+      try {
+        const localUrl = new URL('./gif.worker.js', import.meta?.url || document.currentScript?.src || location.href).toString();
+        const ok = await fetch(localUrl, { method: 'HEAD', cache: 'no-store' }).then(r=>r.ok).catch(()=>false);
+        if (ok) return localUrl;
+      } catch {}
+
+      // 1-b. CDN에서 받아와 Blob URL로 변환(교차 출처 문제 회피)
+      const res = await fetch(CDN_WORKER, { cache: 'no-store' });
+      const txt = await res.text();
+      const blob = new Blob([txt], { type: 'application/javascript' });
+      return URL.createObjectURL(blob);  // blob: URL은 Worker에 안전하게 사용 가능
+    })();
+    return workerUrlPromise;
+  }
+
+  // --- 2) Dual-matte 스냅샷 (보라/마젠타 헤일로 제거) ---
   async function renderDualMatte(target, scale=1) {
     const baseOpts = {
       scale,
-      backgroundColor: '#ffffff',     // 1st: white
+      backgroundColor: '#ffffff',
       useCORS: true,
       allowTaint: false,
       foreignObjectRendering: false,
       logging: false,
       onclone(doc){
         doc.documentElement.classList.add('exporting');
-        // 캡처 영역 배경 강제
         const t = doc.querySelector(target.id ? `#${target.id}` : null) || doc.querySelector(target.tagName);
         if (t) t.style.background = 'transparent';
       }
     };
-
-    // pass 1: white
     const cWhite = await html2canvas(target, baseOpts);
-
-    // pass 2: black
-    const cBlack = await html2canvas(target, {
-      ...baseOpts,
-      backgroundColor: '#000000'
-    });
+    const cBlack = await html2canvas(target, { ...baseOpts, backgroundColor: '#000000' });
 
     const w = cWhite.width, h = cWhite.height;
     const out = document.createElement('canvas');
@@ -39,14 +52,11 @@
     const bctx = cBlack.getContext('2d', { willReadFrequently: true });
     const wImg = wctx.getImageData(0,0,w,h);
     const bImg = bctx.getImageData(0,0,w,h);
-    const wo = wImg.data, bo = bImg.data;
 
-    // 결과 버퍼
+    const wo = wImg.data, bo = bImg.data;
     const outImg = octx.createImageData(w,h);
     const oo = outImg.data;
 
-    // 알파 복원: α = 1 - max_i(Cw_i - Cb_i)
-    // 전경 복원: F = Cb / α  (채널별)
     for (let i=0; i<oo.length; i+=4){
       const cwR = wo[i]/255,   cbR = bo[i]/255;
       const cwG = wo[i+1]/255, cbG = bo[i+1]/255;
@@ -55,9 +65,7 @@
       const aR = 1 - (cwR - cbR);
       const aG = 1 - (cwG - cbG);
       const aB = 1 - (cwB - cbB);
-      let a = Math.max(0, Math.min(1, Math.max(aR, aG, aB))); // 보수적으로 최대 채널 사용
-
-      // 수치 안정화: 아주 작은 값 클램프
+      let a = Math.max(0, Math.min(1, Math.max(aR, aG, aB)));
       if (a < 1/255) a = 0;
 
       let r=0,g=0,b=0;
@@ -72,20 +80,15 @@
       oo[i+2] = b;
       oo[i+3] = Math.round(a * 255);
     }
-
     octx.putImageData(outImg, 0, 0);
     return out;
   }
 
-  // 프레임 1장 캡처 (dual-matte 사용)
   async function snapshotCanvas(areaEl, scale){
-    // 두 번 렌더는 무거우므로 다음 animation frame에 넘겨 부하 분산
     await new Promise(requestAnimationFrame);
-    const canvas = await renderDualMatte(areaEl, scale);
-    return canvas;
+    return renderDualMatte(areaEl, scale);
   }
 
-  // 텍스트 변화 감지 (DM: #km, 월/일: #date-display, 레이스: #race-time)
   function readKeyText(){
     const km = document.getElementById('km')?.textContent || '';
     const race = document.getElementById('race-time')?.textContent || '';
@@ -93,46 +96,42 @@
   }
 
   async function exportRunAsGif({
-    areaSelector = '#stage-canvas',
+    areaSelector = '#stage',   // 레이아웃 깨짐 방지
     durationMs    = 2200,
-    fps           = 20,
+    fps           = 18,
     scale         = 1,
     filename      = 'runimate.gif',
     transparent   = true,
-    alphaThreshold = null, // dual-matte를 쓰므로 필요 없음(호환 파라미터)
+    alphaThreshold = null,
     fullCapture    = false,
-    settleTailMs   = 400,  // 풀캡처: 값 변동 멈춘 뒤 꼬리 유지 시간
-    minMs          = 700   // 풀캡처: 최소 길이
+    settleTailMs   = 400,
+    minMs          = 900
   } = {}) {
 
-    const areaEl = document.querySelector(areaSelector) || document.getElementById('stage-canvas') || document.body;
-
-    // 캡처 모드 진입 (스타일 투명화)
+    const areaEl = document.querySelector(areaSelector) || document.getElementById('stage') || document.body;
     document.documentElement.classList.add('exporting');
 
     const frameDelay = Math.max(10, Math.round(1000 / fps));
     const maxFrames  = Math.ceil(durationMs / frameDelay);
 
-    // GIF 인코더
+    const workerUrl = await getWorkerUrl();
     const gif = new GIF({
       workers: 2,
-      workerScript: WKR,
+      workerScript: workerUrl,
       quality: 10,
       dither: false,
-      transparent: transparent ? 0x00FFFF : null // transparent index는 내부적으로 재계산됨
+      transparent: transparent ? 0x00FFFF : null
     });
 
     let frames = 0;
-    let start = performance.now();
+    const start = performance.now();
     let lastChangeAt = start;
     let lastText = readKeyText();
     let finished = false;
 
     while (!finished) {
-      // 한 프레임 캡처
       const canvas = await snapshotCanvas(areaEl, scale);
 
-      // (참고) 단일 임계 투명화가 필요하다면 여기서 alphaThreshold 적용 가능
       if (alphaThreshold != null){
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const img = ctx.getImageData(0,0,canvas.width, canvas.height);
@@ -146,48 +145,30 @@
       gif.addFrame(canvas, { copy: true, delay: frameDelay });
       frames++;
 
-      // 풀캡처 모드: 텍스트 변화 감지로 종료 시점 판단
       if (fullCapture) {
         const now = performance.now();
         const curText = readKeyText();
-        if (curText !== lastText) {
-          lastText = curText;
-          lastChangeAt = now;
-        }
+        if (curText !== lastText) { lastText = curText; lastChangeAt = now; }
         const elapsed = now - start;
         const stable = now - lastChangeAt;
-
-        // 최소 길이 보장 + 안정 구간 꼬리 확보 후 종료
-        if (elapsed >= minMs && stable >= settleTailMs) {
-          finished = true;
-        }
+        if (elapsed >= minMs && stable >= settleTailMs) finished = true;
       } else {
-        // 고정 길이
         if (frames >= maxFrames) finished = true;
       }
-
-      // 프레임 간 간격 유지
       await sleep(frameDelay);
     }
 
-    // 인코딩 → Blob → 저장/공유
-    const blob = await new Promise((res) => {
-      gif.on('finished', res);
-      gif.render();
-    });
-
+    const blob = await new Promise((res) => { gif.on('finished', res); gif.render(); });
     document.documentElement.classList.remove('exporting');
 
-    // 모바일이면 공유 시트 (사진 앱 저장 가능)
     try{
       const file = new File([blob], filename, { type: 'image/gif' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files:[file], title:'RUNIMATE' });
         return;
       }
-    }catch{/* ignore */ }
+    }catch{}
 
-    // 폴백: 다운로드
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename;
@@ -195,6 +176,5 @@
     URL.revokeObjectURL(url);
   }
 
-  // 전역 공개
   window.exportRunAsGif = exportRunAsGif;
 })();
