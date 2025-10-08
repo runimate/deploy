@@ -15,11 +15,9 @@
 
   <style>
     :root{
-      /* pill 버튼 규격 (JS에서 실측 동기화) */
       --pill-h: 64px; --pill-radius: 22px; --pill-bw: 4px;
       --pill-fz: 24px; --pill-fw: 800; --gap: 16px;
 
-      /* 레이스 보드 폰트/크기 조절 포인트 */
       --race-title-size: 44px;
       --race-subtype-size: 66px;
       --race-time-size: 110px;
@@ -27,16 +25,22 @@
       --race-time-translate: 0px,0px;
       --race-time-letter: -4px;
 
-      /* 레이스 보드 수직 간격(요청대로 타이트) */
       --race-gap-subtype-b: 8px;
       --race-gap-time-b: 8px;
       --race-gap-pace-t: 6px;
 
-      /* 전역 폰트(선택적 확장 적용) */
       --wideFontFamily: Helvetica, Arial, sans-serif;
     }
 
-    /* 입력/셀렉트도 pill 비주얼로 */
+    /* ====== 캡처 모드에서 완전 투명 배경 강제 ====== */
+    html.exporting, html.exporting body,
+    html.exporting .stage-outer, html.exporting .stage-canvas,
+    html.exporting #dm-board, html.exporting #race-board {
+      background: transparent !important;
+    }
+    /* 텍스트 가장자리 색수치가 섞이지 않도록 그림자 제거(있다면) */
+    html.exporting * { text-shadow: none !important; box-shadow: none !important; }
+
     .pill-like{
       height:var(--pill-h); width:100%; box-sizing:border-box;
       border:var(--pill-bw) solid #000; border-radius:var(--pill-radius);
@@ -49,18 +53,13 @@
     .seg-row.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
 
-    /* 레이스 드롭다운: 3열 그리드에서 1:2 배치 */
     .race-select-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:var(--gap);
-      align-items:start;
-      margin-top:8px;
+      display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--gap);
+      align-items:start; margin-top:8px;
     }
     .race-month-cell{grid-column:1/2;}
     .race-list-cell{grid-column:2/4;}
 
-    /* Time/Pace 입력: Pace를 Time 아래로, 간격 타이트 */
     .tp-col{display:grid; gap:6px;}
     .time-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:6px;align-items:center}
     .pace-grid{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center}
@@ -69,47 +68,25 @@
     #race-dist-grid.font-grid{grid-template-columns:repeat(4,1fr)}
     #race-dist-grid.font-grid button{font-size:var(--pill-fz);font-weight:var(--pill-fw);height:var(--pill-h)}
 
-    /* 레이스 출력 보드 */
     #race-board{padding:18px 0}
-    .race-title{
-      font-weight:900;font-size:var(--race-title-size);letter-spacing:-.02em;margin-bottom:6px
-    }
+    .race-title{ font-weight:900;font-size:var(--race-title-size);letter-spacing:-.02em;margin-bottom:6px }
     .race-subtype{
       font-family:Helvetica, Arial, sans-serif!important;
-      font-weight:900;
-      font-size:var(--race-subtype-size);
-      line-height:1.05;
-      margin:8px 0 var(--race-gap-subtype-b);
+      font-weight:900; font-size:var(--race-subtype-size);
+      line-height:1.05; margin:8px 0 var(--race-gap-subtype-b);
     }
     .race-time{
-      font-weight:900;
-      font-size:var(--race-time-size);
-      line-height:.9;
-      letter-spacing:var(--race-time-letter);
+      font-weight:900; font-size:var(--race-time-size);
+      line-height:.9; letter-spacing:var(--race-time-letter);
       margin:10px 0 var(--race-gap-time-b);
       transform:translate(var(--race-time-translate));
     }
     .race-pace-wrap{display:block;margin-top:var(--race-gap-pace-t)}
-    .race-pace-wrap .label{
-      font-family:Helvetica, Arial, sans-serif;
-      font-size:22px;
-      margin:0 0 4px;
-      line-height:1;
-    }
-    .race-pace{
-      font-family:Helvetica, Arial, sans-serif!important;
-      font-weight:900;
-      font-size:clamp(40px, 6.5vw, var(--race-pace-size));
-      line-height:1.1
-    }
-
-    .race-badges{
-      display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:center;
-      min-height:56px;
-    }
+    .race-pace-wrap .label{ font-family:Helvetica, Arial, sans-serif; font-size:22px; margin:0 0 4px; line-height:1; }
+    .race-pace{ font-family:Helvetica, Arial, sans-serif!important; font-weight:900; font-size:clamp(40px, 6.5vw, var(--race-pace-size)); line-height:1.1 }
+    .race-badges{ display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:center; min-height:56px; }
     .race-badges img{height:56px}
 
-    /* 선택 폰트를 앱 전반에 강제 적용(옵션) */
     body.wide-font header h1,
     body.wide-font .subtitle,
     body.wide-font .pill-btn,
@@ -119,56 +96,34 @@
     body.wide-font #km, body.wide-font #km-unit, body.wide-font #km-word,
     body.wide-font #stats-grid .label, body.wide-font #stats-grid .stat,
     body.wide-font .date-display,
-    body.wide-font .run-button {
-      font-family: var(--wideFontFamily) !important;
-    }
+    body.wide-font .run-button { font-family: var(--wideFontFamily) !important; }
 
-    /* ▼ 드롭다운 어포던스 */
     .select-wrap{ position:relative; }
     .select-wrap::after{
-      content:"";
-      position:absolute;
-      right:18px;
-      top:50%;
-      transform:translateY(-50%);
-      width:0;height:0;
-      border-left:7px solid transparent;
-      border-right:7px solid transparent;
-      border-top:10px solid #000;
-      pointer-events:none;
+      content:""; position:absolute; right:18px; top:50%; transform:translateY(-50%);
+      width:0;height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-top:10px solid #000; pointer-events:none;
     }
     .select-wrap .pill-select{ padding-right:48px; }
     .bg-black .select-wrap::after{ border-top-color:#fff; }
 
-    /* 상단 타이틀 Anta 고정 */
     header h1#app-title{ font-family:'Anta', sans-serif; font-weight:700; letter-spacing:.02em; }
 
-    /* ===== Kilometers 라벨 복구 & 폰트별 스케일/간격 반영 ===== */
     #dm-board #km-word{
-      display:block;
-      font-weight:900;
-      line-height:1;
-      margin-left: var(--kmWordIndent, 0px);
+      display:block; font-weight:900; line-height:1; margin-left: var(--kmWordIndent, 0px);
     }
-    body.type1 #km-word{
-      font-size: var(--t1-kmWordSize, 36px);
-      margin-top: var(--t1-kmWordGap, 12px);
-    }
-    body.type2 #km-word{
-      font-size: var(--t2-kmWordSize, 36px);
-      margin-top: var(--t2-kmWordGap, 12px);
-    }
+    body.type1 #km-word{ font-size: var(--t1-kmWordSize, 36px); margin-top: var(--t1-kmWordGap, 12px); }
+    body.type2 #km-word{ font-size: var(--t2-kmWordSize, 36px); margin-top: var(--t2-kmWordGap, 12px); }
     .bg-black #km-word{ color:#fff; }
 
-    /* ===== Export 패널 ===== */
+    /* Export 패널 */
     .export-card{ border:1px solid #e5e7eb; border-radius:14px; padding:12px; background:#fafafa; margin-top:12px; }
-    .export-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; align-items:end; }
+    .export-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; align-items:end; }
     .export-grid label{ display:block; font-size:12px; font-weight:700; margin-bottom:6px; }
     .export-grid input{ width:100%; padding:10px; border-radius:10px; border:1px solid #e5e7eb; }
     .muted{ font-size:12px; opacity:.65; }
   </style>
 
-  <!-- ▼ DOM → Canvas 스냅샷 & GIF 인코더 -->
+  <!-- DOM → Canvas & GIF -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"></script>
@@ -321,7 +276,7 @@
         <button class="run-button" id="run-btn" onclick="onRun()">RUN!!</button>
       </section>
 
-      <!-- ▼▼▼ Transparent GIF Export 카드 -->
+      <!-- ===== Transparent GIF Export 카드 ===== -->
       <section class="section export-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <strong>Export Transparent GIF</strong>
@@ -340,13 +295,17 @@
             <label for="gif-scale">Scale</label>
             <input id="gif-scale" type="number" min="0.5" max="2" step="0.1" value="1" />
           </div>
+          <div>
+            <label for="gif-full">Capture full RUN</label>
+            <input id="gif-full" type="checkbox" />
+          </div>
         </div>
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button id="btn-export-gif" class="pill-btn" style="background:#0ea5e9;border-color:#0ea5e9;">Export GIF (Transparent)</button>
         </div>
         <div id="export-status" class="muted" style="margin-top:6px;"></div>
       </section>
-      <!-- ▲▲▲ 추가 끝 -->
+      <!-- ===== Export 카드 끝 ===== -->
 
     </div>
   </div>
@@ -404,8 +363,7 @@
     </div>
   </section>
 
-  <!-- schedule JSON을 HTML에 내장 (fetch 불가 대비) -->
-  <!-- ▼▼▼ 여기에 기존 "레이스 스케줄 JSON" 전체를 붙여넣으세요 ▼▼▼ -->
+  <!-- ===== 레이스 스케줄 JSON 붙여넣기 자리 ===== -->
   <script id="race-schedule" type="application/json">
      [
   {"날짜":"9\/1(월)","대회명":"2025 아자러너 마라톤"},
@@ -642,15 +600,14 @@
   {"날짜":"12\/13(토)","대회명":"제3회 시즌오프레이스"}
   ]
   </script>
-  <!-- ▲▲▲ 스케줄 JSON 끝 ▲▲▲ -->
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
   <script type="module" src="./js/ui.js"></script>
 
-  <!-- Transparent GIF Exporter (v9) -->
+  <!-- 투명 GIF Exporter -->
   <script src="./js/exporter.js"></script>
 
-  <!-- Export 버튼 동작 연결 -->
+  <!-- Export 버튼 동작 -->
   <script>
     (function(){
       const $ = (s)=>document.querySelector(s);
@@ -658,23 +615,40 @@
       const btn = $('#btn-export-gif');
       if (!btn) return;
 
+      function getFullDurationMs(){
+        // DM 애니: hold(300) + count(1600) + tail(300)
+        // RACE 애니: count(2400) + tail(400)
+        const isRace = document.body.classList.contains('mode-race');
+        return isRace ? 2800 : 2200;
+      }
+
       btn.addEventListener('click', async ()=>{
         const sec   = parseFloat($('#gif-duration').value || '2.9');
         const fps   = parseInt($('#gif-fps').value || '20', 10);
         const scale = parseFloat($('#gif-scale').value || '1');
+        const full  = $('#gif-full').checked;
 
-        statusEl.textContent = 'Preparing… (애니메이션 시작 & 캡처)';
         try{
-          // 애니메이션이 꺼져있다면 자동 실행
-          if (typeof window.onRun === 'function') window.onRun();
+          statusEl.textContent = 'Preparing…';
+          if (full){
+            // 전구간: 초기화 → 자동 실행 → 길이 자동 설정
+            if (typeof window.exitFocus === 'function') window.exitFocus();
+            await new Promise(r=>setTimeout(r, 80));
+            if (typeof window.onRun === 'function') window.onRun();
+          }
 
+          const durationMs = full ? getFullDurationMs()
+                                  : Math.max(1, Math.round(sec*1000));
+
+          statusEl.textContent = 'Capturing…';
           await window.exportRunAsGif({
-            areaSelector: '#stage-canvas',   // 화면과 동일 프레임
-            durationMs: Math.max(1, Math.round(sec*1000)),
-            fps, scale,
+            areaSelector: '#stage-canvas',
+            durationMs, fps, scale,
             filename: 'runimate.gif',
-            autoRunIfIdle: false
+            transparent: true,       // 배경 투명 모드
+            alphaThreshold: 252      // 가장자리 하드컷(halo 제거)
           });
+
           statusEl.textContent = 'Done. GIF saved.';
         }catch(err){
           console.error(err);
