@@ -641,13 +641,15 @@
                                   : Math.max(1, Math.round(sec*1000));
 
           statusEl.textContent = 'Capturing…';
-          await window.exportRunAsGif({
-            areaSelector: '#stage-canvas',
-            durationMs, fps, scale,
-            filename: 'runimate.gif',
-            transparent: true,       // 배경 투명 모드
-            alphaThreshold: 252      // 가장자리 하드컷(halo 제거)
-          });
+await window.exportRunAsGif({
+  areaSelector: '#stage-canvas',  // 레이아웃 틀어짐 방지(외곽 컨테이너 기준)
+  durationMs, fps, scale,
+  filename: 'runimate.gif',
+  transparent: true,
+  fullCapture: full,        // ★ 풀버전 체크 반영
+  settleTailMs: 400,        // 멈춘 뒤 0.4s 더 캡처
+  minMs: 900                // 최소 0.9s 보장(원하면 조절)
+});
 
           statusEl.textContent = 'Done. GIF saved.';
         }catch(err){
