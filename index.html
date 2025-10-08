@@ -167,7 +167,19 @@ body.type2 #km-word{
 
 /* 배경색 전환 시 가독성 보정(선택) */
 .bg-black #km-word{ color:#fff; }
+
+    /* ===== Export 패널(추가) ===== */
+    .export-card{ border:1px solid #e5e7eb; border-radius:14px; padding:12px; background:#fafafa; margin-top:12px; }
+    .export-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; align-items:end; }
+    .export-grid label{ display:block; font-size:12px; font-weight:700; margin-bottom:6px; }
+    .export-grid input{ width:100%; padding:10px; border-radius:10px; border:1px solid #e5e7eb; }
+    .muted{ font-size:12px; opacity:.65; }
   </style>
+
+  <!-- ▼ DOM → Canvas 스냅샷 & GIF 인코더 (추가) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"></script>
 </head>
 <body class="bg-white type1 mode-daily">
   <header>
@@ -318,6 +330,34 @@ body.type2 #km-word{
       <section class="section">
         <button class="run-button" id="run-btn" onclick="onRun()">RUN!!</button>
       </section>
+
+      <!-- ▼▼▼ 추가: Transparent GIF Export 카드 -->
+      <section class="section export-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong>Export Transparent GIF</strong>
+          <span class="muted">브라우저에서 바로 GIF로 저장 (투명, 1-bit)</span>
+        </div>
+        <div class="export-grid">
+          <div>
+            <label for="gif-duration">Duration (sec)</label>
+            <input id="gif-duration" type="number" min="1" step="0.1" value="2.9" />
+          </div>
+          <div>
+            <label for="gif-fps">FPS</label>
+            <input id="gif-fps" type="number" min="5" max="30" step="1" value="20" />
+          </div>
+          <div>
+            <label for="gif-scale">Scale</label>
+            <input id="gif-scale" type="number" min="0.5" max="2" step="0.1" value="1" />
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button id="btn-export-gif" class="pill-btn" style="background:#0ea5e9;border-color:#0ea5e9;">Export GIF (Transparent)</button>
+        </div>
+        <div id="export-status" class="muted" style="margin-top:6px;"></div>
+      </section>
+      <!-- ▲▲▲ 추가 끝 -->
+
     </div>
   </div>
 
@@ -376,7 +416,7 @@ body.type2 #km-word{
 
   <!-- schedule JSON을 HTML에 내장 (fetch 불가 대비) -->
   <script id="race-schedule" type="application/json">
-  [
+ [
   {"날짜":"9\/1(월)","대회명":"2025 아자러너 마라톤"},
   {"날짜":"9\/5(금)","대회명":"나혼렙 x 글로벌 6K 국가권력급 스페셜런"},
   {"날짜":"9\/6(토)","대회명":"2025 달빛소나타"},
@@ -614,5 +654,41 @@ body.type2 #km-word{
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
   <script type="module" src="./js/ui.js"></script>
+
+  <!-- ▼ exporter.js 로직 추가 -->
+  <script src="./js/exporter.js"></script>
+
+  <!-- ▼ Export 버튼 동작 연결 -->
+  <script>
+    (function(){
+      const $ = (s)=>document.querySelector(s);
+      const statusEl = $('#export-status');
+      const btn = $('#btn-export-gif');
+      if (!btn) return;
+
+      btn.addEventListener('click', async ()=>{
+        const sec   = parseFloat($('#gif-duration').value || '2.9');
+        const fps   = parseInt($('#gif-fps').value || '20', 10);
+        const scale = parseFloat($('#gif-scale').value || '1');
+
+        statusEl.textContent = 'Preparing… (애니메이션 시작 & 캡처)';
+        try{
+          // 애니메이션이 꺼져있다면 자동 실행
+          if (typeof window.onRun === 'function') window.onRun();
+
+          await window.exportRunAsGif({
+            areaSelector: '#stage',
+            durationMs: Math.max(1, Math.round(sec*1000)),
+            fps, scale,
+            filename: 'runimate.gif'
+          });
+          statusEl.textContent = 'Done. GIF saved.';
+        }catch(err){
+          console.error(err);
+          statusEl.textContent = 'Failed. See console.';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
