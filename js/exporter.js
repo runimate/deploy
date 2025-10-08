@@ -10,11 +10,16 @@
     if (workerUrlPromise) return workerUrlPromise;
     workerUrlPromise = (async () => {
       // 1-a. 같은 저장소에 gif.worker.js가 있는 경우(권장): /js/gif.worker.js
-      try {
-        const localUrl = new URL('./gif.worker.js', import.meta?.url || document.currentScript?.src || location.href).toString();
-        const ok = await fetch(localUrl, { method: 'HEAD', cache: 'no-store' }).then(r=>r.ok).catch(()=>false);
-        if (ok) return localUrl;
-      } catch {}
+try {
+  // 기존 문제라인 ↓↓↓
+  // const localUrl = new URL('./gif.worker.js', import.meta?.url || document.currentScript?.src || location.href).toString();
+  // 수정본 ↓↓↓
+  const baseUrl = document.currentScript ? document.currentScript.src : location.href;
+  const localUrl = new URL('./gif.worker.js', baseUrl).toString();
+
+  const ok = await fetch(localUrl, { method: 'HEAD', cache: 'no-store' }).then(r=>r.ok).catch(()=>false);
+  if (ok) return localUrl;
+} catch {}
 
       // 1-b. CDN에서 받아와 Blob URL로 변환(교차 출처 문제 회피)
       const res = await fetch(CDN_WORKER, { cache: 'no-store' });
