@@ -1,156 +1,141 @@
-/* eslint-disable */
-(function () {
-  const CDN_WORKER = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
+/* exporter.js — single-button GIF exporter (chromakey transparent, mobile share) */
+/* global html2canvas, GIF */
+(function(){
+  const CHROMA = '#00FF00';            // 라임 매트
+  const TRANSPARENT_RGB = 0x00FF00;     // GIF transparent index용
 
-  const rAF = () => new Promise(requestAnimationFrame);
-  const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
-
-  // ── 1) Worker URL: 항상 CDN → Blob URL (로컬 HEAD 체크 제거)
-  async function getWorkerUrl() {
-    const res = await fetch(CDN_WORKER, { cache: 'no-store' });
+  // 워커 스크립트를 CDN에서 받아 Blob URL로 세팅 (CORS/404 방지)
+  async function getGifWorkerUrl(){
+    const cdn = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
+    const res = await fetch(cdn, { cache: 'force-cache' });
+    if (!res.ok) throw new Error('Cannot fetch gif.worker.js');
     const txt = await res.text();
-    const blob = new Blob([txt], { type: 'application/javascript' });
-    return URL.createObjectURL(blob);
+    const url = URL.createObjectURL(new Blob([txt], { type: 'text/javascript' }));
+    return url;
   }
 
-  // ── 2) Dual-matte 스냅샷(마젠타/헤일로 제거용)
-  async function renderDualMatte(target, scale=1) {
-    const base = {
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  // UI 가장자리 프린지 줄이기: 임시 outline 부여(흰/검 두번)
+  function applyEdgeSafeOutline(root){
+    // 캡처 중 전체에 문자 외곽선 추가 (얇게) — 프린지 완화
+    const style = document.createElement('style');
+    style.id = '__export_edgefix__';
+    style.textContent = `
+      #stage, #stage * {
+        text-shadow: -0.5px 0 0 rgba(0,0,0,.15), 0.5px 0 0 rgba(0,0,0,.15),
+                     0 -0.5px 0 rgba(0,0,0,.15), 0 0.5px 0 rgba(0,0,0,.15);
+      }
+      .bg-black #stage, .bg-black #stage * {
+        text-shadow: -0.5px 0 0 rgba(255,255,255,.15), 0.5px 0 0 rgba(255,255,255,.15),
+                     0 -0.5px 0 rgba(255,255,255,.15), 0 0.5px 0 rgba(255,255,255,.15);
+      }
+    `;
+    document.head.appendChild(style);
+    return ()=> style.remove();
+  }
+
+  async function captureOnce(el, scale=1){
+    // 라임 매트로 캡처(후에 transparent로 지정)
+    const canvas = await html2canvas(el, {
+      backgroundColor: CHROMA,
       scale,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      allowTaint: false,
-      foreignObjectRendering: false,
       logging: false,
-      onclone(doc){
-        doc.documentElement.classList.add('exporting');
-        const t = doc.querySelector(target.id ? `#${target.id}` : null) || doc.querySelector(target.tagName);
-        if (t) t.style.background = 'transparent';
-      }
-    };
-    const cW = await html2canvas(target, base);
-    const cB = await html2canvas(target, { ...base, backgroundColor: '#000000' });
-
-    const w = cW.width, h = cW.height;
-    const out = document.createElement('canvas');
-    out.width = w; out.height = h;
-    const octx = out.getContext('2d', { willReadFrequently: true });
-
-    const wctx = cW.getContext('2d', { willReadFrequently: true });
-    const bctx = cB.getContext('2d', { willReadFrequently: true });
-    const wImg = wctx.getImageData(0,0,w,h);
-    const bImg = bctx.getImageData(0,0,w,h);
-    const wo = wImg.data, bo = bImg.data;
-
-    const outImg = octx.createImageData(w,h);
-    const oo = outImg.data;
-
-    for (let i=0;i<oo.length;i+=4){
-      const cwR=wo[i]/255,   cbR=bo[i]/255;
-      const cwG=wo[i+1]/255, cbG=bo[i+1]/255;
-      const cwB=wo[i+2]/255, cbB=bo[i+2]/255;
-
-      const a = Math.max(0, Math.min(1, Math.max(
-        1 - (cwR - cbR),
-        1 - (cwG - cbG),
-        1 - (cwB - cbB)
-      )));
-      const A = a < 1/255 ? 0 : a;
-
-      let r=0,g=0,b=0;
-      if (A>0){
-        r = Math.max(0, Math.min(255, Math.round(cbR / A * 255)));
-        g = Math.max(0, Math.min(255, Math.round(cbG / A * 255)));
-        b = Math.max(0, Math.min(255, Math.round(cbB / A * 255)));
-      }
-      oo[i]   = r;
-      oo[i+1] = g;
-      oo[i+2] = b;
-      oo[i+3] = Math.round(A*255);
-    }
-    octx.putImageData(outImg, 0, 0);
-    return out;
+      useCORS: true,
+      windowWidth: document.documentElement.clientWidth,
+      windowHeight: document.documentElement.clientHeight
+    });
+    // Safari/모바일 성능: 캔버스에 willReadFrequently 힌트
+    const c2 = document.createElement('canvas');
+    c2.width = canvas.width; c2.height = canvas.height;
+    const g = c2.getContext('2d', { willReadFrequently: true });
+    g.drawImage(canvas, 0, 0);
+    return c2;
   }
 
-  async function snapshotCanvas(areaEl, scale){
-    await rAF(); // 부하 분산
-    return renderDualMatte(areaEl, scale);
-  }
-
-  function readKeyText(){
-    const km = document.getElementById('km')?.textContent || '';
-    const race = document.getElementById('race-time')?.textContent || '';
-    return (race && document.body.classList.contains('mode-race')) ? race : km;
-  }
-
-  async function exportRunAsGif({
-    areaSelector = '#stage',    // 레이아웃 틀어짐 방지
-    durationMs    = 2200,
-    fps           = 18,
-    scale         = 1,
-    filename      = 'runimate.gif',
-    transparent   = true,
-    fullCapture   = false,
-    settleTailMs  = 400,
-    minMs         = 900
-  } = {}) {
-
-    const areaEl = document.querySelector(areaSelector) || document.getElementById('stage') || document.body;
-    document.documentElement.classList.add('exporting');
-
-    const frameDelay = Math.max(10, Math.round(1000 / fps));
-    const maxFrames  = Math.ceil(durationMs / frameDelay);
-
-    const workerUrl = await getWorkerUrl();
+  async function encodeGif(frames, delayMs, filename='runimate.gif', transparentRGB=TRANSPARENT_RGB){
+    const workerScript = await getGifWorkerUrl();
     const gif = new GIF({
       workers: 2,
-      workerScript: workerUrl,
-      quality: 10,
-      dither: false,
-      transparent: transparent ? 0x00FFFF : null
+      quality: 10,          // 낮을수록 품질↑(cpu↑). 10이 균형
+      workerScript,
+      transparent: transparentRGB,
+      repeat: 0             // loop
     });
-
-    let frames = 0;
-    const t0 = performance.now();
-    let lastChangeAt = t0;
-    let lastText = readKeyText();
-    let finished = false;
-
-    while (!finished){
-      const canvas = await snapshotCanvas(areaEl, scale);
-      gif.addFrame(canvas, { copy: true, delay: frameDelay });
-      frames++;
-
-      if (fullCapture){
-        const now = performance.now();
-        const cur = readKeyText();
-        if (cur !== lastText){ lastText = cur; lastChangeAt = now; }
-        const elapsed = now - t0;
-        const stable  = now - lastChangeAt;
-        if (elapsed >= minMs && stable >= settleTailMs) finished = true;
-      } else {
-        if (frames >= maxFrames) finished = true;
-      }
-      await sleep(frameDelay);
-    }
-
-    const blob = await new Promise((res)=>{ gif.on('finished', res); gif.render(); });
-    document.documentElement.classList.remove('exporting');
-
-    try{
-      const file = new File([blob], filename, { type: 'image/gif' });
-      if (navigator.canShare && navigator.canShare({ files:[file] })) {
-        await navigator.share({ files:[file], title:'RUNIMATE' });
-        return;
-      }
-    }catch{}
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    frames.forEach(cv => gif.addFrame(cv, { copy: true, delay: Math.max(20, Math.round(delayMs)) }));
+    return new Promise((resolve, reject)=>{
+      gif.on('finished', blob=>{
+        // 모바일: 가능한 경우 네이티브 공유 시트
+        const file = new File([blob], filename, { type: 'image/gif' });
+        if (navigator.canShare && navigator.canShare({ files:[file] })){
+          navigator.share({ files:[file], title: 'RUNIMATE', text: 'My run animation' })
+            .then(()=> resolve(true))
+            .catch(()=> downloadBlob(blob, filename) || resolve(false));
+        } else {
+          downloadBlob(blob, filename);
+          resolve(true);
+        }
+      });
+      gif.on('abort', ()=> reject(new Error('GIF abort')));
+      gif.on('error', e=> reject(e));
+      gif.render();
+    });
   }
 
-  window.exportRunAsGif = exportRunAsGif;
+  function downloadBlob(blob, filename){
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    a.remove(); URL.revokeObjectURL(url);
+    return true;
+  }
+
+  // 공개 API
+  window.exportRunAsGif = async function exportRunAsGif({
+    areaSelector = '#stage',
+    fps = 18,
+    scale = 1,
+    filename = 'runimate.gif',
+    fullCapture = true,
+    settleTailMs = 450,
+    minMs = 1200
+  } = {}){
+    const el = document.querySelector(areaSelector);
+    if (!el) throw new Error('Capture element not found');
+
+    // 캡처 안정화
+    document.documentElement.classList.add('exporting');
+    const undoOutline = applyEdgeSafeOutline();
+
+    try{
+      const frameInterval = 1000 / fps;
+
+      // 전체 러닝 애니메이션 길이 추정 (ui.js 기준)
+      // Daily/Monthly: 0.00 정지 260ms + 상승 1600ms + 꼬리
+      // Race: 시간애니 2400ms
+      const assumedMs = (document.body.classList.contains('mode-race')) ? 2400 : 1900;
+      const totalMs = Math.max(minMs, assumedMs + settleTailMs);
+
+      const frames = [];
+      const t0 = performance.now();
+      let next = t0;
+
+      while (performance.now() - t0 < totalMs){
+        // 다음 프레임까지 대기
+        const now = performance.now();
+        const wait = Math.max(0, next - now);
+        if (wait > 0) await sleep(wait);
+        // 스냅샷
+        const cv = await captureOnce(el, scale);
+        frames.push(cv);
+        next += frameInterval;
+      }
+
+      await encodeGif(frames, frameInterval, filename, TRANSPARENT_RGB);
+    } finally {
+      undoOutline();
+      document.documentElement.classList.remove('exporting');
+    }
+  };
 })();
