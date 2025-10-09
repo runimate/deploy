@@ -1,94 +1,98 @@
-/* exporter.js — single-button GIF exporter (chromakey transparent, mobile share) */
+/* exporter.js — transparent GIF (no layout shift, no green fringe, full-run capture) */
 /* global html2canvas, GIF */
 (function(){
-  const CHROMA = '#00FF00';            // 라임 매트
-  const TRANSPARENT_RGB = 0x00FF00;     // GIF transparent index용
-
-  // 워커 스크립트를 CDN에서 받아 Blob URL로 세팅 (CORS/404 방지)
+  // 워커를 CDN에서 읽어 Blob URL로 주입 (CORS/404 회피)
   async function getGifWorkerUrl(){
-    const cdn = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
-    const res = await fetch(cdn, { cache: 'force-cache' });
+    const src = 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
+    const res = await fetch(src, { cache: 'force-cache' });
     if (!res.ok) throw new Error('Cannot fetch gif.worker.js');
-    const txt = await res.text();
-    const url = URL.createObjectURL(new Blob([txt], { type: 'text/javascript' }));
-    return url;
+    const code = await res.text();
+    return URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
   }
 
-  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+  const sleep = (ms)=>new Promise(r=>setTimeout(r, ms));
 
-  // UI 가장자리 프린지 줄이기: 임시 outline 부여(흰/검 두번)
-  function applyEdgeSafeOutline(root){
-    // 캡처 중 전체에 문자 외곽선 추가 (얇게) — 프린지 완화
-    const style = document.createElement('style');
-    style.id = '__export_edgefix__';
-    style.textContent = `
-      #stage, #stage * {
-        text-shadow: -0.5px 0 0 rgba(0,0,0,.15), 0.5px 0 0 rgba(0,0,0,.15),
-                     0 -0.5px 0 rgba(0,0,0,.15), 0 0.5px 0 rgba(0,0,0,.15);
-      }
-      .bg-black #stage, .bg-black #stage * {
-        text-shadow: -0.5px 0 0 rgba(255,255,255,.15), 0.5px 0 0 rgba(255,255,255,.15),
-                     0 -0.5px 0 rgba(255,255,255,.15), 0 0.5px 0 rgba(255,255,255,.15);
-      }
-    `;
-    document.head.appendChild(style);
-    return ()=> style.remove();
-  }
-
-  async function captureOnce(el, scale=1){
-    // 라임 매트로 캡처(후에 transparent로 지정)
+  // 투명 캔버스 캡처 (레이아웃 건드리지 않음)
+  async function captureTransparentCanvas(el, scale=1){
+    const dpr = Math.min(2, window.devicePixelRatio || 1); // 너무 큰 dpr은 계단/용량↑
     const canvas = await html2canvas(el, {
-      backgroundColor: CHROMA,
-      scale,
+      backgroundColor: null,        // 완전 투명
+      scale: dpr * scale,
       logging: false,
       useCORS: true,
       windowWidth: document.documentElement.clientWidth,
       windowHeight: document.documentElement.clientHeight
     });
-    // Safari/모바일 성능: 캔버스에 willReadFrequently 힌트
-    const c2 = document.createElement('canvas');
-    c2.width = canvas.width; c2.height = canvas.height;
-    const g = c2.getContext('2d', { willReadFrequently: true });
+    // Safari 최적화: willReadFrequently
+    const out = document.createElement('canvas');
+    out.width = canvas.width; out.height = canvas.height;
+    const g = out.getContext('2d', { willReadFrequently: true });
     g.drawImage(canvas, 0, 0);
-    return c2;
+    return out;
   }
 
-  async function encodeGif(frames, delayMs, filename='runimate.gif', transparentRGB=TRANSPARENT_RGB){
+  // 알파가 거의 0인 픽셀을 key색(#010203)으로 바꾸기 → GIF 투명 인덱스 매핑
+  function applyTransparencyKey(canvas, keyRGB = [1, 2, 3], alphaThresh = 12){
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data = img.data;
+    const [kr,kg,kb] = keyRGB;
+    for (let i=0; i<data.length; i+=4){
+      const a = data[i+3];
+      if (a <= alphaThresh){
+        data[i] = kr; data[i+1] = kg; data[i+2] = kb; data[i+3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    // GIF lib은 24bit RGB → 0xRRGGBB
+    return (kr<<16) | (kg<<8) | kb;
+  }
+
+  // 텍스트 변화가 멈췄는지 감지 (안정 프레임 수 연속)
+  function makeStabilityChecker({ mode }){
+    const target = (mode==='race') ? document.getElementById('race-time')
+                                   : document.getElementById('km');
+    let last = target ? target.textContent : '';
+    let stable = 0;
+    return ()=> {
+      const now = target ? target.textContent : '';
+      if (now === last) stable++;
+      else { stable = 0; last = now; }
+      return stable;
+    };
+  }
+
+  async function encodeGif({ frames, delayMs, filename, transparentRGB }){
     const workerScript = await getGifWorkerUrl();
     const gif = new GIF({
       workers: 2,
-      quality: 10,          // 낮을수록 품질↑(cpu↑). 10이 균형
       workerScript,
+      quality: 10,           // 낮을수록 품질↑/속도↓
       transparent: transparentRGB,
-      repeat: 0             // loop
+      repeat: 0
     });
-    frames.forEach(cv => gif.addFrame(cv, { copy: true, delay: Math.max(20, Math.round(delayMs)) }));
+    frames.forEach(c => gif.addFrame(c, { copy:true, delay: Math.max(20, Math.round(delayMs)) }));
+
     return new Promise((resolve, reject)=>{
       gif.on('finished', blob=>{
-        // 모바일: 가능한 경우 네이티브 공유 시트
         const file = new File([blob], filename, { type: 'image/gif' });
         if (navigator.canShare && navigator.canShare({ files:[file] })){
-          navigator.share({ files:[file], title: 'RUNIMATE', text: 'My run animation' })
+          navigator.share({ files:[file], title: 'RUNIMATE' })
             .then(()=> resolve(true))
-            .catch(()=> downloadBlob(blob, filename) || resolve(false));
-        } else {
-          downloadBlob(blob, filename);
-          resolve(true);
-        }
+            .catch(()=> { downloadBlob(blob, filename); resolve(false); });
+        } else { downloadBlob(blob, filename); resolve(true); }
       });
       gif.on('abort', ()=> reject(new Error('GIF abort')));
-      gif.on('error', e=> reject(e));
+      gif.on('error', err=> reject(err));
       gif.render();
     });
   }
 
   function downloadBlob(blob, filename){
-    const a = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click();
+    const a=document.createElement('a');
+    const url=URL.createObjectURL(blob);
+    a.href=url; a.download=filename; document.body.appendChild(a); a.click();
     a.remove(); URL.revokeObjectURL(url);
-    return true;
   }
 
   // 공개 API
@@ -97,45 +101,59 @@
     fps = 18,
     scale = 1,
     filename = 'runimate.gif',
-    fullCapture = true,
-    settleTailMs = 450,
-    minMs = 1200
+    minMs = 1000,           // 너무 짧지 않게 최소 길이
+    maxMs = 5000,           // 안전장치
+    stableNeed = 10,        // 이 프레임 수만큼 연속 안정이면 종료
+    tailFrames = 10         // 멈춘 후 꼬리 프레임 추가
   } = {}){
     const el = document.querySelector(areaSelector);
     if (!el) throw new Error('Capture element not found');
 
-    // 캡처 안정화
-    document.documentElement.classList.add('exporting');
-    const undoOutline = applyEdgeSafeOutline();
+    const mode = document.body.classList.contains('mode-race') ? 'race' : 'dm';
+    const stableCheck = makeStabilityChecker({ mode });
 
-    try{
-      const frameInterval = 1000 / fps;
+    const frameInterval = 1000 / fps;
+    const frames = [];
 
-      // 전체 러닝 애니메이션 길이 추정 (ui.js 기준)
-      // Daily/Monthly: 0.00 정지 260ms + 상승 1600ms + 꼬리
-      // Race: 시간애니 2400ms
-      const assumedMs = (document.body.classList.contains('mode-race')) ? 2400 : 1900;
-      const totalMs = Math.max(minMs, assumedMs + settleTailMs);
+    const t0 = performance.now();
+    let next = t0;
+    let lastStable = 0;
 
-      const frames = [];
-      const t0 = performance.now();
-      let next = t0;
+    while (true){
+      // 다음 프레임 시점까지 대기
+      const now = performance.now();
+      if (next > now) await sleep(next - now);
+      next += frameInterval;
 
-      while (performance.now() - t0 < totalMs){
-        // 다음 프레임까지 대기
-        const now = performance.now();
-        const wait = Math.max(0, next - now);
-        if (wait > 0) await sleep(wait);
-        // 스냅샷
-        const cv = await captureOnce(el, scale);
-        frames.push(cv);
-        next += frameInterval;
-      }
+      // 캡처
+      const cv = await captureTransparentCanvas(el, scale);
+      const transRGB = applyTransparencyKey(cv, [1,2,3], 12); // #010203
 
-      await encodeGif(frames, frameInterval, filename, TRANSPARENT_RGB);
-    } finally {
-      undoOutline();
-      document.documentElement.classList.remove('exporting');
+      // 첫 프레임에서 투명색 결정 위해 저장
+      if (!frames.__transparent) frames.__transparent = transRGB;
+      frames.push(cv);
+
+      // 안정성 체크
+      const s = stableCheck();
+      if (s > lastStable) lastStable = s;
+
+      const elapsed = performance.now() - t0;
+      const longEnough = elapsed >= minMs;
+      const stabilized = lastStable >= stableNeed;
+
+      if ((longEnough && stabilized) || elapsed >= maxMs) break;
     }
+
+    // 꼬리 프레임 추가(정지 화면 유지)
+    const endFrame = frames[frames.length-1];
+    for (let i=0;i<tailFrames;i++) frames.push(endFrame);
+
+    // 인코딩
+    await encodeGif({
+      frames,
+      delayMs: frameInterval,
+      filename,
+      transparentRGB: frames.__transparent
+    });
   };
 })();
