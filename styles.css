@@ -1,0 +1,472 @@
+/* =========================
+   Local Webfonts (same folder as index.html / styles.css)
+   - Arvo  -> Bit.woff2
+   - Ice  -> DIGIT.woff2 (mapped to 'Iceberg')
+========================= */
+@font-face{
+  font-family:'Arvo';
+  src:url('./Bit.woff2') format('woff2');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Arvo';
+  src:url('./Bit.woff2') format('woff2');
+  font-weight:700;
+  font-style:italic;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Iceberg';
+  src:url('./DIGIT.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Iceberg';
+  src:url('./DIGIT.woff2') format('woff2');
+  font-weight:900;
+  font-style:normal;
+  font-display:swap;
+}
+
+:root{
+  --pad:16px;
+  --maxw:480px;
+  --gapBelowKm: 12px;
+  --radius:14px;
+
+  /* 공통 기본값 */
+  --kmWordSize: 28px;
+  --kmWordGap: 0px;
+
+  --statSize: 40px;
+  --labelSize: 20px;
+  --statGap: 49px;
+  --statPull: 0px;
+  --statPull2: 0px;
+
+  --kmScale: 1;
+  --modeKmScale: 1;
+
+  --gridFirstColIndent: 5px;
+  --kmWordIndent: 0px;
+
+  --statsLeftOffset: 0px;
+
+  --kmWordLiftTop: 0px;
+  --kmWordBottomGap: 26px;
+
+  /* ▼ Type1 */
+  --t1-kmScale: 1;
+  --t1-kmWordSize: 50px;
+  --t1-kmWordGap: 0px;
+  --t1-statSize: 40px;
+  --t1-labelSize: 20px;
+  --t1-statGap: 30px;
+  --t1-statPull: 0px;
+  --t1-statPull2: 0px;
+  --t1-kmWordLiftTop: -15px;
+  --t1-kmWordBottomGap: 26px;
+
+  /* ▼ Type2 */
+  --t2-kmScale: 1;
+  --t2-kmWordSize: 50px;
+  --t2-kmWordGap: 0px;
+  --t2-statSize: 30px;
+  --t2-labelSize: 20px;
+  --t2-statGap: 30px;
+  --t2-statPull: 0px;
+  --t2-statPull2: 0px;
+  --t2-kmWordLiftTop: -15px;
+  --t2-kmWordBottomGap: 26px;
+
+  /* ▼ 모드 매핑 베이스 */
+  --m-statGap: var(--statGap);
+  --m-kmWordBottomGap: var(--kmWordBottomGap);
+  --m-kmScale: 1;
+
+  --d-statGap: var(--statGap);
+  --d-kmWordBottomGap: var(--kmWordBottomGap);
+  --d-kmScale: 1;
+
+  /* 날짜 스타일 변수 */
+  --d2-dateSize: 60px;
+  --d2-dateGap: 10px;
+  --d2-dateTranslate: 0px, 0px;
+
+  --m1-dateSize: 50px;
+  --m1-dateGap: 10px;
+  --m1-dateTranslate: 0px, 0px;
+
+  --m2-dateSize: 50px;
+  --m2-dateGap: 10px;
+  --m2-dateTranslate: 0px, 0px;
+  /* 힌트 표시 간격 */
+  --hintGap: 100px; /* 필요하면 60~120px로 조절 */ 
+  
+  /* 현재 활성 조합 매핑 */
+  --dateSize: 42px;
+  --dateGap: 12px;
+  --dateTranslate: 0px, 0px;
+}
+
+*{box-sizing:border-box}
+html, body { background:#fff; color:#000; min-height:100%; }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 전체 테마 */
+html.bg-white{ background:#fff; color:#000; }
+html.bg-black{ background:#000; color:#fff; }
+.bg-white{ --bg:#fff; --fg:#000; background:#fff; color:#000; }
+.bg-black{ --bg:#000; --fg:#fff; background:#000; color:#fff; }
+
+/* 활성 타입 매핑 */
+body.type1{
+  --kmScale: var(--t1-kmScale);
+  --kmWordSize: var(--t1-kmWordSize);
+  --kmWordGap: var(--t1-kmWordGap);
+  --statSize: var(--t1-statSize);
+  --labelSize: var(--t1-labelSize);
+  --statGap: var(--t1-statGap);
+  --statPull: var(--t1-statPull);
+  --statPull2: var(--t1-statPull2);
+  --kmWordLiftTop: var(--t1-kmWordLiftTop);
+  --kmWordBottomGap: var(--t1-kmWordBottomGap);
+}
+body.type2{
+  --kmScale: var(--t2-kmScale);
+  --kmWordSize: var(--t2-kmWordSize);
+  --kmWordGap: var(--t2-kmWordGap);
+  --statSize: var(--t2-statSize);
+  --labelSize: var(--t2-labelSize);
+  --statGap: var(--t2-statGap);
+  --statPull: var(--t2-statPull);
+  --statPull2: var(--t2-statPull2);
+  --kmWordLiftTop: var(--t2-kmWordLiftTop);
+  --kmWordBottomGap: var(--t2-kmWordBottomGap);
+}
+
+/* 모드 매핑 */
+body.mode-daily{
+  --modeKmScale: var(--d-kmScale);
+  --kmWordBottomGap: var(--d-kmWordBottomGap);
+  --statGap: var(--d-statGap);
+}
+body.mode-monthly{
+  --modeKmScale: var(--m-kmScale);
+  --kmWordBottomGap: var(--m-kmWordBottomGap);
+  --statGap: var(--m-statGap);
+}
+
+/* 날짜 스타일 조합 매핑 */
+body.mode-daily.type2{ --dateSize: var(--d2-dateSize); --dateGap: var(--d2-dateGap); --dateTranslate: var(--d2-dateTranslate); }
+body.mode-monthly.type1{ --dateSize: var(--m1-dateSize); --dateGap: var(--m1-dateGap); --dateTranslate: var(--m1-dateTranslate); }
+body.mode-monthly.type2{ --dateSize: var(--m2-dateSize); --dateGap: var(--m2-dateGap); --dateTranslate: var(--m2-dateTranslate); }
+
+header{ padding:var(--pad); text-align:left; }
+h1{ margin:6px 0 2px; font-size:18px; font-weight:800; }
+.subtitle{ font-size:12px; opacity:.8 }
+
+.wrap{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
+.section{ margin:14px 0; }
+
+.upload-box{ border:1px solid #ddd; border-radius:10px; padding:16px; }
+.upload-label{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:#000; color:#FF9000; padding:14px 16px; font-weight:800;
+  border-radius:12px; text-align:center; margin-bottom:10px;
+}
+.upload-icon{ display:inline-flex; width:18px; height:18px; }
+.upload-icon svg{ width:18px; height:18px; display:block; }
+
+.status{ color:#FF9000; font-weight:700; font-size:13px; }
+
+.row-head{ display:flex; justify-content:space-between; gap:10px; margin:10px 0 6px; }
+.row-head .label{ font-size:13px; font-weight:800; }
+
+.seg-row, .bg-row{ display:grid; gap:10px; }
+.seg-row.cols-2{ grid-template-columns:repeat(2,1fr); }
+.bg-row{ grid-template-columns:repeat(2,1fr); }
+
+.pill-btn{
+  width:100%; height:48px; border-radius:var(--radius);
+  border:3px solid var(--fg);
+  background:transparent; color:var(--fg);
+  font-size:16px; font-weight:800; cursor:pointer;
+  transition:transform .04s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+  box-shadow:0 0 0 0 rgba(0,0,0,0);
+}
+.pill-btn:active { transform:scale(0.99); }
+.pill-btn.is-active{ background:var(--fg); color:var(--bg); }
+
+.control-title{ font-size:13px; font-weight:800; margin:14px 0 8px; }
+
+.font-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+.font-grid button{
+  height:44px; border-radius:var(--radius); border:3px solid var(--fg);
+  background:transparent; color:var(--fg); font-size:13px; font-weight:800; cursor:pointer;
+  transition:transform .04s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.font-grid button:active{ transform:scale(0.99); }
+.font-grid button.is-active{ background:var(--fg); color:var(--bg); }
+
+.run-button{
+  width:100%; height:52px; border-radius:16px;
+  background:#FF9000; color:#000; border:3px solid #CD6B00; margin-top:10px; font-size:18px; font-weight:900;
+}
+
+/* ===== OUTPUT STAGE ===== */
+.stage-outer{ padding:10px 0 24px; }
+
+.stage-canvas{
+  width:720px;
+  transform-origin: top left;
+  will-change: transform;
+  margin:0 auto;
+}
+.stage-inner{ padding:0 var(--pad); }
+
+.stage-inner.fixed{
+  max-width:720px; width:720px;
+  padding-left:24px; padding-right:24px;
+}
+
+.date-display{
+  display:none;
+  font-weight:900;
+  font-size: var(--dateSize);
+  line-height:1.05;
+  margin:6px 0 var(--dateGap);
+  white-space:nowrap;
+  transform: translate(var(--dateTranslate));
+  transform-origin:left bottom;
+  text-align:left;
+}
+
+.km-row-wrap{ display:flex; justify-content:flex-start; margin:6px auto var(--gapBelowKm); width:100%; }
+.km-row{ display:flex; align-items:baseline; gap:10px; transform-origin:left bottom; will-change:transform; }
+#km{
+  font-family:'Helvetica Neue', sans-serif;
+  font-size:200px; line-height:1; white-space:nowrap; letter-spacing:.5px;
+}
+#km-unit{ display:none; }
+
+#km-word{
+  display:none;
+  font-size: var(--kmWordSize);
+  line-height:1.05;
+  margin-top: calc(var(--kmWordGap) + var(--kmWordLiftTop));
+  margin-bottom: var(--kmWordBottomGap);
+  font-weight:700;
+  margin-left: calc(var(--gridFirstColIndent) + var(--kmWordIndent));
+}
+
+.grid{
+  --cols: 2;
+  display:grid;
+  grid-template-columns: repeat(var(--cols), max-content);
+  column-gap: var(--statGap);
+  row-gap: 8px;
+  margin-top:0; color:inherit; text-align:left;
+  justify-content:start;
+  justify-items:start;
+  align-items: baseline;
+}
+
+body.type2 .grid > div{
+  display:flex;
+  flex-direction: column-reverse;
+  gap:6px;
+  margin-left:0;
+}
+body.type2 .grid > div .stat { order:0; }
+body.type2 .grid > div .label{ order:1; }
+
+body.type1 .grid{
+  --cols: 1;
+  grid-template-columns: 1fr;
+}
+body.type1 .grid > div{
+  display:flex;
+  flex-direction: column;
+  gap:6px;
+  margin-left: var(--gridFirstColIndent);
+  transform:none !important;
+  grid-column: 1 / 2 !important;
+}
+body.type1 .grid > div + div{ margin-top:12px; }
+
+body.type2 #stats-grid{ margin-left: var(--statsLeftOffset); }
+
+.stat{
+  display:inline-block;
+  font-size: var(--statSize);
+  font-weight:800;
+  line-height:1;
+  font-variant-numeric: tabular-nums;
+  -moz-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+.label{ font-size: var(--labelSize); opacity:.9 }
+
+body.focus header{ display:none; }
+body.focus .top-ui{ display:none; }
+body.focus #exit-focus{ display:block; position:fixed; z-index:20; top: env(safe-area-inset-top, 8px); right:10px; width:40px; height:40px; border-radius:20px; border:2px solid currentColor; background:transparent; color:inherit; font-weight:800; }
+#exit-focus{ display:none; }
+
+#km-measure{ position:absolute; visibility:hidden; left:-9999px; top:-9999px; white-space:nowrap; }
+
+.two-col { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+.control-title.title-left { text-align:left; margin:14px 0 8px; }
+
+.date-row{ display:none; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+.date-input{
+  height:44px; border:3px solid var(--fg); border-radius:var(--radius);
+  background:transparent; color:#000; font-weight:700; padding:0 12px; font-size:16px;
+}
+body.bg-black .date-input{ color:#fff; }
+
+body.focus .stage-outer{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:0;
+  padding-bottom:0;
+}
+body.focus .stage-canvas{ margin-left:0; margin-right:0; }
+
+/* 보정 힌트 */
+#cv-hint{
+  display:none;                 /* JS가 보일 때 block으로 바꿈 */
+  margin-top: var(--hintGap);   /* 위 데이터(그리드)와 큰 간격 */
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: .6;
+  user-select: none;            /* 드래그 방지 */
+  pointer-events: none;         /* 클릭/터치 영향 없음 */
+}
+
+/* 모바일에선 살짝 줄여도 됨 */
+@media (max-width: 480px){
+  #cv-hint{ margin-top: 64px; }
+}
+/* =========================
+   RACE BOARD – 변수 & 스타일
+   (폰트별 미세조정은 fonts.js → race* 키로 넣고,
+    ui.js setFont()가 아래 CSS 변수에 주입합니다)
+========================= */
+
+/* 1) 레이스 전용 CSS 변수(기본값) */
+:root{
+  --race-title-size:   44px;      /* 대회명 */
+  --race-subtype-size: 66px;      /* 종목(Half/Marathon 등) */
+  --race-time-size:   110px;      /* 시간 숫자 */
+  --race-pace-size:    56px;      /* Pace 숫자 */
+
+  --race-time-translate: 0px,0px; /* 시간 숫자 위치 미세 이동 */
+  --race-time-letter:  -4px;      /* 시간 자간(letter-spacing) */
+
+  /* 세로 간격 조절 포인트 */
+  --race-gap-subtype-b: 12px;     /* 종목 아래 margin-bottom */
+  --race-gap-time-b:     8px;     /* 시간 아래(= Pace 위) margin-bottom */
+  --race-gap-pace-t:     0px;     /* Pace 라벨 위 margin-top */
+}
+
+/* 2) 레이스 보드 구성요소 */
+#race-board{ padding:18px 0; }
+.race-title{
+  font-weight:900;
+  font-size:var(--race-title-size);
+  letter-spacing:-.02em;
+  margin:0 0 6px 0;
+}
+.race-subtype{
+  font-family:Helvetica, Arial, sans-serif !important;
+  font-weight:900;
+  font-size:var(--race-subtype-size);
+  line-height:1.05;
+  margin:8px 0 var(--race-gap-subtype-b);
+}
+.race-time{
+  font-weight:900;
+  font-size:var(--race-time-size);
+  line-height:.9;
+  letter-spacing:var(--race-time-letter);
+  margin:10px 0 var(--race-gap-time-b);
+  transform:translate(var(--race-time-translate));
+}
+.race-pace-wrap{
+  display:block;
+  margin-top:0; /* margin-collapse 방지: 간격은 변수로 제어 */
+}
+.race-pace-wrap .label{
+  font-family:Helvetica, Arial, sans-serif !important;
+  font-size:28px;                 /* ← Pace 타이틀 크기 */
+  margin:var(--race-gap-pace-t) 0 4px; /* 위쪽 간격 가변 */
+}
+.race-pace{
+  font-family:Helvetica, Arial, sans-serif !important;
+  font-weight:900;
+  font-size:clamp(32px, 6.5vw, var(--race-pace-size));
+  line-height:1.1;
+}
+.race-badges{ display:flex; gap:16px; margin-top:18px; flex-wrap:wrap; }
+.race-badges img{ height:56px; }
+
+/* 3) 레이스 드롭다운 1:2 레이아웃 */
+.race-select-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr; /* 위의 Daily/Monthly/Race 3등분 기준 */
+  gap:10px;
+  align-items:start;
+}
+.race-month-cell{ grid-column:1 / 2; }  /* 1칸 */
+.race-list-cell { grid-column:2 / 4; }  /* 2칸 */
+
+/* 4) 거리 버튼(5K/10K/Half/Marathon) pill 규격 맞추기 */
+#race-dist-grid.font-grid{ grid-template-columns:repeat(4, 1fr); }
+#race-dist-grid.font-grid button{
+  height:48px;
+  font-size:16px;
+  font-weight:800;
+}
+
+/* 5) 셀렉트 오른쪽 드롭다운 삼각형(어포던스) */
+.pill-select{
+  -webkit-appearance:none;
+  appearance:none;
+  padding-right:42px;                       /* 삼각형 들어갈 여백 */
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box, /* 배경색 보정 */
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'>\
+<path d='M1 1l6 6 6-6' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>\
+</svg>") no-repeat right 14px center;
+  background-size:14px 9px;
+}
+html.bg-black .pill-select{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'>\
+<path d='M1 1l6 6 6-6' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>\
+</svg>");
+}
+
+/* 6) 레이스 입력 블록(콜론, 따옴표) 시각 균형 */
+.colon, .quote{
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:28px;
+}
+.time-grid{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:8px; align-items:center; }
+.pace-grid{ display:grid; grid-template-columns:1fr auto 1fr auto;   gap:8px; align-items:center; }

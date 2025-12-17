@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko" class="bg-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>RUNIMATE</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Local webfonts (same folder as index.html) -->
+  <link rel="preload" href="./Bit.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./DIGIT.woff2" as="font" type="font/woff2" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Anta&family=Big+Shoulders+Inline+Text:wght@800&family=Londrina+Shadow&family=Permanent+Marker&family=Rock+Salt&family=Tourney:ital,wght@0,800;1,200&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+
+  <style>
+    :root{
+      /* pill 버튼 규격 (JS에서 실측 동기화) */
+      --pill-h: 64px; --pill-radius: 22px; --pill-bw: 4px;
+      --pill-fz: 24px; --pill-fw: 800; --gap: 16px;
+
+      /* 레이스 보드 폰트/크기 조절 포인트 */
+      --race-title-size: 44px;
+      --race-subtype-size: 66px;
+      --race-time-size: 110px;
+      --race-pace-size: 56px;
+      --race-time-translate: 0px,0px;
+      --race-time-letter: -4px;
+
+      /* 레이스 보드 수직 간격(요청대로 타이트) */
+      --race-gap-subtype-b: 8px;
+      --race-gap-time-b: 8px;
+      --race-gap-pace-t: 6px;
+
+      /* 전역 폰트(선택적 확장 적용) */
+      --wideFontFamily: Helvetica, Arial, sans-serif;
+    }
+
+    /* 입력/셀렉트도 pill 비주얼로 */
+    .pill-like{
+      height:var(--pill-h); width:100%; box-sizing:border-box;
+      border:var(--pill-bw) solid #000; border-radius:var(--pill-radius);
+      font-size:var(--pill-fz); font-weight:var(--pill-fw); padding:0 18px; background:#fff;
+    }
+    .pill-select{appearance:none;background:#fff}
+    .pill-input{background:#fff}
+
+    .seg-row.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap)}
+    .seg-row.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+
+    /* 레이스 드롭다운: 3열 그리드에서 1:2 배치 */
+    .race-select-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:var(--gap);
+      align-items:start;
+      margin-top:8px;
+    }
+    .race-month-cell{grid-column:1/2;}
+    .race-list-cell{grid-column:2/4;}
+
+    /* Time/Pace 입력: Pace를 Time 아래로, 간격 타이트 */
+    .tp-col{display:grid; gap:6px;}
+    .time-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:6px;align-items:center}
+    .pace-grid{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center}
+    .colon,.quote{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px}
+
+    #race-dist-grid.font-grid{grid-template-columns:repeat(4,1fr)}
+    #race-dist-grid.font-grid button{font-size:var(--pill-fz);font-weight:var(--pill-fw);height:var(--pill-h)}
+
+    /* 레이스 출력 보드 */
+    #race-board{padding:18px 0}
+    .race-title{
+      font-weight:900;font-size:var(--race-title-size);letter-spacing:-.02em;margin-bottom:6px
+    }
+    .race-subtype{
+      font-family:Helvetica, Arial, sans-serif!important;
+      font-weight:900;
+      font-size:var(--race-subtype-size);
+      line-height:1.05;
+      margin:8px 0 var(--race-gap-subtype-b);
+    }
+    .race-time{
+      font-weight:900;
+      font-size:var(--race-time-size);
+      line-height:.9;
+      letter-spacing:var(--race-time-letter);
+      margin:10px 0 var(--race-gap-time-b);
+      transform:translate(var(--race-time-translate));
+    }
+    .race-pace-wrap{display:block;margin-top:var(--race-gap-pace-t)}
+    .race-pace-wrap .label{
+      font-family:Helvetica, Arial, sans-serif;
+      font-size:22px;
+      margin:0 0 4px;
+      line-height:1;
+    }
+    .race-pace{
+      font-family:Helvetica, Arial, sans-serif!important;
+      font-weight:900;
+      font-size:clamp(40px, 6.5vw, var(--race-pace-size));
+      line-height:1.1
+    }
+
+    .race-badges{
+      display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:center;
+      min-height:56px;
+    }
+    .race-badges img{height:56px}
+
+    /* 선택 폰트를 앱 전반에 강제 적용(옵션) */
+    body.wide-font header h1,
+    body.wide-font .subtitle,
+    body.wide-font .pill-btn,
+    body.wide-font .pill-like,
+    body.wide-font .control-title,
+    body.wide-font .font-grid button,
+    body.wide-font #km, body.wide-font #km-unit, body.wide-font #km-word,
+    body.wide-font #stats-grid .label, body.wide-font #stats-grid .stat,
+    body.wide-font .date-display,
+    body.wide-font .run-button {
+      font-family: var(--wideFontFamily) !important;
+    }
+
+    .select-wrap{ position:relative; }
+    .select-wrap::after{
+      content:"";
+      position:absolute;
+      right:18px;
+      top:50%;
+      transform:translateY(-50%);
+      width:0;height:0;
+      border-left:7px solid transparent;
+      border-right:7px solid transparent;
+      border-top:10px solid #000;
+      pointer-events:none;
+    }
+    .select-wrap .pill-select{ padding-right:48px; }
+    .bg-black .select-wrap::after{ border-top-color:#fff; }
+
+    /* 상단 타이틀 Anta 고정 */
+    header h1#app-title{ font-family:'Anta', sans-serif; font-weight:700; letter-spacing:.02em; }
+
+    /* ===== Kilometers 라벨 ===== */
+    #dm-board #km-word{
+      display:block;
+      font-weight:900;
+      line-height:1;
+      margin-left: var(--kmWordIndent, 0px);
+    }
+    body.type1 #km-word{ font-size: var(--t1-kmWordSize, 36px); margin-top: var(--t1-kmWordGap, 12px); }
+    body.type2 #km-word{ font-size: var(--t2-kmWordSize, 36px); margin-top: var(--t2-kmWordGap, 12px); }
+    .bg-black #km-word{ color:#fff; }
+
+    /* ===== Export(심플 버튼만) ===== */
+    .export-card{ border:1px solid #e5e7eb; border-radius:14px; padding:12px; background:#fafafa; margin-top:12px; }
+    .muted{ font-size:12px; opacity:.65; }
+    .export-actions{ display:flex; gap:8px; align-items:center; }
+    .export-status{ font-size:12px; opacity:.8; }
+
+    /* === 캡처 중 시각적 안정화 === */
+    html.exporting *{
+      text-shadow:none !important;
+      box-shadow:none !important;
+      filter:none !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+
+  <!-- DOM→Canvas & GIF encoder -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+</head>
+<body class="bg-white type1 mode-daily">
+  <header>
+    <h1 id="app-title">RUNIMATE V.1.5</h1>
+    <div class="subtitle">by JS @runarchive.js</div>
+  </header>
+
+  <div class="top-ui">
+    <div class="wrap">
+      <div class="row-head"><div class="label">Record Type</div></div>
+
+      <div class="seg-row cols-3" id="mode-row">
+        <button class="pill-btn" data-mode="daily">Daily</button>
+        <button class="pill-btn" data-mode="monthly">Monthly</button>
+        <button class="pill-btn" data-mode="race">Race(Beta)</button>
+      </div>
+
+      <!-- Daily/Monthly 패널 -->
+      <div id="dm-panel">
+        <section class="section upload-box">
+          <label for="file-upload" class="upload-label">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF9000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <path d="M7 10l5-5 5 5"/>
+                <path d="M12 5v12"/>
+              </svg>
+            </span>
+            <span id="upload-label-text">Upload your NRC record for TODAY</span>
+          </label>
+          <input type="file" id="file-upload" accept="image/*" style="display:none;" />
+          <div class="status" id="upload-status"></div>
+        </section>
+
+        <div class="two-col">
+          <div>
+            <div class="control-title title-left">Layout</div>
+            <div class="seg-row cols-2" id="layout-row">
+              <button class="pill-btn" data-layout="type1">Type 1</button>
+              <button class="pill-btn" data-layout="type2">Type 2</button>
+            </div>
+          </div>
+          <div>
+            <div class="control-title title-left">BG Color</div>
+            <div class="bg-row" id="bg-row">
+              <button class="pill-btn" data-bg="white">White</button>
+              <button class="pill-btn" data-bg="black">Black</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="date-row" id="date-section">
+          <div class="control-title title-left">Date</div>
+          <input id="date-input" class="date-input pill-like pill-input" type="date"/>
+        </div>
+      </div>
+
+      <!-- Race 패널 -->
+      <div id="race-panel" style="display:none;">
+        <div class="race-select-grid">
+          <div class="race-month-cell">
+            <div class="select-wrap">
+              <select id="race-month" class="pill-like pill-select"></select>
+            </div>
+          </div>
+          <div class="race-list-cell">
+            <div class="select-wrap">
+              <select id="race-list" class="pill-like pill-select"></select>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px;">
+          <input id="race-name-input" class="pill-like pill-input" placeholder="대회명을 직접 입력하세요" style="display:none;">
+        </div>
+
+        <section class="section" style="margin-top:8px;">
+          <div class="font-grid" id="race-dist-grid">
+            <button data-dist="5K">5K</button>
+            <button data-dist="10K">10K</button>
+            <button data-dist="Half">21K(Half)</button>
+            <button data-dist="Marathon">Marathon</button>
+          </div>
+          <div class="seg-row cols-3" style="align-items:center;margin-top:6px;">
+            <label class="checkbox"><input type="checkbox" id="race-dist-manual-check"> Enter manually</label>
+            <input id="race-dist-manual" type="number" class="pill-like pill-input" placeholder="" style="display:none;">
+            <div style="font-weight:bold">K</div>
+          </div>
+        </section>
+
+        <div class="tp-col" style="margin-top:2px;">
+          <section class="section seg">
+            <div class="control-title title-left">Time</div>
+            <div class="time-grid">
+              <input id="race-hh" type="number" min="0" max="99" class="pill-like pill-input" placeholder="">
+              <div class="colon">:</div>
+              <input id="race-mm" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="colon">:</div>
+              <input id="race-ss" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+            </div>
+          </section>
+
+            <section class="section seg">
+            <div class="control-title title-left">Pace</div>
+            <div class="pace-grid">
+              <input id="race-pace-mm" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="quote">′</div>
+              <input id="race-pace-ss" type="number" min="0" max="59" class="pill-like pill-input" placeholder="">
+              <div class="quote">″</div>
+            </div>
+          </section>
+        </div>
+
+        <section class="section" style="margin-top:6px;">
+          <label class="checkbox">
+            <input id="race-pb" type="checkbox">
+            PB (Personal Best)
+            <span id="race-pb-congrats" style="display:none;color:#FF6A00;font-weight:800;margin-left:10px;">Congraturation!</span>
+          </label>
+        </section>
+
+        <section class="section">
+          <div class="control-title">BG Color</div>
+          <div class="bg-row" id="race-bg-row">
+            <button class="pill-btn" data-bg="white">White</button>
+            <button class="pill-btn" data-bg="black">Black</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="section">
+        <div class="control-title">Font</div>
+        <div class="font-grid" id="font-grid">
+          <button data-font="Helvetica Neue" style="font-family:Helvetica, Arial, sans-serif;">Basic</button>
+          <button data-font="Anton" style="font-family:'Anton', sans-serif;">Anton</button>
+          <button data-font="Big Shoulders Inline Text" style="font-family:'Big Shoulders Inline Text', cursive;">Inline</button>
+          <button data-font="Tourney" style="font-family:'Tourney', cursive; font-style:italic; font-weight:200;">Tour</button>
+          <button data-font="Anta" style="font-family:'Anta', sans-serif;">Anta</button>
+          <button data-font="Arvo" style="font-family:'Arvo', serif; font-style:italic; font-weight:700;">Arvo</button>
+          <button data-font="Iceberg" style="font-family:'Iceberg', cursive;">Ice</button>
+          <button data-font="Permanent Marker" style="font-family:'Permanent Marker', cursive;">Marker</button>
+          <button data-font="Londrina Shadow" style="font-family:'Londrina Shadow', cursive;">Lond</button>
+          <button data-font="Rock Salt" style="font-family:'Rock Salt', cursive;">Rock</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <button class="run-button" id="run-btn" onclick="onRun()">RUN!!</button>
+      </section>
+
+      <!-- ▼▼▼ Export: 버튼만 -->
+      <section class="section export-card">
+        <div class="export-actions">
+          <button id="btn-export-gif" class="pill-btn" style="background:#0ea5e9;border-color:#0ea5e9;">Export GIF</button>
+          <span id="export-status" class="export-status muted"></span>
+        </div>
+      </section>
+      <!-- ▲▲▲ Export 끝 -->
+
+    </div>
+  </div>
+
+  <button id="exit-focus" title="Close" onclick="exitFocus()">✕</button>
+
+  <section class="stage-outer">
+    <div id="stage-canvas" class="stage-canvas">
+      <div class="stage-inner fixed" id="stage">
+        <!-- Daily/Monthly 보드 -->
+        <div id="dm-board">
+          <div id="km-measure">99.99</div>
+          <div id="date-display" class="date-display"></div>
+          <div class="km-row-wrap">
+            <div class="km-row" id="km-row">
+              <div id="km">0.00</div>
+              <div id="km-unit">km</div>
+            </div>
+          </div>
+          <div id="km-word">Kilometers</div>
+
+          <div class="grid" id="stats-grid">
+            <div id="runs-wrap" style="display:none;">
+              <div class="label">Runs</div>
+              <div class="stat" id="runs">--</div>
+            </div>
+            <div id="pace-wrap">
+              <div class="label" id="pace-label">Avg. Pace</div>
+              <div class="stat" id="pace">-</div>
+            </div>
+            <div id="time-wrap">
+              <div class="label" id="time-label">Time</div>
+              <div class="stat" id="time">-</div>
+            </div>
+          </div>
+          <div id="cv-hint" style="display:none;"></div>
+        </div>
+
+        <!-- Race 보드 -->
+        <div id="race-board" style="display:none;">
+          <div id="race-title" class="race-title">대회명을 선택하세요</div>
+          <div id="race-subtype" class="race-subtype">Half Marathon</div>
+          <div id="race-time" class="race-time">0:00</div>
+          <div class="race-pace-wrap">
+            <div id="race-pace-label" class="label">Pace</div>
+            <div id="race-pace" class="race-pace">0:00 /km</div>
+          </div>
+          <div id="race-badges" class="race-badges">
+            <img id="badge-pb"   src="./js/pb.png"   alt="PB"   style="display:none;">
+            <img id="badge-sub3" src="./js/sub3.png" alt="SUB3" style="display:none;">
+            <img id="badge-sub4" src="./js/sub4.png" alt="SUB4" style="display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- schedule JSON을 HTML에 내장 (fetch 불가 대비) -->
+  <script id="race-schedule" type="application/json">
+     [
+  {"날짜":"9\/1(월)","대회명":"2025 아자러너 마라톤"},
+  {"날짜":"9\/5(금)","대회명":"나혼렙 x 글로벌 6K 국가권력급 스페셜런"},
+  {"날짜":"9\/6(토)","대회명":"2025 달빛소나타"},
+  {"날짜":"9\/6(토)","대회명":"2025 다이나핏 태백 트레일"},
+  {"날짜":"9\/6(토)","대회명":"제19회 순천만울트라마라톤"},
+  {"날짜":"9\/6(토)","대회명":"2025 초록우산 나눔 마라톤"},
+  {"날짜":"9\/6(토)","대회명":"2025 정선 동강마라톤"},
+  {"날짜":"9\/6(토)","대회명":"지리산 릿지 레이스"},
+  {"날짜":"9\/7(일)","대회명":"2025 창원 그란페스타 러닝"},
+  {"날짜":"9\/7(일)","대회명":"제17회 사이버 영토 수호 마라톤"},
+  {"날짜":"9\/7(일)","대회명":"2025 RUN SEOUL RUN(런서울런)"},
+  {"날짜":"9\/7(일)","대회명":"2025 광제산 트레일 런"},
+  {"날짜":"9\/7(일)","대회명":"제1회 영광 광풍 마라톤 대회"},
+  {"날짜":"9\/7(일)","대회명":"제11회 시각장애인과 함께하는 어울림 마라톤"},
+  {"날짜":"9\/7(일)","대회명":"2025 광산구 양성평등 동행마라톤"},
+  {"날짜":"9\/13(토)","대회명":"2025 영덕블루로드&코리아둘레길 트레일런"},
+  {"날짜":"9\/13(토)","대회명":"2025 에너지 히어로 레이스"},
+  {"날짜":"9\/13(토)","대회명":"구리시민건강걷기대회(걷기\/러닝5km)"},
+  {"날짜":"9\/13(토)","대회명":"2025 양양 강변 전국마라톤"},
+  {"날짜":"9\/13(토)","대회명":"구미 에코 트레일레이스"},
+  {"날짜":"9\/13(토)","대회명":"2025 금산인삼축제 투데이 마라톤(토)"},
+  {"날짜":"9\/14(일)","대회명":"2025 금산인삼축제 투데이 마라톤대회 (일)"},
+  {"날짜":"9\/14(일)","대회명":"2025 MARVEL RUN SEOUL"},
+  {"날짜":"9\/14(일)","대회명":"제15회 스마일런 페스티벌"},
+  {"날짜":"9\/14(일)","대회명":"2025 울진금강송배 전국마라톤"},
+  {"날짜":"9\/14(일)","대회명":"제4회 울산 동구 염포산 전국마라톤대회"},
+  {"날짜":"9\/14(일)","대회명":"2025 KTX 광명역 평화 마라톤"},
+  {"날짜":"9\/14(일)","대회명":"제18회 구로구청장배 치킨 마라톤"},
+  {"날짜":"9\/18(목)","대회명":"2025년 한반도횡단 308km"},
+  {"날짜":"9\/20(토)","대회명":"서울 100K"},
+  {"날짜":"9\/20(토)","대회명":"2025 장수 레드푸드레이스"},
+  {"날짜":"9\/20(토)","대회명":"2025 인천키즈마라톤"},
+  {"날짜":"9\/20(토)","대회명":"2025 산리오 올리브영 큐트런"},
+  {"날짜":"9\/20(토)","대회명":"2025 광주 청년 마라톤"},
+  {"날짜":"9\/20(토)","대회명":"이봉주 보스턴제패기념 제25회 홍성마라톤"},
+  {"날짜":"9\/20(토)","대회명":"2025 V런"},
+  {"날짜":"9\/20(토)","대회명":"2025 인천광역시장기 건강달리기대회"},
+  {"날짜":"9\/20(토)","대회명":"2025 글로벌 6k 마라톤 - 창원"},
+  {"날짜":"9\/21(일)","대회명":"2025 굿네이버스 레이스 with 띵크어스"},
+  {"날짜":"9\/21(일)","대회명":"2025 한돈런"},
+  {"날짜":"9\/21(일)","대회명":"조금 특별한 달리기 [조달런]"},
+  {"날짜":"9\/21(일)","대회명":"잠수교 10K 나이트런"},
+  {"날짜":"9\/21(일)","대회명":"제1회 대전 신채호 마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 철원DMZ국제평화마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 서울어스마라톤대회"},
+  {"날짜":"9\/21(일)","대회명":"제23회전국부부가족마라톤대회"},
+  {"날짜":"9\/21(일)","대회명":"2025 안산마라톤"},
+  {"날짜":"9\/21(일)","대회명":"2025 강화해변 마리톤"},
+  {"날짜":"9\/26(금)","대회명":"G밸리 넥타이런 2025"},
+  {"날짜":"9\/27(토)","대회명":"2025 ROK Army 트레일러닝"},
+  {"날짜":"9\/27(토)","대회명":"런데이 9월 마라톤 [미션RUNDAY]"},
+  {"날짜":"9\/27(토)","대회명":"제1회 의성마늘마라톤"},
+  {"날짜":"9\/27(토)","대회명":"경북도청 이전 10주년 경북 하프 마라톤"},
+  {"날짜":"9\/27(토)","대회명":"2025 뉴시스 바다마라톤"},
+  {"날짜":"9\/27(토)","대회명":"제6회 천안삼거리 흥타령울트라마라톤"},
+  {"날짜":"9\/27(토)","대회명":"제21회 전우마라톤"},
+  {"날짜":"9\/27(토)","대회명":"2025 완주트레일런"},
+  {"날짜":"9\/27(토)","대회명":"글로벌 허브 부산 런페스타"},
+  {"날짜":"9\/27(토)","대회명":"제6회 장수트레일레이스"},
+  {"날짜":"9\/28(일)","대회명":"2025 중소기업기살리기마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제1회 마포 구청장배 마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 Run Your Way 10K"},
+  {"날짜":"9\/28(일)","대회명":"2025 서산 코스모스 황금들녘 마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 안동마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 달서하프마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 봉화송이 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제22회 경남마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"Green Step 2025 ESG실천마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 동대문마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 공주백제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 선사마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 인천송도국제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제18회 가평자라섬 전국마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"2025 포항2차전지 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 봉화송이 전국마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제22회 경남마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"Green Step 2025 ESG실천마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 동대문마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 공주백제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제19회 선사마라톤"},
+  {"날짜":"9\/28(일)","대회명":"2025 인천송도국제마라톤"},
+  {"날짜":"9\/28(일)","대회명":"제18회 가평자라섬 전국마라톤대회"},
+  {"날짜":"9\/28(일)","대회명":"2025 포항2차전지 전국마라톤"},
+  {"날짜":"10\/3(금)","대회명":"2025 춘천연합마라톤"},
+  {"날짜":"10\/3(금)","대회명":"2025 천사데이기념 동두천천사마라톤"},
+  {"날짜":"10\/3(금)","대회명":"제2회 울트라서울"},
+  {"날짜":"10\/3(금)","대회명":"2025 김제새만금 지평선마라톤"},
+  {"날짜":"10\/9(목)","대회명":"2025 애니멀런 서울"},
+  {"날짜":"10\/9(목)","대회명":"2025 수원교구 생명사랑 마라톤"},
+  {"날짜":"10\/9(목)","대회명":"2025 한글런"},
+  {"날짜":"10\/11(토)","대회명":"2025 대전 DTrail 레이스"},
+  {"날짜":"10\/11(토)","대회명":"2025 라이트런 in Seoul"},
+  {"날짜":"10\/11(토)","대회명":"디즈니런 서울 2025"},
+  {"날짜":"10\/11(토)","대회명":"제1회 아산 이순신 트레일런"},
+  {"날짜":"10\/11(토)","대회명":"포켓몬런 제주 2025"},
+  {"날짜":"10\/11(토)","대회명":"제4회 무등산권 GEO 무등산마라톤"},
+  {"날짜":"10\/11(토)","대회명":"댕댕런2025 in 대전"},
+  {"날짜":"10\/12(일)","대회명":"제11회 시흥시 전국하프마라톤"},
+  {"날짜":"10\/12(일)","대회명":"2025 뉴런 한강마라톤"},
+  {"날짜":"10\/12(일)","대회명":"제13회 광명시장기 건강달리기"},
+  {"날짜":"10\/12(일)","대회명":"2025 핑크런"},
+  {"날짜":"10\/12(일)","대회명":"제18회 중랑구청장배 장미 마라톤대회"},
+  {"날짜":"10\/12(일)","대회명":"빵빵런 2025 in 대전"},
+  {"날짜":"10\/12(일)","대회명":"2025 서울 달리기(Seoul Race)"},
+  {"날짜":"10\/12(일)","대회명":"제8회 거제시장배 섬꽃 전국 마라톤"},
+  {"날짜":"10\/12(일)","대회명":"2025 MBN 전국 나주 마라톤"},
+  {"날짜":"10\/17(금)","대회명":"2025 Trans Jeju UTMB"},
+  {"날짜":"10\/18(토)","대회명":"제4회 구미시장배 금오산트레일 레이스"},
+  {"날짜":"10\/18(토)","대회명":"2025 가민런 코리아"},
+  {"날짜":"10\/18(토)","대회명":"2025 글로벌 6k 마라톤 - 전주"},
+  {"날짜":"10\/18(토)","대회명":"제3회 강서허준런(RUN)"},
+  {"날짜":"10\/18(토)","대회명":"제19회 충주 앙성 비내길 마라톤"},
+  {"날짜":"10\/18(토)","대회명":"2025 경포마라톤"},
+  {"날짜":"10\/18(토)","대회명":"제6회 충청남도 태안 전국어울림마라톤대회"},
+  {"날짜":"10\/18(토)","대회명":"2025 경주마라톤"},
+  {"날짜":"10\/18(토)","대회명":"제23회 청원생명쌀대청호마라톤"},
+  {"날짜":"10\/18(토)","대회명":"개원120주년광주기독병원 광주남구청장배 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 평택항마라톤대회"},
+  {"날짜":"10\/19(일)","대회명":"2025 파주북시티마라톤"},
+  {"날짜":"10\/19(일)","대회명":"천안 꽈자런2025"},
+  {"날짜":"10\/19(일)","대회명":"2025 영암모터피아 F1마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제22회 여주 세종대왕 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제14회 광주평화통일마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제24회 대청호마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제21회 대구 북구사랑 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 제26회 울산마라톤"},
+  {"날짜":"10\/19(일)","대회명":"2025 최강 백령 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제1회 10.19 평화마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제22회 오산독산성 전국 하프마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제2회 효도밥상 마라톤"},
+  {"날짜":"10\/19(일)","대회명":"제21회 영등포구연맹회장배 육상"},
+  {"날짜":"10\/25(토)","대회명":"2025 배움이 자라는 기부런, 런앤런"},
+  {"날짜":"10\/25(토)","대회명":"2025 산림청장배 영양전국산악마라톤"},
+  {"날짜":"10\/25(토)","대회명":"2025정읍내장산트레일러닝"},
+  {"날짜":"10\/25(토)","대회명":"2025 글로벌 6k 마라톤 - 대구"},
+  {"날짜":"10\/25(토)","대회명":"제24회 충주마라톤"},
+  {"날짜":"10\/25(토)","대회명":"제20회 사천노을 마라톤"},
+  {"날짜":"10\/25(토)","대회명":"2025 대구 그란페스타"},
+  {"날짜":"10\/25(토)","대회명":"2025 의정부 하천마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제17회 아름다운제주국제마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제18회 청도반시 전국마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 아시아오픈마라톤 서울시리즈"},
+  {"날짜":"10\/26(일)","대회명":"10K 챌린지 서울"},
+  {"날짜":"10\/26(일)","대회명":"2025 정서진아라뱃길 전국 마라톤"},
+  {"날짜":"10\/26(일)","대회명":"제7회 유성국화마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 감성런"},
+  {"날짜":"10\/26(일)","대회명":"2025 청양군 체육회장기 전국마라톤 대회"},
+  {"날짜":"10\/26(일)","대회명":"2025 천안 이봉주 마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 춘천마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 부산바다마라톤"},
+  {"날짜":"10\/26(일)","대회명":"2025 부천마라톤"},
+  {"날짜":"11\/1(토)","대회명":"제2회 가든파이브 라이프 레이스"},
+  {"날짜":"11\/1(토)","대회명":"2025 금강산 누리길 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"제1회 샌드런 in 영덕"},
+  {"날짜":"11\/1(토)","대회명":"2025 서울 유아차 런"},
+  {"날짜":"11\/1(토)","대회명":"2025 무안해안 노을길 전국걷기 및 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"GIVE RUN 2025 구미"},
+  {"날짜":"11\/1(토)","대회명":"제2회 김천손 미륵산 임도 마라톤"},
+  {"날짜":"11\/1(토)","대회명":"서울 대모산트레일런"},
+  {"날짜":"11\/2(일)","대회명":"유플러스 119 메모리얼런"},
+  {"날짜":"11\/2(일)","대회명":"2025 전마협 대전 코리아 마스터즈 최강전"},
+  {"날짜":"11\/2(일)","대회명":"제22회 부산마라톤"},
+  {"날짜":"11\/2(일)","대회명":"2025 DMZ OPEN 평화마라톤"},
+  {"날짜":"11\/2(일)","대회명":"정읍 공동체 프리마켓 마라톤"},
+  {"날짜":"11\/2(일)","대회명":"2025 jtbc 서울마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 문경 레전드 트레일 백두대간"},
+  {"날짜":"11\/8(토)","대회명":"제1회 온코런(OncoRun)"},
+  {"날짜":"11\/8(토)","대회명":"2025 글로벌 6k 마라톤 - 대전"},
+  {"날짜":"11\/8(토)","대회명":"제25회 순천 남승룡마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025년 제5회 평화 울트라마라톤"},
+  {"날짜":"11\/8(토)","대회명":"제18회 진해마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 해남 땅끝 전국마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 영천댐 마라톤"},
+  {"날짜":"11\/8(토)","대회명":"2025 우이런"},
+  {"날짜":"11\/9(일)","대회명":"2025 과천마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제19회 자원봉사 사랑 굿펀마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제1회 완주 만경강마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제23회 나주금성 산숲길마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025년 제25회안성맞춤전국마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 서울구석구석 국제 트레일런"},
+  {"날짜":"11\/9(일)","대회명":"제11회 아산 은행나무길 전국마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 전국사상ECO마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 김천전국마라톤대회"},
+  {"날짜":"11\/9(일)","대회명":"2025 서울시민건강마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 Go Free Run"},
+  {"날짜":"11\/9(일)","대회명":"제14회 부여 굿뜨레 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"제1회 세종특별자치시 전국 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 제4회 거제앵산트레일레이스"},
+  {"날짜":"11\/9(일)","대회명":"2025 홍천사랑마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 김해아름누리길 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"2025 자유민주 마라톤"},
+  {"날짜":"11\/9(일)","대회명":"버거강정런(제16회 강남구청장배 육상대회)"},
+  {"날짜":"11\/9(일)","대회명":"쥬라기런 2025"},
+  {"날짜":"11\/9(일)","대회명":"Save Race 2025"},
+  {"날짜":"11\/15(토)","대회명":"2025년 안산시장배 전국 마스터즈 최강전"},
+  {"날짜":"11\/15(토)","대회명":"2025 글로벌 6k 마라톤 - 고양"},
+  {"날짜":"11\/15(토)","대회명":"제3회 거제 노자산트레일런"},
+  {"날짜":"11\/15(토)","대회명":"2025 지리산 단감레이스"},
+  {"날짜":"11\/15(토)","대회명":"소외계층돕기 제14회 행복한가게 마라톤"},
+  {"날짜":"11\/15(토)","대회명":"GIVE RUN 2025 부산"},
+  {"날짜":"11\/16(일)","대회명":"제27회 국제신문 부산마라톤"},
+  {"날짜":"11\/16(일)","대회명":"제23회 고창고인돌마라톤(2025)"},
+  {"날짜":"11\/16(일)","대회명":"25회 창원통일마라톤 대회"},
+  {"날짜":"11\/16(일)","대회명":"2025 한강의 기적 마라톤"},
+  {"날짜":"11\/16(일)","대회명":"올림픽데이런 2025 in 전주"},
+  {"날짜":"11\/16(일)","대회명":"제20회 울산인권마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 평화통일마라톤"},
+  {"날짜":"11\/16(일)","대회명":"소아암환우돕기 제16회 행복트레일런 축제"},
+  {"날짜":"11\/16(일)","대회명":"2025 MBN 서울마라톤"},
+  {"날짜":"11\/16(일)","대회명":"가을철산불조심한국서울마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 손기정평화마라톤"},
+  {"날짜":"11\/16(일)","대회명":"2025 마인드 런 페스티벌"},
+  {"날짜":"11\/16(일)","대회명":"제23회 상주 곶감 마라톤"},
+  {"날짜":"11\/22(토)","대회명":"2025 서울 라이프마라톤"},
+  {"날짜":"11\/22(토)","대회명":"2025 에버랜드 10K 서킷런"},
+  {"날짜":"11\/23(일)","대회명":"2025 인천마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 8회 서울평화마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 YTN서울투어마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 김대중마라톤"},
+  {"날짜":"11\/23(일)","대회명":"2025 남원 춘향 전국 마라톤"},
+  {"날짜":"11\/29(토)","대회명":"제20회 광진구연맹회장배 육상대회"},
+  {"날짜":"11\/29(토)","대회명":"2025 슬로우런"},
+  {"날짜":"11\/29(토)","대회명":"2025 서울신문 월미도 런 및 펫 동반걷기"},
+  {"날짜":"11\/30(일)","대회명":"2025 전마협 별들의전쟁&꽃들의 전쟁(하프)"},
+  {"날짜":"11\/30(일)","대회명":"버닝런 일레븐"},
+  {"날짜":"11\/30(일)","대회명":"2025 안양천 단풍길 마라톤"},
+  {"날짜":"11\/30(일)","대회명":"2025 스포츠서울 하프 마라톤"},
+  {"날짜":"11\/30(일)","대회명":"제3회 영남알프스 전국 하프마라톤"},
+  {"날짜":"11\/30(일)","대회명":"2025 무등산 구석구석 트레일런"},
+  {"날짜":"12\/6(토)","대회명":"제19회 양산하프마라톤"},
+  {"날짜":"12\/7(일)","대회명":"2025 전마협 Gold Run Race"},
+  {"날짜":"12\/13(토)","대회명":"제3회 시즌오프레이스"}
+  ]
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+  <script type="module" src="./js/ui.js"></script>
+
+  <!-- exporter.js (CDN worker를 Blob URL로 변환 + dual-matte) -->
+  <script src="./js/exporter.js"></script>
+
+  <!-- Export 버튼 동작 -->
+  <script>
+    (function(){
+      const $ = (s)=>document.querySelector(s);
+      const statusEl = $('#export-status');
+      const btn = $('#btn-export-gif');
+      if (!btn) return;
+
+      btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        statusEl.textContent = 'Preparing…';
+        try{
+          // 애니메이션 처음부터 끝까지: 초기화 후 시작
+          if (typeof window.exitFocus === 'function') window.exitFocus();
+          await new Promise(r=>setTimeout(r, 30));
+          if (typeof window.onRun === 'function') window.onRun();
+
+          // 풀캡처 모드로: 텍스트 변화 멈춘 뒤 꼬리 400ms 포함
+          await window.exportRunAsGif({
+            areaSelector: '#stage',   // 레이아웃 고정
+            fps: 18,                  // 모바일 친화 기본
+            scale: 1,                 // 원본 해상도
+            filename: 'runimate.gif',
+            fullCapture: true,        // 처음~끝 자동
+            settleTailMs: 450,        // 꼬리 살짝 더
+            minMs: 900
+          });
+          statusEl.textContent = 'Saved ✅';
+        }catch(err){
+          console.error(err);
+          statusEl.textContent = 'Failed. See console.';
+        }finally{
+          setTimeout(()=>{ statusEl.textContent=''; btn.disabled=false; }, 800);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
