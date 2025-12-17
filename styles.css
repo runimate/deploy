@@ -436,3 +436,88 @@ html.bg-black .pill-select{
 }
 .time-grid{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:8px; align-items:center; }
 .pace-grid{ display:grid; grid-template-columns:1fr auto 1fr auto;   gap:8px; align-items:center; }
+
+/* ===== Fine Tune UI ===== */
+.tune-card{
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:12px;
+  background:#fafafa;
+  margin-top:12px;
+}
+html.bg-black .tune-card,
+body.bg-black .tune-card{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.22);
+}
+.tune-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0 10px;
+}
+.tune-key{
+  font-size:12px;
+  opacity:.7;
+  line-height:1.2;
+  word-break:break-all;
+}
+.tune-reset{
+  height:44px;
+  border-radius:var(--radius);
+  font-size:14px;
+  font-weight:900;
+  padding:0 14px;
+}
+.tune-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media (max-width: 480px){
+  .tune-grid{ grid-template-columns: 1fr; }
+}
+.tune-row{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.tune-row label{
+  font-size:12px;
+  font-weight:900;
+  opacity:.85;
+}
+.tune-row input{
+  height:44px;
+  border:3px solid var(--fg);
+  border-radius:var(--radius);
+  background:transparent;
+  color:inherit;
+  padding:0 12px;
+  font-size:16px;
+  font-weight:900;
+}
+.tune-actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.tune-mini{
+  height:44px;
+  font-size:14px;
+  font-weight:900;
+}
+.tune-json{
+  width:100%;
+  min-height:140px;
+  margin-top:10px;
+  border:3px solid var(--fg);
+  border-radius:var(--radius);
+  background:transparent;
+  color:inherit;
+  padding:10px 12px;
+  font-size:12px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height:1.45;
+}
