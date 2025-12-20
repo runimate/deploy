@@ -1,7 +1,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root{
-  /* 버튼이 절대 줄바꿈되지 않게 하기 위한, 화면폭에 따라 자동 축소되는 값들 */
   --gap: clamp(6px, 1.8vw, 10px);
   --btn-pad-y: clamp(7px, 1.9vw, 10px);
   --btn-pad-x: clamp(10px, 2.8vw, 18px);
@@ -10,15 +9,15 @@
   --stroke: 2px;
 
   /* ✅ PREVIEW 폰트별 자간 조절 변수(기본값) */
-  --pv-value-ls: 0px;  /* 숫자/값 자간 */
-  --pv-label-ls: 0px;  /* 라벨 자간 */
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
 }
 
 body {
   background-color: #fff;
   font-family: 'Inter', sans-serif;
   padding: 20px;
-  padding-bottom: 110px; /* 하단 RUN 버튼 공간 */
+  padding-bottom: 110px;
   min-height: 100vh;
 }
 
@@ -56,16 +55,16 @@ body {
   display: flex;
   align-items: center;
   gap: var(--gap);
-  flex-wrap: nowrap;      /* ✅ 절대 줄바꿈 금지 */
+  flex-wrap: nowrap;
   width: 100%;
 }
 
 .button-group.no-wrap{ flex-wrap: nowrap; }
 .button-group.wide .flex1,
 .button-group.two .flex1,
-.button-group.three .flex1 { flex: 1 1 0; min-width: 0; } /* ✅ 폭 부족해도 줄바꿈 대신 축소 */
+.button-group.three .flex1 { flex: 1 1 0; min-width: 0; }
 
-/* record/data/layout/bg: 동일 높이/모양 */
+/* Buttons */
 .toggle-btn,
 .action-btn{
   border: var(--stroke) solid #000;
@@ -78,7 +77,7 @@ body {
   padding: var(--btn-pad-y) var(--btn-pad-x);
   font-size: var(--btn-font);
   line-height: 1;
-  white-space: nowrap;    /* ✅ 텍스트 줄바꿈도 방지 */
+  white-space: nowrap;
   min-width: 0;
   transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
@@ -92,7 +91,7 @@ body {
   color: #fff;
 }
 
-/* FONT 버튼은 5개가 한 줄에 반드시 들어가야 하므로 조금 더 컴팩트하게 */
+/* FONT group */
 .font-group .font-btn{
   flex: 1 1 0;
   min-width: 0;
@@ -100,14 +99,14 @@ body {
   text-align: center;
 }
 
-/* 각 버튼 안 텍스트는 “표기용 폰트” (미리보기 폰트와 별개) */
+/* font labels */
 .font-anton{ font-family: 'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
 .font-dots{ font-family: 'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
 .font-lcd{ font-family: 'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
 .font-gothic{ font-family: 'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
 .font-speed{ font-family: 'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
 
-/* LAYOUT + BG COLOR: 한 줄 2컬럼 */
+/* Layout row */
 .two-col{
   display: flex;
   gap: 18px;
@@ -117,7 +116,7 @@ body {
   min-width: 0;
 }
 
-/* Preview (Type1 기본은 작고 왼쪽에 붙은 카드) */
+/* Preview */
 .preview{
   border: var(--stroke) solid #000;
   border-radius: 18px;
@@ -125,35 +124,22 @@ body {
   width: min(240px, 100%);
   background: #fff;
   transition: all 0.2s ease;
+
+  /* ✅ 카드 밖으로 컨텐츠가 나가도 보이지 않게(마지막 안전장치) */
+  overflow: hidden;
 }
 
-/* ✅ Type1 (세로) */
 .preview.type1 .preview-content{
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.data-label{
-  font-size: 12px;
-  opacity: 0.9;
-  margin-bottom: 6px;
-  letter-spacing: var(--pv-label-ls);
-}
-
-.data-value{
-  font-size: 26px;
-  letter-spacing: var(--pv-value-ls);
-  line-height: 1.05;
-}
-
-/* ✅✅✅ Type2: 카드 자체를 RUN 버튼처럼 "가로 + 전체폭"으로 확장 */
+/* ✅ Type2: 전체폭 + 3등분 grid */
 .preview.type2{
-  width: 100%;                 /* 핵심: 240px 고정에서 벗어나게 */
-  padding: 18px 18px 16px 18px;
+  width: 100%;
 }
 
-/* ✅✅✅ Type2 내부는 3등분 GRID로 (지금 스샷처럼 겹치지 않게) */
 .preview.type2 .preview-content{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -161,21 +147,39 @@ body {
   align-items: start;
 }
 
-/* Type2에서 각 칸이 좁아져도 줄바꿈 대신 축소되게 */
-.preview.type2 .data-item{
+.data-item{
   min-width: 0;
+  overflow: hidden; /* ✅ 각 칸에서 넘침 차단 */
 }
 
-/* Type2는 값 크기를 살짝 조정(겹침 방지) */
-.preview.type2 .data-value{
-  font-size: 26px; /* 필요하면 24px로 낮춰도 됨 */
+.data-label{
+  font-size: 12px;
+  opacity: 0.9;
+  margin-bottom: 6px;
+  letter-spacing: var(--pv-label-ls);
+
+  /* ✅ 라벨도 혹시 길어지면 잘리지 않게 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
-/* Preview bg */
+.data-value{
+  font-size: 26px;
+  letter-spacing: var(--pv-value-ls);
+  line-height: 1.05;
+
+  /* ✅ 값은 무조건 한 줄 + 넘치면 JS가 줄여서 fit */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+/* bg */
 .preview.bg-white{ background: #fff; color: #000; }
 .preview.bg-black{ background: #000; color: #fff; }
 
-/* Preview font = 선택된 폰트 적용 */
+/* Preview font */
 .preview.font-anton .data-label,
 .preview.font-anton .data-value{ font-family: 'Anton', sans-serif; }
 
@@ -191,33 +195,14 @@ body {
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
-/* ✅ 폰트별 PREVIEW 자간 개별 조절 (여기만 값 바꾸면 됨) */
-.preview.font-anton{
-  --pv-value-ls: 0px;
-  --pv-label-ls: 0px;
-}
+/* ✅ 폰트별 PREVIEW 자간 개별 조절 (여기만 바꾸면 됨) */
+.preview.font-anton{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
+.preview.font-dots{   --pv-value-ls: 0px;  --pv-label-ls: 0px; }
+.preview.font-lcd{    --pv-value-ls: 0px;  --pv-label-ls: 0px; }
+.preview.font-gothic{ --pv-value-ls: 0px;  --pv-label-ls: 0px; }
+.preview.font-speed{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 
-.preview.font-dots{
-  --pv-value-ls: 0px;
-  --pv-label-ls: 0px;
-}
-
-.preview.font-lcd{
-  --pv-value-ls: 0px;
-  --pv-label-ls: 0px;
-}
-
-.preview.font-gothic{
-  --pv-value-ls: 0px;
-  --pv-label-ls: 0px;
-}
-
-.preview.font-speed{
-  --pv-value-ls: 0px;
-  --pv-label-ls: 0px;
-}
-
-/* RUN button */
+/* RUN */
 .run-btn{
   position: fixed;
   left: 50%;
@@ -238,21 +223,17 @@ body {
 .run-btn:hover{ opacity: 0.9; transform: translateX(-50%) translateY(-2px); }
 .run-btn:active{ transform: translateX(-50%) translateY(0); }
 
-/* 작은 화면에서 더 빡빡해질 때도 줄바꿈이 절대 안나게 안전장치 */
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
   .preview.type2{ width: 100%; }
   .preview.type2 .preview-content{ column-gap: 12px; }
-  .preview.type2 .data-value{ font-size: 24px; }
 }
 
 /* =========================
    Webfont (경로: ./fonts/)
    ========================= */
-
-/* 1) Base UI font */
 @font-face {
   font-family: 'Inter';
   src: url('./fonts/Inter.woff2') format('woff2');
@@ -260,8 +241,6 @@ body {
   font-style: normal;
   font-display: swap;
 }
-
-/* 2) Anton */
 @font-face {
   font-family: 'Anton';
   src: url('./fonts/Anton.woff2') format('woff2');
@@ -269,8 +248,6 @@ body {
   font-style: normal;
   font-display: swap;
 }
-
-/* 3) DOTS */
 @font-face {
   font-family: 'Bitcount Grid Single';
   src: url('./fonts/Dots.woff2') format('woff2');
@@ -278,8 +255,6 @@ body {
   font-style: normal;
   font-display: swap;
 }
-
-/* 4) LCD */
 @font-face {
   font-family: 'DS-Digital';
   src: url('./fonts/LCD.woff2') format('woff2');
@@ -287,8 +262,6 @@ body {
   font-style: normal;
   font-display: swap;
 }
-
-/* 5) Gothic */
 @font-face {
   font-family: 'Special Gothic Expanded One';
   src: url('./fonts/Gothic.woff2') format('woff2');
@@ -296,8 +269,6 @@ body {
   font-style: normal;
   font-display: swap;
 }
-
-/* 6) Speed */
 @font-face {
   font-family: 'Quantico';
   src: url('./fonts/Speed.woff2') format('woff2');
