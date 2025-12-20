@@ -11,7 +11,7 @@
 
   /* ✅ PREVIEW 폰트별 자간 조절 변수(기본값) */
   --pv-value-ls: 0px;  /* 숫자/값 자간 */
-  --pv-label-ls: 0px;  /* DISTANCE/PACE/TIME 라벨 자간(필요 없으면 0 유지) */
+  --pv-label-ls: 0px;  /* 라벨 자간 */
 }
 
 body {
@@ -117,7 +117,7 @@ body {
   min-width: 0;
 }
 
-/* Preview (이미지처럼 작고 왼쪽에 붙은 카드) */
+/* Preview (Type1 기본은 작고 왼쪽에 붙은 카드) */
 .preview{
   border: var(--stroke) solid #000;
   border-radius: 18px;
@@ -127,6 +127,7 @@ body {
   transition: all 0.2s ease;
 }
 
+/* ✅ Type1 (세로) */
 .preview.type1 .preview-content{
   display: flex;
   flex-direction: column;
@@ -137,26 +138,38 @@ body {
   font-size: 12px;
   opacity: 0.9;
   margin-bottom: 6px;
-  /* ✅ 라벨 자간 변수 적용 */
   letter-spacing: var(--pv-label-ls);
 }
 
 .data-value{
   font-size: 26px;
-  /* ✅ 값 자간 변수 적용 (기존 0px 고정 제거) */
   letter-spacing: var(--pv-value-ls);
   line-height: 1.05;
 }
 
-/* type2는 유지 (다음 확장 대비) */
-.preview.type2 .preview-content{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 14px;
+/* ✅✅✅ Type2: 카드 자체를 RUN 버튼처럼 "가로 + 전체폭"으로 확장 */
+.preview.type2{
+  width: 100%;                 /* 핵심: 240px 고정에서 벗어나게 */
+  padding: 18px 18px 16px 18px;
 }
-.preview.type2 .data-item{ flex: 1 1 0; min-width: 0; }
-.preview.type2 .data-value{ font-size: 22px; }
+
+/* ✅✅✅ Type2 내부는 3등분 GRID로 (지금 스샷처럼 겹치지 않게) */
+.preview.type2 .preview-content{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 18px;
+  align-items: start;
+}
+
+/* Type2에서 각 칸이 좁아져도 줄바꿈 대신 축소되게 */
+.preview.type2 .data-item{
+  min-width: 0;
+}
+
+/* Type2는 값 크기를 살짝 조정(겹침 방지) */
+.preview.type2 .data-value{
+  font-size: 26px; /* 필요하면 24px로 낮춰도 됨 */
+}
 
 /* Preview bg */
 .preview.bg-white{ background: #fff; color: #000; }
@@ -178,10 +191,7 @@ body {
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
-/* ✅ 폰트별 PREVIEW 자간 개별 조절 (원하는 값으로 여기만 수정하면 됨)
-   - value: 숫자 부분 자간
-   - label: DISTANCE/PACE/TIME 라벨 자간
-*/
+/* ✅ 폰트별 PREVIEW 자간 개별 조절 (여기만 값 바꾸면 됨) */
 .preview.font-anton{
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
@@ -233,6 +243,9 @@ body {
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
+  .preview.type2{ width: 100%; }
+  .preview.type2 .preview-content{ column-gap: 12px; }
+  .preview.type2 .data-value{ font-size: 24px; }
 }
 
 /* =========================
