@@ -468,29 +468,34 @@ body.no-scroll{ overflow: hidden; }
   color: inherit;
 }
 
-/* --- Result Screen (type1/type2) --- */
+/* --- Result Screen --- */
 .result-screen.bg-white{ background: #fff; color: #000; }
 .result-screen.bg-black{ background: #000; color: #fff; }
 
 .result-wrap{
   width: 100%;
   height: 100%;
-  padding: 60px 26px 26px 26px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;     /* ✅ 세로 중앙 */
+  justify-content: center; /* ✅ 가로 중앙 */
 }
 
 .result-block{
   width: 100%;
+  min-width: 0;
 }
 
-/* type1 = 세로, preview의 2배 느낌 */
+/* type1 = 세로 (1.5배 느낌) */
 .result-wrap.type1 .result-block{
+  width: min(520px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 34px;
   align-items: flex-start;
 }
 
-/* type2 = 가로, preview와 같은 느낌(작게) */
+/* type2 = 가로 (preview 느낌 유지) */
 .result-wrap.type2 .result-block{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -498,27 +503,31 @@ body.no-scroll{ overflow: hidden; }
   align-items: start;
   width: min(520px, 100%);
   margin: 0 auto;
-  padding-top: 120px;
 }
 
 .result-item{ min-width: 0; }
+.result-label, .result-value{
+  display: block;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .result-label{
   font-size: 12px;
   font-weight: 900;
   opacity: 0.9;
   margin-bottom: 10px;
-  white-space: nowrap;
 }
 .result-value{
   font-size: 34px;
   font-weight: 900;
-  white-space: nowrap;
   line-height: 1.02;
 }
 
-/* type1의 “2배 사이즈” */
-.result-wrap.type1 .result-label{ font-size: 22px; margin-bottom: 14px; }
-.result-wrap.type1 .result-value{ font-size: 64px; }
+/* ✅ type1 2배 → 1.5배 */
+.result-wrap.type1 .result-label{ font-size: 18px; margin-bottom: 12px; }
+.result-wrap.type1 .result-value{ font-size: 52px; }
 
 /* --- Result fonts (preview와 동일 폰트 적용) --- */
 .result-screen.font-anton .result-label,
@@ -644,8 +653,13 @@ body.no-scroll{ overflow: hidden; }
   height: calc(100% - 120px);
   overflow: auto;
   padding-right: 4px;
+  .select-list{
+  height: calc(100% - 120px);
+  overflow: auto;
+  padding-right: 4px;
 }
 
+/* Workout rows */
 .workout-row{
   width: 100%;
   border: 2px solid #000;
@@ -681,17 +695,45 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
 }
 
-/* responsive */
+/* =========================
+   ✅ RESULT overflow safety (특히 type2)
+   - JS에서 "fit"로 줄이더라도
+     CSS로도 안전장치 마련
+========================= */
+
+/* type2 안에서 너무 길면 폰트 자동으로 줄어들 여지 */
+.result-wrap.type2 .result-value{
+  font-size: clamp(18px, 6vw, 34px);
+}
+
+/* type2의 3칸 자체가 더 타이트해지게(작은 화면 대응) */
+@media (max-width: 380px){
+  .result-wrap.type2 .result-block{
+    column-gap: 16px;
+  }
+  .result-wrap.type2 .result-value{
+    font-size: clamp(16px, 6vw, 30px);
+  }
+  .result-wrap.type2 .result-label{
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+}
+
+/* =========================
+   Responsive
+========================= */
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview.type2 .preview-content{ column-gap: 12px; }
-  .result-wrap.type1 .result-value{ font-size: 56px; }
+  .result-wrap{ padding: 0 16px; }
+  .result-wrap.type1 .result-value{ font-size: 46px; }
 }
 
-/* --------------------
+/* =========================
    Webfont (./fonts/)
--------------------- */
+========================= */
 @font-face {
   font-family: 'Inter';
   src: url('./fonts/Inter.woff2') format('woff2');
