@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <!-- LAYOUT + BG COLOR (같은 줄) -->
+    <!-- LAYOUT + BG COLOR -->
     <div class="section">
       <div class="two-col">
         <div class="col">
@@ -78,21 +78,25 @@
     <!-- PREVIEW -->
     <div class="section">
       <label class="section-label">PREVIEW</label>
-      <div id="preview" class="preview type1 bg-white font-anton">
-        <div class="preview-content">
-          <div class="data-item">
-            <div class="data-label">DISTANCE</div>
-            <div class="data-value">00.00Km</div>
-          </div>
 
-          <div class="data-item">
-            <div class="data-label">PACE</div>
-            <div class="data-value">00'00"</div>
-          </div>
+      <!-- ✅ preview-wrap: RUN 버튼과 동일한 폭 기준을 공유 -->
+      <div class="preview-wrap">
+        <div id="preview" class="preview type1 bg-white font-anton">
+          <div class="preview-content">
+            <div class="data-item">
+              <div class="data-label">DISTANCE</div>
+              <div class="data-value">00.00Km</div>
+            </div>
 
-          <div class="data-item">
-            <div class="data-label">TIME</div>
-            <div class="data-value">00:00:00</div>
+            <div class="data-item">
+              <div class="data-label">PACE</div>
+              <div class="data-value">00'00"</div>
+            </div>
+
+            <div class="data-item">
+              <div class="data-label">TIME</div>
+              <div class="data-value">00:00:00</div>
+            </div>
           </div>
         </div>
       </div>
@@ -140,7 +144,6 @@
         };
       }
 
-      // Toggle buttons (single-select)
       const toggleButtons = document.querySelectorAll('.toggle-btn');
       toggleButtons.forEach(button => {
         button.addEventListener('click', function () {
@@ -150,12 +153,12 @@
             if (btn.classList.contains('toggle-btn')) btn.classList.remove('active');
           });
           this.classList.add('active');
+
           setPressedStateForGroup(group);
           updatePreview();
         });
       });
 
-      // Action buttons (DATA TYPE: single-select)
       const actionButtons = document.querySelectorAll('.action-btn');
       actionButtons.forEach(button => {
         button.addEventListener('click', function () {
@@ -164,14 +167,13 @@
 
           document.querySelectorAll(`.action-btn[data-group="${group}"]`).forEach(btn => btn.classList.remove('active'));
           this.classList.add('active');
-          setPressedStateForGroup(group);
 
+          setPressedStateForGroup(group);
           console.log(`Selected data type: ${value}`);
           updatePreview();
         });
       });
 
-      // RUN
       if (runBtn) {
         runBtn.addEventListener('click', function () {
           updatePreview();
