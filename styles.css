@@ -8,6 +8,10 @@
   --btn-font: clamp(12px, 2.8vw, 14px);
   --radius: 999px;
   --stroke: 2px;
+
+  /* ✅ PREVIEW 폰트별 자간 조절 변수(기본값) */
+  --pv-value-ls: 0px;  /* 숫자/값 자간 */
+  --pv-label-ls: 0px;  /* DISTANCE/PACE/TIME 라벨 자간(필요 없으면 0 유지) */
 }
 
 body {
@@ -133,11 +137,14 @@ body {
   font-size: 12px;
   opacity: 0.9;
   margin-bottom: 6px;
+  /* ✅ 라벨 자간 변수 적용 */
+  letter-spacing: var(--pv-label-ls);
 }
 
 .data-value{
   font-size: 26px;
-  letter-spacing: 0px;
+  /* ✅ 값 자간 변수 적용 (기존 0px 고정 제거) */
+  letter-spacing: var(--pv-value-ls);
   line-height: 1.05;
 }
 
@@ -170,6 +177,35 @@ body {
 
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
+
+/* ✅ 폰트별 PREVIEW 자간 개별 조절 (원하는 값으로 여기만 수정하면 됨)
+   - value: 숫자 부분 자간
+   - label: DISTANCE/PACE/TIME 라벨 자간
+*/
+.preview.font-anton{
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+}
+
+.preview.font-dots{
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+}
+
+.preview.font-lcd{
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+}
+
+.preview.font-gothic{
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+}
+
+.preview.font-speed{
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+}
 
 /* RUN button */
 .run-btn{
