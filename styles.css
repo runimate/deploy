@@ -23,6 +23,7 @@ body {
   padding-bottom: 110px;
   min-height: 100vh;
 }
+body.no-scroll{ overflow: hidden; }
 
 .container{
   width: min(360px, 100%);
@@ -125,9 +126,8 @@ body {
   padding: 14px;
   background: #fff;
 }
-.data-panel.monthly{
-  padding-top: 12px;
-}
+.data-panel.monthly{ padding-top: 12px; }
+
 .data-panel-head{
   display: flex;
   align-items: center;
@@ -147,7 +147,6 @@ body {
   gap: 10px;
   flex-wrap: nowrap;
   width: 100%;
-  margin-bottom: 12px;
 }
 .data-tab{
   flex: 1 1 0;
@@ -169,12 +168,14 @@ body {
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
-/* contents */
-.data-content{ display: none; }
+/* Data type 미선택 상태(이미지 3): 아래 아무것도 없음 */
+.data-empty{ height: 0; display: block; }
+
+.data-content{ display: none; margin-top: 12px; }
 .sub-title{
   font-size: 12px;
   font-weight: 900;
-  margin: 4px 0 10px 0;
+  margin: 0 0 10px 0;
 }
 
 /* Garmin card */
@@ -226,11 +227,6 @@ body {
   border-radius: 2px;
   display: block;
 }
-.hint-text{
-  margin-top: 8px;
-  font-size: 10px;
-  color: #666;
-}
 
 /* NRC upload */
 .upload-btn{
@@ -272,20 +268,9 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
-.chip-label{
-  font-size: 12px;
-  font-weight: 900;
-  color: #000;
-}
-.chip-value{
-  font-size: 16px;
-  font-weight: 900;
-}
-.chip-unit{
-  font-size: 12px;
-  font-weight: 900;
-  opacity: 0.9;
-}
+.chip-label{ font-size: 12px; font-weight: 900; color: #000; }
+.chip-value{ font-size: 16px; font-weight: 900; }
+.chip-unit{ font-size: 12px; font-weight: 900; opacity: 0.9; }
 .manual-time-line{
   margin-top: 10px;
   display: flex;
@@ -293,7 +278,6 @@ body {
   font-size: 12px;
   font-weight: 900;
 }
-.manual-time-value{ font-size: 12px; font-weight: 900; }
 
 /* --------------------
    PREVIEW
@@ -306,11 +290,13 @@ body {
   background: #fff;
   overflow: hidden;
 }
+
 .preview.type1 .preview-content{
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
+
 .preview.type2{
   width: 100%;
 }
@@ -320,6 +306,7 @@ body {
   column-gap: 18px;
   align-items: start;
 }
+
 .data-item{ min-width: 0; }
 .data-label, .data-value{ display:block; width:100%; }
 
@@ -345,16 +332,12 @@ body {
 /* preview font */
 .preview.font-anton .data-label,
 .preview.font-anton .data-value{ font-family: 'Anton', sans-serif; }
-
 .preview.font-dots .data-label,
 .preview.font-dots .data-value{ font-family: 'Bitcount Grid Single', monospace; }
-
 .preview.font-lcd .data-label,
 .preview.font-lcd .data-value{ font-family: 'DS-Digital', monospace; }
-
 .preview.font-gothic .data-label,
 .preview.font-gothic .data-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
-
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
@@ -385,10 +368,9 @@ body {
   z-index: 1000;
 }
 .run-btn:hover{ opacity: 0.92; }
-.run-btn:active{ opacity: 1; }
 
 /* --------------------
-   MODALS (✅ 기본은 display:none 이라 화면 하단에 튀어나오지 않음)
+   MODAL (Manual)
 -------------------- */
 .modal-overlay{
   position: fixed;
@@ -398,7 +380,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 18px;
-  z-index: 2000;
+  z-index: 2400;
 }
 .modal-overlay.show{ display: flex; }
 
@@ -416,10 +398,7 @@ body {
   justify-content: space-between;
   border-bottom: 2px solid #000;
 }
-.modal-title{
-  font-weight: 900;
-  font-size: 14px;
-}
+.modal-title{ font-weight: 900; font-size: 14px; }
 .modal-close{
   border: none;
   background: transparent;
@@ -432,35 +411,8 @@ body {
   max-height: 60vh;
   overflow: auto;
 }
-
-/* activity list rows */
-.activity-row{
-  width: 100%;
-  border: 2px solid #000;
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: #fff;
-  cursor: pointer;
-  text-align: left;
-  margin-bottom: 10px;
-}
-.activity-date{ font-size: 12px; font-weight: 900; margin-bottom: 6px; }
-.activity-metrics{
-  display: flex;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-/* manual modal form */
 .manual-form{ display: none; }
-.field-label{
-  display: block;
-  font-weight: 900;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
+.field-label{ display: block; font-weight: 900; font-size: 12px; margin-bottom: 8px; }
 .field-input{
   width: 100%;
   border: 2px solid #000;
@@ -487,16 +439,12 @@ body {
   gap: 10px;
   align-items: center;
 }
-.colon{
-  font-weight: 900;
-  font-size: 16px;
-  text-align: center;
-}
+.colon{ font-weight: 900; font-size: 16px; text-align: center; }
 
-/* --------------------
-   RUN SCREEN
--------------------- */
-.run-screen{
+/* =========================
+   SCREEN OVERLAYS (Garmin / Result)
+========================= */
+.screen-overlay{
   position: fixed;
   inset: 0;
   display: none;
@@ -504,96 +452,241 @@ body {
   background: #fff;
   color: #000;
 }
-.run-screen.show{ display: block; }
+.screen-overlay.show{ display: block; }
 
-.run-screen.bg-white{ background: #fff; color: #000; }
-.run-screen.bg-black{ background: #000; color: #fff; }
-
-.run-back{
+.screen-close{
   position: absolute;
   top: 16px;
-  left: 14px;
-  border: 2px solid currentColor;
-  color: inherit;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border: none;
   background: transparent;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-weight: 900;
+  font-size: 34px;
+  line-height: 1;
   cursor: pointer;
+  color: inherit;
 }
 
-.run-center{
+/* --- Result Screen (type1/type2) --- */
+.result-screen.bg-white{ background: #fff; color: #000; }
+.result-screen.bg-black{ background: #000; color: #fff; }
+
+.result-wrap{
+  width: 100%;
   height: 100%;
+  padding: 60px 26px 26px 26px;
+}
+
+.result-block{
+  width: 100%;
+}
+
+/* type1 = 세로, preview의 2배 느낌 */
+.result-wrap.type1 .result-block{
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 22px;
-  gap: 22px;
+  gap: 44px;
+  align-items: flex-start;
 }
-.run-distance-line{
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-.run-distance{
-  font-size: 76px;
-  font-weight: 900;
-  letter-spacing: -2px;
-}
-.run-unit{
-  font-size: 24px;
-  font-weight: 900;
-}
-.run-stats{
-  width: min(320px, 100%);
+
+/* type2 = 가로, preview와 같은 느낌(작게) */
+.result-wrap.type2 .result-block{
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 28px;
+  align-items: start;
+  width: min(520px, 100%);
+  margin: 0 auto;
+  padding-top: 120px;
 }
-.run-stat{
-  border: 2px solid currentColor;
-  border-radius: 14px;
-  padding: 12px 12px;
-  text-align: center;
-}
-.run-label{
+
+.result-item{ min-width: 0; }
+.result-label{
   font-size: 12px;
   font-weight: 900;
   opacity: 0.9;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+.result-value{
+  font-size: 34px;
+  font-weight: 900;
+  white-space: nowrap;
+  line-height: 1.02;
+}
+
+/* type1의 “2배 사이즈” */
+.result-wrap.type1 .result-label{ font-size: 22px; margin-bottom: 14px; }
+.result-wrap.type1 .result-value{ font-size: 64px; }
+
+/* --- Result fonts (preview와 동일 폰트 적용) --- */
+.result-screen.font-anton .result-label,
+.result-screen.font-anton .result-value{ font-family: 'Anton', sans-serif; }
+
+.result-screen.font-dots .result-label,
+.result-screen.font-dots .result-value{ font-family: 'Bitcount Grid Single', monospace; }
+
+.result-screen.font-lcd .result-label,
+.result-screen.font-lcd .result-value{ font-family: 'DS-Digital', monospace; }
+
+.result-screen.font-gothic .result-label,
+.result-screen.font-gothic .result-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
+
+.result-screen.font-speed .result-label,
+.result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
+
+/* --- Garmin Login (이미지 4) --- */
+.garmin-login{
+  background: var(--garmin);
+  color: #000;
+}
+.garmin-login-wrap{
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 42px 24px 24px 24px;
+}
+.garmin-login-title{ margin-top: 8px; }
+.gc-big{
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: -1px;
+  line-height: 0.95;
+}
+.gc-sub{
+  margin-top: 10px;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+}
+.garmin-login-form{
+  margin-top: 60px;
+  width: min(520px, 100%);
+}
+.gc-label{
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
   margin-bottom: 8px;
 }
-.run-value{
-  font-size: 20px;
+.gc-input{
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #000;
+  padding: 10px 2px;
+  font-size: 16px;
+  font-weight: 700;
+  outline: none;
+  background: transparent;
+  margin-bottom: 26px;
+}
+.gc-note{
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+.gc-smile{
+  font-size: 30px;
+  line-height: 1;
   font-weight: 900;
 }
+.gc-note-text{
+  font-size: 12px;
+  font-weight: 800;
+  max-width: 360px;
+}
+.gc-cta{
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.gc-vertical{
+  position: absolute;
+  top: 160px;
+  right: 10px;
+  transform: rotate(90deg);
+  transform-origin: top right;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
 
-/* run fonts */
-.run-screen.font-anton .run-distance,
-.run-screen.font-anton .run-value,
-.run-screen.font-anton .run-unit{ font-family: 'Anton', sans-serif; }
+/* --- Garmin Select Workout (이미지 5) --- */
+.select-workout{
+  background: #fff;
+  color: #000;
+}
+.select-wrap{
+  width: 100%;
+  height: 100%;
+  padding: 28px 20px 20px 20px;
+}
+.select-title{
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: -1px;
+  line-height: 0.95;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+.select-list{
+  height: calc(100% - 120px);
+  overflow: auto;
+  padding-right: 4px;
+}
 
-.run-screen.font-dots .run-distance,
-.run-screen.font-dots .run-value,
-.run-screen.font-dots .run-unit{ font-family: 'Bitcount Grid Single', monospace; }
-
-.run-screen.font-lcd .run-distance,
-.run-screen.font-lcd .run-value,
-.run-screen.font-lcd .run-unit{ font-family: 'DS-Digital', monospace; }
-
-.run-screen.font-gothic .run-distance,
-.run-screen.font-gothic .run-value,
-.run-screen.font-gothic .run-unit{ font-family: 'Special Gothic Expanded One', sans-serif; }
-
-.run-screen.font-speed .run-distance,
-.run-screen.font-speed .run-value,
-.run-screen.font-speed .run-unit{ font-family: 'Quantico', sans-serif; }
+.workout-row{
+  width: 100%;
+  border: 2px solid #000;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.workout-row.active{
+  background: #000;
+  color: #fff;
+}
+.wr-left{ min-width: 0; }
+.wr-date{
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.wr-stats{
+  display: flex;
+  gap: 18px;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.wr-arrow{
+  font-size: 26px;
+  font-weight: 900;
+}
 
 /* responsive */
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview.type2 .preview-content{ column-gap: 12px; }
+  .result-wrap.type1 .result-value{ font-size: 56px; }
 }
 
 /* --------------------
