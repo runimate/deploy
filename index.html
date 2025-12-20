@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RUNIMATE V.2.0</title>
-
-  <!-- ✅ 캐시 방지 -->
-  <link rel="stylesheet" href="./styles.css?v=20" />
+  <link rel="stylesheet" href="./styles.css?v=21" />
 </head>
 <body>
   <div class="container">
@@ -25,21 +23,24 @@
       </div>
     </section>
 
-    <!-- DATA TYPE PANEL -->
+    <!-- DATA TYPE -->
     <section class="section">
       <div class="data-panel" id="dataPanel">
         <div class="data-panel-head">
           <div class="data-panel-title">DATA TYPE</div>
         </div>
 
-        <!-- Daily: Tabs -->
+        <!-- Tabs (Daily only; Monthly hides tabs + forces NRC) -->
         <div class="data-tabs" id="dataTabs">
           <button type="button" class="data-tab garmin" id="btnGarmin" data-dtype="garmin">GARMIN</button>
           <button type="button" class="data-tab nrc" id="btnNrc" data-dtype="nrc">NRC</button>
           <button type="button" class="data-tab manual" id="btnManual" data-dtype="manual">MANUAL</button>
         </div>
 
-        <!-- Garmin content -->
+        <!-- ✅ Data Type 선택 전(이미지 3 상태): 아무것도 안보임 -->
+        <div class="data-empty" id="dataEmpty"></div>
+
+        <!-- Garmin card (이미지 6 상태) -->
         <div class="data-content" id="contentGarmin">
           <div class="garmin-card" id="garminCard" role="button" tabindex="0" aria-label="Selected Garmin activity">
             <div class="garmin-card-left">
@@ -57,13 +58,9 @@
               </span>
             </button>
           </div>
-
-          <div class="hint-text">
-            * Garmin login / activity list pages will be coded later. (Temporary list modal is used now.)
-          </div>
         </div>
 
-        <!-- NRC content -->
+        <!-- NRC (이미지 2) -->
         <div class="data-content" id="contentNrc">
           <div class="sub-title">Upload Your Record</div>
           <input type="file" id="nrcFile" accept="image/*" hidden />
@@ -71,7 +68,7 @@
           <div class="ocr-status" id="ocrStatus"></div>
         </div>
 
-        <!-- Manual content -->
+        <!-- Manual (이미지 3의 세번째) -->
         <div class="data-content" id="contentManual">
           <div class="sub-title">Enter Your Record</div>
 
@@ -144,21 +141,21 @@
     <section class="section">
       <label class="section-label">PREVIEW</label>
 
-      <div id="preview" class="preview type2 bg-white font-anton">
+      <div id="preview" class="preview type1 bg-white font-anton">
         <div class="preview-content">
           <div class="data-item">
             <div class="data-label">DISTANCE</div>
-            <div class="data-value" id="pvDistance">14.64Km</div>
+            <div class="data-value" id="pvDistance">00.00Km</div>
           </div>
 
           <div class="data-item">
             <div class="data-label">PACE</div>
-            <div class="data-value" id="pvPace">05'59"</div>
+            <div class="data-value" id="pvPace">00'00"</div>
           </div>
 
           <div class="data-item">
             <div class="data-label">TIME</div>
-            <div class="data-value" id="pvTime">01:27:32</div>
+            <div class="data-value" id="pvTime">00:00:00</div>
           </div>
         </div>
       </div>
@@ -168,18 +165,52 @@
     <button type="button" class="run-btn" id="runBtn">RUN</button>
   </div>
 
-  <!-- ✅ Garmin Activity Modal (임시) -->
-  <div class="modal-overlay" id="activityModal" aria-hidden="true">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title">Select Garmin Activity</div>
-        <button type="button" class="modal-close" id="closeActivityModal" aria-label="Close">×</button>
+  <!-- =========================
+       GARMIN LOGIN SCREEN (이미지 4)
+       ========================= -->
+  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
+    <button class="screen-close" id="garminLoginClose" aria-label="Close">×</button>
+
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title">
+        <div class="gc-big">GARMIN<br/>CONNECT</div>
+        <div class="gc-sub">Sign-In</div>
       </div>
-      <div class="modal-body" id="activityList"></div>
+
+      <div class="garmin-login-form">
+        <label class="gc-label">enter your @ email.com</label>
+        <input class="gc-input" id="gcEmail" type="email" autocomplete="username" />
+
+        <label class="gc-label">password</label>
+        <input class="gc-input" id="gcPass" type="password" autocomplete="current-password" />
+
+        <div class="gc-note">
+          <div class="gc-smile">:)</div>
+          <div class="gc-note-text">Your Garmin account information is never saved or stored, so you can feel safe using it.</div>
+        </div>
+      </div>
+
+      <button class="gc-cta" id="gcSignInBtn" type="button">Sign-In</button>
+
+      <div class="gc-vertical">RUNIMATE BY JS @runarchive.js</div>
     </div>
   </div>
 
-  <!-- ✅ Manual Input Modal -->
+  <!-- =========================
+       GARMIN SELECT WORKOUT (이미지 5)
+       ========================= -->
+  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
+    <button class="screen-close" id="garminSelectClose" aria-label="Close">×</button>
+
+    <div class="select-wrap">
+      <div class="select-title">Select<br/>Workout</div>
+      <div class="select-list" id="selectList"></div>
+    </div>
+  </div>
+
+  <!-- =========================
+       MANUAL INPUT MODAL
+       ========================= -->
   <div class="modal-overlay" id="manualModal" aria-hidden="true">
     <div class="modal">
       <div class="modal-head">
@@ -209,24 +240,30 @@
     </div>
   </div>
 
-  <!-- ✅ RUN Screen -->
-  <div class="run-screen" id="runScreen" aria-hidden="true">
-    <button class="run-back" id="runBackBtn" aria-label="Back">←</button>
+  <!-- =========================
+       RUN RESULT SCREEN (Preview와 동일 레이아웃)
+       - Type1: Preview의 2배 사이즈
+       - Type2: Preview와 같은 사이즈
+       ========================= -->
+  <div class="screen-overlay result-screen" id="resultScreen" aria-hidden="true">
+    <button class="screen-close" id="resultClose" aria-label="Close">×</button>
 
-    <div class="run-center">
-      <div class="run-distance-line">
-        <div class="run-distance" id="runDistance">00.00</div>
-        <div class="run-unit">Km</div>
-      </div>
-
-      <div class="run-stats">
-        <div class="run-stat">
-          <div class="run-label">PACE</div>
-          <div class="run-value" id="runPace">00'00"</div>
+    <div class="result-wrap" id="resultWrap">
+      <!-- type1 / type2에 따라 JS가 클래스 토글 -->
+      <div class="result-block" id="resultBlock">
+        <div class="result-item">
+          <div class="result-label">DISTANCE</div>
+          <div class="result-value" id="rsDistance">00.00Km</div>
         </div>
-        <div class="run-stat">
-          <div class="run-label">TIME</div>
-          <div class="run-value" id="runTime">00:00:00</div>
+
+        <div class="result-item">
+          <div class="result-label">PACE</div>
+          <div class="result-value" id="rsPace">00'00"</div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-label">TIME</div>
+          <div class="result-value" id="rsTime">00:00:00</div>
         </div>
       </div>
     </div>
@@ -234,19 +271,20 @@
 
   <!-- OCR Engine -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-  <!-- ✅ 캐시 방지 -->
-  <script src="./ocr.js?v=20"></script>
+  <script src="./ocr.js?v=21"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Preview refs
       const preview = document.getElementById('preview');
       const pvDistance = document.getElementById('pvDistance');
       const pvPace = document.getElementById('pvPace');
       const pvTime = document.getElementById('pvTime');
 
+      // Data panel refs
       const dataPanel = document.getElementById('dataPanel');
       const dataTabs = document.getElementById('dataTabs');
+      const dataEmpty = document.getElementById('dataEmpty');
 
       const btnGarmin = document.getElementById('btnGarmin');
       const btnNrc = document.getElementById('btnNrc');
@@ -256,7 +294,7 @@
       const contentNrc = document.getElementById('contentNrc');
       const contentManual = document.getElementById('contentManual');
 
-      // Garmin
+      // Garmin card
       const garminCard = document.getElementById('garminCard');
       const garminListBtn = document.getElementById('garminListBtn');
       const garminDate = document.getElementById('garminDate');
@@ -264,9 +302,17 @@
       const garminPace = document.getElementById('garminPace');
       const garminTime = document.getElementById('garminTime');
 
-      const activityModal = document.getElementById('activityModal');
-      const closeActivityModal = document.getElementById('closeActivityModal');
-      const activityList = document.getElementById('activityList');
+      // Garmin login screen
+      const garminLoginScreen = document.getElementById('garminLoginScreen');
+      const garminLoginClose = document.getElementById('garminLoginClose');
+      const gcSignInBtn = document.getElementById('gcSignInBtn');
+      const gcEmail = document.getElementById('gcEmail');
+      const gcPass = document.getElementById('gcPass');
+
+      // Garmin select workout screen
+      const garminSelectScreen = document.getElementById('garminSelectScreen');
+      const garminSelectClose = document.getElementById('garminSelectClose');
+      const selectList = document.getElementById('selectList');
 
       // NRC
       const nrcFile = document.getElementById('nrcFile');
@@ -297,27 +343,33 @@
       const recordBtns = document.querySelectorAll('[data-group="record"]');
       const runBtn = document.getElementById('runBtn');
 
-      // Run screen
-      const runScreen = document.getElementById('runScreen');
-      const runBackBtn = document.getElementById('runBackBtn');
-      const runDistance = document.getElementById('runDistance');
-      const runPace = document.getElementById('runPace');
-      const runTime = document.getElementById('runTime');
+      // Result screen
+      const resultScreen = document.getElementById('resultScreen');
+      const resultClose = document.getElementById('resultClose');
+      const resultWrap = document.getElementById('resultWrap');
+      const resultBlock = document.getElementById('resultBlock');
+      const rsDistance = document.getElementById('rsDistance');
+      const rsPace = document.getElementById('rsPace');
+      const rsTime = document.getElementById('rsTime');
 
       const state = {
         recordType: 'daily',   // daily | monthly
-        dataType: 'garmin',    // garmin | nrc | manual (monthly: nrc only)
+        dataType: null,        // null | garmin | nrc | manual
         font: 'anton',
-        layout: 'type2',
+        layout: 'type1',
         bgColor: 'white',
-        values: { distanceKm: 14.64, paceSec: 5*60+59, timeSec: 1*3600 + 27*60 + 32 },
-        garminSelected: null
+        values: { distanceKm: 0, paceSec: 0, timeSec: 0 },
+        garminSelected: null,
+        garminAuthed: false
       };
 
+      // Mock workouts (나중에 Garmin 연동되면 여기 replace)
       const mockActivities = [
         { id: 'a1', date: '2025.12.12', distanceKm: 14.64, paceSec: 5*60+59, timeSec: 1*3600 + 27*60 + 32 },
         { id: 'a2', date: '2025.12.09', distanceKm: 10.00, paceSec: 5*60+12, timeSec: 0*3600 + 52*60 + 0 },
-        { id: 'a3', date: '2025.12.06', distanceKm: 21.10, paceSec: 5*60+33, timeSec: 1*3600 + 57*60 + 0 }
+        { id: 'a3', date: '2025.12.06', distanceKm: 21.10, paceSec: 5*60+33, timeSec: 1*3600 + 57*60 + 0 },
+        { id: 'a4', date: '2025.12.03', distanceKm: 7.32,  paceSec: 6*60+10, timeSec: 0*3600 + 45*60 + 0 },
+        { id: 'a5', date: '2025.11.30', distanceKm: 5.00,  paceSec: 5*60+40, timeSec: 0*3600 + 28*60 + 20 }
       ];
 
       function pad2(n){ return String(n).padStart(2,'0'); }
@@ -348,6 +400,10 @@
         });
       }
 
+      function clearDataTabActive(){
+        [btnGarmin, btnNrc, btnManual].forEach(b => b.classList.remove('active'));
+      }
+
       function applyGarminCard(act){
         garminDate.textContent = act.date;
         garminDist.textContent = act.distanceKm.toFixed(2) + 'Km';
@@ -368,7 +424,7 @@
         pvTime.textContent = formatTime(state.values.timeSec);
       }
 
-      // ✅ 3개 값 동일한 폰트 사이즈로 fit (잘림 방지 + 크기 통일)
+      // ✅ Preview 숫자 폭 넘침 방지 + 3개 값 폰트 크기 통일
       function fitPreviewNumbersUnified(){
         const values = Array.from(preview.querySelectorAll('.data-value'));
         if (!values.length) return;
@@ -433,94 +489,151 @@
         scheduleFit();
       }
 
-      function setDataType(dtype){
-        // monthly: NRC only
-        if (state.recordType === 'monthly') dtype = 'nrc';
-        state.dataType = dtype;
-
-        // tabs state
-        const tabs = [btnGarmin, btnNrc, btnManual];
-        tabs.forEach(t => t.classList.remove('active'));
-
+      // ✅ Data panel rendering (핵심)
+      function renderDataPanel(){
+        // Monthly: NRC only
         if (state.recordType === 'monthly') {
           dataTabs.style.display = 'none';
           dataPanel.classList.add('monthly');
-        } else {
-          dataTabs.style.display = 'flex';
-          dataPanel.classList.remove('monthly');
+
+          dataEmpty.style.display = 'none';
+          contentGarmin.style.display = 'none';
+          contentManual.style.display = 'none';
+          contentNrc.style.display = 'block';
+          return;
         }
 
-        if (dtype === 'garmin') btnGarmin.classList.add('active');
-        if (dtype === 'nrc') btnNrc.classList.add('active');
-        if (dtype === 'manual') btnManual.classList.add('active');
+        // Daily
+        dataTabs.style.display = 'flex';
+        dataPanel.classList.remove('monthly');
 
-        // content visibility
-        contentGarmin.style.display = (dtype === 'garmin' && state.recordType === 'daily') ? 'block' : 'none';
-        contentManual.style.display = (dtype === 'manual' && state.recordType === 'daily') ? 'block' : 'none';
-        contentNrc.style.display = (dtype === 'nrc') ? 'block' : 'none';
+        if (!state.dataType) {
+          // 이미지 3 상태: 탭만 있고 아래는 아무것도 없음
+          clearDataTabActive();
+          dataEmpty.style.display = 'block';
+          contentGarmin.style.display = 'none';
+          contentNrc.style.display = 'none';
+          contentManual.style.display = 'none';
+          return;
+        }
 
-        updatePreview();
+        dataEmpty.style.display = 'none';
+        contentGarmin.style.display = (state.dataType === 'garmin') ? 'block' : 'none';
+        contentNrc.style.display = (state.dataType === 'nrc') ? 'block' : 'none';
+        contentManual.style.display = (state.dataType === 'manual') ? 'block' : 'none';
+
+        clearDataTabActive();
+        if (state.dataType === 'garmin') btnGarmin.classList.add('active');
+        if (state.dataType === 'nrc') btnNrc.classList.add('active');
+        if (state.dataType === 'manual') btnManual.classList.add('active');
       }
 
       function setRecordType(rt){
         state.recordType = rt;
         setActiveToggle('record', rt);
 
-        if (rt === 'monthly') setDataType('nrc');
-        else setDataType(state.dataType || 'garmin');
+        if (rt === 'monthly') {
+          state.dataType = 'nrc';
+        } else {
+          // Daily 돌아오면 "미선택 상태"로 유지
+          if (state.dataType === 'nrc' && rt === 'daily') {
+            // 그대로 둬도 되지만, 요구사항은 "선택 전 상태"가 첫화면이므로 초기만 null로 둠.
+          }
+        }
+
+        renderDataPanel();
+        updatePreview();
       }
 
-      // Garmin modal
-      function openActivityModal(){
-        activityModal.classList.add('show');
-        activityModal.setAttribute('aria-hidden', 'false');
-        activityList.innerHTML = '';
+      // =========================
+      // Garmin Screens (Login -> Select)
+      // =========================
+      function openScreen(el){
+        el.classList.add('show');
+        el.setAttribute('aria-hidden','false');
+        document.body.classList.add('no-scroll');
+      }
+      function closeScreen(el){
+        el.classList.remove('show');
+        el.setAttribute('aria-hidden','true');
+        document.body.classList.remove('no-scroll');
+      }
 
+      function openGarminLogin(){
+        openScreen(garminLoginScreen);
+        setTimeout(() => gcEmail.focus(), 60);
+      }
+      function openGarminSelect(){
+        // build list
+        selectList.innerHTML = '';
         mockActivities.forEach(act => {
           const row = document.createElement('button');
           row.type = 'button';
-          row.className = 'activity-row';
+          row.className = 'workout-row' + (state.garminSelected?.id === act.id ? ' active' : '');
           row.innerHTML = `
-            <div class="activity-date">${act.date}</div>
-            <div class="activity-metrics">
-              <span>${act.distanceKm.toFixed(2)}Km</span>
-              <span>${formatPace(act.paceSec)}</span>
-              <span>${formatTime(act.timeSec)}</span>
+            <div class="wr-left">
+              <div class="wr-date">${act.date}</div>
+              <div class="wr-stats">
+                <span>${act.distanceKm.toFixed(2)}Km</span>
+                <span>${formatPace(act.paceSec)}</span>
+                <span>${formatTime(act.timeSec)}</span>
+              </div>
             </div>
+            <div class="wr-arrow">→</div>
           `;
           row.addEventListener('click', () => {
             state.garminSelected = act;
             state.values.distanceKm = act.distanceKm;
             state.values.paceSec = act.paceSec;
             state.values.timeSec = act.timeSec;
+
             applyGarminCard(act);
-            closeActivityModalFn();
+            state.dataType = 'garmin';
+            renderDataPanel();
             updatePreview();
+
+            closeScreen(garminSelectScreen);
+            closeScreen(garminLoginScreen); // 로그인에서 넘어온 경우 같이 닫힘
           });
-          activityList.appendChild(row);
+          selectList.appendChild(row);
         });
+
+        openScreen(garminSelectScreen);
       }
 
-      function closeActivityModalFn(){
-        activityModal.classList.remove('show');
-        activityModal.setAttribute('aria-hidden', 'true');
-      }
+      garminLoginClose.addEventListener('click', () => closeScreen(garminLoginScreen));
+      garminSelectClose.addEventListener('click', () => closeScreen(garminSelectScreen));
 
-      closeActivityModal.addEventListener('click', closeActivityModalFn);
-      activityModal.addEventListener('click', (e) => {
-        if (e.target === activityModal) closeActivityModalFn();
+      // 로그인 버튼(지금은 mock: 바로 select로)
+      gcSignInBtn.addEventListener('click', () => {
+        state.garminAuthed = true;
+
+        // 실제 연동 준비 포인트:
+        // 여기서 (server)로 email/pass 보내는 방식은 추천하지 않음.
+        // Garmin 공식 키/토큰 플로우(or 서버 프록시)로 교체 예정.
+        openGarminSelect();
       });
 
+      // Garmin 탭 클릭
+      btnGarmin.addEventListener('click', () => {
+        if (state.recordType !== 'daily') return;
+        // Garmin 선택 시 로그인 화면으로 (요구사항)
+        openGarminLogin();
+      });
+
+      // Garmin 카드/리스트 버튼 -> 활동 선택 화면(요구사항 + 현재 모달 대신 full screen)
       garminListBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openActivityModal();
+        openGarminSelect();
       });
-      garminCard.addEventListener('click', openActivityModal);
+      garminCard.addEventListener('click', () => openGarminSelect());
       garminCard.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') openActivityModal();
+        if (e.key === 'Enter' || e.key === ' ') openGarminSelect();
       });
 
+      // =========================
       // NRC OCR
+      // =========================
       nrcUploadBtn.addEventListener('click', () => nrcFile.click());
       nrcFile.addEventListener('change', async () => {
         const file = nrcFile.files?.[0];
@@ -534,7 +647,7 @@
             ocrStatus.textContent = msg;
           });
 
-          if (result.distanceKm != null) state.values.distanceKm = result.distanceKm; // OCR distance is final
+          if (result.distanceKm != null) state.values.distanceKm = result.distanceKm; // OCR distance final
           if (result.paceSec != null) state.values.paceSec = result.paceSec;
           if (result.timeSec != null) state.values.timeSec = result.timeSec;
 
@@ -550,7 +663,23 @@
         }
       });
 
+      // NRC 탭 클릭
+      btnNrc.addEventListener('click', () => {
+        if (state.recordType !== 'daily') return;
+        state.dataType = 'nrc';
+        renderDataPanel();
+      });
+
+      // Manual 탭 클릭
+      btnManual.addEventListener('click', () => {
+        if (state.recordType !== 'daily') return;
+        state.dataType = 'manual';
+        renderDataPanel();
+      });
+
+      // =========================
       // Manual modal
+      // =========================
       function openManualModal(mode){
         manualModal.classList.add('show');
         manualModal.setAttribute('aria-hidden','false');
@@ -572,16 +701,12 @@
           setTimeout(() => paceMin.focus(), 30);
         }
       }
-
       function closeManualModalFn(){
         manualModal.classList.remove('show');
         manualModal.setAttribute('aria-hidden','true');
       }
-
       closeManualModal.addEventListener('click', closeManualModalFn);
-      manualModal.addEventListener('click', (e) => {
-        if (e.target === manualModal) closeManualModalFn();
-      });
+      manualModal.addEventListener('click', (e) => { if (e.target === manualModal) closeManualModalFn(); });
 
       function updateManualTexts(){
         manualDistanceText.textContent = (state.values.distanceKm || 0).toFixed(2);
@@ -619,20 +744,13 @@
         updatePreview();
       });
 
-      // Data tabs click
-      [btnGarmin, btnNrc, btnManual].forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (state.recordType === 'monthly') return;
-          setDataType(btn.dataset.dtype);
-        });
-      });
-
-      // Record type click
+      // =========================
+      // Other toggles
+      // =========================
       recordBtns.forEach(btn => {
         btn.addEventListener('click', () => setRecordType(btn.dataset.value));
       });
 
-      // Other toggles
       toggleButtons.forEach(button => {
         button.addEventListener('click', function () {
           const group = this.dataset.group;
@@ -647,26 +765,43 @@
           if (group === 'layout') state.layout = value;
           if (group === 'bgcolor') state.bgColor = value;
 
+          // layout toggle affects preview only
           updatePreview();
         });
       });
 
-      // RUN screen animation
-      function applyRunScreenStyles(){
-        runScreen.className = 'run-screen';
-        runScreen.classList.add(`bg-${state.bgColor}`);
-        runScreen.classList.add(`font-${state.font}`);
+      // =========================
+      // RUN RESULT SCREEN (Preview와 동일 레이아웃)
+      // - 0.5s hold at zero
+      // =========================
+      function applyResultStyles(){
+        resultScreen.className = 'screen-overlay result-screen show'; // keep show
+        resultScreen.classList.add(`bg-${state.bgColor}`);
+        resultScreen.classList.add(`font-${state.font}`);
+
+        resultWrap.classList.remove('type1','type2');
+        resultBlock.classList.remove('type1','type2');
+
+        resultWrap.classList.add(state.layout);
+        resultBlock.classList.add(state.layout);
       }
 
-      function animateRun(){
-        applyRunScreenStyles();
+      function openResultScreen(){
+        openScreen(resultScreen);
+        applyResultStyles();
+      }
+      function closeResultScreen(){
+        closeScreen(resultScreen);
+      }
+      resultClose.addEventListener('click', closeResultScreen);
 
-        runDistance.textContent = '00.00';
-        runPace.textContent = `00'00"`;
-        runTime.textContent = `00:00:00`;
+      function animateResult(){
+        openResultScreen();
 
-        runScreen.classList.add('show');
-        runScreen.setAttribute('aria-hidden','false');
+        // reset
+        rsDistance.textContent = '00.00Km';
+        rsPace.textContent = `00'00"`;
+        rsTime.textContent = `00:00:00`;
 
         const targetDistance = Number(state.values.distanceKm || 0);
         const targetPace = Number(state.values.paceSec || 0);
@@ -687,33 +822,30 @@
           const curPace = Math.round(targetPace * ease);
           const curTime = Math.round(targetTime * ease);
 
-          runDistance.textContent = curDist.toFixed(2);
-          runPace.textContent = formatPace(curPace);
-          runTime.textContent = formatTime(curTime);
+          rsDistance.textContent = curDist.toFixed(2) + 'Km';
+          rsPace.textContent = formatPace(curPace);
+          rsTime.textContent = formatTime(curTime);
 
           if (p < 1) requestAnimationFrame(tick);
         }
         requestAnimationFrame(tick);
       }
 
-      runBtn.addEventListener('click', animateRun);
-      runBackBtn.addEventListener('click', () => {
-        runScreen.classList.remove('show');
-        runScreen.setAttribute('aria-hidden','true');
-      });
+      runBtn.addEventListener('click', animateResult);
 
       window.addEventListener('resize', scheduleFit);
 
-      // Init
-      state.garminSelected = mockActivities[0];
-      applyGarminCard(state.garminSelected);
-      state.values.distanceKm = state.garminSelected.distanceKm;
-      state.values.paceSec = state.garminSelected.paceSec;
-      state.values.timeSec = state.garminSelected.timeSec;
+      // =========================
+      // Init (요구사항: 첫 화면은 data type 미선택 상태)
+      // =========================
+      state.values.distanceKm = 0;
+      state.values.paceSec = 0;
+      state.values.timeSec = 0;
 
-      updateManualTexts();
       setRecordType('daily');
-      setDataType('garmin');
+      state.dataType = null;      // ✅ 첫화면은 미선택
+      renderDataPanel();
+      updateManualTexts();
       updatePreview();
     });
   </script>
