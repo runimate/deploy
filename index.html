@@ -4,57 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RUNIMATE V.2.0</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <!-- ✅ 캐시 방지 -->
+  <link rel="stylesheet" href="./styles.css?v=20" />
 </head>
 <body>
   <div class="container">
     <!-- Header -->
-    <div class="header">
+    <header class="header">
       <h1 class="title">RUNIMATE <span class="version">V.2.0</span></h1>
       <p class="author">by JS @runarchive.js</p>
-    </div>
+    </header>
 
     <!-- RECORD TYPE -->
-    <div class="section">
+    <section class="section">
       <label class="section-label">RECORD TYPE</label>
       <div class="button-group no-wrap wide">
         <button type="button" class="toggle-btn active flex1" data-group="record" data-value="daily" aria-pressed="true">Daily</button>
         <button type="button" class="toggle-btn flex1" data-group="record" data-value="monthly" aria-pressed="false">Monthly</button>
       </div>
-    </div>
+    </section>
 
     <!-- DATA TYPE PANEL -->
-    <div class="section">
+    <section class="section">
       <div class="data-panel" id="dataPanel">
         <div class="data-panel-head">
           <div class="data-panel-title">DATA TYPE</div>
         </div>
 
-        <!-- Daily 전용: Garmin/NRC/Manual 탭 -->
+        <!-- Daily: Tabs -->
         <div class="data-tabs" id="dataTabs">
-          <button type="button" class="data-tab" id="btnGarmin" data-dtype="garmin">GARMIN</button>
-          <button type="button" class="data-tab" id="btnNrc" data-dtype="nrc">NRC</button>
-          <button type="button" class="data-tab" id="btnManual" data-dtype="manual">MANUAL</button>
+          <button type="button" class="data-tab garmin" id="btnGarmin" data-dtype="garmin">GARMIN</button>
+          <button type="button" class="data-tab nrc" id="btnNrc" data-dtype="nrc">NRC</button>
+          <button type="button" class="data-tab manual" id="btnManual" data-dtype="manual">MANUAL</button>
         </div>
 
         <!-- Garmin content -->
         <div class="data-content" id="contentGarmin">
-          <div class="garmin-card" id="garminCard" role="button" tabindex="0">
+          <div class="garmin-card" id="garminCard" role="button" tabindex="0" aria-label="Selected Garmin activity">
             <div class="garmin-card-left">
-              <div class="garmin-date" id="garminDate">YYYY.MM.DD</div>
+              <div class="garmin-date" id="garminDate">2025.12.12</div>
               <div class="garmin-stats">
-                <div class="garmin-stat" id="garminDist">0.00Km</div>
-                <div class="garmin-stat" id="garminPace">00'00"</div>
-                <div class="garmin-stat" id="garminTime">00:00:00</div>
+                <div class="garmin-stat" id="garminDist">14.64Km</div>
+                <div class="garmin-stat" id="garminPace">05'59"</div>
+                <div class="garmin-stat" id="garminTime">01:27:32</div>
               </div>
             </div>
+
             <button type="button" class="garmin-list-btn" id="garminListBtn" aria-label="Open activity list">
-              <span class="hamburger">
+              <span class="hamburger" aria-hidden="true">
                 <span></span><span></span><span></span>
               </span>
             </button>
           </div>
-          <div class="hint-text">* Garmin login / activity list screens will be coded later. (Temporary list modal is used now.)</div>
+
+          <div class="hint-text">
+            * Garmin login / activity list pages will be coded later. (Temporary list modal is used now.)
+          </div>
         </div>
 
         <!-- NRC content -->
@@ -68,28 +74,31 @@
         <!-- Manual content -->
         <div class="data-content" id="contentManual">
           <div class="sub-title">Enter Your Record</div>
+
           <div class="manual-row">
-            <button type="button" class="manual-chip" id="manualDistanceBtn">
+            <button type="button" class="manual-chip" id="manualDistanceBtn" aria-label="Edit distance">
               <span class="chip-label">Distance</span>
               <span class="chip-value" id="manualDistanceText">00.00</span>
               <span class="chip-unit">Km</span>
             </button>
-            <button type="button" class="manual-chip" id="manualPaceBtn">
+
+            <button type="button" class="manual-chip" id="manualPaceBtn" aria-label="Edit pace">
               <span class="chip-label">Pace</span>
               <span class="chip-value" id="manualPaceText">00'00"</span>
               <span class="chip-unit">/Km</span>
             </button>
           </div>
+
           <div class="manual-time-line">
             <span class="manual-time-label">Time</span>
             <span class="manual-time-value" id="manualTimeText">00:00:00</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- FONT -->
-    <div class="section">
+    <section class="section">
       <label class="section-label">FONT</label>
       <div class="button-group no-wrap five font-group">
         <button type="button" class="toggle-btn active font-btn" data-group="font" data-value="anton" aria-pressed="true">
@@ -108,10 +117,10 @@
           <span class="font-speed">SPEED</span>
         </button>
       </div>
-    </div>
+    </section>
 
     <!-- LAYOUT + BG COLOR -->
-    <div class="section">
+    <section class="section">
       <div class="two-col">
         <div class="col">
           <label class="section-label inline">LAYOUT</label>
@@ -120,6 +129,7 @@
             <button type="button" class="toggle-btn flex1" data-group="layout" data-value="type2" aria-pressed="false">Type 2</button>
           </div>
         </div>
+
         <div class="col">
           <label class="section-label inline">BG COLOR</label>
           <div class="button-group no-wrap two">
@@ -128,53 +138,55 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- PREVIEW -->
-    <div class="section">
+    <section class="section">
       <label class="section-label">PREVIEW</label>
-      <div id="preview" class="preview type1 bg-white font-anton">
+
+      <div id="preview" class="preview type2 bg-white font-anton">
         <div class="preview-content">
           <div class="data-item">
             <div class="data-label">DISTANCE</div>
-            <div class="data-value" id="pvDistance">00.00Km</div>
+            <div class="data-value" id="pvDistance">14.64Km</div>
           </div>
 
           <div class="data-item">
             <div class="data-label">PACE</div>
-            <div class="data-value" id="pvPace">00'00"</div>
+            <div class="data-value" id="pvPace">05'59"</div>
           </div>
 
           <div class="data-item">
             <div class="data-label">TIME</div>
-            <div class="data-value" id="pvTime">00:00:00</div>
+            <div class="data-value" id="pvTime">01:27:32</div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- RUN Button -->
     <button type="button" class="run-btn" id="runBtn">RUN</button>
   </div>
 
-  <!-- Garmin Activity List Modal (temporary) -->
+  <!-- ✅ Garmin Activity Modal (임시) -->
   <div class="modal-overlay" id="activityModal" aria-hidden="true">
     <div class="modal">
       <div class="modal-head">
         <div class="modal-title">Select Garmin Activity</div>
-        <button type="button" class="modal-close" id="closeActivityModal">×</button>
+        <button type="button" class="modal-close" id="closeActivityModal" aria-label="Close">×</button>
       </div>
       <div class="modal-body" id="activityList"></div>
     </div>
   </div>
 
-  <!-- Manual Input Modal -->
+  <!-- ✅ Manual Input Modal -->
   <div class="modal-overlay" id="manualModal" aria-hidden="true">
     <div class="modal">
       <div class="modal-head">
         <div class="modal-title" id="manualModalTitle">Input</div>
-        <button type="button" class="modal-close" id="closeManualModal">×</button>
+        <button type="button" class="modal-close" id="closeManualModal" aria-label="Close">×</button>
       </div>
+
       <div class="modal-body">
         <div class="manual-form" id="manualFormDistance">
           <label class="field-label">Distance (Km)</label>
@@ -184,18 +196,20 @@
 
         <div class="manual-form" id="manualFormPace">
           <label class="field-label">Pace (mm:ss /Km)</label>
+
           <div class="pace-grid">
             <input type="number" inputmode="numeric" min="0" max="59" class="field-input" id="paceMin" placeholder="mm" />
             <div class="colon">:</div>
             <input type="number" inputmode="numeric" min="0" max="59" class="field-input" id="paceSec" placeholder="ss" />
           </div>
+
           <button type="button" class="field-save" id="savePace">Save</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RUN Screen -->
+  <!-- ✅ RUN Screen -->
   <div class="run-screen" id="runScreen" aria-hidden="true">
     <button class="run-back" id="runBackBtn" aria-label="Back">←</button>
 
@@ -218,8 +232,11 @@
     </div>
   </div>
 
-  <!-- OCR engine (Tesseract.js) -->
+  <!-- OCR Engine -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- ✅ 캐시 방지 -->
+  <script src="./ocr.js?v=20"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -228,12 +245,9 @@
       const pvPace = document.getElementById('pvPace');
       const pvTime = document.getElementById('pvTime');
 
-      // Record type
-      const recordBtns = document.querySelectorAll('[data-group="record"]');
-
-      // Data type tabs
       const dataPanel = document.getElementById('dataPanel');
       const dataTabs = document.getElementById('dataTabs');
+
       const btnGarmin = document.getElementById('btnGarmin');
       const btnNrc = document.getElementById('btnNrc');
       const btnManual = document.getElementById('btnManual');
@@ -242,7 +256,7 @@
       const contentNrc = document.getElementById('contentNrc');
       const contentManual = document.getElementById('contentManual');
 
-      // Garmin card & modal
+      // Garmin
       const garminCard = document.getElementById('garminCard');
       const garminListBtn = document.getElementById('garminListBtn');
       const garminDate = document.getElementById('garminDate');
@@ -254,7 +268,7 @@
       const closeActivityModal = document.getElementById('closeActivityModal');
       const activityList = document.getElementById('activityList');
 
-      // NRC upload
+      // NRC
       const nrcFile = document.getElementById('nrcFile');
       const nrcUploadBtn = document.getElementById('nrcUploadBtn');
       const ocrStatus = document.getElementById('ocrStatus');
@@ -271,15 +285,16 @@
       const manualModalTitle = document.getElementById('manualModalTitle');
       const manualFormDistance = document.getElementById('manualFormDistance');
       const manualFormPace = document.getElementById('manualFormPace');
+
       const distanceInput = document.getElementById('distanceInput');
       const paceMin = document.getElementById('paceMin');
       const paceSec = document.getElementById('paceSec');
       const saveDistance = document.getElementById('saveDistance');
       const savePace = document.getElementById('savePace');
 
-      // Layout / font / bg
+      // Toggles
       const toggleButtons = document.querySelectorAll('.toggle-btn');
-      const actionButtons = document.querySelectorAll('.action-btn'); // (현재는 안 씀)
+      const recordBtns = document.querySelectorAll('[data-group="record"]');
       const runBtn = document.getElementById('runBtn');
 
       // Run screen
@@ -289,55 +304,37 @@
       const runPace = document.getElementById('runPace');
       const runTime = document.getElementById('runTime');
 
-      // ------------------------
-      // State
-      // ------------------------
       const state = {
-        recordType: 'daily',     // daily | monthly
-        dataType: 'garmin',      // garmin | nrc | manual
+        recordType: 'daily',   // daily | monthly
+        dataType: 'garmin',    // garmin | nrc | manual (monthly: nrc only)
         font: 'anton',
-        layout: 'type1',
+        layout: 'type2',
         bgColor: 'white',
-        values: {
-          distanceKm: 0,
-          paceSec: 0,
-          timeSec: 0
-        },
+        values: { distanceKm: 14.64, paceSec: 5*60+59, timeSec: 1*3600 + 27*60 + 32 },
         garminSelected: null
       };
 
-      // Temporary Garmin activity list (mock)
       const mockActivities = [
         { id: 'a1', date: '2025.12.12', distanceKm: 14.64, paceSec: 5*60+59, timeSec: 1*3600 + 27*60 + 32 },
         { id: 'a2', date: '2025.12.09', distanceKm: 10.00, paceSec: 5*60+12, timeSec: 0*3600 + 52*60 + 0 },
         { id: 'a3', date: '2025.12.06', distanceKm: 21.10, paceSec: 5*60+33, timeSec: 1*3600 + 57*60 + 0 }
       ];
 
-      // ------------------------
-      // Helpers
-      // ------------------------
       function pad2(n){ return String(n).padStart(2,'0'); }
-
-      function formatDistance(km){
-        const v = (isFinite(km) ? km : 0);
-        return v.toFixed(2) + 'Km';
-      }
-
-      function formatPace(paceSec){
-        const s = Math.max(0, Math.round(paceSec || 0));
-        const mm = Math.floor(s / 60);
-        const ss = s % 60;
+      function formatDistance(km){ return (Number(km||0)).toFixed(2) + 'Km'; }
+      function formatPace(sec){
+        const s = Math.max(0, Math.round(sec||0));
+        const mm = Math.floor(s/60);
+        const ss = s%60;
         return `${pad2(mm)}'${pad2(ss)}"`;
       }
-
-      function formatTime(totalSec){
-        const s = Math.max(0, Math.round(totalSec || 0));
-        const hh = Math.floor(s / 3600);
-        const mm = Math.floor((s % 3600) / 60);
-        const ss = s % 60;
+      function formatTime(sec){
+        const s = Math.max(0, Math.round(sec||0));
+        const hh = Math.floor(s/3600);
+        const mm = Math.floor((s%3600)/60);
+        const ss = s%60;
         return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
       }
-
       function computeTime(distanceKm, paceSec){
         if (!distanceKm || !paceSec) return 0;
         return Math.round(distanceKm * paceSec);
@@ -345,18 +342,19 @@
 
       function setActiveToggle(group, value){
         document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.value === value);
-          btn.setAttribute('aria-pressed', btn.dataset.value === value ? 'true' : 'false');
+          const on = btn.dataset.value === value;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
       }
 
-      function getSelected(group){
-        return document.querySelector(`[data-group="${group}"].active`)?.dataset.value || null;
+      function applyGarminCard(act){
+        garminDate.textContent = act.date;
+        garminDist.textContent = act.distanceKm.toFixed(2) + 'Km';
+        garminPace.textContent = formatPace(act.paceSec);
+        garminTime.textContent = formatTime(act.timeSec);
       }
 
-      // ------------------------
-      // Preview apply
-      // ------------------------
       function applyPreviewStyles(){
         preview.className = 'preview';
         preview.classList.add(state.layout);
@@ -370,7 +368,7 @@
         pvTime.textContent = formatTime(state.values.timeSec);
       }
 
-      // unified fit: make all .data-value same size (avoid ugly different sizes)
+      // ✅ 3개 값 동일한 폰트 사이즈로 fit (잘림 방지 + 크기 통일)
       function fitPreviewNumbersUnified(){
         const values = Array.from(preview.querySelectorAll('.data-value'));
         if (!values.length) return;
@@ -398,11 +396,8 @@
         let lo = min, hi = base, best = min;
         for (let i = 0; i < 20; i++) {
           const mid = (lo + hi) / 2;
-          if (fitsAll(mid)) {
-            best = mid; lo = mid;
-          } else {
-            hi = mid;
-          }
+          if (fitsAll(mid)) { best = mid; lo = mid; }
+          else { hi = mid; }
         }
 
         values.forEach(el => {
@@ -413,9 +408,7 @@
 
         let worstRatio = 1;
         values.forEach(el => {
-          if (el.scrollWidth > 0) {
-            worstRatio = Math.min(worstRatio, el.clientWidth / el.scrollWidth);
-          }
+          if (el.scrollWidth > 0) worstRatio = Math.min(worstRatio, el.clientWidth / el.scrollWidth);
         });
 
         if (worstRatio < 1) {
@@ -427,15 +420,11 @@
       }
 
       function scheduleFit(){
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => fitPreviewNumbersUnified());
-        });
+        requestAnimationFrame(() => requestAnimationFrame(fitPreviewNumbersUnified));
         if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(() => {
-            requestAnimationFrame(fitPreviewNumbersUnified);
-          });
+          document.fonts.ready.then(() => requestAnimationFrame(fitPreviewNumbersUnified));
         }
-        setTimeout(() => fitPreviewNumbersUnified(), 80);
+        setTimeout(fitPreviewNumbersUnified, 60);
       }
 
       function updatePreview(){
@@ -444,82 +433,49 @@
         scheduleFit();
       }
 
-      // ------------------------
-      // Data panel render
-      // ------------------------
       function setDataType(dtype){
+        // monthly: NRC only
+        if (state.recordType === 'monthly') dtype = 'nrc';
         state.dataType = dtype;
 
-        // Monthly constraint
-        if (state.recordType === 'monthly') {
-          state.dataType = 'nrc';
-          dtype = 'nrc';
-        }
-
-        // tab active style
-        [btnGarmin, btnNrc, btnManual].forEach(b => b.classList.remove('active','garmin','nrc','manual','disabled'));
+        // tabs state
+        const tabs = [btnGarmin, btnNrc, btnManual];
+        tabs.forEach(t => t.classList.remove('active'));
 
         if (state.recordType === 'monthly') {
-          // hide tabs, only show NRC uploader
           dataTabs.style.display = 'none';
-          btnGarmin.classList.add('disabled');
-          btnManual.classList.add('disabled');
+          dataPanel.classList.add('monthly');
         } else {
           dataTabs.style.display = 'flex';
-          // enable
-          btnGarmin.classList.remove('disabled');
-          btnManual.classList.remove('disabled');
+          dataPanel.classList.remove('monthly');
         }
 
-        if (state.recordType === 'daily') {
-          if (dtype === 'garmin') { btnGarmin.classList.add('active','garmin'); }
-          if (dtype === 'nrc') { btnNrc.classList.add('active','nrc'); }
-          if (dtype === 'manual') { btnManual.classList.add('active','manual'); }
-        } else {
-          // monthly
-          btnNrc.classList.add('active','nrc');
-        }
+        if (dtype === 'garmin') btnGarmin.classList.add('active');
+        if (dtype === 'nrc') btnNrc.classList.add('active');
+        if (dtype === 'manual') btnManual.classList.add('active');
 
         // content visibility
         contentGarmin.style.display = (dtype === 'garmin' && state.recordType === 'daily') ? 'block' : 'none';
         contentManual.style.display = (dtype === 'manual' && state.recordType === 'daily') ? 'block' : 'none';
         contentNrc.style.display = (dtype === 'nrc') ? 'block' : 'none';
 
-        // If monthly, change panel header slightly like screenshot 4
-        dataPanel.classList.toggle('monthly', state.recordType === 'monthly');
-
-        // If switching to garmin and nothing selected, prompt select
-        if (dtype === 'garmin' && state.recordType === 'daily' && !state.garminSelected) {
-          openActivityModal();
-        }
-
         updatePreview();
       }
 
-      function setRecordType(type){
-        state.recordType = type;
-        setActiveToggle('record', type);
+      function setRecordType(rt){
+        state.recordType = rt;
+        setActiveToggle('record', rt);
 
-        if (type === 'monthly') {
-          // force NRC only
-          setDataType('nrc');
-        } else {
-          // restore daily default: keep current if valid, else garmin
-          if (state.dataType !== 'garmin' && state.dataType !== 'nrc' && state.dataType !== 'manual') {
-            state.dataType = 'garmin';
-          }
-          setDataType(state.dataType);
-        }
+        if (rt === 'monthly') setDataType('nrc');
+        else setDataType(state.dataType || 'garmin');
       }
 
-      // ------------------------
-      // Garmin selection (temporary modal)
-      // ------------------------
+      // Garmin modal
       function openActivityModal(){
         activityModal.classList.add('show');
-        activityModal.setAttribute('aria-hidden','false');
-
+        activityModal.setAttribute('aria-hidden', 'false');
         activityList.innerHTML = '';
+
         mockActivities.forEach(act => {
           const row = document.createElement('button');
           row.type = 'button';
@@ -547,14 +503,7 @@
 
       function closeActivityModalFn(){
         activityModal.classList.remove('show');
-        activityModal.setAttribute('aria-hidden','true');
-      }
-
-      function applyGarminCard(act){
-        garminDate.textContent = act.date;
-        garminDist.textContent = act.distanceKm.toFixed(2) + 'Km';
-        garminPace.textContent = formatPace(act.paceSec);
-        garminTime.textContent = formatTime(act.timeSec);
+        activityModal.setAttribute('aria-hidden', 'true');
       }
 
       closeActivityModal.addEventListener('click', closeActivityModalFn);
@@ -566,14 +515,12 @@
         e.stopPropagation();
         openActivityModal();
       });
-      garminCard.addEventListener('click', () => openActivityModal());
+      garminCard.addEventListener('click', openActivityModal);
       garminCard.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') openActivityModal();
       });
 
-      // ------------------------
       // NRC OCR
-      // ------------------------
       nrcUploadBtn.addEventListener('click', () => nrcFile.click());
       nrcFile.addEventListener('change', async () => {
         const file = nrcFile.files?.[0];
@@ -583,27 +530,15 @@
         ocrStatus.classList.add('show');
 
         try{
-          const imgUrl = URL.createObjectURL(file);
-          const { data } = await Tesseract.recognize(imgUrl, 'eng', {
-            logger: m => {
-              if (m.status && typeof m.progress === 'number') {
-                ocrStatus.textContent = `${m.status} ${(m.progress * 100).toFixed(0)}%`;
-              }
-            }
+          const result = await window.RunimateOCR.recognizeNRCImage(file, (msg) => {
+            ocrStatus.textContent = msg;
           });
-          URL.revokeObjectURL(imgUrl);
 
-          const text = (data?.text || '').replace(/\s+/g,' ').trim();
-          ocrStatus.textContent = 'OCR done. Parsing...';
+          if (result.distanceKm != null) state.values.distanceKm = result.distanceKm; // OCR distance is final
+          if (result.paceSec != null) state.values.paceSec = result.paceSec;
+          if (result.timeSec != null) state.values.timeSec = result.timeSec;
 
-          const parsed = parseNrcText(text);
-          // distance should always prefer OCR (as per older rules)
-          if (parsed.distanceKm != null) state.values.distanceKm = parsed.distanceKm;
-          if (parsed.paceSec != null) state.values.paceSec = parsed.paceSec;
-          if (parsed.timeSec != null) state.values.timeSec = parsed.timeSec;
-
-          // If time missing but pace+distance exist -> compute
-          if ((!parsed.timeSec || parsed.timeSec === 0) && state.values.distanceKm > 0 && state.values.paceSec > 0) {
+          if ((!result.timeSec || result.timeSec === 0) && state.values.distanceKm > 0 && state.values.paceSec > 0) {
             state.values.timeSec = computeTime(state.values.distanceKm, state.values.paceSec);
           }
 
@@ -615,54 +550,7 @@
         }
       });
 
-      function parseNrcText(text){
-        // distance: 14.64 km / 14,64 km
-        let distanceKm = null;
-        const distMatch = text.match(/(\d{1,3}(?:[.,]\d{1,2})?)\s*(km|kilometer|kilometre)/i);
-        if (distMatch) {
-          distanceKm = parseFloat(distMatch[1].replace(',','.'));
-          if (!isFinite(distanceKm)) distanceKm = null;
-        }
-
-        // time: hh:mm:ss
-        let timeSec = null;
-        const timeMatch = text.match(/(\d{1,2})\s*[:]\s*(\d{2})\s*[:]\s*(\d{2})/);
-        if (timeMatch) {
-          const hh = parseInt(timeMatch[1],10);
-          const mm = parseInt(timeMatch[2],10);
-          const ss = parseInt(timeMatch[3],10);
-          timeSec = hh*3600 + mm*60 + ss;
-        }
-
-        // pace: mm:ss (try to find with "/km" or "pace" nearby, otherwise first reasonable mm:ss)
-        let paceSec = null;
-
-        const paceHint = text.match(/(?:pace|\/\s*km|per\s*km).{0,20}?(\d{1,2})\s*[:'’]\s*(\d{2})/i);
-        if (paceHint) {
-          const mm = parseInt(paceHint[1],10);
-          const ss = parseInt(paceHint[2],10);
-          if (mm >= 0 && mm <= 30 && ss >= 0 && ss < 60) paceSec = mm*60 + ss;
-        }
-
-        if (paceSec == null) {
-          const all = [...text.matchAll(/(\d{1,2})\s*[:'’]\s*(\d{2})/g)];
-          for (const m of all) {
-            const mm = parseInt(m[1],10);
-            const ss = parseInt(m[2],10);
-            // avoid picking time hh:mm:ss parts (already matched) by limiting mm
-            if (mm >= 0 && mm <= 30 && ss >= 0 && ss < 60) {
-              paceSec = mm*60 + ss;
-              break;
-            }
-          }
-        }
-
-        return { distanceKm, paceSec, timeSec };
-      }
-
-      // ------------------------
-      // Manual input
-      // ------------------------
+      // Manual modal
       function openManualModal(mode){
         manualModal.classList.add('show');
         manualModal.setAttribute('aria-hidden','false');
@@ -672,7 +560,7 @@
           manualFormDistance.style.display = 'block';
           manualFormPace.style.display = 'none';
           distanceInput.value = (state.values.distanceKm || 0).toFixed(2);
-          setTimeout(() => distanceInput.focus(), 50);
+          setTimeout(() => distanceInput.focus(), 30);
         } else {
           manualModalTitle.textContent = 'Pace';
           manualFormDistance.style.display = 'none';
@@ -681,7 +569,7 @@
           const ss = (state.values.paceSec || 0) % 60;
           paceMin.value = mm ? String(mm) : '';
           paceSec.value = ss ? String(ss).padStart(2,'0') : '';
-          setTimeout(() => paceMin.focus(), 50);
+          setTimeout(() => paceMin.focus(), 30);
         }
       }
 
@@ -695,6 +583,12 @@
         if (e.target === manualModal) closeManualModalFn();
       });
 
+      function updateManualTexts(){
+        manualDistanceText.textContent = (state.values.distanceKm || 0).toFixed(2);
+        manualPaceText.textContent = formatPace(state.values.paceSec);
+        manualTimeText.textContent = formatTime(state.values.timeSec);
+      }
+
       manualDistanceBtn.addEventListener('click', () => openManualModal('distance'));
       manualPaceBtn.addEventListener('click', () => openManualModal('pace'));
 
@@ -702,124 +596,48 @@
         const v = parseFloat(String(distanceInput.value || '').replace(',','.'));
         state.values.distanceKm = isFinite(v) ? Math.max(0, v) : 0;
 
-        // compute time if pace exists
         if (state.values.distanceKm > 0 && state.values.paceSec > 0) {
           state.values.timeSec = computeTime(state.values.distanceKm, state.values.paceSec);
         }
-
         updateManualTexts();
         closeManualModalFn();
         updatePreview();
       });
 
       savePace.addEventListener('click', () => {
-        const mm = parseInt(paceMin.value || '0',10);
-        const ss = parseInt(paceSec.value || '0',10);
+        const mm = parseInt(paceMin.value || '0', 10);
+        const ss = parseInt(paceSec.value || '0', 10);
         const mmSafe = isFinite(mm) ? Math.max(0, mm) : 0;
         const ssSafe = isFinite(ss) ? Math.min(59, Math.max(0, ss)) : 0;
-        state.values.paceSec = mmSafe*60 + ssSafe;
+        state.values.paceSec = mmSafe * 60 + ssSafe;
 
-        // compute time if distance exists
         if (state.values.distanceKm > 0 && state.values.paceSec > 0) {
           state.values.timeSec = computeTime(state.values.distanceKm, state.values.paceSec);
         }
-
         updateManualTexts();
         closeManualModalFn();
         updatePreview();
       });
 
-      function updateManualTexts(){
-        manualDistanceText.textContent = (state.values.distanceKm || 0).toFixed(2);
-        manualPaceText.textContent = formatPace(state.values.paceSec);
-        manualTimeText.textContent = formatTime(state.values.timeSec);
-      }
-
-      // ------------------------
-      // RUN animation screen
-      // ------------------------
-      function applyRunScreenStyles(){
-        runScreen.className = 'run-screen';
-        runScreen.classList.add(`bg-${state.bgColor}`);
-        runScreen.classList.add(`font-${state.font}`);
-      }
-
-      function animateRun(){
-        applyRunScreenStyles();
-
-        // reset
-        runDistance.textContent = '00.00';
-        runPace.textContent = `00'00"`;
-        runTime.textContent = `00:00:00`;
-
-        runScreen.classList.add('show');
-        runScreen.setAttribute('aria-hidden','false');
-
-        const targetDistance = Number(state.values.distanceKm || 0);
-        const targetPace = Number(state.values.paceSec || 0);
-        const targetTime = Number(state.values.timeSec || 0);
-
-        const holdMs = 500;     // 0.5초 멈춤
-        const durationMs = 1200;
-
-        const start = performance.now();
-
-        function tick(now){
-          const t = now - start;
-
-          if (t < holdMs) {
-            requestAnimationFrame(tick);
-            return;
-          }
-
-          const p = Math.min(1, (t - holdMs) / durationMs);
-          const ease = 1 - Math.pow(1 - p, 3); // easeOutCubic
-
-          const curDist = targetDistance * ease;
-          const curPace = Math.round(targetPace * ease);
-          const curTime = Math.round(targetTime * ease);
-
-          runDistance.textContent = curDist.toFixed(2);
-          runPace.textContent = formatPace(curPace);
-          runTime.textContent = formatTime(curTime);
-
-          if (p < 1) requestAnimationFrame(tick);
-        }
-
-        requestAnimationFrame(tick);
-      }
-
-      runBackBtn.addEventListener('click', () => {
-        runScreen.classList.remove('show');
-        runScreen.setAttribute('aria-hidden','true');
-      });
-
-      // ------------------------
-      // UI wiring
-      // ------------------------
-      // Record type buttons
-      recordBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          setRecordType(btn.dataset.value);
-        });
-      });
-
-      // Data tabs (daily only)
+      // Data tabs click
       [btnGarmin, btnNrc, btnManual].forEach(btn => {
         btn.addEventListener('click', () => {
-          if (state.recordType === 'monthly') return; // locked
-          const dtype = btn.dataset.dtype;
-          setDataType(dtype);
+          if (state.recordType === 'monthly') return;
+          setDataType(btn.dataset.dtype);
         });
       });
 
-      // Toggle buttons (font/layout/bg)
+      // Record type click
+      recordBtns.forEach(btn => {
+        btn.addEventListener('click', () => setRecordType(btn.dataset.value));
+      });
+
+      // Other toggles
       toggleButtons.forEach(button => {
         button.addEventListener('click', function () {
           const group = this.dataset.group;
           const value = this.dataset.value;
 
-          // record handled separately above
           if (group === 'record') return;
 
           document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => btn.classList.remove('active'));
@@ -833,14 +651,60 @@
         });
       });
 
-      // RUN
-      runBtn.addEventListener('click', () => {
-        // Daily: allow all. Monthly: NRC only (already enforced)
-        animateRun();
+      // RUN screen animation
+      function applyRunScreenStyles(){
+        runScreen.className = 'run-screen';
+        runScreen.classList.add(`bg-${state.bgColor}`);
+        runScreen.classList.add(`font-${state.font}`);
+      }
+
+      function animateRun(){
+        applyRunScreenStyles();
+
+        runDistance.textContent = '00.00';
+        runPace.textContent = `00'00"`;
+        runTime.textContent = `00:00:00`;
+
+        runScreen.classList.add('show');
+        runScreen.setAttribute('aria-hidden','false');
+
+        const targetDistance = Number(state.values.distanceKm || 0);
+        const targetPace = Number(state.values.paceSec || 0);
+        const targetTime = Number(state.values.timeSec || 0);
+
+        const holdMs = 500;
+        const durationMs = 1200;
+        const start = performance.now();
+
+        function tick(now){
+          const t = now - start;
+          if (t < holdMs) { requestAnimationFrame(tick); return; }
+
+          const p = Math.min(1, (t - holdMs) / durationMs);
+          const ease = 1 - Math.pow(1 - p, 3);
+
+          const curDist = targetDistance * ease;
+          const curPace = Math.round(targetPace * ease);
+          const curTime = Math.round(targetTime * ease);
+
+          runDistance.textContent = curDist.toFixed(2);
+          runPace.textContent = formatPace(curPace);
+          runTime.textContent = formatTime(curTime);
+
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      runBtn.addEventListener('click', animateRun);
+      runBackBtn.addEventListener('click', () => {
+        runScreen.classList.remove('show');
+        runScreen.setAttribute('aria-hidden','true');
       });
 
-      // Init defaults
-      // Set data type initial garmin + select first mock activity
+      window.addEventListener('resize', scheduleFit);
+
+      // Init
       state.garminSelected = mockActivities[0];
       applyGarminCard(state.garminSelected);
       state.values.distanceKm = state.garminSelected.distanceKm;
