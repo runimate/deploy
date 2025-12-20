@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RUNIMATE V.2.0</title>
-  <link rel="stylesheet" href="./styles.css?v=21" />
+  <link rel="stylesheet" href="./styles.css?v=22" />
 </head>
 <body>
   <div class="container">
@@ -47,8 +47,8 @@
               <div class="garmin-date" id="garminDate">2025.12.12</div>
               <div class="garmin-stats">
                 <div class="garmin-stat" id="garminDist">14.64Km</div>
-                <div class="garmin-stat" id="garminPace">05'59"</div>
-                <div class="garmin-stat" id="garminTime">01:27:32</div>
+                <div class="garmin-stat" id="garminPace">5'59"</div>
+                <div class="garmin-stat" id="garminTime">1:27:32</div>
               </div>
             </div>
 
@@ -242,14 +242,13 @@
 
   <!-- =========================
        RUN RESULT SCREEN (Preview와 동일 레이아웃)
-       - Type1: Preview의 2배 사이즈
-       - Type2: Preview와 같은 사이즈
+       - Type1: 1.5배 + 세로 중앙정렬
+       - Type2: Preview와 같은 사이즈 + overflow 방지 fit
        ========================= -->
   <div class="screen-overlay result-screen" id="resultScreen" aria-hidden="true">
     <button class="screen-close" id="resultClose" aria-label="Close">×</button>
 
     <div class="result-wrap" id="resultWrap">
-      <!-- type1 / type2에 따라 JS가 클래스 토글 -->
       <div class="result-block" id="resultBlock">
         <div class="result-item">
           <div class="result-label">DISTANCE</div>
@@ -271,7 +270,7 @@
 
   <!-- OCR Engine -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./ocr.js?v=21"></script>
+  <script src="./ocr.js?v=22"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -363,7 +362,7 @@
         garminAuthed: false
       };
 
-      // Mock workouts (나중에 Garmin 연동되면 여기 replace)
+      // Mock workouts
       const mockActivities = [
         { id: 'a1', date: '2025.12.12', distanceKm: 14.64, paceSec: 5*60+59, timeSec: 1*3600 + 27*60 + 32 },
         { id: 'a2', date: '2025.12.09', distanceKm: 10.00, paceSec: 5*60+12, timeSec: 0*3600 + 52*60 + 0 },
@@ -373,20 +372,41 @@
       ];
 
       function pad2(n){ return String(n).padStart(2,'0'); }
+
       function formatDistance(km){ return (Number(km||0)).toFixed(2) + 'Km'; }
-      function formatPace(sec){
+
+      // ✅ Preview/리스트용: 0값은 00 유지, 실제 값은 분 0패딩 제거(초는 2자리 유지)
+      function formatPaceUI(sec){
+        const s = Math.max(0, Math.round(sec||0));
+        if (s === 0) return `00'00"`;
+        const mm = Math.floor(s/60);
+        const ss = s%60;
+        return `${mm}'${pad2(ss)}"`;
+      }
+
+      // ✅ Result용: "5' 30"" 형식 (분 0패딩 제거 + ' 뒤에 공백)
+      function formatPaceResult(sec){
         const s = Math.max(0, Math.round(sec||0));
         const mm = Math.floor(s/60);
         const ss = s%60;
-        return `${pad2(mm)}'${pad2(ss)}"`;
+        return `${mm}' ${pad2(ss)}"`;
       }
-      function formatTime(sec){
+
+      // ✅ time: 맨앞 0 제거 (시만 0패딩 제거), 0값은 00:00:00 유지
+      function formatTimeUI(sec){
         const s = Math.max(0, Math.round(sec||0));
+        if (s === 0) return `00:00:00`;
         const hh = Math.floor(s/3600);
         const mm = Math.floor((s%3600)/60);
         const ss = s%60;
-        return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
+        return `${hh}:${pad2(mm)}:${pad2(ss)}`;
       }
+
+      // result도 동일 규칙
+      function formatTimeResult(sec){
+        return formatTimeUI(sec);
+      }
+
       function computeTime(distanceKm, paceSec){
         if (!distanceKm || !paceSec) return 0;
         return Math.round(distanceKm * paceSec);
@@ -407,8 +427,8 @@
       function applyGarminCard(act){
         garminDate.textContent = act.date;
         garminDist.textContent = act.distanceKm.toFixed(2) + 'Km';
-        garminPace.textContent = formatPace(act.paceSec);
-        garminTime.textContent = formatTime(act.timeSec);
+        garminPace.textContent = formatPaceUI(act.paceSec);
+        garminTime.textContent = formatTimeUI(act.timeSec);
       }
 
       function applyPreviewStyles(){
@@ -420,11 +440,11 @@
 
       function applyPreviewValues(){
         pvDistance.textContent = formatDistance(state.values.distanceKm);
-        pvPace.textContent = formatPace(state.values.paceSec);
-        pvTime.textContent = formatTime(state.values.timeSec);
+        pvPace.textContent = formatPaceUI(state.values.paceSec);
+        pvTime.textContent = formatTimeUI(state.values.timeSec);
       }
 
-      // ✅ Preview 숫자 폭 넘침 방지 + 3개 값 폰트 크기 통일
+      // ✅ Preview 넘침 방지 + 3개 값 폰트 크기 통일
       function fitPreviewNumbersUnified(){
         const values = Array.from(preview.querySelectorAll('.data-value'));
         if (!values.length) return;
@@ -489,7 +509,7 @@
         scheduleFit();
       }
 
-      // ✅ Data panel rendering (핵심)
+      // ✅ Data panel rendering
       function renderDataPanel(){
         // Monthly: NRC only
         if (state.recordType === 'monthly') {
@@ -508,7 +528,6 @@
         dataPanel.classList.remove('monthly');
 
         if (!state.dataType) {
-          // 이미지 3 상태: 탭만 있고 아래는 아무것도 없음
           clearDataTabActive();
           dataEmpty.style.display = 'block';
           contentGarmin.style.display = 'none';
@@ -534,11 +553,6 @@
 
         if (rt === 'monthly') {
           state.dataType = 'nrc';
-        } else {
-          // Daily 돌아오면 "미선택 상태"로 유지
-          if (state.dataType === 'nrc' && rt === 'daily') {
-            // 그대로 둬도 되지만, 요구사항은 "선택 전 상태"가 첫화면이므로 초기만 null로 둠.
-          }
         }
 
         renderDataPanel();
@@ -546,7 +560,7 @@
       }
 
       // =========================
-      // Garmin Screens (Login -> Select)
+      // Screen helpers
       // =========================
       function openScreen(el){
         el.classList.add('show');
@@ -559,12 +573,15 @@
         document.body.classList.remove('no-scroll');
       }
 
+      // =========================
+      // Garmin Screens (Login -> Select)
+      // =========================
       function openGarminLogin(){
         openScreen(garminLoginScreen);
         setTimeout(() => gcEmail.focus(), 60);
       }
+
       function openGarminSelect(){
-        // build list
         selectList.innerHTML = '';
         mockActivities.forEach(act => {
           const row = document.createElement('button');
@@ -575,8 +592,8 @@
               <div class="wr-date">${act.date}</div>
               <div class="wr-stats">
                 <span>${act.distanceKm.toFixed(2)}Km</span>
-                <span>${formatPace(act.paceSec)}</span>
-                <span>${formatTime(act.timeSec)}</span>
+                <span>${formatPaceUI(act.paceSec)}</span>
+                <span>${formatTimeUI(act.timeSec)}</span>
               </div>
             </div>
             <div class="wr-arrow">→</div>
@@ -593,7 +610,7 @@
             updatePreview();
 
             closeScreen(garminSelectScreen);
-            closeScreen(garminLoginScreen); // 로그인에서 넘어온 경우 같이 닫힘
+            closeScreen(garminLoginScreen);
           });
           selectList.appendChild(row);
         });
@@ -604,24 +621,16 @@
       garminLoginClose.addEventListener('click', () => closeScreen(garminLoginScreen));
       garminSelectClose.addEventListener('click', () => closeScreen(garminSelectScreen));
 
-      // 로그인 버튼(지금은 mock: 바로 select로)
       gcSignInBtn.addEventListener('click', () => {
         state.garminAuthed = true;
-
-        // 실제 연동 준비 포인트:
-        // 여기서 (server)로 email/pass 보내는 방식은 추천하지 않음.
-        // Garmin 공식 키/토큰 플로우(or 서버 프록시)로 교체 예정.
         openGarminSelect();
       });
 
-      // Garmin 탭 클릭
       btnGarmin.addEventListener('click', () => {
         if (state.recordType !== 'daily') return;
-        // Garmin 선택 시 로그인 화면으로 (요구사항)
         openGarminLogin();
       });
 
-      // Garmin 카드/리스트 버튼 -> 활동 선택 화면(요구사항 + 현재 모달 대신 full screen)
       garminListBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         openGarminSelect();
@@ -663,14 +672,12 @@
         }
       });
 
-      // NRC 탭 클릭
       btnNrc.addEventListener('click', () => {
         if (state.recordType !== 'daily') return;
         state.dataType = 'nrc';
         renderDataPanel();
       });
 
-      // Manual 탭 클릭
       btnManual.addEventListener('click', () => {
         if (state.recordType !== 'daily') return;
         state.dataType = 'manual';
@@ -710,8 +717,8 @@
 
       function updateManualTexts(){
         manualDistanceText.textContent = (state.values.distanceKm || 0).toFixed(2);
-        manualPaceText.textContent = formatPace(state.values.paceSec);
-        manualTimeText.textContent = formatTime(state.values.timeSec);
+        manualPaceText.textContent = formatPaceUI(state.values.paceSec);
+        manualTimeText.textContent = formatTimeUI(state.values.timeSec);
       }
 
       manualDistanceBtn.addEventListener('click', () => openManualModal('distance'));
@@ -765,17 +772,16 @@
           if (group === 'layout') state.layout = value;
           if (group === 'bgcolor') state.bgColor = value;
 
-          // layout toggle affects preview only
           updatePreview();
         });
       });
 
       // =========================
-      // RUN RESULT SCREEN (Preview와 동일 레이아웃)
-      // - 0.5s hold at zero
+      // RUN RESULT SCREEN
+      // - 최종값 기준으로 한 번 fit(특히 type2 overflow 방지)
       // =========================
       function applyResultStyles(){
-        resultScreen.className = 'screen-overlay result-screen show'; // keep show
+        resultScreen.className = 'screen-overlay result-screen show';
         resultScreen.classList.add(`bg-${state.bgColor}`);
         resultScreen.classList.add(`font-${state.font}`);
 
@@ -795,48 +801,125 @@
       }
       resultClose.addEventListener('click', closeResultScreen);
 
+      function resetResultFit(){
+        const els = [rsDistance, rsPace, rsTime];
+        els.forEach(el => {
+          el.style.fontSize = '';
+          el.style.transform = '';
+          el.style.transformOrigin = '';
+        });
+      }
+
+      // ✅ result도 넘침 방지 (최종 문자열 기준)
+      function fitResultNumbersUnified(){
+        const values = [rsDistance, rsPace, rsTime];
+
+        values.forEach(el => {
+          el.style.fontSize = '';
+          el.style.transform = '';
+          el.style.transformOrigin = '';
+        });
+
+        // 각 칼럼 폭이 다를 수 있으니 "가장 작은 clientWidth" 기준으로 맞추는게 아니라,
+        // 각 엘리먼트별로 scrollWidth<=clientWidth 되도록 "공통 font-size"를 찾는다.
+        const base = parseFloat(getComputedStyle(values[0]).fontSize) || 34;
+        const min = 10;
+
+        const fitsAll = (sizePx) => {
+          values.forEach(el => {
+            el.style.fontSize = sizePx + 'px';
+            el.style.transform = '';
+            el.style.transformOrigin = '';
+          });
+          return values.every(el => el.scrollWidth <= el.clientWidth);
+        };
+
+        if (!fitsAll(base)) {
+          let lo = min, hi = base, best = min;
+          for (let i = 0; i < 20; i++) {
+            const mid = (lo + hi) / 2;
+            if (fitsAll(mid)) { best = mid; lo = mid; }
+            else { hi = mid; }
+          }
+          values.forEach(el => { el.style.fontSize = best + 'px'; });
+        }
+
+        // 그래도 한두개가 살짝 넘칠 수 있어 scaleX로 마지막 안전장치
+        let worstRatio = 1;
+        values.forEach(el => {
+          if (el.scrollWidth > 0) worstRatio = Math.min(worstRatio, el.clientWidth / el.scrollWidth);
+        });
+
+        if (worstRatio < 1) {
+          values.forEach(el => {
+            el.style.transformOrigin = 'left center';
+            el.style.transform = `scaleX(${worstRatio})`;
+          });
+        }
+      }
+
       function animateResult(){
         openResultScreen();
-
-        // reset
-        rsDistance.textContent = '00.00Km';
-        rsPace.textContent = `00'00"`;
-        rsTime.textContent = `00:00:00`;
 
         const targetDistance = Number(state.values.distanceKm || 0);
         const targetPace = Number(state.values.paceSec || 0);
         const targetTime = Number(state.values.timeSec || 0);
 
-        const holdMs = 500;
-        const durationMs = 1200;
-        const start = performance.now();
+        // 최종 문자열(결과 포맷) 준비
+        const finalDistStr = targetDistance.toFixed(2) + 'Km';
+        const finalPaceStr = formatPaceResult(targetPace);
+        const finalTimeStr = formatTimeResult(targetTime);
 
-        function tick(now){
-          const t = now - start;
-          if (t < holdMs) { requestAnimationFrame(tick); return; }
+        // 1) fit을 "최종 문자열" 기준으로 한 번 잡아두기 (특히 type2)
+        resetResultFit();
+        rsDistance.textContent = finalDistStr;
+        rsPace.textContent = finalPaceStr;
+        rsTime.textContent = finalTimeStr;
 
-          const p = Math.min(1, (t - holdMs) / durationMs);
-          const ease = 1 - Math.pow(1 - p, 3);
+        requestAnimationFrame(() => {
+          fitResultNumbersUnified();
 
-          const curDist = targetDistance * ease;
-          const curPace = Math.round(targetPace * ease);
-          const curTime = Math.round(targetTime * ease);
+          // 2) hold 시작값으로 리셋
+          rsDistance.textContent = '00.00Km';
+          rsPace.textContent = `00'00"`;
+          rsTime.textContent = `00:00:00`;
 
-          rsDistance.textContent = curDist.toFixed(2) + 'Km';
-          rsPace.textContent = formatPace(curPace);
-          rsTime.textContent = formatTime(curTime);
+          const holdMs = 500;
+          const durationMs = 1200;
+          const start = performance.now();
 
-          if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
+          function tick(now){
+            const t = now - start;
+            if (t < holdMs) { requestAnimationFrame(tick); return; }
+
+            const p = Math.min(1, (t - holdMs) / durationMs);
+            const ease = 1 - Math.pow(1 - p, 3);
+
+            const curDist = targetDistance * ease;
+            const curPace = Math.round(targetPace * ease);
+            const curTime = Math.round(targetTime * ease);
+
+            rsDistance.textContent = curDist.toFixed(2) + 'Km';
+            rsPace.textContent = formatPaceResult(curPace);
+            rsTime.textContent = formatTimeResult(curTime);
+
+            if (p < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
       }
 
       runBtn.addEventListener('click', animateResult);
 
-      window.addEventListener('resize', scheduleFit);
+      window.addEventListener('resize', () => {
+        scheduleFit();
+        if (resultScreen.classList.contains('show')) {
+          requestAnimationFrame(() => fitResultNumbersUnified());
+        }
+      });
 
       // =========================
-      // Init (요구사항: 첫 화면은 data type 미선택 상태)
+      // Init
       // =========================
       state.values.distanceKm = 0;
       state.values.paceSec = 0;
