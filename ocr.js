@@ -17,7 +17,6 @@
   }
 
   function parseNRCText(text) {
-    // distance: 14.64 km / 14,64 km / 14.64km
     let distanceKm = null;
     const distMatch = text.match(/(\d{1,3}(?:[.,]\d{1,2})?)\s*(km|kilometer|kilometre)\b/i);
     if (distMatch) {
@@ -25,7 +24,6 @@
       if (isFinite(v)) distanceKm = v;
     }
 
-    // time: hh:mm:ss
     let timeSec = null;
     const timeMatch = text.match(/(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})/);
     if (timeMatch) {
@@ -37,9 +35,7 @@
       }
     }
 
-    // pace: mm:ss (prefer hint)
     let paceSec = null;
-
     const paceHint = text.match(/(?:pace|\/\s*km|per\s*km).{0,24}?(\d{1,2})\s*[:']\s*(\d{2})/i);
     if (paceHint) {
       const mm = parseInt(paceHint[1], 10);
@@ -59,7 +55,6 @@
       }
     }
 
-    // sanity
     if (distanceKm != null) distanceKm = clamp(distanceKm, 0, 999);
     if (paceSec != null) paceSec = clamp(paceSec, 0, 30 * 60 + 59);
     if (timeSec != null) timeSec = clamp(timeSec, 0, 99 * 3600 + 59 * 60 + 59);
