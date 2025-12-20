@@ -137,7 +137,7 @@ body {
 
 .data-value{
   font-size: 26px;
-  letter-spacing: -1.3px;
+  letter-spacing: 0px;
   line-height: 1.05;
 }
 
@@ -163,13 +163,13 @@ body {
 .preview.font-dots .data-value{ font-family: 'Bitcount Grid Single', monospace; }
 
 .preview.font-lcd .data-label,
-.preview.font-lcd .data-value{ font-family: 'DS-Digital', monospace; font-style: italic; }
+.preview.font-lcd .data-value{ font-family: 'DS-Digital', monospace; }
 
 .preview.font-gothic .data-label,
 .preview.font-gothic .data-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
 
 .preview.font-speed .data-label,
-.preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; font-style: italic; }
+.preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
 /* RUN button */
 .run-btn{
