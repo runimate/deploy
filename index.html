@@ -1,209 +1,191 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RUNIMATE V.2.0</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RUNIMATE V.2.0</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1 class="title">RUNIMATE <span class="version">V.2.0</span></h1>
-            <p class="author">by JS @runarchive.js</p>
-        </div>
-
-        <!-- Record Type -->
-        <div class="section">
-            <label class="section-label">RECORD TYPE</label>
-            <div class="button-group">
-                <button type="button" class="toggle-btn active" data-group="record" data-value="daily" aria-pressed="true">Daily</button>
-                <button type="button" class="toggle-btn" data-group="record" data-value="monthly" aria-pressed="false">Monthly</button>
-            </div>
-        </div>
-
-        <!-- Data Type -->
-        <div class="section">
-            <label class="section-label">DATA TYPE</label>
-            <div class="button-group">
-                <button type="button" class="action-btn" data-group="data" data-value="garmin" aria-pressed="false">GARMIN</button>
-                <button type="button" class="action-btn" data-group="data" data-value="nrc" aria-pressed="false">NRC</button>
-                <button type="button" class="action-btn" data-group="data" data-value="manual" aria-pressed="false">MANUAL</button>
-            </div>
-        </div>
-
-        <!-- Font -->
-        <div class="section">
-            <label class="section-label">FONT</label>
-            <div class="button-group font-group">
-                <button type="button" class="toggle-btn active font-btn" data-group="font" data-value="anton" aria-pressed="true">
-                    <span class="font-anton">ANTON</span>
-                </button>
-                <button type="button" class="toggle-btn font-btn" data-group="font" data-value="dots" aria-pressed="false">
-                    <span class="font-dots">DOTS</span>
-                </button>
-                <button type="button" class="toggle-btn font-btn" data-group="font" data-value="lcd" aria-pressed="false">
-                    <span class="font-lcd">LCD</span>
-                </button>
-                <button type="button" class="toggle-btn font-btn" data-group="font" data-value="gothic" aria-pressed="false">
-                    <span class="font-gothic">GOTHIC</span>
-                </button>
-                <button type="button" class="toggle-btn font-btn" data-group="font" data-value="speed" aria-pressed="false">
-                    <span class="font-speed">SPEED</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Layout & BG Color -->
-        <div class="section">
-            <div class="split-section">
-                <div class="split-left">
-                    <label class="section-label">LAYOUT</label>
-                    <div class="button-group">
-                        <button type="button" class="toggle-btn active" data-group="layout" data-value="type1" aria-pressed="true">Type 1</button>
-                        <button type="button" class="toggle-btn" data-group="layout" data-value="type2" aria-pressed="false">Type 2</button>
-                    </div>
-                </div>
-                <div class="split-right">
-                    <label class="section-label">BG COLOR</label>
-                    <div class="button-group">
-                        <button type="button" class="toggle-btn active" data-group="bgcolor" data-value="white" aria-pressed="true">White</button>
-                        <button type="button" class="toggle-btn" data-group="bgcolor" data-value="black" aria-pressed="false">Black</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Preview -->
-        <div class="section">
-            <label class="section-label">PREVIEW</label>
-            <div id="preview" class="preview type1 bg-white font-anton">
-                <div class="preview-content">
-                    <div class="data-item">
-                        <div class="data-label">DISTANCE</div>
-                        <div class="data-value">00.00Km</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-label">PACE</div>
-                        <div class="data-value">00'00"</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-label">TIME</div>
-                        <div class="data-value">00:00:00</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- RUN Button (Floating) -->
-        <button type="button" class="run-btn" id="runBtn">RUN</button>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="title">RUNIMATE <span class="version">V.2.0</span></h1>
+      <p class="author">by JS @runarchive.js</p>
     </div>
 
-    <script>
-    // RUNIMATE V2 - inline script (no external JS file needed)
-    document.addEventListener('DOMContentLoaded', function() {
-        const preview = document.getElementById('preview');
-        const runBtn = document.getElementById('runBtn');
+    <!-- RECORD TYPE -->
+    <div class="section">
+      <label class="section-label">RECORD TYPE</label>
+      <div class="button-group no-wrap wide">
+        <button type="button" class="toggle-btn active flex1" data-group="record" data-value="daily" aria-pressed="true">Daily</button>
+        <button type="button" class="toggle-btn flex1" data-group="record" data-value="monthly" aria-pressed="false">Monthly</button>
+      </div>
+    </div>
 
-        function setPressedStateForGroup(group) {
-            const btns = document.querySelectorAll(`[data-group="${group}"]`);
-            btns.forEach(btn => {
-                const isActive = btn.classList.contains('active');
-                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-            });
-        }
+    <!-- DATA TYPE -->
+    <div class="section">
+      <label class="section-label">DATA TYPE</label>
+      <div class="button-group no-wrap three">
+        <button type="button" class="action-btn flex1" data-group="data" data-value="garmin" aria-pressed="false">GARMIN</button>
+        <button type="button" class="action-btn flex1" data-group="data" data-value="nrc" aria-pressed="false">NRC</button>
+        <button type="button" class="action-btn flex1" data-group="data" data-value="manual" aria-pressed="false">MANUAL</button>
+      </div>
+    </div>
 
-        function getSelected(group) {
-            return document.querySelector(`[data-group="${group}"].active`)?.dataset.value || null;
-        }
+    <!-- FONT -->
+    <div class="section">
+      <label class="section-label">FONT</label>
+      <div class="button-group no-wrap five font-group">
+        <button type="button" class="toggle-btn active font-btn" data-group="font" data-value="anton" aria-pressed="true">
+          <span class="font-anton">ANTON</span>
+        </button>
+        <button type="button" class="toggle-btn font-btn" data-group="font" data-value="dots" aria-pressed="false">
+          <span class="font-dots">DOTS</span>
+        </button>
+        <button type="button" class="toggle-btn font-btn" data-group="font" data-value="lcd" aria-pressed="false">
+          <span class="font-lcd">LCD</span>
+        </button>
+        <button type="button" class="toggle-btn font-btn" data-group="font" data-value="gothic" aria-pressed="false">
+          <span class="font-gothic">GOTHIC</span>
+        </button>
+        <button type="button" class="toggle-btn font-btn" data-group="font" data-value="speed" aria-pressed="false">
+          <span class="font-speed">SPEED</span>
+        </button>
+      </div>
+    </div>
 
-        function setSelected(group, value, selector) {
-            const btns = document.querySelectorAll(`${selector}[data-group="${group}"]`);
-            btns.forEach(btn => btn.classList.remove('active'));
-            const target = document.querySelector(`${selector}[data-group="${group}"][data-value="${value}"]`);
-            if (target) target.classList.add('active');
-            setPressedStateForGroup(group);
-        }
+    <!-- LAYOUT + BG COLOR (같은 줄) -->
+    <div class="section">
+      <div class="two-col">
+        <div class="col">
+          <label class="section-label inline">LAYOUT</label>
+          <div class="button-group no-wrap two">
+            <button type="button" class="toggle-btn active flex1" data-group="layout" data-value="type1" aria-pressed="true">Type 1</button>
+            <button type="button" class="toggle-btn flex1" data-group="layout" data-value="type2" aria-pressed="false">Type 2</button>
+          </div>
+        </div>
+        <div class="col">
+          <label class="section-label inline">BG COLOR</label>
+          <div class="button-group no-wrap two">
+            <button type="button" class="toggle-btn active flex1" data-group="bgcolor" data-value="white" aria-pressed="true">White</button>
+            <button type="button" class="toggle-btn flex1" data-group="bgcolor" data-value="black" aria-pressed="false">Black</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        // Preview 업데이트
-        function updatePreview() {
-            if (!preview) return;
+    <!-- PREVIEW -->
+    <div class="section">
+      <label class="section-label">PREVIEW</label>
+      <div id="preview" class="preview type1 bg-white font-anton">
+        <div class="preview-content">
+          <div class="data-item">
+            <div class="data-label">DISTANCE</div>
+            <div class="data-value">00.00Km</div>
+          </div>
 
-            const layout = getSelected('layout') || 'type1';
-            const bgcolor = getSelected('bgcolor') || 'white';
-            const font = getSelected('font') || 'anton';
+          <div class="data-item">
+            <div class="data-label">PACE</div>
+            <div class="data-value">00'00"</div>
+          </div>
 
-            // Reset to base
-            preview.className = 'preview';
+          <div class="data-item">
+            <div class="data-label">TIME</div>
+            <div class="data-value">00:00:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            // Apply
-            preview.classList.add(layout);
-            preview.classList.add(`bg-${bgcolor}`);
-            preview.classList.add(`font-${font}`);
+    <!-- RUN Button -->
+    <button type="button" class="run-btn" id="runBtn">RUN</button>
+  </div>
 
-            // expose current state for later feature wiring
-            window.RUNIMATE_V2_STATE = {
-                recordType: getSelected('record') || 'daily',
-                dataType: getSelected('data') || null,
-                layout,
-                bgColor: bgcolor,
-                font
-            };
-        }
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const preview = document.getElementById('preview');
+      const runBtn = document.getElementById('runBtn');
 
-        // Toggle buttons: single-select per group
-        const toggleButtons = document.querySelectorAll('.toggle-btn');
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const group = this.dataset.group;
-                const value = this.dataset.value;
-
-                // exclusive toggle within group
-                document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => {
-                    if (btn.classList.contains('toggle-btn')) btn.classList.remove('active');
-                });
-                this.classList.add('active');
-                setPressedStateForGroup(group);
-
-                // Update preview (only layout/bg/font affect preview, but safe to call always)
-                updatePreview();
-            });
+      function setPressedStateForGroup(group) {
+        const btns = document.querySelectorAll(`[data-group="${group}"]`);
+        btns.forEach(btn => {
+          const isActive = btn.classList.contains('active');
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
+      }
 
-        // Action buttons: now also single-select + active UI (ready for next menu wiring)
-        const actionButtons = document.querySelectorAll('.action-btn');
-        actionButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const group = this.dataset.group; // "data"
-                const value = this.dataset.value;
+      function getSelected(group) {
+        return document.querySelector(`[data-group="${group}"].active`)?.dataset.value || null;
+      }
 
-                // exclusive selection
-                document.querySelectorAll(`.action-btn[data-group="${group}"]`).forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                setPressedStateForGroup(group);
+      function updatePreview() {
+        if (!preview) return;
 
-                console.log(`Selected data type: ${value}`);
-                updatePreview();
-            });
+        const layout = getSelected('layout') || 'type1';
+        const bgcolor = getSelected('bgcolor') || 'white';
+        const font = getSelected('font') || 'anton';
+
+        preview.className = 'preview';
+        preview.classList.add(layout);
+        preview.classList.add(`bg-${bgcolor}`);
+        preview.classList.add(`font-${font}`);
+
+        window.RUNIMATE_V2_STATE = {
+          recordType: getSelected('record') || 'daily',
+          dataType: getSelected('data') || null,
+          layout,
+          bgColor: bgcolor,
+          font
+        };
+      }
+
+      // Toggle buttons (single-select)
+      const toggleButtons = document.querySelectorAll('.toggle-btn');
+      toggleButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const group = this.dataset.group;
+
+          document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => {
+            if (btn.classList.contains('toggle-btn')) btn.classList.remove('active');
+          });
+          this.classList.add('active');
+          setPressedStateForGroup(group);
+          updatePreview();
         });
+      });
 
-        // RUN button (placeholder for next step)
-        if (runBtn) {
-            runBtn.addEventListener('click', function() {
-                updatePreview();
-                console.log('RUN clicked:', window.RUNIMATE_V2_STATE);
-            });
-        }
+      // Action buttons (DATA TYPE: single-select)
+      const actionButtons = document.querySelectorAll('.action-btn');
+      actionButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const group = this.dataset.group;
+          const value = this.dataset.value;
 
-        // Init
-        setPressedStateForGroup('record');
-        setPressedStateForGroup('font');
-        setPressedStateForGroup('layout');
-        setPressedStateForGroup('bgcolor');
-        setPressedStateForGroup('data');
-        updatePreview();
+          document.querySelectorAll(`.action-btn[data-group="${group}"]`).forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          setPressedStateForGroup(group);
+
+          console.log(`Selected data type: ${value}`);
+          updatePreview();
+        });
+      });
+
+      // RUN
+      if (runBtn) {
+        runBtn.addEventListener('click', function () {
+          updatePreview();
+          console.log('RUN clicked:', window.RUNIMATE_V2_STATE);
+        });
+      }
+
+      setPressedStateForGroup('record');
+      setPressedStateForGroup('font');
+      setPressedStateForGroup('layout');
+      setPressedStateForGroup('bgcolor');
+      setPressedStateForGroup('data');
+      updatePreview();
     });
-    </script>
+  </script>
 </body>
 </html>
