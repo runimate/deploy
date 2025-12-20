@@ -1,6 +1,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root{
+  /* layout */
   --gap: clamp(6px, 1.8vw, 10px);
   --btn-pad-y: clamp(7px, 1.9vw, 10px);
   --btn-pad-x: clamp(10px, 2.8vw, 18px);
@@ -8,21 +9,36 @@
   --radius: 999px;
   --stroke: 2px;
 
+  /* brand colors */
   --garmin: #76B6FF;
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
+  /* preview/result typography controls (font별로 덮어쓰기) */
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
+
+  /* “가장 작은 폰트 기준으로 통일” 느낌을 위한 공통 사이즈 */
+  --pv-label-size: 12px;
+  --pv-value-size-t1: 30px; /* preview type1 */
+  --pv-value-size-t2: 24px; /* preview type2 */
+
+  /* result sizes (type1은 1.5배 느낌) */
+  --rs-label-size-t1: 16px;
+  --rs-value-size-t1: 44px;
+
+  --rs-label-size-t2: 12px;
+  --rs-value-size-t2: 24px;
 }
 
 body {
   background-color: #fff;
   font-family: 'Inter', sans-serif;
   padding: 20px;
-  padding-bottom: 110px;
+  padding-bottom: 110px; /* RUN 버튼 공간 */
   min-height: 100vh;
 }
+
 body.no-scroll{ overflow: hidden; }
 
 .container{
@@ -31,19 +47,31 @@ body.no-scroll{ overflow: hidden; }
   position: relative;
 }
 
-/* Header */
+/* --------------------
+   Header
+-------------------- */
 .header { margin-bottom: 22px; }
+
 .title {
   font-size: 44px;
   font-weight: 900;
   letter-spacing: -0.9px;
   line-height: 1.0;
 }
-.version { font-size: 26px; font-weight: 900; }
-.author { margin-top: 6px; font-size: 13px; color: #000; }
 
-/* Sections */
+.version { font-size: 26px; font-weight: 900; }
+
+.author {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #000;
+}
+
+/* --------------------
+   Sections
+-------------------- */
 .section { margin-bottom: 18px; }
+
 .section-label{
   display: block;
   font-size: 12px;
@@ -52,20 +80,26 @@ body.no-scroll{ overflow: hidden; }
   letter-spacing: 0.4px;
   margin-bottom: 10px;
 }
+
 .section-label.inline{ margin-bottom: 8px; }
 
-/* button groups: no wrap */
+/* --------------------
+   Button groups (NO WRAP)
+-------------------- */
 .button-group{
   display: flex;
   align-items: center;
   gap: var(--gap);
-  flex-wrap: nowrap;
+  flex-wrap: nowrap;      /* ✅ 절대 줄바꿈 금지 */
   width: 100%;
 }
-.button-group.no-wrap{ flex-wrap: nowrap; }
+
 .button-group.wide .flex1,
 .button-group.two .flex1,
-.button-group.three .flex1 { flex: 1 1 0; min-width: 0; }
+.button-group.three .flex1{
+  flex: 1 1 0;
+  min-width: 0;          /* ✅ 폭 부족 시 줄바꿈 대신 축소 */
+}
 
 /* toggle buttons */
 .toggle-btn,
@@ -75,24 +109,29 @@ body.no-scroll{ overflow: hidden; }
   background: #fff;
   color: #000;
   cursor: pointer;
+
   font-family: 'Inter', sans-serif;
   font-weight: 900;
   padding: var(--btn-pad-y) var(--btn-pad-x);
   font-size: var(--btn-font);
   line-height: 1;
-  white-space: nowrap;
+
+  white-space: nowrap;   /* ✅ 텍스트 줄바꿈도 금지 */
   min-width: 0;
+
   transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
+
 .toggle-btn:hover,
 .action-btn:hover{ opacity: 0.85; }
+
 .toggle-btn.active,
 .action-btn.active{
   background: #000;
   color: #fff;
 }
 
-/* FONT group */
+/* FONT group buttons */
 .font-group .font-btn{
   flex: 1 1 0;
   min-width: 0;
@@ -100,11 +139,15 @@ body.no-scroll{ overflow: hidden; }
   text-align: center;
 }
 
-/* font label styles (button text only) */
+/* font label styles (button text only) — ✅ italic 제거 */
 .font-anton{ font-family: 'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
 .font-dots{ font-family: 'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
 .font-lcd{ font-family: 'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
-.font-gothic{ font-family: 'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
+.font-gothic{
+  font-family: 'Special Gothic Expanded One', sans-serif;
+  font-size: clamp(8px, 2.2vw, 10px);
+  letter-spacing: 0.2px;
+}
 .font-speed{ font-family: 'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
 
 /* Two columns row */
@@ -112,6 +155,7 @@ body.no-scroll{ overflow: hidden; }
   display: flex;
   gap: 18px;
 }
+
 .two-col .col{
   flex: 1 1 0;
   min-width: 0;
@@ -126,6 +170,7 @@ body.no-scroll{ overflow: hidden; }
   padding: 14px;
   background: #fff;
 }
+
 .data-panel.monthly{ padding-top: 12px; }
 
 .data-panel-head{
@@ -134,6 +179,7 @@ body.no-scroll{ overflow: hidden; }
   justify-content: space-between;
   margin-bottom: 10px;
 }
+
 .data-panel-title{
   font-size: 12px;
   font-weight: 900;
@@ -148,79 +194,104 @@ body.no-scroll{ overflow: hidden; }
   flex-wrap: nowrap;
   width: 100%;
 }
+
 .data-tab{
   flex: 1 1 0;
   min-width: 0;
+
   border: var(--stroke) solid #000;
   border-radius: 999px;
   padding: 10px 10px;
+
   background: #fff;
   color: #000;
+
   font-weight: 900;
   font-size: 13px;
   white-space: nowrap;
+
   cursor: pointer;
   transition: opacity 0.15s ease, background 0.15s ease;
 }
+
 .data-tab:hover{ opacity: 0.88; }
+
 .data-tab.active{ color: #000; }
 .data-tab.garmin.active{ background: var(--garmin); }
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
-/* Data type 미선택 상태(이미지 3): 아래 아무것도 없음 */
+/* Data type 미선택 상태(3번 이미지) */
 .data-empty{ height: 0; display: block; }
 
+/* inner content area */
 .data-content{ display: none; margin-top: 12px; }
+
 .sub-title{
   font-size: 12px;
   font-weight: 900;
   margin: 0 0 10px 0;
 }
 
-/* Garmin card */
+/* Garmin selected card (6번 이미지) */
 .garmin-card{
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   border: var(--stroke) solid #000;
   border-radius: 14px;
   padding: 10px 10px 10px 12px;
+
   background: #fff;
   cursor: pointer;
 }
-.garmin-card-left{ display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.garmin-card-left{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .garmin-date{
   font-size: 12px;
   font-weight: 900;
 }
+
 .garmin-stats{
   display: flex;
   gap: 14px;
   align-items: baseline;
   flex-wrap: nowrap;
+  min-width: 0;
 }
+
 .garmin-stat{
   font-size: 14px;
   font-weight: 900;
   white-space: nowrap;
 }
+
 .garmin-list-btn{
   width: 42px;
   height: 34px;
   border: none;
   background: transparent;
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .hamburger{
   width: 18px;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
+
 .hamburger span{
   height: 2px;
   background: #000;
@@ -233,44 +304,56 @@ body.no-scroll{ overflow: hidden; }
   width: 100%;
   border: none;
   border-radius: 999px;
+
   background: #000;
   color: var(--nrc);
+
   font-weight: 900;
   padding: 12px 14px;
+
   cursor: pointer;
 }
+
 .ocr-status{
   margin-top: 8px;
   font-size: 11px;
   color: #333;
   display: none;
 }
+
 .ocr-status.show{ display: block; }
 
-/* Manual input */
+/* Manual input chips */
 .manual-row{
   display: flex;
   gap: 10px;
   flex-wrap: nowrap;
   width: 100%;
 }
+
 .manual-chip{
   flex: 1 1 0;
   min-width: 0;
+
   border: 1.5px solid #d9d9d9;
   border-radius: 999px;
+
   background: #fff;
   padding: 10px 12px;
+
   display: flex;
   gap: 8px;
   align-items: baseline;
   justify-content: center;
+
   cursor: pointer;
   white-space: nowrap;
 }
+
 .chip-label{ font-size: 12px; font-weight: 900; color: #000; }
 .chip-value{ font-size: 16px; font-weight: 900; }
 .chip-unit{ font-size: 12px; font-weight: 900; opacity: 0.9; }
+
 .manual-time-line{
   margin-top: 10px;
   display: flex;
@@ -287,19 +370,22 @@ body.no-scroll{ overflow: hidden; }
   border-radius: 18px;
   padding: 18px 18px 16px 18px;
   width: min(240px, 100%);
+
   background: #fff;
-  overflow: hidden;
+
+  overflow: hidden;  /* ✅ 밖으로 삐져나가는 현상 1차 방지 */
 }
 
+/* Type1 */
 .preview.type1 .preview-content{
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.preview.type2{
-  width: 100%;
-}
+/* Type2 */
+.preview.type2{ width: 100%; }
+
 .preview.type2 .preview-content{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -308,21 +394,37 @@ body.no-scroll{ overflow: hidden; }
 }
 
 .data-item{ min-width: 0; }
-.data-label, .data-value{ display:block; width:100%; }
+
+.data-label, .data-value{
+  display: block;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
 
 .data-label{
-  font-size: 12px;
+  font-size: var(--pv-label-size);
+  font-weight: 900;
   opacity: 0.9;
   margin-bottom: 6px;
   letter-spacing: var(--pv-label-ls);
-  white-space: nowrap;
 }
+
 .data-value{
-  font-size: 34px;
-  letter-spacing: var(--pv-value-ls);
-  line-height: 1.05;
   font-weight: 900;
-  white-space: nowrap;
+  line-height: 1.05;
+  letter-spacing: var(--pv-value-ls);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ✅ “폰트마다 크기 달라 보이는 문제” 최소화: 공통 사이즈 */
+.preview.type1 .data-value{
+  font-size: clamp(22px, 7vw, var(--pv-value-size-t1));
+}
+
+.preview.type2 .data-value{
+  font-size: clamp(16px, 5.6vw, var(--pv-value-size-t2));
 }
 
 /* preview bg */
@@ -332,12 +434,16 @@ body.no-scroll{ overflow: hidden; }
 /* preview font */
 .preview.font-anton .data-label,
 .preview.font-anton .data-value{ font-family: 'Anton', sans-serif; }
+
 .preview.font-dots .data-label,
 .preview.font-dots .data-value{ font-family: 'Bitcount Grid Single', monospace; }
+
 .preview.font-lcd .data-label,
 .preview.font-lcd .data-value{ font-family: 'DS-Digital', monospace; }
+
 .preview.font-gothic .data-label,
 .preview.font-gothic .data-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
+
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
@@ -356,19 +462,32 @@ body.no-scroll{ overflow: hidden; }
   left: 50%;
   transform: translateX(-50%);
   bottom: 20px;
+
   width: min(360px, calc(100% - 40px));
   padding: 16px 16px;
+
   background: #ff9000;
   border: none;
   border-radius: 999px;
+
   font-size: 24px;
   font-weight: 1000;
   color: #000;
+
   cursor: pointer;
   z-index: 1000;
 }
+
 .run-btn:hover{ opacity: 0.92; }
 
+/* hidden file input (OCR) */
+.hidden-file{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
 /* --------------------
    MODAL (Manual)
 -------------------- */
@@ -376,29 +495,37 @@ body.no-scroll{ overflow: hidden; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.45);
+
   display: none;
   align-items: center;
   justify-content: center;
+
   padding: 18px;
   z-index: 2400;
 }
+
 .modal-overlay.show{ display: flex; }
 
 .modal{
   width: min(420px, 100%);
   background: #fff;
+
   border-radius: 16px;
   border: 2px solid #000;
   overflow: hidden;
 }
+
 .modal-head{
   padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   border-bottom: 2px solid #000;
 }
+
 .modal-title{ font-weight: 900; font-size: 14px; }
+
 .modal-close{
   border: none;
   background: transparent;
@@ -406,40 +533,61 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   cursor: pointer;
 }
+
 .modal-body{
   padding: 12px 14px;
   max-height: 60vh;
   overflow: auto;
 }
+
 .manual-form{ display: none; }
-.field-label{ display: block; font-weight: 900; font-size: 12px; margin-bottom: 8px; }
+
+.field-label{
+  display: block;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
 .field-input{
   width: 100%;
   border: 2px solid #000;
   border-radius: 12px;
   padding: 12px 12px;
+
   font-size: 16px;
   font-weight: 900;
+
   outline: none;
 }
+
 .field-save{
   margin-top: 10px;
   width: 100%;
+
   border: none;
   border-radius: 999px;
+
   padding: 12px 12px;
   background: #000;
   color: #fff;
+
   font-weight: 900;
   cursor: pointer;
 }
+
 .pace-grid{
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   gap: 10px;
   align-items: center;
 }
-.colon{ font-weight: 900; font-size: 16px; text-align: center; }
+
+.colon{
+  font-weight: 900;
+  font-size: 16px;
+  text-align: center;
+}
 
 /* =========================
    SCREEN OVERLAYS (Garmin / Result)
@@ -448,27 +596,35 @@ body.no-scroll{ overflow: hidden; }
   position: fixed;
   inset: 0;
   display: none;
+
   z-index: 3000;
   background: #fff;
   color: #000;
 }
+
 .screen-overlay.show{ display: block; }
 
 .screen-close{
   position: absolute;
   top: 16px;
   right: 16px;
+
   width: 44px;
   height: 44px;
+
   border: none;
   background: transparent;
+
   font-size: 34px;
   line-height: 1;
+
   cursor: pointer;
   color: inherit;
 }
 
-/* --- Result Screen --- */
+/* --------------------
+   Result Screen
+-------------------- */
 .result-screen.bg-white{ background: #fff; color: #000; }
 .result-screen.bg-black{ background: #000; color: #fff; }
 
@@ -476,6 +632,7 @@ body.no-scroll{ overflow: hidden; }
   width: 100%;
   height: 100%;
   padding: 0 26px;
+
   display: flex;
   align-items: center;     /* ✅ 세로 중앙 */
   justify-content: center; /* ✅ 가로 중앙 */
@@ -486,7 +643,7 @@ body.no-scroll{ overflow: hidden; }
   min-width: 0;
 }
 
-/* type1 = 세로 (1.5배 느낌) */
+/* type1 = 세로 (preview와 같은 구조 / 1.5배) */
 .result-wrap.type1 .result-block{
   width: min(520px, 100%);
   display: flex;
@@ -495,17 +652,19 @@ body.no-scroll{ overflow: hidden; }
   align-items: flex-start;
 }
 
-/* type2 = 가로 (preview 느낌 유지) */
+/* type2 = 가로 (preview와 같은 3컬럼) */
 .result-wrap.type2 .result-block{
+  width: min(520px, 100%);
+  margin: 0 auto;
+
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: 28px;
   align-items: start;
-  width: min(520px, 100%);
-  margin: 0 auto;
 }
 
 .result-item{ min-width: 0; }
+
 .result-label, .result-value{
   display: block;
   width: 100%;
@@ -514,22 +673,41 @@ body.no-scroll{ overflow: hidden; }
 }
 
 .result-label{
-  font-size: 12px;
   font-weight: 900;
   opacity: 0.9;
   margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
+
 .result-value{
-  font-size: 34px;
   font-weight: 900;
   line-height: 1.02;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
-/* ✅ type1 2배 → 1.5배 */
-.result-wrap.type1 .result-label{ font-size: 18px; margin-bottom: 12px; }
-.result-wrap.type1 .result-value{ font-size: 52px; }
+/* ✅ type1: 1.5배 느낌 */
+.result-wrap.type1 .result-label{
+  font-size: clamp(14px, 3.2vw, var(--rs-label-size-t1));
+  margin-bottom: 12px;
+}
 
-/* --- Result fonts (preview와 동일 폰트 적용) --- */
+.result-wrap.type1 .result-value{
+  font-size: clamp(28px, 8vw, var(--rs-value-size-t1));
+}
+
+/* ✅ type2: preview 사이즈 느낌 유지 + overflow 안전장치 */
+.result-wrap.type2 .result-label{
+  font-size: var(--rs-label-size-t2);
+  margin-bottom: 8px;
+}
+
+.result-wrap.type2 .result-value{
+  font-size: clamp(16px, 5.6vw, var(--rs-value-size-t2));
+}
+
+/* --- Result fonts (preview와 동일) --- */
 .result-screen.font-anton .result-label,
 .result-screen.font-anton .result-value{ font-family: 'Anton', sans-serif; }
 
@@ -545,144 +723,174 @@ body.no-scroll{ overflow: hidden; }
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
 
-/* --- Garmin Login (이미지 4) --- */
+/* --------------------
+   Garmin Login (4번 이미지)
+-------------------- */
 .garmin-login{
   background: var(--garmin);
   color: #000;
 }
+
 .garmin-login-wrap{
   width: 100%;
   height: 100%;
   position: relative;
   padding: 42px 24px 24px 24px;
 }
+
 .garmin-login-title{ margin-top: 8px; }
+
 .gc-big{
   font-size: 40px;
   font-weight: 1000;
   letter-spacing: -1px;
   line-height: 0.95;
 }
+
 .gc-sub{
   margin-top: 10px;
   font-size: 34px;
   font-weight: 400;
   letter-spacing: -0.6px;
 }
+
 .garmin-login-form{
   margin-top: 60px;
   width: min(520px, 100%);
 }
+
 .gc-label{
   display: block;
   font-size: 12px;
   font-weight: 900;
   margin-bottom: 8px;
 }
+
 .gc-input{
   width: 100%;
   border: none;
   border-bottom: 2px solid #000;
   padding: 10px 2px;
+
   font-size: 16px;
   font-weight: 700;
+
   outline: none;
   background: transparent;
   margin-bottom: 26px;
 }
+
 .gc-note{
   display: flex;
   gap: 10px;
   align-items: flex-start;
   margin-top: 4px;
 }
+
 .gc-smile{
   font-size: 30px;
   line-height: 1;
   font-weight: 900;
 }
+
 .gc-note-text{
   font-size: 12px;
   font-weight: 800;
   max-width: 360px;
 }
+
 .gc-cta{
   position: absolute;
   left: 24px;
   right: 24px;
   bottom: 22px;
+
   height: 56px;
   border-radius: 999px;
+
   border: none;
   background: #000;
   color: #fff;
+
   font-size: 20px;
   font-weight: 900;
   cursor: pointer;
 }
+
 .gc-vertical{
   position: absolute;
   top: 160px;
   right: 10px;
+
   transform: rotate(90deg);
   transform-origin: top right;
+
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.4px;
 }
 
-/* --- Garmin Select Workout (이미지 5) --- */
+/* --------------------
+   Garmin Select Workout (5번 이미지)
+-------------------- */
 .select-workout{
   background: #fff;
   color: #000;
 }
+
 .select-wrap{
   width: 100%;
   height: 100%;
   padding: 28px 20px 20px 20px;
 }
+
 .select-title{
   font-size: 40px;
   font-weight: 1000;
   letter-spacing: -1px;
   line-height: 0.95;
+
   margin-top: 12px;
   margin-bottom: 18px;
 }
+
 .select-list{
-  height: calc(100% - 120px);
-  overflow: auto;
-  padding-right: 4px;
-  .select-list{
   height: calc(100% - 120px);
   overflow: auto;
   padding-right: 4px;
 }
 
-/* Workout rows */
+/* workout rows */
 .workout-row{
   width: 100%;
   border: 2px solid #000;
   border-radius: 16px;
   padding: 12px 14px;
+
   background: #fff;
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 12px;
   text-align: left;
 }
+
 .workout-row.active{
   background: #000;
   color: #fff;
 }
+
 .wr-left{ min-width: 0; }
+
 .wr-date{
   font-size: 12px;
   font-weight: 900;
   margin-bottom: 6px;
 }
+
 .wr-stats{
   display: flex;
   gap: 18px;
@@ -690,45 +898,24 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   white-space: nowrap;
 }
+
 .wr-arrow{
   font-size: 26px;
   font-weight: 900;
 }
 
-/* =========================
-   ✅ RESULT overflow safety (특히 type2)
-   - JS에서 "fit"로 줄이더라도
-     CSS로도 안전장치 마련
-========================= */
-
-/* type2 안에서 너무 길면 폰트 자동으로 줄어들 여지 */
-.result-wrap.type2 .result-value{
-  font-size: clamp(18px, 6vw, 34px);
-}
-
-/* type2의 3칸 자체가 더 타이트해지게(작은 화면 대응) */
+/* --------------------
+   Responsive guards
+-------------------- */
 @media (max-width: 380px){
-  .result-wrap.type2 .result-block{
-    column-gap: 16px;
-  }
-  .result-wrap.type2 .result-value{
-    font-size: clamp(16px, 6vw, 30px);
-  }
-  .result-wrap.type2 .result-label{
-    font-size: 11px;
-    margin-bottom: 8px;
-  }
+  .preview.type2 .preview-content{ column-gap: 12px; }
+  .result-wrap.type2 .result-block{ column-gap: 16px; }
+  .result-wrap{ padding: 0 16px; }
 }
 
-/* =========================
-   Responsive
-========================= */
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
-  .preview.type2 .preview-content{ column-gap: 12px; }
-  .result-wrap{ padding: 0 16px; }
-  .result-wrap.type1 .result-value{ font-size: 46px; }
 }
 
 /* =========================
@@ -741,6 +928,7 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Anton';
   src: url('./fonts/Anton.woff2') format('woff2');
@@ -748,6 +936,7 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Bitcount Grid Single';
   src: url('./fonts/Dots.woff2') format('woff2');
@@ -755,6 +944,7 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'DS-Digital';
   src: url('./fonts/LCD.woff2') format('woff2');
@@ -762,6 +952,7 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Special Gothic Expanded One';
   src: url('./fonts/Gothic.woff2') format('woff2');
@@ -769,6 +960,7 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Quantico';
   src: url('./fonts/Speed.woff2') format('woff2');
