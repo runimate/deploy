@@ -14,24 +14,24 @@
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
-  /* ✅ type2 간격(Preview/Result/모바일 공통) */
+  /* ✅ type2 gap unify */
   --type2-gap: clamp(12px, 4.2vw, 18px);
 
   /* preview/result typography controls (font별로 덮어쓰기) */
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
 
-  /* “가장 작은 폰트 기준으로 통일” 느낌을 위한 공통 사이즈 */
+  /* base sizes */
   --pv-label-size: 12px;
-  --pv-value-size-t1: 30px; /* preview type1 (기본) */
-  --pv-value-size-t2: 24px; /* preview type2 (기본) */
+  --pv-value-size-t1: 30px; /* preview type1 */
+  --pv-value-size-t2: 24px; /* preview type2 */
 
   /* result sizes */
-  --rs-label-size-t1: 16px; /* 결과 type1 라벨 */
-  --rs-value-size-t1: 44px; /* 결과 type1 값(1.5배 느낌) */
+  --rs-label-size-t1: 16px;
+  --rs-value-size-t1: 44px; /* type1 result = 1.5x 느낌 */
 
-  --rs-label-size-t2: 12px; /* 결과 type2 라벨 */
-  --rs-value-size-t2: 24px; /* 결과 type2 값 */
+  --rs-label-size-t2: 12px;
+  --rs-value-size-t2: 24px;
 
   /* ✅ TIME optical alignment fix */
   --time-nudge: -0.06em;
@@ -41,10 +41,9 @@ body {
   background-color: #fff;
   font-family: 'Inter', sans-serif;
   padding: 20px;
-  padding-bottom: 110px; /* RUN 버튼 공간 */
+  padding-bottom: 110px;
   min-height: 100vh;
 }
-
 body.no-scroll{ overflow: hidden; }
 
 .container{
@@ -53,31 +52,19 @@ body.no-scroll{ overflow: hidden; }
   position: relative;
 }
 
-/* --------------------
-   Header
--------------------- */
+/* Header */
 .header { margin-bottom: 22px; }
-
-.title {
+.title{
   font-size: 44px;
   font-weight: 900;
   letter-spacing: -0.9px;
   line-height: 1.0;
 }
+.version{ font-size: 26px; font-weight: 900; }
+.author{ margin-top: 6px; font-size: 13px; color: #000; }
 
-.version { font-size: 26px; font-weight: 900; }
-
-.author {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #000;
-}
-
-/* --------------------
-   Sections
--------------------- */
-.section { margin-bottom: 18px; }
-
+/* Sections */
+.section{ margin-bottom: 18px; }
 .section-label{
   display: block;
   font-size: 12px;
@@ -86,25 +73,21 @@ body.no-scroll{ overflow: hidden; }
   letter-spacing: 0.4px;
   margin-bottom: 10px;
 }
-
 .section-label.inline{ margin-bottom: 8px; }
 
-/* --------------------
-   Button groups (NO WRAP)
--------------------- */
+/* button groups: no wrap */
 .button-group{
   display: flex;
   align-items: center;
   gap: var(--gap);
-  flex-wrap: nowrap;      /* ✅ 절대 줄바꿈 금지 */
+  flex-wrap: nowrap;
   width: 100%;
 }
-
 .button-group.wide .flex1,
 .button-group.two .flex1,
 .button-group.three .flex1{
   flex: 1 1 0;
-  min-width: 0;          /* ✅ 폭 부족 시 줄바꿈 대신 축소 */
+  min-width: 0;
 }
 
 /* toggle buttons */
@@ -122,22 +105,20 @@ body.no-scroll{ overflow: hidden; }
   font-size: var(--btn-font);
   line-height: 1;
 
-  white-space: nowrap;   /* ✅ 텍스트 줄바꿈도 금지 */
+  white-space: nowrap;
   min-width: 0;
 
   transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
-
 .toggle-btn:hover,
 .action-btn:hover{ opacity: 0.85; }
-
 .toggle-btn.active,
 .action-btn.active{
   background: #000;
   color: #fff;
 }
 
-/* FONT group buttons */
+/* FONT group */
 .font-group .font-btn{
   flex: 1 1 0;
   min-width: 0;
@@ -145,7 +126,7 @@ body.no-scroll{ overflow: hidden; }
   text-align: center;
 }
 
-/* font label styles (button text only) — ✅ italic 제거 */
+/* font label styles (button text only) */
 .font-anton{ font-family: 'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
 .font-dots{ font-family: 'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
 .font-lcd{ font-family: 'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
@@ -157,15 +138,8 @@ body.no-scroll{ overflow: hidden; }
 .font-speed{ font-family: 'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
 
 /* Two columns row */
-.two-col{
-  display: flex;
-  gap: 18px;
-}
-
-.two-col .col{
-  flex: 1 1 0;
-  min-width: 0;
-}
+.two-col{ display: flex; gap: 18px; }
+.two-col .col{ flex: 1 1 0; min-width: 0; }
 
 /* --------------------
    DATA TYPE PANEL
@@ -176,7 +150,6 @@ body.no-scroll{ overflow: hidden; }
   padding: 14px;
   background: #fff;
 }
-
 .data-panel.monthly{ padding-top: 12px; }
 
 .data-panel-head{
@@ -185,7 +158,6 @@ body.no-scroll{ overflow: hidden; }
   justify-content: space-between;
   margin-bottom: 10px;
 }
-
 .data-panel-title{
   font-size: 12px;
   font-weight: 900;
@@ -200,7 +172,6 @@ body.no-scroll{ overflow: hidden; }
   flex-wrap: nowrap;
   width: 100%;
 }
-
 .data-tab{
   flex: 1 1 0;
   min-width: 0;
@@ -219,27 +190,23 @@ body.no-scroll{ overflow: hidden; }
   cursor: pointer;
   transition: opacity 0.15s ease, background 0.15s ease;
 }
-
 .data-tab:hover{ opacity: 0.88; }
-
 .data-tab.active{ color: #000; }
 .data-tab.garmin.active{ background: var(--garmin); }
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
-/* Data type 미선택 상태(3번 이미지) */
+/* Data type 미선택 상태 */
 .data-empty{ height: 0; display: block; }
 
-/* inner content area */
 .data-content{ display: none; margin-top: 12px; }
-
 .sub-title{
   font-size: 12px;
   font-weight: 900;
   margin: 0 0 10px 0;
 }
 
-/* Garmin selected card (6번 이미지) */
+/* Garmin card */
 .garmin-card{
   display: flex;
   align-items: center;
@@ -252,19 +219,8 @@ body.no-scroll{ overflow: hidden; }
   background: #fff;
   cursor: pointer;
 }
-
-.garmin-card-left{
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.garmin-date{
-  font-size: 12px;
-  font-weight: 900;
-}
-
+.garmin-card-left{ display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.garmin-date{ font-size: 12px; font-weight: 900; }
 .garmin-stats{
   display: flex;
   gap: 14px;
@@ -272,13 +228,7 @@ body.no-scroll{ overflow: hidden; }
   flex-wrap: nowrap;
   min-width: 0;
 }
-
-.garmin-stat{
-  font-size: 14px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
+.garmin-stat{ font-size: 14px; font-weight: 900; white-space: nowrap; }
 .garmin-list-btn{
   width: 42px;
   height: 34px;
@@ -290,60 +240,41 @@ body.no-scroll{ overflow: hidden; }
   align-items: center;
   justify-content: center;
 }
-
-.hamburger{
-  width: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.hamburger span{
-  height: 2px;
-  background: #000;
-  border-radius: 2px;
-  display: block;
-}
+.hamburger{ width: 18px; display: flex; flex-direction: column; gap: 3px; }
+.hamburger span{ height: 2px; background: #000; border-radius: 2px; display: block; }
 
 /* NRC upload */
 .upload-btn{
   width: 100%;
   border: none;
   border-radius: 999px;
-
   background: #000;
   color: var(--nrc);
-
   font-weight: 900;
   padding: 12px 14px;
-
   cursor: pointer;
 }
-
 .ocr-status{
   margin-top: 8px;
   font-size: 11px;
   color: #333;
   display: none;
 }
-
 .ocr-status.show{ display: block; }
 
-/* Manual input chips */
+/* Manual input */
 .manual-row{
   display: flex;
   gap: 10px;
   flex-wrap: nowrap;
   width: 100%;
 }
-
 .manual-chip{
   flex: 1 1 0;
   min-width: 0;
 
   border: 1.5px solid #d9d9d9;
   border-radius: 999px;
-
   background: #fff;
   padding: 10px 12px;
 
@@ -355,11 +286,9 @@ body.no-scroll{ overflow: hidden; }
   cursor: pointer;
   white-space: nowrap;
 }
-
 .chip-label{ font-size: 12px; font-weight: 900; color: #000; }
 .chip-value{ font-size: 16px; font-weight: 900; }
 .chip-unit{ font-size: 12px; font-weight: 900; opacity: 0.9; }
-
 .manual-time-line{
   margin-top: 10px;
   display: flex;
@@ -376,7 +305,6 @@ body.no-scroll{ overflow: hidden; }
   border-radius: 18px;
   padding: 18px 18px 16px 18px;
   width: min(240px, 100%);
-
   background: #fff;
   overflow: hidden;
 }
@@ -390,16 +318,14 @@ body.no-scroll{ overflow: hidden; }
 
 /* Type2 */
 .preview.type2{ width: 100%; }
-
 .preview.type2 .preview-content{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--type2-gap); /* ✅ 통일 */
+  column-gap: var(--type2-gap);
   align-items: start;
 }
 
 .data-item{ min-width: 0; }
-
 .data-label, .data-value{
   display: block;
   width: 100%;
@@ -423,11 +349,10 @@ body.no-scroll{ overflow: hidden; }
   font-feature-settings: "tnum";
 }
 
-/* 공통 사이즈 */
+/* size unify */
 .preview.type1 .data-value{
   font-size: clamp(22px, 7vw, var(--pv-value-size-t1));
 }
-
 .preview.type2 .data-value{
   font-size: clamp(16px, 5.6vw, var(--pv-value-size-t2));
 }
@@ -459,11 +384,11 @@ body.no-scroll{ overflow: hidden; }
 .preview.font-gothic{ --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-speed{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 
-/* ✅ SPEED(Quantico) preview 보정 */
+/* SPEED(Quantico) preview 보정 */
 .preview.font-speed.type1 { --pv-value-size-t1: 32px; }
 .preview.font-speed.type2 { --pv-value-size-t2: 26px; }
 
-/* ✅ TIME optical alignment fix */
+/* TIME optical alignment fix */
 #pvTime,
 #rsTime{
   display: inline-block;
@@ -471,9 +396,14 @@ body.no-scroll{ overflow: hidden; }
   will-change: transform;
 }
 
-/* ✅ 요청 반영: ANTON일 때만 LABEL(타이틀) = Inter로 강제 (type1/type2 공통) */
+/* ✅ 요청 1) ANTON일 때만 LABEL(타이틀) = Inter (type1/type2 공통) */
 .preview.font-anton .data-label{
   font-family: 'Inter', sans-serif !important;
+}
+
+/* ✅ 요청 2) Special Gothic일 때만 LABEL(타이틀) 크기 80% (type1/type2 공통) */
+.preview.font-gothic .data-label{
+  font-size: calc(var(--pv-label-size) * 0.8);
 }
 
 /* --------------------
@@ -499,10 +429,9 @@ body.no-scroll{ overflow: hidden; }
   cursor: pointer;
   z-index: 1000;
 }
-
 .run-btn:hover{ opacity: 0.92; }
 
-/* hidden file input (OCR) */
+/* hidden file input */
 .hidden-file{
   position: absolute;
   width: 1px;
@@ -517,37 +446,29 @@ body.no-scroll{ overflow: hidden; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.45);
-
   display: none;
   align-items: center;
   justify-content: center;
-
   padding: 18px;
   z-index: 2400;
 }
-
 .modal-overlay.show{ display: flex; }
 
 .modal{
   width: min(420px, 100%);
   background: #fff;
-
   border-radius: 16px;
   border: 2px solid #000;
   overflow: hidden;
 }
-
 .modal-head{
   padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   border-bottom: 2px solid #000;
 }
-
 .modal-title{ font-weight: 900; font-size: 14px; }
-
 .modal-close{
   border: none;
   background: transparent;
@@ -555,13 +476,11 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   cursor: pointer;
 }
-
 .modal-body{
   padding: 12px 14px;
   max-height: 60vh;
   overflow: auto;
 }
-
 .manual-form{ display: none; }
 
 .field-label{
@@ -570,30 +489,23 @@ body.no-scroll{ overflow: hidden; }
   font-size: 12px;
   margin-bottom: 8px;
 }
-
 .field-input{
   width: 100%;
   border: 2px solid #000;
   border-radius: 12px;
   padding: 12px 12px;
-
   font-size: 16px;
   font-weight: 900;
-
   outline: none;
 }
-
 .field-save{
   margin-top: 10px;
   width: 100%;
-
   border: none;
   border-radius: 999px;
-
   padding: 12px 12px;
   background: #000;
   color: #fff;
-
   font-weight: 900;
   cursor: pointer;
 }
@@ -604,42 +516,31 @@ body.no-scroll{ overflow: hidden; }
   gap: 10px;
   align-items: center;
 }
-
-.colon{
-  font-weight: 900;
-  font-size: 16px;
-  text-align: center;
-}
+.colon{ font-weight: 900; font-size: 16px; text-align: center; }
 
 /* =========================
-   SCREEN OVERLAYS (Garmin / Result)
+   SCREEN OVERLAYS
 ========================= */
 .screen-overlay{
   position: fixed;
   inset: 0;
   display: none;
-
   z-index: 3000;
   background: #fff;
   color: #000;
 }
-
 .screen-overlay.show{ display: block; }
 
 .screen-close{
   position: absolute;
   top: 16px;
   right: 16px;
-
   width: 44px;
   height: 44px;
-
   border: none;
   background: transparent;
-
   font-size: 34px;
   line-height: 1;
-
   cursor: pointer;
   color: inherit;
 }
@@ -654,10 +555,9 @@ body.no-scroll{ overflow: hidden; }
   width: 100%;
   height: 100%;
   padding: 0 26px;
-
   display: flex;
-  align-items: center;     /* 세로 중앙 */
-  justify-content: center; /* 가로 중앙 */
+  align-items: center;
+  justify-content: center;
 }
 
 .result-block{
@@ -678,15 +578,13 @@ body.no-scroll{ overflow: hidden; }
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
   margin: 0 auto;
-
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--type2-gap); /* ✅ 통일 */
+  column-gap: var(--type2-gap);
   align-items: start;
 }
 
 .result-item{ min-width: 0; }
-
 .result-label, .result-value{
   display: block;
   width: 100%;
@@ -709,27 +607,25 @@ body.no-scroll{ overflow: hidden; }
   font-feature-settings: "tnum";
 }
 
-/* type1 size */
+/* type1 sizes */
 .result-wrap.type1 .result-label{
   font-size: clamp(14px, 3.2vw, var(--rs-label-size-t1));
   margin-bottom: 12px;
 }
-
 .result-wrap.type1 .result-value{
   font-size: clamp(28px, 8vw, var(--rs-value-size-t1));
 }
 
-/* type2 size + overflow safety */
+/* type2 sizes */
 .result-wrap.type2 .result-label{
   font-size: var(--rs-label-size-t2);
   margin-bottom: 8px;
 }
-
 .result-wrap.type2 .result-value{
   font-size: clamp(16px, 5.6vw, var(--rs-value-size-t2));
 }
 
-/* result fonts */
+/* Result fonts */
 .result-screen.font-anton .result-label,
 .result-screen.font-anton .result-value{ font-family: 'Anton', sans-serif; }
 
@@ -745,18 +641,25 @@ body.no-scroll{ overflow: hidden; }
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
 
-/* ✅ 요청 반영: ANTON일 때만 RESULT LABEL(타이틀) = Inter로 강제 (type1/type2 공통) */
+/* ✅ 요청 1) ANTON일 때만 RESULT LABEL(타이틀) = Inter (type1/type2 공통) */
 .result-screen.font-anton .result-label{
   font-family: 'Inter', sans-serif !important;
+}
+
+/* ✅ 요청 2) Special Gothic일 때만 RESULT LABEL(타이틀) 크기 80% (type1/type2 공통) */
+.result-screen.font-gothic .result-label{
+  font-size: calc(var(--rs-label-size-t2) * 0.8);
+}
+
+/* type1 result에서는 label size가 clamp라서 따로 80% 적용 */
+.result-wrap.type1 .result-screen.font-gothic .result-label{
+  font-size: calc(var(--rs-label-size-t1) * 0.8);
 }
 
 /* --------------------
    Garmin Login
 -------------------- */
-.garmin-login{
-  background: var(--garmin);
-  color: #000;
-}
+.garmin-login{ background: var(--garmin); color: #000; }
 
 .garmin-login-wrap{
   width: 100%;
@@ -798,10 +701,8 @@ body.no-scroll{ overflow: hidden; }
   border: none;
   border-bottom: 2px solid #000;
   padding: 10px 2px;
-
   font-size: 16px;
   font-weight: 700;
-
   outline: none;
   background: transparent;
   margin-bottom: 26px;
@@ -831,14 +732,11 @@ body.no-scroll{ overflow: hidden; }
   left: 24px;
   right: 24px;
   bottom: 22px;
-
   height: 56px;
   border-radius: 999px;
-
   border: none;
   background: #000;
   color: #fff;
-
   font-size: 20px;
   font-weight: 900;
   cursor: pointer;
@@ -848,10 +746,8 @@ body.no-scroll{ overflow: hidden; }
   position: absolute;
   top: 160px;
   right: 10px;
-
   transform: rotate(90deg);
   transform-origin: top right;
-
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.4px;
@@ -860,10 +756,7 @@ body.no-scroll{ overflow: hidden; }
 /* --------------------
    Garmin Select Workout
 -------------------- */
-.select-workout{
-  background: #fff;
-  color: #000;
-}
+.select-workout{ background: #fff; color: #000; }
 
 .select-wrap{
   width: 100%;
@@ -876,7 +769,6 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 1000;
   letter-spacing: -1px;
   line-height: 0.95;
-
   margin-top: 12px;
   margin-bottom: 18px;
 }
@@ -893,31 +785,19 @@ body.no-scroll{ overflow: hidden; }
   border: 2px solid #000;
   border-radius: 16px;
   padding: 12px 14px;
-
   background: #fff;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-bottom: 12px;
   text-align: left;
 }
 
-.workout-row.active{
-  background: #000;
-  color: #fff;
-}
+.workout-row.active{ background: #000; color: #fff; }
 
 .wr-left{ min-width: 0; }
-
-.wr-date{
-  font-size: 12px;
-  font-weight: 900;
-  margin-bottom: 6px;
-}
-
+.wr-date{ font-size: 12px; font-weight: 900; margin-bottom: 6px; }
 .wr-stats{
   display: flex;
   gap: 18px;
@@ -925,20 +805,14 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   white-space: nowrap;
 }
-
-.wr-arrow{
-  font-size: 26px;
-  font-weight: 900;
-}
+.wr-arrow{ font-size: 26px; font-weight: 900; }
 
 /* --------------------
-   Responsive guards
+   Responsive
 -------------------- */
 @media (max-width: 380px){
-  /* ✅ type2 gap은 var(--type2-gap)로 통일하므로 여기서 gap을 건드리지 않음 */
   .result-wrap{ padding: 0 16px; }
 }
-
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
