@@ -1,7 +1,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root{
-  /* layout */
   --gap: clamp(6px, 1.8vw, 10px);
   --btn-pad-y: clamp(7px, 1.9vw, 10px);
   --btn-pad-x: clamp(10px, 2.8vw, 18px);
@@ -9,31 +8,18 @@
   --radius: 999px;
   --stroke: 2px;
 
-  /* brand colors */
   --garmin: #76B6FF;
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
-  /* ✅ type2 gap unify */
+  /* type2 columns gap equal */
   --type2-gap: clamp(12px, 4.2vw, 18px);
 
-  /* preview/result typography controls (font별로 덮어쓰기) */
+  /* preview/result letter spacing control */
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
 
-  /* base sizes */
-  --pv-label-size: 12px;
-  --pv-value-size-t1: 30px; /* preview type1 */
-  --pv-value-size-t2: 24px; /* preview type2 */
-
-  /* result sizes */
-  --rs-label-size-t1: 16px;
-  --rs-value-size-t1: 44px; /* type1 result = 1.5x 느낌 */
-
-  --rs-label-size-t2: 12px;
-  --rs-value-size-t2: 24px;
-
-  /* ✅ TIME optical alignment fix */
+  /* baseline nudge for TIME only (font metrics issue) */
   --time-nudge: -0.06em;
 }
 
@@ -150,7 +136,6 @@ body.no-scroll{ overflow: hidden; }
   padding: 14px;
   background: #fff;
 }
-.data-panel.monthly{ padding-top: 12px; }
 
 .data-panel-head{
   display: flex;
@@ -196,10 +181,9 @@ body.no-scroll{ overflow: hidden; }
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
-/* Data type 미선택 상태 */
 .data-empty{ height: 0; display: block; }
-
 .data-content{ display: none; margin-top: 12px; }
+
 .sub-title{
   font-size: 12px;
   font-weight: 900;
@@ -262,6 +246,14 @@ body.no-scroll{ overflow: hidden; }
 }
 .ocr-status.show{ display: block; }
 
+.hidden-file{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Manual input */
 .manual-row{
   display: flex;
@@ -298,7 +290,7 @@ body.no-scroll{ overflow: hidden; }
 }
 
 /* --------------------
-   PREVIEW
+   PREVIEW (Daily + Monthly)
 -------------------- */
 .preview{
   border: var(--stroke) solid #000;
@@ -309,14 +301,14 @@ body.no-scroll{ overflow: hidden; }
   overflow: hidden;
 }
 
-/* Type1 */
+/* Daily type1 */
 .preview.type1 .preview-content{
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* Type2 */
+/* Daily type2 */
 .preview.type2{ width: 100%; }
 .preview.type2 .preview-content{
   display: grid;
@@ -325,6 +317,7 @@ body.no-scroll{ overflow: hidden; }
   align-items: start;
 }
 
+/* common label/value */
 .data-item{ min-width: 0; }
 .data-label, .data-value{
   display: block;
@@ -334,7 +327,7 @@ body.no-scroll{ overflow: hidden; }
 }
 
 .data-label{
-  font-size: var(--pv-label-size);
+  font-size: 12px;
   font-weight: 900;
   opacity: 0.9;
   margin-bottom: 6px;
@@ -349,13 +342,9 @@ body.no-scroll{ overflow: hidden; }
   font-feature-settings: "tnum";
 }
 
-/* size unify */
-.preview.type1 .data-value{
-  font-size: clamp(22px, 7vw, var(--pv-value-size-t1));
-}
-.preview.type2 .data-value{
-  font-size: clamp(16px, 5.6vw, var(--pv-value-size-t2));
-}
+/* daily size unify */
+.preview.type1 .data-value{ font-size: clamp(22px, 7vw, 30px); }
+.preview.type2 .data-value{ font-size: clamp(16px, 5.6vw, 24px); }
 
 /* preview bg */
 .preview.bg-white{ background: #fff; color: #000; }
@@ -384,26 +373,115 @@ body.no-scroll{ overflow: hidden; }
 .preview.font-gothic{ --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-speed{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 
-/* SPEED(Quantico) preview 보정 */
-.preview.font-speed.type1 { --pv-value-size-t1: 32px; }
-.preview.font-speed.type2 { --pv-value-size-t2: 26px; }
+/* SPEED(Quantico) preview 미세 보정 */
+.preview.font-speed.type1 .data-value{ font-size: clamp(24px, 7.2vw, 32px); }
+.preview.font-speed.type2 .data-value{ font-size: clamp(18px, 5.9vw, 26px); }
 
-/* TIME optical alignment fix */
-#pvTime,
-#rsTime{
+/* TIME baseline fix (preview + result 모두) */
+#pvTime, #rsTime{
   display: inline-block;
   transform: translateY(var(--time-nudge));
   will-change: transform;
 }
 
-/* ✅ 요청 1) ANTON일 때만 LABEL(타이틀) = Inter (type1/type2 공통) */
+/* ✅ ANTON: DISTANCE/PACE/TIME 타이틀만 Inter (preview) */
 .preview.font-anton .data-label{
   font-family: 'Inter', sans-serif !important;
 }
 
-/* ✅ 요청 2) Special Gothic일 때만 LABEL(타이틀) 크기 80% (type1/type2 공통) */
+/* ✅ Special Gothic: 타이틀만 80% (preview) */
 .preview.font-gothic .data-label{
-  font-size: calc(var(--pv-label-size) * 0.8);
+  font-size: calc(12px * 0.8);
+}
+
+/* --------------------
+   Monthly Preview (Type1/Type2)
+-------------------- */
+.preview.monthly{
+  width: min(240px, 100%);
+}
+
+/* monthly type1 = 세로 카드 */
+.preview.monthly.type1 .preview-content{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-head{
+  margin-bottom: 6px;
+}
+.m-month{
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+.m-year{
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+.m-block{
+  margin-top: 2px;
+}
+
+.m-big{
+  font-size: clamp(28px, 9vw, 36px);
+  font-weight: 900;
+  line-height: 1.03;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.m-mid{
+  font-size: clamp(18px, 6.8vw, 24px);
+  font-weight: 900;
+  line-height: 1.03;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* monthly type2 = 상단 month + 4col grid */
+.preview.monthly.type2{
+  width: 100%;
+}
+
+.preview.monthly.type2 .preview-content{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m2-top{
+  margin-bottom: 2px;
+}
+.m2-month{
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+.m2-year{
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.9;
+}
+
+.m2-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--type2-gap);
+  align-items: start;
+}
+
+.preview.monthly.type2 .data-value{
+  font-size: clamp(14px, 4.6vw, 18px);
 }
 
 /* --------------------
@@ -431,14 +509,6 @@ body.no-scroll{ overflow: hidden; }
 }
 .run-btn:hover{ opacity: 0.92; }
 
-/* hidden file input */
-.hidden-file{
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
 /* --------------------
    MODAL (Manual)
 -------------------- */
@@ -556,17 +626,22 @@ body.no-scroll{ overflow: hidden; }
   height: 100%;
   padding: 0 26px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;      /* vertical center */
+  justify-content: center;  /* horizontal center */
 }
 
 .result-block{
   width: 100%;
   min-width: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.result-block.pop{
+  transform: translateY(-2px);
+  opacity: 0.98;
 }
 
-/* type1 */
-.result-wrap.type1 .result-block{
+/* daily type1 */
+.result-wrap.type1.daily .result-block{
   width: min(520px, 100%);
   display: flex;
   flex-direction: column;
@@ -574,8 +649,8 @@ body.no-scroll{ overflow: hidden; }
   align-items: flex-start;
 }
 
-/* type2 */
-.result-wrap.type2 .result-block{
+/* daily type2 */
+.result-wrap.type2.daily .result-block{
   width: min(520px, 100%);
   margin: 0 auto;
   display: grid;
@@ -584,6 +659,25 @@ body.no-scroll{ overflow: hidden; }
   align-items: start;
 }
 
+/* monthly type1 */
+.result-wrap.type1.monthly .result-block{
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+/* monthly type2 */
+.result-wrap.type2.monthly .result-block{
+  width: min(620px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* labels/values */
 .result-item{ min-width: 0; }
 .result-label, .result-value{
   display: block;
@@ -605,27 +699,18 @@ body.no-scroll{ overflow: hidden; }
   line-height: 1.02;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* type1 sizes */
-.result-wrap.type1 .result-label{
-  font-size: clamp(14px, 3.2vw, var(--rs-label-size-t1));
-  margin-bottom: 12px;
-}
-.result-wrap.type1 .result-value{
-  font-size: clamp(28px, 8vw, var(--rs-value-size-t1));
-}
+/* daily result sizes */
+.result-wrap.type1.daily .result-label{ font-size: 18px; margin-bottom: 12px; }
+.result-wrap.type1.daily .result-value{ font-size: clamp(34px, 10vw, 52px); }
 
-/* type2 sizes */
-.result-wrap.type2 .result-label{
-  font-size: var(--rs-label-size-t2);
-  margin-bottom: 8px;
-}
-.result-wrap.type2 .result-value{
-  font-size: clamp(16px, 5.6vw, var(--rs-value-size-t2));
-}
+.result-wrap.type2.daily .result-label{ font-size: 12px; margin-bottom: 8px; }
+.result-wrap.type2.daily .result-value{ font-size: clamp(16px, 5.6vw, 24px); }
 
-/* Result fonts */
+/* result fonts */
 .result-screen.font-anton .result-label,
 .result-screen.font-anton .result-value{ font-family: 'Anton', sans-serif; }
 
@@ -641,61 +726,149 @@ body.no-scroll{ overflow: hidden; }
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
 
-/* ✅ 요청 1) ANTON일 때만 RESULT LABEL(타이틀) = Inter (type1/type2 공통) */
+/* ✅ ANTON: DISTANCE/PACE/TIME 타이틀만 Inter (result) */
 .result-screen.font-anton .result-label{
   font-family: 'Inter', sans-serif !important;
 }
 
-/* ✅ 요청 2) Special Gothic일 때만 RESULT LABEL(타이틀) 크기 80% (type1/type2 공통) */
+/* ✅ Special Gothic: 타이틀만 80% (result) */
 .result-screen.font-gothic .result-label{
-  font-size: calc(var(--rs-label-size-t2) * 0.8);
+  font-size: calc(12px * 0.8);
+}
+.result-wrap.type1.daily .result-screen.font-gothic .result-label{ font-size: calc(18px * 0.8); }
+
+/* Monthly result: type1 big/mid */
+.rs-mhead{ margin-bottom: 8px; }
+
+.rs-big{
+  font-size: clamp(44px, 12vw, 60px);
+  font-weight: 900;
+  line-height: 1.02;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rs-mid{
+  font-size: clamp(26px, 8vw, 36px);
+  font-weight: 900;
+  line-height: 1.02;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* type1 result에서는 label size가 clamp라서 따로 80% 적용 */
-.result-wrap.type1 .result-screen.font-gothic .result-label{
-  font-size: calc(var(--rs-label-size-t1) * 0.8);
+/* Monthly result: type2 grid (4 cols) */
+.rs-m2-top{
+  margin-bottom: 4px;
+}
+.rs-m2-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--type2-gap);
+  align-items: start;
+}
+
+/* SPEED result 보정 */
+.result-screen.font-speed .result-wrap.type2.daily .result-value,
+.result-screen.font-speed .result-wrap.type2.monthly .result-value{
+  font-size: clamp(17px, 5.8vw, 26px);
 }
 
 /* --------------------
-   Garmin Login
+   Month Picker Screen
 -------------------- */
-.garmin-login{ background: var(--garmin); color: #000; }
+.month-picker{
+  background: #fff;
+  color: #000;
+}
+.month-wrap{
+  width: 100%;
+  height: 100%;
+  padding: 28px 20px 20px 20px;
+}
+.month-title{
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: -1px;
+  line-height: 0.95;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+.month-year-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.month-year{
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: -0.3px;
+}
+.month-year-btn{
+  width: 48px;
+  height: 40px;
+  border-radius: 999px;
+  border: 2px solid #000;
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.month-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.month-cell{
+  height: 54px;
+  border-radius: 16px;
+  border: 2px solid #000;
+  background: #fff;
+  font-weight: 1000;
+  cursor: pointer;
+}
+.month-cell.active{
+  background: #000;
+  color: #fff;
+}
 
+/* --------------------
+   Garmin Login (image #4)
+-------------------- */
+.garmin-login{
+  background: var(--garmin);
+  color: #000;
+}
 .garmin-login-wrap{
   width: 100%;
   height: 100%;
   position: relative;
   padding: 42px 24px 24px 24px;
 }
-
 .garmin-login-title{ margin-top: 8px; }
-
 .gc-big{
   font-size: 40px;
   font-weight: 1000;
   letter-spacing: -1px;
   line-height: 0.95;
 }
-
 .gc-sub{
   margin-top: 10px;
   font-size: 34px;
   font-weight: 400;
   letter-spacing: -0.6px;
 }
-
 .garmin-login-form{
   margin-top: 60px;
   width: min(520px, 100%);
 }
-
 .gc-label{
   display: block;
   font-size: 12px;
   font-weight: 900;
   margin-bottom: 8px;
 }
-
 .gc-input{
   width: 100%;
   border: none;
@@ -707,26 +880,22 @@ body.no-scroll{ overflow: hidden; }
   background: transparent;
   margin-bottom: 26px;
 }
-
 .gc-note{
   display: flex;
   gap: 10px;
   align-items: flex-start;
   margin-top: 4px;
 }
-
 .gc-smile{
   font-size: 30px;
   line-height: 1;
   font-weight: 900;
 }
-
 .gc-note-text{
   font-size: 12px;
   font-weight: 800;
   max-width: 360px;
 }
-
 .gc-cta{
   position: absolute;
   left: 24px;
@@ -741,7 +910,6 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   cursor: pointer;
 }
-
 .gc-vertical{
   position: absolute;
   top: 160px;
@@ -754,7 +922,7 @@ body.no-scroll{ overflow: hidden; }
 }
 
 /* --------------------
-   Garmin Select Workout
+   Select Workout (image #5)
 -------------------- */
 .select-workout{ background: #fff; color: #000; }
 
@@ -763,7 +931,6 @@ body.no-scroll{ overflow: hidden; }
   height: 100%;
   padding: 28px 20px 20px 20px;
 }
-
 .select-title{
   font-size: 40px;
   font-weight: 1000;
@@ -772,14 +939,12 @@ body.no-scroll{ overflow: hidden; }
   margin-top: 12px;
   margin-bottom: 18px;
 }
-
 .select-list{
   height: calc(100% - 120px);
   overflow: auto;
   padding-right: 4px;
 }
 
-/* workout rows */
 .workout-row{
   width: 100%;
   border: 2px solid #000;
@@ -793,9 +958,7 @@ body.no-scroll{ overflow: hidden; }
   margin-bottom: 12px;
   text-align: left;
 }
-
 .workout-row.active{ background: #000; color: #fff; }
-
 .wr-left{ min-width: 0; }
 .wr-date{ font-size: 12px; font-weight: 900; margin-bottom: 6px; }
 .wr-stats{
@@ -807,9 +970,7 @@ body.no-scroll{ overflow: hidden; }
 }
 .wr-arrow{ font-size: 26px; font-weight: 900; }
 
-/* --------------------
-   Responsive
--------------------- */
+/* Responsive */
 @media (max-width: 380px){
   .result-wrap{ padding: 0 16px; }
 }
@@ -828,7 +989,6 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Anton';
   src: url('./fonts/Anton.woff2') format('woff2');
@@ -836,7 +996,6 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Bitcount Grid Single';
   src: url('./fonts/Dots.woff2') format('woff2');
@@ -844,7 +1003,6 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'DS-Digital';
   src: url('./fonts/LCD.woff2') format('woff2');
@@ -852,7 +1010,6 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Special Gothic Expanded One';
   src: url('./fonts/Gothic.woff2') format('woff2');
@@ -860,7 +1017,6 @@ body.no-scroll{ overflow: hidden; }
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Quantico';
   src: url('./fonts/Speed.woff2') format('woff2');
