@@ -15,7 +15,7 @@
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
-  /* ✅ TIME이 폰트마다 아래로 처지는 문제 보정값(미세) */
+  /* ✅ TIME baseline 보정 */
   --time-raise: 0.06em;
 }
 
@@ -91,11 +91,11 @@ body.no-scroll{ overflow: hidden; }
 .toggle-btn:hover{ opacity: 0.85; }
 .toggle-btn.active{ background: #000; color: #fff; }
 
-/* ✅ FONT 버튼 높이 불일치(GOTHIC만 다름) 해결 */
+/* ✅ FONT 버튼 높이 통일 */
 .font-group .font-btn{
   flex: 1 1 0;
   min-width: 0;
-  min-height: 40px;     /* 높이 통일 */
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -249,224 +249,257 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   cursor: pointer;
 }
+/* =========================
+   RESET + ROOT
+========================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --gap: clamp(6px, 1.8vw, 10px);
+  --btn-pad-y: clamp(7px, 1.9vw, 10px);
+  --btn-pad-x: clamp(10px, 2.8vw, 18px);
+  --btn-font: clamp(12px, 2.8vw, 14px);
+  --radius: 999px;
+  --stroke: 2px;
+
+  --garmin: #76B6FF;
+  --nrc: #5CE45C;
+  --manual: #9B7CFF;
+
+  /* ✅ TIME baseline 보정 */
+  --time-raise: 0.06em;
+}
+
+body {
+  background-color: #fff;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+  padding-bottom: 110px;
+  min-height: 100vh;
+}
+body.no-scroll{ overflow: hidden; }
+
+.container{
+  width: min(360px, 100%);
+  margin: 0 auto;
+  position: relative;
+}
 
 /* =========================
-   PREVIEW VISIBILITY (✅ 꼬임 방지)
+   HEADER
 ========================= */
-#previewMonthly{ display:none; }
-body[data-record="monthly"] #previewDaily{ display:none; }
-body[data-record="monthly"] #previewMonthly{ display:block; }
+.header { margin-bottom: 22px; }
+.title{
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.9px;
+  line-height: 1.0;
+}
+.version{ font-size: 26px; font-weight: 900; }
+.author { margin-top: 6px; font-size: 13px; color: #000; }
 
 /* =========================
-   PREVIEW (BASE)
+   SECTIONS
 ========================= */
-.preview{
-  border: var(--stroke) solid #000;
-  border-radius: 18px;
-  padding: 18px 18px 16px 18px;
-  width: min(240px, 100%);
-  background: #fff;
-  overflow: hidden;
-}
-
-/* bg */
-.preview.bg-white{ background:#fff; color:#000; }
-.preview.bg-black{ background:#000; color:#fff; }
-
-/* layout show/hide inside preview */
-.pv-type1{ display:none; }
-.pv-type2{ display:none; }
-body[data-layout="type1"] .pv-type1{ display:flex; }
-body[data-layout="type2"] .pv-type2{ display:grid; }
-
-/* DAILY type1 */
-.preview .pv-type1{
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* DAILY type2 (✅ 간격 동일 / 삐져나감 방지) */
-.preview .pv-type2{
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(14px, 4vw, 22px); /* ✅ 동일 간격 */
-  align-items: start;
-}
-
-/* data item */
-.data-item{ min-width:0; }
-.data-label, .data-value{
-  display:block;
-  width:100%;
-  min-width:0;
-  white-space:nowrap;
-}
-.data-label{
+.section { margin-bottom: 18px; }
+.section-label{
+  display: block;
   font-size: 12px;
-  opacity: 0.9;
-  margin-bottom: 6px;
   font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
 }
-
-/* ✅ 프리뷰 숫자 “원래처럼” 자동 리사이징(clamp) 복구 */
-.data-value{
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: 0;
-  font-size: clamp(20px, 9vw, 34px); /* ✅ 다시 커지지 않게 */
-}
-
-/* ✅ TIME만 아래로 쳐지는 현상 보정(모든 폰트 공통) */
-.data-value.is-time{
-  transform: translateY(calc(-1 * var(--time-raise)));
-}
+.section-label.inline{ margin-bottom: 8px; }
 
 /* =========================
-   MONTHLY PREVIEW
+   BUTTON GROUPS
 ========================= */
-.preview.monthly{
-  width: min(240px, 100%);
-}
-.preview.monthly.type2{
+.button-group{
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  flex-wrap: nowrap;
   width: 100%;
 }
+.flex1{ flex: 1 1 0; min-width: 0; }
 
-.m-content{ display:none; }
-body[data-layout="type1"] .mv-type1{ display:block; }
-body[data-layout="type2"] .mv-type2{ display:block; }
+.toggle-btn{
+  border: var(--stroke) solid #000;
+  border-radius: var(--radius);
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  font-size: var(--btn-font);
+  line-height: 1;
+  white-space: nowrap;
+  min-width: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.toggle-btn:hover{ opacity: 0.85; }
+.toggle-btn.active{ background: #000; color: #fff; }
 
-/* monthly type1 (카드) */
-.mv-type1 .m-month{
-  font-weight: 900;
-  letter-spacing: 0.2px;
-  margin-bottom: 18px;
-  font-size: 20px;
-  line-height: 1.15;
+/* ✅ FONT 버튼 높이 통일 */
+.font-group .font-btn{
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  text-align: center;
 }
-.mv-type1 .m-big{
-  margin-bottom: 18px;
-}
-.mv-type1 .m-big-value{
-  display:block;
-  font-weight: 900;
-  font-size: clamp(34px, 12vw, 56px);
-  line-height: 1.0;
-  white-space: nowrap;
-}
-.mv-type1 .m-block{ margin-bottom: 14px; }
-.mv-type1 .m-row{
-  display:flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.mv-type1 .m-label{
-  font-weight: 900;
-  font-size: 14px;
-  opacity: 0.95;
-}
-.mv-type1 .m-value{
-  font-weight: 900;
-  font-size: clamp(24px, 9vw, 40px);
-  line-height: 1.05;
-  white-space: nowrap;
-}
-.mv-type1 .m-value.is-time{
-  transform: translateY(calc(-1 * var(--time-raise)));
-}
-/* monthly type2 (✅ month / distance / runs·pace·time 구조) */
-.mv-type2 .m2-top{
-  display:flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.mv-type2 .m2-month{
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
-  opacity: 0.95;
-}
-.mv-type2 .m2-distance{
-  font-size: clamp(28px, 9vw, 44px);
-  font-weight: 900;
-  line-height: 1.02;
-  white-space: nowrap;
-}
-.mv-type2 .m2-bottom{
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(14px, 4vw, 22px); /* ✅ 동일 간격 */
-  align-items: start;
-}
-.mv-type2 .m2-item{ min-width:0; }
-.mv-type2 .m2-label{
-  font-size: 12px;
-  font-weight: 900;
-  opacity: 0.9;
-  margin-bottom: 6px;
-  white-space: nowrap;
-}
-.mv-type2 .m2-value{
-  font-size: clamp(18px, 6.2vw, 26px);
-  font-weight: 900;
-  white-space: nowrap;
-  line-height: 1.05;
-}
-.mv-type2 .m2-value.is-time{
-  transform: translateY(calc(-1 * var(--time-raise)));
-}
+
+/* font label styles (button text only) */
+.font-anton{ font-family: 'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
+.font-dots{ font-family: 'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
+.font-lcd{ font-family: 'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
+.font-gothic{ font-family: 'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
+.font-speed{ font-family: 'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
+
+/* 2col */
+.two-col{ display:flex; gap:18px; }
+.two-col .col{ flex:1 1 0; min-width:0; }
 
 /* =========================
-   FONT APPLICATION (PREVIEW)
+   DATA PANEL
 ========================= */
-.preview.font-anton .data-value,
-.preview.font-anton .m-big-value,
-.preview.font-anton .m-value,
-.preview.font-anton .m2-distance,
-.preview.font-anton .m2-value{ font-family: 'Anton', sans-serif; }
-
-.preview.font-dots .data-value,
-.preview.font-dots .m-big-value,
-.preview.font-dots .m-value,
-.preview.font-dots .m2-distance,
-.preview.font-dots .m2-value{ font-family: 'Bitcount Grid Single', monospace; }
-
-.preview.font-lcd .data-value,
-.preview.font-lcd .m-big-value,
-.preview.font-lcd .m-value,
-.preview.font-lcd .m2-distance,
-.preview.font-lcd .m2-value{ font-family: 'DS-Digital', monospace; }
-
-.preview.font-gothic .data-value,
-.preview.font-gothic .m-big-value,
-.preview.font-gothic .m-value,
-.preview.font-gothic .m2-distance,
-.preview.font-gothic .m2-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
-
-.preview.font-speed .data-value,
-.preview.font-speed .m-big-value,
-.preview.font-speed .m-value,
-.preview.font-speed .m2-distance,
-.preview.font-speed .m2-value{ font-family: 'Quantico', sans-serif; }
-
-/* ✅ SPEED(Quantico)에서 TIME이 작게 보이는 느낌 -> TIME만 살짝 키움 */
-.preview.font-speed .data-value.is-time{ font-size: clamp(21px, 9.4vw, 35px); }
-.preview.font-speed .mv-type2 .m2-value.is-time{ font-size: clamp(19px, 6.6vw, 27px); }
-
-/* ✅ ANTON에서만 라벨(DISTANCE/PACE/TIME) = Inter + semibold */
-.preview.font-anton .data-label,
-.preview.font-anton .mv-type1 .m-label,
-.preview.font-anton .mv-type2 .m2-label{
-  font-family: 'Inter', sans-serif;
-  font-weight: 600; /* semibold */
+.data-panel{
+  border: 1.5px solid #d9d9d9;
+  border-radius: 18px;
+  padding: 14px;
+  background: #fff;
+}
+.data-panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 10px;
+}
+.data-panel-title{
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-/* ✅ Special Gothic: 라벨 크기만 80% */
-.preview.font-gothic .data-label,
-.preview.font-gothic .mv-type1 .m-label,
-.preview.font-gothic .mv-type2 .m2-label{
-  font-size: 0.8em;
+/* Tabs */
+.data-tabs{
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.data-tab{
+  flex: 1 1 0;
+  min-width: 0;
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  padding: 10px 10px;
+  background: #fff;
+  color: #000;
+  font-weight: 900;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.data-tab:hover{ opacity: 0.88; }
+.data-tab.active{ color:#000; }
+.data-tab.garmin.active{ background: var(--garmin); }
+.data-tab.nrc.active{ background: var(--nrc); }
+.data-tab.manual.active{ background: var(--manual); }
+
+.data-empty{ height: 0; display:block; }
+
+.data-content{ display:none; margin-top: 12px; }
+.sub-title{ font-size: 12px; font-weight: 900; margin: 0 0 10px 0; }
+
+/* Garmin card */
+.garmin-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border: var(--stroke) solid #000;
+  border-radius: 14px;
+  padding: 10px 10px 10px 12px;
+  background: #fff;
+  cursor: pointer;
+}
+.garmin-card-left{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+.garmin-date{ font-size:12px; font-weight:900; }
+.garmin-stats{ display:flex; gap:14px; align-items:baseline; flex-wrap:nowrap; }
+.garmin-stat{ font-size:14px; font-weight:900; white-space:nowrap; }
+.garmin-list-btn{
+  width: 42px; height: 34px;
+  border:none; background:transparent;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.hamburger{ width:18px; display:flex; flex-direction:column; gap:3px; }
+.hamburger span{ height:2px; background:#000; border-radius:2px; display:block; }
+
+/* NRC upload */
+.upload-btn{
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  background: #000;
+  color: var(--nrc);
+  font-weight: 900;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.ocr-status{
+  margin-top: 8px;
+  font-size: 11px;
+  color: #333;
+  display: none;
+}
+.ocr-status.show{ display:block; }
+
+/* Manual */
+.manual-row{ display:flex; gap:10px; width:100%; }
+.manual-chip{
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 999px;
+  background: #fff;
+  padding: 10px 12px;
+  display:flex;
+  gap:8px;
+  align-items:baseline;
+  justify-content:center;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.chip-label{ font-size:12px; font-weight:900; }
+.chip-value{ font-size:16px; font-weight:900; }
+.chip-unit{ font-size:12px; font-weight:900; opacity:0.9; }
+.manual-time-line{
+  margin-top: 10px;
+  display:flex;
+  justify-content:space-between;
+  font-size: 12px;
+  font-weight: 900;
 }
 
+/* Month selector */
+.month-block{ margin-top: 12px; display:none; }
+.month-btn{
+  width: 100%;
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
 /* =========================
    RUN BUTTON
 ========================= */
@@ -489,7 +522,7 @@ body[data-layout="type2"] .mv-type2{ display:block; }
 .run-btn:hover{ opacity: 0.92; }
 
 /* =========================
-   SCREEN OVERLAYS (Garmin / Select / Month / Result)
+   SCREEN OVERLAYS
 ========================= */
 .screen-overlay{
   position: fixed;
@@ -501,7 +534,6 @@ body[data-layout="type2"] .mv-type2{ display:block; }
 }
 .screen-overlay.show{ display:block; }
 
-/* ✅ 닫기 버튼: 가민 로그인/활동목록/월선택/결과 모두 "작고 통일" */
 .screen-close{
   position: absolute;
   top: 16px;
@@ -510,7 +542,7 @@ body[data-layout="type2"] .mv-type2{ display:block; }
   height: 36px;
   border: none;
   background: transparent;
-  font-size: 26px;      /* ✅ 크게 보이던 문제 해결 */
+  font-size: 26px;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -518,8 +550,7 @@ body[data-layout="type2"] .mv-type2{ display:block; }
 }
 
 /* =========================
-   GARMIN LOGIN (이미지 4)
-   ✅ 세로 텍스트 삭제됨(HTML에 없음)
+   GARMIN LOGIN
 ========================= */
 .garmin-login{
   background: var(--garmin);
@@ -597,7 +628,8 @@ body[data-layout="type2"] .mv-type2{ display:block; }
 }
 
 /* =========================
-   SELECT WORKOUT (이미지 5)
+   SELECT WORKOUT
+   ✅ workout-card / select-item 둘 다 지원
 ========================= */
 .select-workout{ background:#fff; color:#000; }
 .select-wrap{
@@ -618,7 +650,10 @@ body[data-layout="type2"] .mv-type2{ display:block; }
   overflow: auto;
   padding-right: 4px;
 }
-.workout-card{
+
+/* ✅ 카드 베이스 */
+.workout-card,
+.select-item{
   width: 100%;
   border: 2px solid #000;
   border-radius: 16px;
@@ -630,18 +665,29 @@ body[data-layout="type2"] .mv-type2{ display:block; }
   cursor: pointer;
   margin-bottom: 12px;
 }
-.workout-card.active{
+
+/* active */
+.workout-card.active,
+.select-item.active{
   background:#000;
   color:#fff;
 }
+
+/* ✅ 기존 마크업(.wk-*) */
 .wk-left{ min-width:0; display:flex; flex-direction:column; gap:8px; }
 .wk-date{ font-weight: 900; font-size: 12px; }
 .wk-stats{ display:flex; gap:18px; align-items:baseline; flex-wrap:nowrap; }
 .wk-stat{ font-weight: 900; font-size: 16px; white-space:nowrap; }
 .wk-arrow{ font-size: 26px; font-weight: 700; }
 
+/* ✅ JS가 select-item 안에 si-* 를 넣는 경우도 커버 */
+.si-date{ font-weight: 900; font-size: 12px; }
+.si-stats{ display:flex; gap:18px; align-items:baseline; flex-wrap:nowrap; }
+.si-stats span{ font-weight: 900; font-size: 16px; white-space:nowrap; }
+.si-arrow{ font-size: 26px; font-weight: 700; }
+
 /* =========================
-   MONTH PICKER (월만 선택)
+   MONTH PICKER
 ========================= */
 .month-picker{ background:#fff; color:#000; }
 .month-wrap{
@@ -695,38 +741,55 @@ body[data-layout="type2"] .mv-type2{ display:block; }
 }
 
 /* =========================
-   RESULT SCREEN
-   - preview 레이아웃 그대로
-   - daily type1: 1.5배, 세로 중앙정렬
+   RESULT SCREEN (✅ dataset 기반 bg/font 통일)
 ========================= */
-.result-screen.bg-white{ background:#fff; color:#000; }
-.result-screen.bg-black{ background:#000; color:#fff; }
+.result-screen{
+  background:#fff;
+  color:#000;
+}
+body[data-bg="black"] .result-screen,
+.container[data-bg="black"] .result-screen{ background:#000; color:#fff; }
+
+body[data-bg="white"] .result-screen,
+.container[data-bg="white"] .result-screen{ background:#fff; color:#000; }
 
 .result-wrap{
   width: 100%;
   height: 100%;
   padding: 0 26px;
   display: flex;
-  align-items: center;     /* ✅ 세로 중앙 */
-  justify-content: center; /* ✅ 가로 중앙 */
+  align-items: center;
+  justify-content: center;
 }
 
 /* show correct result block by record/layout */
 #resultMonthly{ display:none; }
-body[data-record="monthly"] #resultDaily{ display:none; }
-body[data-record="monthly"] #resultMonthly{ display:block; }
+
+body[data-record="monthly"] #resultDaily,
+.container[data-record="monthly"] #resultDaily{ display:none; }
+
+body[data-record="monthly"] #resultMonthly,
+.container[data-record="monthly"] #resultMonthly{ display:block; }
 
 .r-type1{ display:none; }
 .r-type2{ display:none; }
-body[data-layout="type1"] .r-type1{ display:flex; }
-body[data-layout="type2"] .r-type2{ display:grid; }
+
+body[data-layout="type1"] .r-type1,
+.container[data-layout="type1"] .r-type1{ display:flex; }
+
+body[data-layout="type2"] .r-type2,
+.container[data-layout="type2"] .r-type2{ display:grid; }
 
 .r-mtype1{ display:none; }
 .r-mtype2{ display:none; }
-body[data-layout="type1"] .r-mtype1{ display:block; }
-body[data-layout="type2"] .r-mtype2{ display:block; }
 
-/* DAILY result type1 (1.5배) */
+body[data-layout="type1"] .r-mtype1,
+.container[data-layout="type1"] .r-mtype1{ display:block; }
+
+body[data-layout="type2"] .r-mtype2,
+.container[data-layout="type2"] .r-mtype2{ display:block; }
+
+/* DAILY result type1 */
 .r-daily.r-type1{
   width: min(520px, 100%);
   display:flex;
@@ -747,12 +810,12 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
   white-space: nowrap;
 }
 
-/* DAILY result type2 (preview 동일 감) */
+/* DAILY result type2 */
 .r-daily.r-type2{
   width: min(520px, 100%);
   display:grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(14px, 4vw, 22px); /* ✅ 동일 간격 */
+  column-gap: clamp(14px, 4vw, 22px);
   align-items: start;
 }
 .r-item{ min-width:0; }
@@ -772,9 +835,7 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
 .r-value.is-time{ transform: translateY(calc(-1 * var(--time-raise))); }
 
 /* MONTHLY result type1 */
-.r-month.r-mtype1{
-  width: min(520px, 100%);
-}
+.r-month.r-mtype1{ width: min(520px, 100%); }
 .rm-month{
   font-weight: 900;
   font-size: 22px;
@@ -807,10 +868,8 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
 }
 .rm-value.is-time{ transform: translateY(calc(-1 * var(--time-raise))); }
 
-/* MONTHLY result type2 (✅ month / distance / runs·pace·time) */
-.r-month.r-mtype2{
-  width: min(720px, 100%);
-}
+/* MONTHLY result type2 */
+.r-month.r-mtype2{ width: min(720px, 100%); }
 .rm2-top{
   display:flex;
   flex-direction: column;
@@ -832,7 +891,7 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
 .rm2-bottom{
   display:grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(14px, 4vw, 22px); /* ✅ 동일 간격 */
+  column-gap: clamp(14px, 4vw, 22px);
   align-items:start;
 }
 .rm2-item{ min-width:0; }
@@ -851,49 +910,80 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
 }
 .rm2-value.is-time{ transform: translateY(calc(-1 * var(--time-raise))); }
 
-/* RESULT fonts */
-.result-screen.font-anton .r-value,
-.result-screen.font-anton .rm-big-value,
-.result-screen.font-anton .rm-value,
-.result-screen.font-anton .rm2-distance,
-.result-screen.font-anton .rm2-value{ font-family: 'Anton', sans-serif; }
+/* RESULT fonts (✅ dataset 기반) */
+body[data-font="anton"] .result-screen .r-value,
+body[data-font="anton"] .result-screen .rm-big-value,
+body[data-font="anton"] .result-screen .rm-value,
+body[data-font="anton"] .result-screen .rm2-distance,
+body[data-font="anton"] .result-screen .rm2-value,
+.container[data-font="anton"] .result-screen .r-value,
+.container[data-font="anton"] .result-screen .rm-big-value,
+.container[data-font="anton"] .result-screen .rm-value,
+.container[data-font="anton"] .result-screen .rm2-distance,
+.container[data-font="anton"] .result-screen .rm2-value{ font-family:'Anton', sans-serif; }
 
-.result-screen.font-dots .r-value,
-.result-screen.font-dots .rm-big-value,
-.result-screen.font-dots .rm-value,
-.result-screen.font-dots .rm2-distance,
-.result-screen.font-dots .rm2-value{ font-family: 'Bitcount Grid Single', monospace; }
+body[data-font="dots"] .result-screen .r-value,
+body[data-font="dots"] .result-screen .rm-big-value,
+body[data-font="dots"] .result-screen .rm-value,
+body[data-font="dots"] .result-screen .rm2-distance,
+body[data-font="dots"] .result-screen .rm2-value,
+.container[data-font="dots"] .result-screen .r-value,
+.container[data-font="dots"] .result-screen .rm-big-value,
+.container[data-font="dots"] .result-screen .rm-value,
+.container[data-font="dots"] .result-screen .rm2-distance,
+.container[data-font="dots"] .result-screen .rm2-value{ font-family:'Bitcount Grid Single', monospace; }
 
-.result-screen.font-lcd .r-value,
-.result-screen.font-lcd .rm-big-value,
-.result-screen.font-lcd .rm-value,
-.result-screen.font-lcd .rm2-distance,
-.result-screen.font-lcd .rm2-value{ font-family: 'DS-Digital', monospace; }
+body[data-font="lcd"] .result-screen .r-value,
+body[data-font="lcd"] .result-screen .rm-big-value,
+body[data-font="lcd"] .result-screen .rm-value,
+body[data-font="lcd"] .result-screen .rm2-distance,
+body[data-font="lcd"] .result-screen .rm2-value,
+.container[data-font="lcd"] .result-screen .r-value,
+.container[data-font="lcd"] .result-screen .rm-big-value,
+.container[data-font="lcd"] .result-screen .rm-value,
+.container[data-font="lcd"] .result-screen .rm2-distance,
+.container[data-font="lcd"] .result-screen .rm2-value{ font-family:'DS-Digital', monospace; }
 
-.result-screen.font-gothic .r-value,
-.result-screen.font-gothic .rm-big-value,
-.result-screen.font-gothic .rm-value,
-.result-screen.font-gothic .rm2-distance,
-.result-screen.font-gothic .rm2-value{ font-family: 'Special Gothic Expanded One', sans-serif; }
+body[data-font="gothic"] .result-screen .r-value,
+body[data-font="gothic"] .result-screen .rm-big-value,
+body[data-font="gothic"] .result-screen .rm-value,
+body[data-font="gothic"] .result-screen .rm2-distance,
+body[data-font="gothic"] .result-screen .rm2-value,
+.container[data-font="gothic"] .result-screen .r-value,
+.container[data-font="gothic"] .result-screen .rm-big-value,
+.container[data-font="gothic"] .result-screen .rm-value,
+.container[data-font="gothic"] .result-screen .rm2-distance,
+.container[data-font="gothic"] .result-screen .rm2-value{ font-family:'Special Gothic Expanded One', sans-serif; }
 
-.result-screen.font-speed .r-value,
-.result-screen.font-speed .rm-big-value,
-.result-screen.font-speed .rm-value,
-.result-screen.font-speed .rm2-distance,
-.result-screen.font-speed .rm2-value{ font-family: 'Quantico', sans-serif; }
+body[data-font="speed"] .result-screen .r-value,
+body[data-font="speed"] .result-screen .rm-big-value,
+body[data-font="speed"] .result-screen .rm-value,
+body[data-font="speed"] .result-screen .rm2-distance,
+body[data-font="speed"] .result-screen .rm2-value,
+.container[data-font="speed"] .result-screen .r-value,
+.container[data-font="speed"] .result-screen .rm-big-value,
+.container[data-font="speed"] .result-screen .rm-value,
+.container[data-font="speed"] .result-screen .rm2-distance,
+.container[data-font="speed"] .result-screen .rm2-value{ font-family:'Quantico', sans-serif; }
 
-/* ✅ ANTON 라벨 = Inter + semibold */
-.result-screen.font-anton .r-label,
-.result-screen.font-anton .rm-label,
-.result-screen.font-anton .rm2-label{
+/* ANTON 라벨 = Inter semibold */
+body[data-font="anton"] .result-screen .r-label,
+body[data-font="anton"] .result-screen .rm-label,
+body[data-font="anton"] .result-screen .rm2-label,
+.container[data-font="anton"] .result-screen .r-label,
+.container[data-font="anton"] .result-screen .rm-label,
+.container[data-font="anton"] .result-screen .rm2-label{
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
 
-/* ✅ Special Gothic 라벨 80% */
-.result-screen.font-gothic .r-label,
-.result-screen.font-gothic .rm-label,
-.result-screen.font-gothic .rm2-label{
+/* Gothic 라벨 80% */
+body[data-font="gothic"] .result-screen .r-label,
+body[data-font="gothic"] .result-screen .rm-label,
+body[data-font="gothic"] .result-screen .rm2-label,
+.container[data-font="gothic"] .result-screen .r-label,
+.container[data-font="gothic"] .result-screen .rm-label,
+.container[data-font="gothic"] .result-screen .rm2-label{
   font-size: 0.8em;
 }
 
@@ -950,9 +1040,9 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
   font-style: normal;
   font-display: swap;
 }
+
 /* =========================
    ROLLING DIGITS (Result animation)
-   - fixed-width feel + rolling stack
 ========================= */
 .roll{
   display: inline-flex;
@@ -964,14 +1054,13 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
   display: inline-block;
   white-space: pre;
 }
-
 .roll-digit{
   display: inline-block;
   position: relative;
-  height: 1em;                 /* 한 줄 높이 */
+  height: 1em;
   overflow: hidden;
   vertical-align: baseline;
-  width: 0.62em;               /* 기본 숫자 폭(대부분 폰트에서 안정) */
+  width: 0.62em;
 }
 .roll-digit.narrow{ width: 0.52em; }
 .roll-digit.wide{ width: 0.72em; }
@@ -986,17 +1075,16 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
   height: 1em;
   line-height: 1em;
 }
+.roll-digit.is-hidden{ opacity: 0; }
 
-/* leading zero 숨겨도 "자리"는 유지 */
-.roll-digit.is-hidden{
-  opacity: 0;
-}
+/* DOTS/LCD 숫자폭 튜닝 */
+body[data-font="dots"] .roll-digit,
+.container[data-font="dots"] .roll-digit{ width: 0.68em; }
 
-/* DOTS / LCD는 숫자 폭이 좀 다름 -> 조금만 튜닝 */
-body[data-font="dots"] .roll-digit{ width: 0.68em; }
-body[data-font="lcd"]  .roll-digit{ width: 0.66em; }
+body[data-font="lcd"] .roll-digit,
+.container[data-font="lcd"] .roll-digit{ width: 0.66em; }
 
-/* TIME가 아래로 쳐지는 현상 방지: 기존 --time-raise 사용 */
+/* TIME baseline */
 .is-time .roll-digit,
 .is-time .roll-char{
   transform: translateY(calc(-1 * var(--time-raise, 0.06em)));
