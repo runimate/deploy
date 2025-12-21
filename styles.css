@@ -471,6 +471,11 @@ body.no-scroll{ overflow: hidden; }
   will-change: transform;
 }
 
+/* ✅ 요청 반영: ANTON일 때만 LABEL(타이틀) = Inter로 강제 (type1/type2 공통) */
+.preview.font-anton .data-label{
+  font-family: 'Inter', sans-serif !important;
+}
+
 /* --------------------
    RUN button
 -------------------- */
@@ -739,6 +744,11 @@ body.no-scroll{ overflow: hidden; }
 
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
+
+/* ✅ 요청 반영: ANTON일 때만 RESULT LABEL(타이틀) = Inter로 강제 (type1/type2 공통) */
+.result-screen.font-anton .result-label{
+  font-family: 'Inter', sans-serif !important;
+}
 
 /* --------------------
    Garmin Login
