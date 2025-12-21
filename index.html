@@ -6,94 +6,109 @@
   <title>RUNIMATE v2.0</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
-<body>
+
+<body data-record="daily" data-layout="type1" data-bg="white" data-font="dots">
   <div class="container">
+    <!-- HEADER -->
     <header class="header">
-      <div class="title">RUNIMATE <span class="version">v.2.0</span></div>
+      <div class="title">RUNIMATE <span class="version">v2.0</span></div>
       <div class="author">by JS @runarchive.js</div>
     </header>
 
+    <!-- RECORD TYPE -->
     <section class="section">
       <span class="section-label">RECORD TYPE</span>
-      <div class="button-group wide">
-        <button class="toggle-btn flex1" id="btnDaily" data-record="daily">Daily</button>
-        <button class="toggle-btn flex1" id="btnMonthly" data-record="monthly">Monthly</button>
+      <div class="button-group">
+        <button class="toggle-btn flex1" id="btnDaily">Daily</button>
+        <button class="toggle-btn flex1" id="btnMonthly">Monthly</button>
       </div>
     </section>
 
+    <!-- DATA TYPE PANEL -->
     <section class="section">
       <div class="data-panel" id="dataPanel">
         <div class="data-panel-head">
           <div class="data-panel-title">DATA TYPE</div>
         </div>
 
-        <div class="data-tabs" id="dataTabsDaily">
-          <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
-          <button class="data-tab nrc" id="tabNrc" data-datatype="nrc">NRC</button>
-          <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
+        <!-- DAILY: Garmin/NRC/Manual -->
+        <div class="data-tabs" id="dailyTabs">
+          <button class="data-tab garmin" id="tabGarmin">GARMIN</button>
+          <button class="data-tab nrc" id="tabNrc">NRC</button>
+          <button class="data-tab manual" id="tabManual">MANUAL</button>
         </div>
 
-        <div class="data-tabs" id="dataTabsMonthly">
-          <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
+        <!-- MONTHLY: only NRC -->
+        <div class="data-tabs" id="monthlyTabs">
+          <button class="data-tab nrc" id="tabMonthlyNrc">NRC</button>
         </div>
 
+        <!-- EMPTY STATE -->
         <div class="data-empty" id="dataEmpty"></div>
 
+        <!-- GARMIN -->
         <div class="data-content" id="contentGarmin">
           <div class="garmin-card" id="garminCard">
             <div class="garmin-card-left">
-              <div class="garmin-date" id="garminDateText">2025.12.12</div>
+              <div class="garmin-date" id="garminDate">2025.12.12</div>
               <div class="garmin-stats">
-                <div class="garmin-stat" id="garminDistanceText">00.00Km</div>
-                <div class="garmin-stat" id="garminPaceText">0'00"</div>
-                <div class="garmin-stat" id="garminTimeText">0:00</div>
+                <div class="garmin-stat" id="garminKm">0.00Km</div>
+                <div class="garmin-stat" id="garminPace">0'00"</div>
+                <div class="garmin-stat" id="garminTime">0:00:00</div>
               </div>
             </div>
-            <button class="garmin-list-btn" id="btnGarminList" aria-label="Open workout list">
-              <div class="hamburger" aria-hidden="true">
+            <button class="garmin-list-btn" id="garminListBtn" aria-label="Open list">
+              <span class="hamburger" aria-hidden="true">
                 <span></span><span></span><span></span>
-              </div>
+              </span>
             </button>
           </div>
         </div>
 
+        <!-- NRC -->
         <div class="data-content" id="contentNrc">
-          <div class="sub-title">Upload Your Record</div>
+          <div class="sub-title" id="nrcTitle">Upload Your Record</div>
           <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
-          <div class="ocr-status" id="ocrStatus"></div>
-          <input type="file" id="fileNrc" accept="image/*" hidden />
+          <input type="file" id="nrcFile" accept="image/*" hidden />
+          <div class="ocr-status" id="ocrStatus">OCR...</div>
         </div>
 
+        <!-- MANUAL -->
         <div class="data-content" id="contentManual">
           <div class="sub-title">Enter Your Record</div>
+
           <div class="manual-row">
-            <button class="manual-chip" id="chipDistance">
+            <div class="manual-chip" id="chipDistance">
               <span class="chip-label">Distance</span>
-              <span class="chip-value" id="manualDistanceText">00.00</span>
+              <span class="chip-value" id="manualDistance">0.00</span>
               <span class="chip-unit">Km</span>
-            </button>
-            <button class="manual-chip" id="chipPace">
+            </div>
+            <div class="manual-chip" id="chipPace">
               <span class="chip-label">Pace</span>
-              <span class="chip-value" id="manualPaceText">00'00"</span>
+              <span class="chip-value" id="manualPace">0'00"</span>
               <span class="chip-unit">/Km</span>
-            </button>
+            </div>
           </div>
+
           <div class="manual-time-line">
             <span>Time</span>
-            <span id="manualTimeText">00:00:00</span>
+            <span id="manualTime">0:00:00</span>
           </div>
         </div>
 
+        <!-- MONTH PICKER (Monthly only) -->
         <div class="month-block" id="monthBlock">
-          <div class="month-label">MONTH</div>
+          <div class="sub-title">MONTH</div>
           <button class="month-btn" id="btnMonthPick">December. 2025</button>
+          <input type="month" id="monthInput" hidden />
         </div>
       </div>
     </section>
 
+    <!-- FONT -->
     <section class="section">
       <span class="section-label">FONT</span>
-      <div class="button-group font-group no-wrap" id="fontGroup">
+      <div class="button-group font-group">
         <button class="toggle-btn font-btn font-anton" data-font="anton">ANTON</button>
         <button class="toggle-btn font-btn font-dots" data-font="dots">DOTS</button>
         <button class="toggle-btn font-btn font-lcd" data-font="lcd">LCD</button>
@@ -102,130 +117,110 @@
       </div>
     </section>
 
+    <!-- LAYOUT + BG -->
     <section class="section">
       <div class="two-col">
         <div class="col">
           <span class="section-label inline">LAYOUT</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnType1" data-layout="type1">Type 1</button>
-            <button class="toggle-btn flex1" id="btnType2" data-layout="type2">Type 2</button>
+          <div class="button-group">
+            <button class="toggle-btn flex1" data-layout="type1">Type 1</button>
+            <button class="toggle-btn flex1" data-layout="type2">Type 2</button>
           </div>
         </div>
         <div class="col">
           <span class="section-label inline">BG COLOR</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnBgWhite" data-bg="white">White</button>
-            <button class="toggle-btn flex1" id="btnBgBlack" data-bg="black">Black</button>
+          <div class="button-group">
+            <button class="toggle-btn flex1" data-bg="white">White</button>
+            <button class="toggle-btn flex1" data-bg="black">Black</button>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- PREVIEW -->
     <section class="section">
       <span class="section-label">PREVIEW</span>
 
-      <div class="preview type1 bg-white font-dots" id="previewDaily">
-        <div class="preview-content">
-          <div class="data-item">
-            <span class="data-label">DISTANCE</span>
-            <span class="data-value"><span id="pvDistanceDaily">00.00Km</span></span>
-          </div>
-          <div class="data-item">
-            <span class="data-label">PACE</span>
-            <span class="data-value"><span id="pvPaceDaily">00'00"</span></span>
-          </div>
-          <div class="data-item">
-            <span class="data-label">TIME</span>
-            <span class="data-value"><span id="pvTimeDaily">00:00:00</span></span>
+      <!-- DAILY PREVIEW -->
+      <div id="previewDaily">
+        <div class="preview type1 bg-white font-dots" id="dailyPreviewCard">
+          <div class="preview-content">
+            <div class="data-item">
+              <span class="data-label">DISTANCE</span>
+              <span class="data-value fit" id="pvDistance">0.00Km</span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">PACE</span>
+              <span class="data-value fit" id="pvPace">0'00"</span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">TIME</span>
+              <span class="data-value fit time-fit" id="pvTime">0:00:00</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="preview monthly type1 bg-white font-dots" id="previewMonthly">
-        <div class="preview-content">
+      <!-- MONTHLY PREVIEW -->
+      <div id="previewMonthly">
+        <div class="monthly-card type1 bg-white font-dots" id="monthlyPreviewCard">
+          <div class="monthly-month" id="pvMonthLine">
+            <div class="m1" id="pvMonthName">DECEMBER</div>
+            <div class="m2" id="pvMonthYear">2025</div>
+          </div>
 
-          <!-- Monthly Type1 -->
-          <div class="monthly-type1">
-            <div class="m1-month" id="pvMonthType1">DECEMBER<br/>2025</div>
-            <div class="m1-distance">
-              <span class="m1-distance-value"><span id="pvDistanceMonthlyT1">00.00Km</span></span>
+          <div class="monthly-distance fit" id="pvMonthDistance">0.00Km</div>
+
+          <!-- type1 stack -->
+          <div class="monthly-stack" id="monthlyStack">
+            <div class="data-item">
+              <span class="data-label">RUNS</span>
+              <span class="data-value fit" id="pvRuns">00</span>
             </div>
-            <div class="m1-stack">
-              <div class="m1-item">
-                <div class="m-label">RUNS</div>
-                <div class="m-value"><span id="pvRunsMonthlyT1">00</span></div>
-              </div>
-              <div class="m1-item">
-                <div class="m-label">PACE</div>
-                <div class="m-value"><span id="pvPaceMonthlyT1">00'00"</span></div>
-              </div>
-              <div class="m1-item">
-                <div class="m-label">TIME</div>
-                <div class="m-value"><span id="pvTimeMonthlyT1">00:00:00</span></div>
-              </div>
+            <div class="data-item">
+              <span class="data-label">PACE</span>
+              <span class="data-value fit" id="pvMonthPace">0'00"</span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">TIME</span>
+              <span class="data-value fit time-fit" id="pvMonthTime">0:00:00</span>
             </div>
           </div>
 
-          <!-- Monthly Type2 (MONTH → DISTANCE → RUNS/PACE/TIME) -->
-          <div class="monthly-type2">
-            <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
-            <div class="m2-distance">
-              <span class="m2-distance-value"><span id="pvDistanceMonthlyT2">00.00Km</span></span>
+          <!-- type2 bottom row (month / distance / runs pace time 구조) -->
+          <div class="monthly-row" id="monthlyRow">
+            <div class="row-item">
+              <span class="data-label">RUNS</span>
+              <span class="data-value fit" id="pvRuns2">00</span>
             </div>
-            <div class="m2-row">
-              <div class="m2-item">
-                <div class="m2-l">RUNS</div>
-                <div class="m2-v"><span id="pvRunsMonthlyT2">00</span></div>
-              </div>
-              <div class="m2-item">
-                <div class="m2-l">PACE</div>
-                <div class="m2-v"><span id="pvPaceMonthlyT2">00'00"</span></div>
-              </div>
-              <div class="m2-item">
-                <div class="m2-l">TIME</div>
-                <div class="m2-v"><span id="pvTimeMonthlyT2">00:00:00</span></div>
-              </div>
+            <div class="row-item">
+              <span class="data-label">PACE</span>
+              <span class="data-value fit" id="pvMonthPace2">0'00"</span>
+            </div>
+            <div class="row-item">
+              <span class="data-label">TIME</span>
+              <span class="data-value fit time-fit" id="pvMonthTime2">0:00:00</span>
             </div>
           </div>
-
         </div>
       </div>
     </section>
-
-    <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
-  <!-- Manual modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title" id="modalTitle">Input</div>
-        <button class="modal-close" id="modalClose" aria-label="Close">×</button>
-      </div>
-      <div class="modal-body">
-        <form class="manual-form" id="formDistance">
-          <label class="field-label">Distance (Km)</label>
-          <input class="field-input" id="inputDistance" inputmode="decimal" placeholder="e.g. 14.64" />
-          <button class="field-save" type="submit">Save</button>
-        </form>
+  <!-- RUN -->
+  <button class="run-btn" id="btnRun">RUN</button>
 
-        <form class="manual-form" id="formPace">
-          <label class="field-label">Pace (mm:ss /Km)</label>
-          <div class="pace-grid">
-            <input class="field-input" id="inputPaceMin" inputmode="numeric" placeholder="mm" />
-            <div class="colon">:</div>
-            <input class="field-input" id="inputPaceSec" inputmode="numeric" placeholder="ss" />
-          </div>
-          <button class="field-save" type="submit">Save</button>
-        </form>
-      </div>
+  <!-- RESULT OVERLAY -->
+  <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen">
+    <button class="screen-close" id="btnCloseResult">×</button>
+    <div class="result-wrap type1" id="resultWrap">
+      <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
 
-  <!-- Garmin Login -->
-  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <div class="wm-vertical">RUNIMATE by JS @runarchive.js</div>
+  <!-- GARMIN LOGIN OVERLAY -->
+  <div class="screen-overlay garmin-login" id="garminLoginScreen">
+    <button class="screen-close gc-close" id="btnCloseGarminLogin">×</button>
 
     <div class="garmin-login-wrap">
       <div class="garmin-login-title">
@@ -233,12 +228,14 @@
         <div class="gc-sub">Sign-In</div>
       </div>
 
+      <div class="gc-vertical">RUNIMATE by JS @runarchive.js</div>
+
       <form class="garmin-login-form" id="garminLoginForm">
         <label class="gc-label">enter your @ email.com</label>
-        <input class="gc-input" type="email" autocomplete="username" />
+        <input class="gc-input" type="email" required />
 
         <label class="gc-label">password</label>
-        <input class="gc-input" type="password" autocomplete="current-password" />
+        <input class="gc-input" type="password" required />
 
         <div class="gc-note">
           <div class="gc-smile">:)</div>
@@ -252,669 +249,616 @@
     </div>
   </div>
 
-  <!-- Select Workout -->
-  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
-    <button class="screen-close" data-close="garminSelectScreen" aria-label="Close">×</button>
+  <!-- GARMIN SELECT WORKOUT OVERLAY -->
+  <div class="screen-overlay select-workout" id="garminSelectScreen">
+    <button class="screen-close" id="btnCloseGarminSelect">×</button>
     <div class="select-wrap">
       <div class="select-title">Select<br/>Workout</div>
-      <div class="select-list" id="workoutList"></div>
-    </div>
-  </div>
-
-  <!-- Month Picker -->
-  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
-    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
-    <div class="month-wrap">
-      <div class="month-head">
-        <button class="month-nav" id="monthPrevYear" aria-label="Prev year">‹</button>
-        <div class="month-year" id="monthYearText">2025</div>
-        <button class="month-nav" id="monthNextYear" aria-label="Next year">›</button>
-      </div>
-      <div class="month-grid" id="monthGrid"></div>
-    </div>
-  </div>
-
-  <!-- Result -->
-  <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
-    <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
-    <div class="result-wrap type1" id="resultWrap">
-      <div class="result-block" id="resultBlock"></div>
+      <div class="select-list" id="selectList"></div>
     </div>
   </div>
 
   <script type="module">
-    // ---------- helpers ----------
-    const $ = (s)=>document.querySelector(s);
-    const pad2 = (n)=>String(n).padStart(2,'0');
-    const clamp = (v,min,max)=>Math.max(min, Math.min(max,v));
-
-    function fmtKmPreview(km){ return `${Number(km||0).toFixed(2)}Km`; }
-    function fmtRunsPreview(r){ return pad2(Number(r||0)); }
-    function fmtPacePreview(sec){
-      const s = Math.max(0, Math.floor(sec||0));
-      const m = Math.floor(s/60);
-      const r = s%60;
-      return `${pad2(m)}'${pad2(r)}"`;
-    }
-    function fmtTimePreview(sec){
-      const s = Math.max(0, Math.floor(sec||0));
-      const h = Math.floor(s/3600);
-      const m = Math.floor((s%3600)/60);
-      const r = s%60;
-      return `${pad2(h)}:${pad2(m)}:${pad2(r)}`;
-    }
-    // result format: remove leading 0 at very front (pace, time)
-    function fmtPaceResult(sec){
-      const s = Math.max(0, Math.floor(sec||0));
-      const m = Math.floor(s/60);
-      const r = s%60;
-      return `${m}'${pad2(r)}"`;
-    }
-    function fmtTimeResult(sec){
-      const s = Math.max(0, Math.floor(sec||0));
-      const h = Math.floor(s/3600);
-      const m = Math.floor((s%3600)/60);
-      const r = s%60;
-      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      return `${m}:${pad2(r)}`;
-    }
-    function monthName(m){
-      const names = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-      return names[clamp(m,1,12)-1];
-    }
-    function monthNameCap(m){
-      const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      return names[clamp(m,1,12)-1];
-    }
-
-    // ---------- OCR loader (supports ./js/ocr.js or ./ocr.js) ----------
-    let OCR = null;
-    async function loadOCR(){
-      if (OCR) return OCR;
-      try { OCR = await import('./js/ocr.js'); return OCR; } catch(_e){}
-      try { OCR = await import('./ocr.js'); return OCR; } catch(_e){}
-      return null;
-    }
-
-    // ---------- state ----------
+    // =========================
+    // STATE
+    // =========================
     const state = {
-      recordType: 'daily',
-      dataType: null,
-      font: 'anton',
-      layout: 'type1',
-      bg: 'white',
+      recordType: document.body.dataset.record || 'daily',  // daily | monthly
+      layout: document.body.dataset.layout || 'type1',      // type1 | type2
+      bg: document.body.dataset.bg || 'white',              // white | black
+      font: document.body.dataset.font || 'dots',           // anton | dots | lcd | gothic | speed
+      dataType: null, // daily: garmin|nrc|manual, monthly: nrc 고정
 
-      daily: { km: 0, paceSec: 0, timeSec: 0 },
-      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
-
-      garmin: { date: '2025.12.12', km: 14.64, paceSec: 5*60+59, timeSec: 1*3600+27*60+32 }
+      daily: { km: 0, paceMin: 0, paceSec: 0, timeH: 0, timeM: 0, timeS: 0 },
+      monthly: {
+        month: { y: 2025, m: 12 },
+        km: 0, runs: 0, paceMin: 0, paceSec: 0, timeH: 0, timeM: 0, timeS: 0
+      }
     };
 
-    // ---------- elements ----------
-    const el = {
-      btnDaily: $('#btnDaily'),
-      btnMonthly: $('#btnMonthly'),
+    // =========================
+    // FORMAT (앞자리 0 제거 고정)
+    // =========================
+    const zero2 = (n)=> String(n).padStart(2,'0');
 
-      dataPanel: $('#dataPanel'),
-      dataTabsDaily: $('#dataTabsDaily'),
-      dataTabsMonthly: $('#dataTabsMonthly'),
-      dataEmpty: $('#dataEmpty'),
-
-      tabGarmin: $('#tabGarmin'),
-      tabNrc: $('#tabNrc'),
-      tabManual: $('#tabManual'),
-      tabNrcMonthly: $('#tabNrcMonthly'),
-
-      contentGarmin: $('#contentGarmin'),
-      contentNrc: $('#contentNrc'),
-      contentManual: $('#contentManual'),
-
-      monthBlock: $('#monthBlock'),
-      btnMonthPick: $('#btnMonthPick'),
-
-      fontGroup: $('#fontGroup'),
-      btnType1: $('#btnType1'),
-      btnType2: $('#btnType2'),
-      btnBgWhite: $('#btnBgWhite'),
-      btnBgBlack: $('#btnBgBlack'),
-
-      previewDaily: $('#previewDaily'),
-      previewMonthly: $('#previewMonthly'),
-
-      pvDistanceDaily: $('#pvDistanceDaily'),
-      pvPaceDaily: $('#pvPaceDaily'),
-      pvTimeDaily: $('#pvTimeDaily'),
-
-      pvMonthType1: $('#pvMonthType1'),
-      pvMonthType2: $('#pvMonthType2'),
-
-      pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'),
-      pvRunsMonthlyT1: $('#pvRunsMonthlyT1'),
-      pvPaceMonthlyT1: $('#pvPaceMonthlyT1'),
-      pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
-
-      pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'),
-      pvRunsMonthlyT2: $('#pvRunsMonthlyT2'),
-      pvPaceMonthlyT2: $('#pvPaceMonthlyT2'),
-      pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
-
-      btnUploadNrc: $('#btnUploadNrc'),
-      fileNrc: $('#fileNrc'),
-      ocrStatus: $('#ocrStatus'),
-
-      chipDistance: $('#chipDistance'),
-      chipPace: $('#chipPace'),
-      manualDistanceText: $('#manualDistanceText'),
-      manualPaceText: $('#manualPaceText'),
-      manualTimeText: $('#manualTimeText'),
-
-      modalOverlay: $('#modalOverlay'),
-      modalClose: $('#modalClose'),
-      modalTitle: $('#modalTitle'),
-      formDistance: $('#formDistance'),
-      formPace: $('#formPace'),
-      inputDistance: $('#inputDistance'),
-      inputPaceMin: $('#inputPaceMin'),
-      inputPaceSec: $('#inputPaceSec'),
-
-      btnGarminList: $('#btnGarminList'),
-      garminDateText: $('#garminDateText'),
-      garminDistanceText: $('#garminDistanceText'),
-      garminPaceText: $('#garminPaceText'),
-      garminTimeText: $('#garminTimeText'),
-
-      garminLoginForm: $('#garminLoginForm'),
-      workoutList: $('#workoutList'),
-
-      monthPickerScreen: $('#monthPickerScreen'),
-      monthGrid: $('#monthGrid'),
-      monthYearText: $('#monthYearText'),
-      monthPrevYear: $('#monthPrevYear'),
-      monthNextYear: $('#monthNextYear'),
-
-      btnRun: $('#btnRun'),
-      resultScreen: $('#resultScreen'),
-      resultWrap: $('#resultWrap'),
-      resultBlock: $('#resultBlock')
-    };
-
-    // ---------- overlay open/close ----------
-    function openScreen(id){
-      document.body.classList.add('no-scroll');
-      const node = document.getElementById(id);
-      node.classList.add('show');
-      node.setAttribute('aria-hidden','false');
+    function formatPace(min, sec){
+      const m = Math.max(0, parseInt(min||0,10));
+      const s = Math.max(0, parseInt(sec||0,10));
+      return `${m}'${zero2(s)}"`;
     }
-    function closeScreen(id){
-      const node = document.getElementById(id);
-      node.classList.remove('show');
-      node.setAttribute('aria-hidden','true');
-      const anyOpen = document.querySelector('.screen-overlay.show, .modal-overlay.show');
-      if (!anyOpen) document.body.classList.remove('no-scroll');
+
+    // 첫 세그먼트(시간)만 0패딩 금지: 0:00:00 / 1:27:32
+    function formatTime(h,m,s){
+      const H = Math.max(0, parseInt(h||0,10));
+      const M = Math.max(0, parseInt(m||0,10));
+      const S = Math.max(0, parseInt(s||0,10));
+      return `${H}:${zero2(M)}:${zero2(S)}`;
     }
-    document.addEventListener('click', (e)=>{
-      const closeId = e.target?.dataset?.close;
-      if (closeId) closeScreen(closeId);
-    });
 
-    // ---------- apply UI ----------
-    function applyRecordType(){
-      el.btnDaily.classList.toggle('active', state.recordType==='daily');
-      el.btnMonthly.classList.toggle('active', state.recordType==='monthly');
+    function formatKm(km){
+      const v = (Number(km)||0);
+      return `${v.toFixed(2)}Km`;
+    }
 
-      el.dataTabsDaily.style.display = (state.recordType==='daily') ? 'flex' : 'none';
-      el.dataTabsMonthly.style.display = (state.recordType==='monthly') ? 'flex' : 'none';
+    function monthText({y,m}){
+      const names = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+      return { name:names[(m-1+12)%12], year:String(y) };
+    }
 
-      el.dataPanel.classList.toggle('monthly', state.recordType==='monthly');
-      el.monthBlock.style.display = (state.recordType==='monthly') ? 'block' : 'none';
+    // =========================
+    // FIT TEXT (프리뷰/결과 자동 리사이징 복구)
+    // - overflow 나면 font-size를 줄여서 딱 맞춤
+    // =========================
+    function fitOne(el){
+      if(!el) return;
+      // reset
+      el.style.fontSize = '';
+      // next tick measure
+      const base = parseFloat(getComputedStyle(el).fontSize) || 0;
+      if(!base) return;
 
-      el.previewDaily.style.display = (state.recordType==='daily') ? 'block' : 'none';
-      el.previewMonthly.style.display = (state.recordType==='monthly') ? 'block' : 'none';
+      const maxIter = 6;
+      let fs = base;
 
-      if (state.recordType==='monthly' && state.dataType !== 'nrc') state.dataType = null;
+      for(let i=0;i<maxIter;i++){
+        const cw = el.clientWidth;
+        const sw = el.scrollWidth;
+        if(!cw || !sw) break;
+        if(sw <= cw + 1) break;
 
-      applyDataType();
-      applyLayout();
-      applyBG();
-      applyFont();
-      updatePreview();
+        const ratio = cw / sw;
+        const next = Math.max(10, fs * ratio * 0.98);
+        if(Math.abs(next - fs) < 0.25) break;
+        fs = next;
+        el.style.fontSize = fs + 'px';
+      }
+    }
+
+    function fitAll(){
+      // preview values
+      document.querySelectorAll('.fit').forEach(fitOne);
+      // result values
+      document.querySelectorAll('#resultScreen .fit').forEach(fitOne);
+    }
+
+    // =========================
+    // ELEMENTS
+    // =========================
+    const btnDaily = document.getElementById('btnDaily');
+    const btnMonthly = document.getElementById('btnMonthly');
+
+    const dailyTabs = document.getElementById('dailyTabs');
+    const monthlyTabs = document.getElementById('monthlyTabs');
+    const dataEmpty = document.getElementById('dataEmpty');
+
+    const contentGarmin = document.getElementById('contentGarmin');
+    const contentNrc = document.getElementById('contentNrc');
+    const contentManual = document.getElementById('contentManual');
+    const monthBlock = document.getElementById('monthBlock');
+
+    const tabGarmin = document.getElementById('tabGarmin');
+    const tabNrc = document.getElementById('tabNrc');
+    const tabManual = document.getElementById('tabManual');
+    const tabMonthlyNrc = document.getElementById('tabMonthlyNrc');
+
+    const previewDailyWrap = document.getElementById('previewDaily');
+    const previewMonthlyWrap = document.getElementById('previewMonthly');
+
+    const dailyPreviewCard = document.getElementById('dailyPreviewCard');
+    const monthlyPreviewCard = document.getElementById('monthlyPreviewCard');
+
+    const pvDistance = document.getElementById('pvDistance');
+    const pvPace = document.getElementById('pvPace');
+    const pvTime = document.getElementById('pvTime');
+
+    const pvMonthName = document.getElementById('pvMonthName');
+    const pvMonthYear = document.getElementById('pvMonthYear');
+    const pvMonthDistance = document.getElementById('pvMonthDistance');
+
+    const pvRuns = document.getElementById('pvRuns');
+    const pvMonthPace = document.getElementById('pvMonthPace');
+    const pvMonthTime = document.getElementById('pvMonthTime');
+
+    const pvRuns2 = document.getElementById('pvRuns2');
+    const pvMonthPace2 = document.getElementById('pvMonthPace2');
+    const pvMonthTime2 = document.getElementById('pvMonthTime2');
+
+    const monthlyStack = document.getElementById('monthlyStack');
+    const monthlyRow = document.getElementById('monthlyRow');
+
+    const btnMonthPick = document.getElementById('btnMonthPick');
+    const monthInput = document.getElementById('monthInput');
+
+    const btnRun = document.getElementById('btnRun');
+
+    const resultScreen = document.getElementById('resultScreen');
+    const btnCloseResult = document.getElementById('btnCloseResult');
+    const resultWrap = document.getElementById('resultWrap');
+    const resultBlock = document.getElementById('resultBlock');
+
+    const garminLoginScreen = document.getElementById('garminLoginScreen');
+    const garminSelectScreen = document.getElementById('garminSelectScreen');
+    const btnCloseGarminLogin = document.getElementById('btnCloseGarminLogin');
+    const btnCloseGarminSelect = document.getElementById('btnCloseGarminSelect');
+    const garminLoginForm = document.getElementById('garminLoginForm');
+    const selectList = document.getElementById('selectList');
+
+    const garminCard = document.getElementById('garminCard');
+    const garminListBtn = document.getElementById('garminListBtn');
+
+    const garminKm = document.getElementById('garminKm');
+    const garminPace = document.getElementById('garminPace');
+    const garminTime = document.getElementById('garminTime');
+
+    // =========================
+    // UI APPLY
+    // =========================
+    const setActive = (el, yes)=> el.classList.toggle('active', !!yes);
+
+    function applyTogglesActive(){
+      document.querySelectorAll('[data-font]').forEach(b=> b.classList.toggle('active', b.dataset.font===state.font));
+      document.querySelectorAll('[data-layout]').forEach(b=> b.classList.toggle('active', b.dataset.layout===state.layout));
+      document.querySelectorAll('[data-bg]').forEach(b=> b.classList.toggle('active', b.dataset.bg===state.bg));
+    }
+
+    function applyPreviewCardClass(){
+      dailyPreviewCard.className = `preview ${state.layout} bg-${state.bg} font-${state.font}`;
+      monthlyPreviewCard.className = `monthly-card ${state.layout} bg-${state.bg} font-${state.font}`;
+
+      // monthly layout 구조 변경
+      if(state.layout === 'type2'){
+        monthlyStack.style.display = 'none';
+        monthlyRow.style.display = 'grid';
+      }else{
+        monthlyStack.style.display = 'flex';
+        monthlyRow.style.display = 'none';
+      }
+    }
+
+    function clearTabsActive(){
+      [tabGarmin, tabNrc, tabManual].forEach(t=>t.classList.remove('active'));
     }
 
     function applyDataType(){
-      [el.tabGarmin, el.tabNrc, el.tabManual].forEach(t=>{
-        t.classList.toggle('active', state.dataType === t.dataset.datatype);
-      });
-      if (el.tabNrcMonthly){
-        el.tabNrcMonthly.classList.toggle('active', state.recordType==='monthly' && state.dataType==='nrc');
+      const showEmpty = (state.recordType==='daily' && !state.dataType);
+      dataEmpty.style.display = showEmpty ? 'block' : 'none';
+
+      contentGarmin.style.display = 'none';
+      contentNrc.style.display = 'none';
+      contentManual.style.display = 'none';
+
+      if(state.recordType==='monthly'){
+        contentNrc.style.display = 'block';
+        tabMonthlyNrc.classList.add('active');
+        return;
       }
 
-      el.dataEmpty.style.display = state.dataType ? 'none' : 'block';
-      el.contentGarmin.style.display = (state.recordType==='daily' && state.dataType==='garmin') ? 'block' : 'none';
-      el.contentNrc.style.display = (state.dataType==='nrc') ? 'block' : 'none';
-      el.contentManual.style.display = (state.recordType==='daily' && state.dataType==='manual') ? 'block' : 'none';
+      if(!state.dataType) return;
+      if(state.dataType==='garmin') contentGarmin.style.display='block';
+      if(state.dataType==='nrc') contentNrc.style.display='block';
+      if(state.dataType==='manual') contentManual.style.display='block';
     }
 
-    function applyFont(){
-      el.fontGroup.querySelectorAll('[data-font]').forEach(b=>{
-        b.classList.toggle('active', b.dataset.font === state.font);
-      });
-      const fontClass = `font-${state.font}`;
-      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node=>{
-        node.classList.remove('font-anton','font-dots','font-lcd','font-gothic','font-speed');
-        node.classList.add(fontClass);
-      });
-    }
+    function applyRecordType(){
+      document.body.dataset.record = state.recordType;
 
-    function applyLayout(){
-      el.btnType1.classList.toggle('active', state.layout==='type1');
-      el.btnType2.classList.toggle('active', state.layout==='type2');
+      setActive(btnDaily, state.recordType==='daily');
+      setActive(btnMonthly, state.recordType==='monthly');
 
-      el.previewDaily.classList.toggle('type1', state.layout==='type1');
-      el.previewDaily.classList.toggle('type2', state.layout==='type2');
+      dailyTabs.style.display = (state.recordType==='daily') ? 'flex' : 'none';
+      monthlyTabs.style.display = (state.recordType==='monthly') ? 'flex' : 'none';
+      monthBlock.style.display = (state.recordType==='monthly') ? 'block' : 'none';
 
-      el.previewMonthly.classList.toggle('type1', state.layout==='type1');
-      el.previewMonthly.classList.toggle('type2', state.layout==='type2');
-
-      el.resultWrap.classList.toggle('type1', state.layout==='type1');
-      el.resultWrap.classList.toggle('type2', state.layout==='type2');
-      updatePreview();
-    }
-
-    function applyBG(){
-      el.btnBgWhite.classList.toggle('active', state.bg==='white');
-      el.btnBgBlack.classList.toggle('active', state.bg==='black');
-
-      const bgClass = `bg-${state.bg}`;
-      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node=>{
-        node.classList.remove('bg-white','bg-black');
-        node.classList.add(bgClass);
-      });
-    }
-
-    function updatePreview(){
-      // daily
-      let d = state.daily;
-      if (state.recordType==='daily' && state.dataType==='garmin'){
-        d = { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec };
+      if(state.recordType==='monthly'){
+        state.dataType = 'nrc';
+        tabMonthlyNrc.classList.add('active');
+      }else{
+        tabMonthlyNrc.classList.remove('active');
+        state.dataType = null;
+        clearTabsActive();
       }
-      el.pvDistanceDaily.textContent = fmtKmPreview(d.km);
-      el.pvPaceDaily.textContent = fmtPacePreview(d.paceSec);
-      el.pvTimeDaily.textContent = fmtTimePreview(d.timeSec);
 
-      // monthly
-      const m = state.monthly;
-      el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
-      el.pvMonthType1.innerHTML = `${monthName(m.month)}<br/>${m.year}`;
-      el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
+      applyDataType();
 
-      const kmText = fmtKmPreview(m.km);
-      const runsText = fmtRunsPreview(m.runs);
-      const paceText = fmtPacePreview(m.paceSec);
-      const timeText = fmtTimePreview(m.timeSec);
+      previewDailyWrap.style.display = (state.recordType==='daily') ? 'block' : 'none';
+      previewMonthlyWrap.style.display = (state.recordType==='monthly') ? 'block' : 'none';
 
-      el.pvDistanceMonthlyT1.textContent = kmText;
-      el.pvRunsMonthlyT1.textContent = runsText;
-      el.pvPaceMonthlyT1.textContent = paceText;
-      el.pvTimeMonthlyT1.textContent = timeText;
-
-      el.pvDistanceMonthlyT2.textContent = kmText;
-      el.pvRunsMonthlyT2.textContent = runsText;
-      el.pvPaceMonthlyT2.textContent = paceText;
-      el.pvTimeMonthlyT2.textContent = timeText;
-
-      // garmin card
-      el.garminDateText.textContent = state.garmin.date;
-      el.garminDistanceText.textContent = fmtKmPreview(state.garmin.km);
-      el.garminPaceText.textContent = fmtPaceResult(state.garmin.paceSec);
-      el.garminTimeText.textContent = fmtTimeResult(state.garmin.timeSec);
+      applyPreviewCardClass();
+      renderAll();
     }
 
-    // ---------- Garmin (mock) ----------
-    const mockWorkouts = [
-      { date:'2025.12.12', km:14.64, paceSec:5*60+59, timeSec:1*3600+27*60+32 },
-      { date:'2025.12.10', km:10.00, paceSec:5*60+20, timeSec:53*60+20 },
-      { date:'2025.12.08', km:5.00,  paceSec:4*60+55, timeSec:24*60+35 },
-      { date:'2025.12.05', km:21.10, paceSec:5*60+30, timeSec:1*3600+56*60+5 },
-      { date:'2025.11.30', km:7.20,  paceSec:6*60+10, timeSec:44*60+20 }
-    ];
-    function renderWorkoutList(){
-      el.workoutList.innerHTML = '';
-      mockWorkouts.forEach((w)=>{
-        const btn = document.createElement('button');
-        btn.className = 'workout-item';
-        btn.type = 'button';
-        btn.innerHTML = `
-          <div class="w-left">
-            <div class="w-date">${w.date}</div>
-            <div class="w-stats">
-              <span>${fmtKmPreview(w.km)}</span>
-              <span>${fmtPaceResult(w.paceSec)}</span>
-              <span>${fmtTimeResult(w.timeSec)}</span>
+    // =========================
+    // RENDER
+    // =========================
+    function renderDaily(){
+      pvDistance.textContent = formatKm(state.daily.km);
+      pvPace.textContent = formatPace(state.daily.paceMin, state.daily.paceSec);
+      pvTime.textContent = formatTime(state.daily.timeH, state.daily.timeM, state.daily.timeS);
+
+      garminKm.textContent = formatKm(state.daily.km);
+      garminPace.textContent = formatPace(state.daily.paceMin, state.daily.paceSec);
+      garminTime.textContent = formatTime(state.daily.timeH, state.daily.timeM, state.daily.timeS);
+    }
+
+    function renderMonthly(){
+      const { name, year } = monthText(state.monthly.month);
+      pvMonthName.textContent = name;
+      pvMonthYear.textContent = year;
+
+      pvMonthDistance.textContent = formatKm(state.monthly.km);
+
+      const runsText = String(state.monthly.runs || 0).padStart(2,'0');
+      pvRuns.textContent = runsText;
+      pvRuns2.textContent = runsText;
+
+      const paceText = formatPace(state.monthly.paceMin, state.monthly.paceSec);
+      const timeText = formatTime(state.monthly.timeH, state.monthly.timeM, state.monthly.timeS);
+      pvMonthPace.textContent = paceText;
+      pvMonthTime.textContent = timeText;
+      pvMonthPace2.textContent = paceText;
+      pvMonthTime2.textContent = timeText;
+
+      btnMonthPick.textContent = `${name.charAt(0)+name.slice(1).toLowerCase()}. ${year}`;
+    }
+
+    function renderAll(){
+      renderDaily();
+      renderMonthly();
+      // ✅ 프리뷰/결과 자동 리사이징 복구
+      requestAnimationFrame(()=>fitAll());
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
+    btnDaily.addEventListener('click', ()=>{
+      state.recordType = 'daily';
+      applyRecordType();
+    });
+
+    btnMonthly.addEventListener('click', ()=>{
+      state.recordType = 'monthly';
+      applyRecordType();
+    });
+
+    tabGarmin.addEventListener('click', ()=>{
+      clearTabsActive(); tabGarmin.classList.add('active');
+      state.dataType='garmin';
+      applyDataType();
+
+      garminLoginScreen.classList.add('show');
+      document.body.classList.add('no-scroll');
+    });
+
+    tabNrc.addEventListener('click', ()=>{
+      clearTabsActive(); tabNrc.classList.add('active');
+      state.dataType='nrc';
+      applyDataType();
+    });
+
+    tabManual.addEventListener('click', ()=>{
+      clearTabsActive(); tabManual.classList.add('active');
+      state.dataType='manual';
+      applyDataType();
+    });
+
+    // font/layout/bg
+    document.querySelectorAll('[data-font]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.font = btn.dataset.font;
+        document.body.dataset.font = state.font;
+        applyPreviewCardClass();
+        applyTogglesActive();
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll('[data-layout]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.layout = btn.dataset.layout;
+        document.body.dataset.layout = state.layout;
+        applyPreviewCardClass();
+        applyTogglesActive();
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll('[data-bg]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.bg = btn.dataset.bg;
+        document.body.dataset.bg = state.bg;
+        applyPreviewCardClass();
+        applyTogglesActive();
+        renderAll();
+      });
+    });
+
+    // month picker
+    btnMonthPick.addEventListener('click', ()=> monthInput.click());
+    monthInput.addEventListener('change', ()=>{
+      const v = monthInput.value; // YYYY-MM
+      if(!v) return;
+      const [yy, mm] = v.split('-').map(n=>parseInt(n,10));
+      state.monthly.month = { y: yy, m: mm };
+      renderAll();
+    });
+
+    // Garmin overlays close
+    btnCloseGarminLogin.addEventListener('click', ()=>{
+      garminLoginScreen.classList.remove('show');
+      document.body.classList.remove('no-scroll');
+    });
+    btnCloseGarminSelect.addEventListener('click', ()=>{
+      garminSelectScreen.classList.remove('show');
+      document.body.classList.remove('no-scroll');
+    });
+
+    garminLoginForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      garminLoginScreen.classList.remove('show');
+      openGarminSelect();
+    });
+
+    function openGarminSelect(){
+      selectList.innerHTML = '';
+      for(let i=0;i<10;i++){
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'workout-item' + (i===1 ? ' active' : '');
+        item.innerHTML = `
+          <div class="wk-left">
+            <div class="wk-date">2025.12.12</div>
+            <div class="wk-stats">
+              <span>14.64Km</span>
+              <span>5'59"</span>
+              <span>1:27:32</span>
             </div>
           </div>
-          <div class="w-arrow">→</div>
+          <div class="wk-arrow">→</div>
         `;
-        btn.addEventListener('click', ()=>{
-          state.garmin = { ...w };
-          state.dataType = 'garmin';
+        item.addEventListener('click', ()=>{
+          garminSelectScreen.classList.remove('show');
+          document.body.classList.remove('no-scroll');
+
+          state.dataType='garmin';
+          clearTabsActive(); tabGarmin.classList.add('active');
           applyDataType();
-          updatePreview();
-          closeScreen('garminSelectScreen');
-        });
-        el.workoutList.appendChild(btn);
-      });
-    }
-    el.garminLoginForm.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      closeScreen('garminLoginScreen');
-      renderWorkoutList();
-      openScreen('garminSelectScreen');
-    });
-    el.btnGarminList.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      renderWorkoutList();
-      openScreen('garminSelectScreen');
-    });
 
-    // ---------- Month picker ----------
-    function buildMonthGrid(){
-      el.monthGrid.innerHTML = '';
-      for (let i=1;i<=12;i++){
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'month-cell';
-        b.textContent = monthNameCap(i);
-        b.classList.toggle('active', i === state.monthly.month);
-        b.addEventListener('click', ()=>{
-          state.monthly.month = i;
-          updatePreview();
-          closeScreen('monthPickerScreen');
+          state.daily.km = 14.64;
+          state.daily.paceMin = 5;
+          state.daily.paceSec = 59;
+          state.daily.timeH = 1;
+          state.daily.timeM = 27;
+          state.daily.timeS = 32;
+          renderAll();
         });
-        el.monthGrid.appendChild(b);
+        selectList.appendChild(item);
       }
-    }
-    el.monthPrevYear.addEventListener('click', ()=>{
-      state.monthly.year -= 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    el.monthNextYear.addEventListener('click', ()=>{
-      state.monthly.year += 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    el.btnMonthPick.addEventListener('click', ()=>{
-      el.monthYearText.textContent = state.monthly.year;
-      buildMonthGrid();
-      openScreen('monthPickerScreen');
-    });
-
-    // ---------- Manual modal ----------
-    function openManualModal(type){
-      el.modalOverlay.classList.add('show');
+      garminSelectScreen.classList.add('show');
       document.body.classList.add('no-scroll');
-      el.formDistance.style.display = (type==='distance') ? 'block' : 'none';
-      el.formPace.style.display = (type==='pace') ? 'block' : 'none';
-      el.modalTitle.textContent = (type==='distance') ? 'Distance' : 'Pace';
     }
-    function closeManualModal(){
-      el.modalOverlay.classList.remove('show');
-      const anyOpen = document.querySelector('.screen-overlay.show');
-      if (!anyOpen) document.body.classList.remove('no-scroll');
-    }
-    el.modalClose.addEventListener('click', closeManualModal);
-    el.modalOverlay.addEventListener('click', (e)=>{
-      if (e.target === el.modalOverlay) closeManualModal();
+
+    garminListBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openGarminSelect();
     });
 
-    function recalcManualTime(){
-      const km = state.daily.km || 0;
-      const pace = state.daily.paceSec || 0;
-      const t = (km>0 && pace>0) ? Math.round(km * pace) : 0;
-      state.daily.timeSec = t;
-      el.manualTimeText.textContent = fmtTimePreview(t);
-    }
-    el.chipDistance.addEventListener('click', ()=>openManualModal('distance'));
-    el.chipPace.addEventListener('click', ()=>openManualModal('pace'));
-
-    el.formDistance.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const v = parseFloat(String(el.inputDistance.value||'').replace(',','.'));
-      state.daily.km = isFinite(v) ? v : 0;
-      el.manualDistanceText.textContent = (state.daily.km||0).toFixed(2);
-      recalcManualTime();
-      updatePreview();
-      closeManualModal();
+    // Result screen
+    btnCloseResult.addEventListener('click', ()=>{
+      resultScreen.classList.remove('show');
+      document.body.classList.remove('no-scroll');
     });
 
-    el.formPace.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const mm = parseInt(el.inputPaceMin.value||'0',10);
-      const ss = parseInt(el.inputPaceSec.value||'0',10);
-      const sec = (isFinite(mm)?mm:0)*60 + clamp(isFinite(ss)?ss:0, 0, 59);
-      state.daily.paceSec = sec;
-      el.manualPaceText.textContent = fmtPacePreview(sec);
-      recalcManualTime();
-      updatePreview();
-      closeManualModal();
+    btnRun.addEventListener('click', ()=>{
+      buildResultLayout();
+      resultScreen.classList.add('show');
+      document.body.classList.add('no-scroll');
+      runAnimation();
     });
 
-    // ---------- NRC upload ----------
-    el.btnUploadNrc.addEventListener('click', ()=> el.fileNrc.click());
-    el.fileNrc.addEventListener('change', async (e)=>{
-      const f = e.target.files?.[0];
-      if (!f) return;
+    function buildResultLayout(){
+      resultScreen.className = `screen-overlay result-screen bg-${state.bg} font-${state.font}`;
+      resultWrap.className = `result-wrap ${state.layout}`;
 
-      el.ocrStatus.textContent = 'Reading...';
-      el.ocrStatus.classList.add('show');
-
-      const reader = new FileReader();
-      reader.onload = async ()=>{
-        const dataURL = reader.result;
-        const mod = await loadOCR();
-
-        if (!mod || typeof mod.extractAll !== 'function'){
-          el.ocrStatus.textContent = 'OCR module not found. Using demo values.';
-          if (state.recordType==='daily'){
-            state.daily = { km: 14.64, paceSec: 5*60+59, timeSec: 1*3600+27*60+32 };
-          } else {
-            state.monthly = { ...state.monthly, km: 160.50, runs: 16, paceSec: 6*60+10, timeSec: 48*3600+27*60+32 };
-          }
-          updatePreview();
-          return;
-        }
-
-        try{
-          const out = await mod.extractAll(dataURL, { recordType: state.recordType });
-
-          if (state.recordType==='daily'){
-            const km = Number(out.km||0);
-            const paceSec = (out.paceMin!=null && out.paceSec!=null) ? (out.paceMin*60 + out.paceSec) : 0;
-            const timeSec = (out.timeH!=null && out.timeM!=null && out.timeS!=null)
-              ? (out.timeH*3600 + out.timeM*60 + out.timeS)
-              : (out.timeM!=null && out.timeS!=null ? (out.timeM*60 + out.timeS) : 0);
-            state.daily = { km, paceSec, timeSec };
-          } else {
-            const km = Number(out.km||0);
-            const runs = Number(out.runs||0);
-            const paceSec = (out.paceMin!=null && out.paceSec!=null) ? (out.paceMin*60 + out.paceSec) : 0;
-            const timeSec = (out.timeH!=null && out.timeM!=null && out.timeS!=null)
-              ? (out.timeH*3600 + out.timeM*60 + out.timeS)
-              : (out.timeM!=null && out.timeS!=null ? (out.timeM*60 + out.timeS) : 0);
-            state.monthly = { ...state.monthly, km, runs, paceSec, timeSec };
-          }
-
-          el.ocrStatus.textContent = 'Done.';
-          updatePreview();
-        }catch(err){
-          el.ocrStatus.textContent = 'Failed to read. Try another image.';
-        }
-      };
-      reader.readAsDataURL(f);
-    });
-
-    // ---------- Result ----------
-    function buildResultDOM(){
-      el.resultWrap.classList.toggle('type1', state.layout==='type1');
-      el.resultWrap.classList.toggle('type2', state.layout==='type2');
-
-      if (state.recordType==='daily'){
-        const src = (state.dataType==='garmin')
-          ? { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec }
-          : state.daily;
-
-        el.resultBlock.innerHTML = `
+      if(state.recordType==='daily'){
+        resultBlock.innerHTML = `
           <div class="result-item">
             <span class="result-label">DISTANCE</span>
-            <span class="result-value"><span id="rvDistance"></span></span>
+            <span class="result-value fit" id="rsDistance">0.00Km</span>
           </div>
           <div class="result-item">
             <span class="result-label">PACE</span>
-            <span class="result-value"><span id="rvPace"></span></span>
+            <span class="result-value fit" id="rsPace">0'00"</span>
           </div>
           <div class="result-item">
             <span class="result-label">TIME</span>
-            <span class="result-value"><span id="rvTime"></span></span>
+            <span class="result-value fit time-fit" id="rsTime">0:00:00</span>
           </div>
         `;
-        return { km:+(src.km||0), runs:null, paceSec:+(src.paceSec||0), timeSec:+(src.timeSec||0) };
+      }else{
+        const { name, year } = monthText(state.monthly.month);
+
+        if(state.layout==='type1'){
+          resultBlock.innerHTML = `
+            <div class="result-month">
+              <div class="rm1">${name}</div>
+              <div class="rm2">${year}</div>
+            </div>
+            <div class="result-month-distance fit" id="rsMonthDistance">0.00Km</div>
+            <div class="result-month-stack">
+              <div class="result-item">
+                <span class="result-label">RUNS</span>
+                <span class="result-value fit" id="rsRuns">00</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">PACE</span>
+                <span class="result-value fit" id="rsMonthPace">0'00"</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">TIME</span>
+                <span class="result-value fit time-fit" id="rsMonthTime">0:00:00</span>
+              </div>
+            </div>
+          `;
+        }else{
+          // ✅ 요청: month / distance / runs pace time
+          resultBlock.innerHTML = `
+            <div class="result-month-inline">
+              <div class="rm-inline">${name} ${year}</div>
+            </div>
+
+            <div class="result-month-distance type2 fit" id="rsMonthDistance">0.00Km</div>
+
+            <div class="result-month-bottom">
+              <div class="result-item">
+                <span class="result-label">RUNS</span>
+                <span class="result-value fit" id="rsRuns">00</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">PACE</span>
+                <span class="result-value fit" id="rsMonthPace">0'00"</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">TIME</span>
+                <span class="result-value fit time-fit" id="rsMonthTime">0:00:00</span>
+              </div>
+            </div>
+          `;
+        }
       }
 
-      const m = state.monthly;
-      const monthLine = `${monthName(m.month)} ${m.year}`;
-
-      if (state.layout==='type1'){
-        el.resultBlock.innerHTML = `
-          <div class="m1-month">${monthName(m.month)}<br/>${m.year}</div>
-          <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
-          <div class="m1-stack">
-            <div class="m1-item">
-              <div class="result-label">RUNS</div>
-              <div class="result-value"><span id="rvRuns"></span></div>
-            </div>
-            <div class="m1-item">
-              <div class="result-label">PACE</div>
-              <div class="result-value"><span id="rvPace"></span></div>
-            </div>
-            <div class="m1-item">
-              <div class="result-label">TIME</div>
-              <div class="result-value"><span id="rvTime"></span></div>
-            </div>
-          </div>
-        `;
-      } else {
-        el.resultBlock.innerHTML = `
-          <div class="m2-month">${monthLine}</div>
-          <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
-          <div class="m2-row">
-            <div class="m2-item">
-              <span class="result-label">RUNS</span>
-              <span class="result-value"><span id="rvRuns"></span></span>
-            </div>
-            <div class="m2-item">
-              <span class="result-label">PACE</span>
-              <span class="result-value"><span id="rvPace"></span></span>
-            </div>
-            <div class="m2-item">
-              <span class="result-label">TIME</span>
-              <span class="result-value"><span id="rvTime"></span></span>
-            </div>
-          </div>
-        `;
-      }
-
-      return { km:+(m.km||0), runs:+(m.runs||0), paceSec:+(m.paceSec||0), timeSec:+(m.timeSec||0) };
+      requestAnimationFrame(()=>fitAll());
     }
 
-    function animateAll(target){
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
+    function runAnimation(){
+      const start = performance.now();
+      const hold = 450;
+      const dur = 1100;
 
-      if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-      if (rvPace) rvPace.textContent = fmtPaceResult(0);
-      if (rvTime) rvTime.textContent = fmtTimeResult(0);
-      if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
+      const target = (state.recordType==='daily') ? {
+        km: state.daily.km,
+        pace: state.daily.paceMin*60 + state.daily.paceSec,
+        time: state.daily.timeH*3600 + state.daily.timeM*60 + state.daily.timeS
+      } : {
+        km: state.monthly.km,
+        runs: state.monthly.runs,
+        pace: state.monthly.paceMin*60 + state.monthly.paceSec,
+        time: state.monthly.timeH*3600 + state.monthly.timeM*60 + state.monthly.timeS
+      };
 
-      const hold = 500;
-      const dur = 900;
-      const t0 = performance.now();
-      const easeOutCubic = (x)=> 1 - Math.pow(1-x, 3);
+      const rsDistance = document.getElementById('rsDistance');
+      const rsPace = document.getElementById('rsPace');
+      const rsTime = document.getElementById('rsTime');
+
+      const rsMonthDistance = document.getElementById('rsMonthDistance');
+      const rsRuns = document.getElementById('rsRuns');
+      const rsMonthPace = document.getElementById('rsMonthPace');
+      const rsMonthTime = document.getElementById('rsMonthTime');
+
+      function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+      function lerp(a,b,t){ return a + (b-a)*t; }
+
+      function paint(p){
+        if(state.recordType==='daily'){
+          const km = lerp(0, target.km, p);
+          const paceSec = Math.round(lerp(0, target.pace, p));
+          const timeSec = Math.round(lerp(0, target.time, p));
+
+          const pm = Math.floor(paceSec/60);
+          const ps = paceSec%60;
+
+          const th = Math.floor(timeSec/3600);
+          const tm = Math.floor((timeSec%3600)/60);
+          const ts = timeSec%60;
+
+          if(rsDistance) rsDistance.textContent = formatKm(km);
+          if(rsPace) rsPace.textContent = formatPace(pm, ps);
+          if(rsTime) rsTime.textContent = formatTime(th, tm, ts);
+        }else{
+          const km = lerp(0, target.km, p);
+          const runs = Math.round(lerp(0, target.runs, p));
+          const paceSec = Math.round(lerp(0, target.pace, p));
+          const timeSec = Math.round(lerp(0, target.time, p));
+
+          const pm = Math.floor(paceSec/60);
+          const ps = paceSec%60;
+
+          const th = Math.floor(timeSec/3600);
+          const tm = Math.floor((timeSec%3600)/60);
+          const ts = timeSec%60;
+
+          if(rsMonthDistance) rsMonthDistance.textContent = formatKm(km);
+          if(rsRuns) rsRuns.textContent = String(runs).padStart(2,'0');
+          if(rsMonthPace) rsMonthPace.textContent = formatPace(pm, ps);
+          if(rsMonthTime) rsMonthTime.textContent = formatTime(th, tm, ts);
+        }
+        requestAnimationFrame(()=>fitAll());
+      }
 
       function frame(now){
-        const dt = now - t0;
-        if (dt < hold){ requestAnimationFrame(frame); return; }
-
-        const p = clamp((dt-hold)/dur, 0, 1);
-        const k = easeOutCubic(p);
-
-        const km = target.km * k;
-        const pace = target.paceSec * k;
-        const time = target.timeSec * k;
-        const runs = (target.runs==null) ? null : Math.round(target.runs * k);
-
-        if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
-        if (rvPace) rvPace.textContent = fmtPaceResult(pace);
-        if (rvTime) rvTime.textContent = fmtTimeResult(time);
-        if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
-
-        if (p < 1) requestAnimationFrame(frame);
+        const t = now - start;
+        if(t < hold){ paint(0); requestAnimationFrame(frame); return; }
+        const tt = Math.min(1, (t-hold)/dur);
+        paint(easeOutCubic(tt));
+        if(tt < 1) requestAnimationFrame(frame);
       }
+
       requestAnimationFrame(frame);
     }
 
-    el.btnRun.addEventListener('click', ()=>{
-      const target = buildResultDOM();
-      openScreen('resultScreen');
-      animateAll(target);
-    });
+    // resize -> fit 유지
+    window.addEventListener('resize', ()=>requestAnimationFrame(()=>fitAll()));
 
-    // ---------- events ----------
-    el.btnDaily.addEventListener('click', ()=>{ state.recordType='daily'; applyRecordType(); });
-    el.btnMonthly.addEventListener('click', ()=>{ state.recordType='monthly'; applyRecordType(); });
-
-    el.tabGarmin.addEventListener('click', ()=>{
-      state.dataType='garmin';
-      applyDataType();
-      openScreen('garminLoginScreen');
-    });
-    el.tabNrc.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
-    el.tabManual.addEventListener('click', ()=>{ state.dataType='manual'; applyDataType(); updatePreview(); });
-    el.tabNrcMonthly.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
-
-    el.btnType1.addEventListener('click', ()=>{ state.layout='type1'; applyLayout(); });
-    el.btnType2.addEventListener('click', ()=>{ state.layout='type2'; applyLayout(); });
-
-    el.btnBgWhite.addEventListener('click', ()=>{ state.bg='white'; applyBG(); });
-    el.btnBgBlack.addEventListener('click', ()=>{ state.bg='black'; applyBG(); });
-
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        state.font = b.dataset.font;
-        applyFont();
-      });
-    });
-
-    // ---------- init ----------
+    // =========================
+    // INIT (디폴트: 모든 숫자 0)
+    // =========================
     function initDefaults(){
       state.recordType = 'daily';
-      state.dataType = null;
-
-      state.daily = { km: 0, paceSec: 0, timeSec: 0 };
-      state.monthly = { ...state.monthly, km: 0, runs: 0, paceSec: 0, timeSec: 0 };
-
-      state.font = 'anton';
       state.layout = 'type1';
       state.bg = 'white';
+      state.font = 'dots';
+      state.dataType = null;
 
+      state.daily = { km:0, paceMin:0, paceSec:0, timeH:0, timeM:0, timeS:0 };
+      state.monthly.km = 0;
+      state.monthly.runs = 0;
+      state.monthly.paceMin = 0;
+      state.monthly.paceSec = 0;
+      state.monthly.timeH = 0;
+      state.monthly.timeM = 0;
+      state.monthly.timeS = 0;
+
+      document.body.dataset.record = state.recordType;
+      document.body.dataset.layout = state.layout;
+      document.body.dataset.bg = state.bg;
+      document.body.dataset.font = state.font;
+
+      applyTogglesActive();
       applyRecordType();
-      applyFont();
-      applyLayout();
-      applyBG();
-      updatePreview();
-      applyDataType();
+      applyPreviewCardClass();
+      renderAll();
     }
+
     initDefaults();
   </script>
 </body>
