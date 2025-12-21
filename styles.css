@@ -20,15 +20,18 @@
 
   /* “가장 작은 폰트 기준으로 통일” 느낌을 위한 공통 사이즈 */
   --pv-label-size: 12px;
-  --pv-value-size-t1: 30px; /* preview type1 */
-  --pv-value-size-t2: 24px; /* preview type2 */
+  --pv-value-size-t1: 30px; /* preview type1 (기본) */
+  --pv-value-size-t2: 24px; /* preview type2 (기본) */
 
-  /* result sizes (type1은 1.5배 느낌) */
-  --rs-label-size-t1: 16px;
-  --rs-value-size-t1: 44px;
+  /* result sizes */
+  --rs-label-size-t1: 16px; /* 결과 type1 라벨 */
+  --rs-value-size-t1: 44px; /* 결과 type1 값(1.5배 느낌) */
 
-  --rs-label-size-t2: 12px;
-  --rs-value-size-t2: 24px;
+  --rs-label-size-t2: 12px; /* 결과 type2 라벨 */
+  --rs-value-size-t2: 24px; /* 결과 type2 값 */
+
+  /* ✅ TIME만 살짝 내려앉아 보이는 현상 보정 (모든 폰트 공통) */
+  --time-nudge: -0.06em;  /* -0.04em ~ -0.08em 사이에서 취향 조절 가능 */
 }
 
 body {
@@ -372,7 +375,6 @@ body.no-scroll{ overflow: hidden; }
   width: min(240px, 100%);
 
   background: #fff;
-
   overflow: hidden;  /* ✅ 밖으로 삐져나가는 현상 1차 방지 */
 }
 
@@ -414,11 +416,12 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   line-height: 1.05;
   letter-spacing: var(--pv-value-ls);
+
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* ✅ “폰트마다 크기 달라 보이는 문제” 최소화: 공통 사이즈 */
+/* ✅ 공통 사이즈 (폰트마다 크게 달라보이는 문제 최소화) */
 .preview.type1 .data-value{
   font-size: clamp(22px, 7vw, var(--pv-value-size-t1));
 }
@@ -453,6 +456,26 @@ body.no-scroll{ overflow: hidden; }
 .preview.font-lcd{    --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-gothic{ --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-speed{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
+
+/* ✅ SPEED(Quantico) preview 값이 살짝 작아보이는 보정 */
+.preview.font-speed.type1 { --pv-value-size-t1: 32px; } /* 기본 30px → 32px */
+.preview.font-speed.type2 { --pv-value-size-t2: 26px; } /* 기본 24px → 26px */
+
+/* --------------------
+   ✅ TIME optical alignment fix (Preview/Result 공통)
+   - TIME만 내려앉아 보이는 글리프/메트릭 차이를 보정
+   - id가 없으면 영향 없음
+-------------------- */
+#pvTime,
+#rsTime{
+  display: inline-block;
+  transform: translateY(var(--time-nudge));
+  will-change: transform;
+}
+
+/* (옵션) SPEED에서 TIME만 추가로 1px 키움 — 필요 없으면 삭제
+.preview.font-speed #pvTime{ font-size: calc(1em + 1px); }
+*/
 
 /* --------------------
    RUN button
@@ -676,13 +699,14 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   opacity: 0.9;
   margin-bottom: 10px;
+
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
 .result-value{
   font-weight: 900;
-  line-height: 1.02;
+  line-height: 1.02; /* ✅ 통일 */
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
