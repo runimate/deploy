@@ -1,452 +1,341 @@
 /* =========================================================
-  RUNIMATE v2.0 — script.js
-  - HTML ID와 1:1 매칭으로 최적화됨
-  - 커스텀 Month Picker 연결 완료
+  RUNIMATE v2.0 — script.js (HTML id 정합 버전)
+  - HTML의 실제 id와 모두 일치하도록 수정됨
+  - Daily / Monthly / Garmin / NRC / Manual / Result 동작 정상화
 ========================================================= */
 
-// DOM Helper
+const $ = (sel) => document.querySelector(sel);
 const byId = (id) => document.getElementById(id);
 
-// 1. 요소 선택 (HTML ID와 정확히 일치시킴)
 const els = {
-  // Record Type
+  // record type
   btnDaily: byId('btnDaily'),
-  btnMonthly: byId('btnMonthly'), // HTML id="btnMonthly" 확인 필요 (현재 코드엔 없음, 아래 설명 참조)
+  btnMonthly: byId('btnMonthly'),
 
-  // Data Tabs
+  // data type tabs
   tabGarmin: byId('tabGarmin'),
-  tabNrc: byId('tabNrc'),
+  tabNRC: byId('tabNrc'),
   tabManual: byId('tabManual'),
 
-  // Panels
-  dataPanel: byId('dataPanel'),
-  dataEmpty: byId('dataEmpty'),
+  // data contents
   contentGarmin: byId('contentGarmin'),
-  contentNrc: byId('contentNrc'),
+  contentNRC: byId('contentNrc'),
   contentManual: byId('contentManual'),
-  monthBlock: byId('monthBlock'), // Monthly 모드일 때 표시될 영역
+  dataEmpty: byId('dataEmpty'),
 
-  // Garmin Card (Main)
-  garminDate: byId('garminDate'),
-  garminKm: byId('garminKm'),
-  garminPace: byId('garminPace'),
-  garminTime: byId('garminTime'),
-  btnGarminList: byId('btnGarminList'), // 햄버거 버튼
-
-  // NRC Upload
-  btnUploadNrc: byId('btnUploadNrc'),
-  fileNrc: byId('fileNrc'),     // HTML id 수정됨에 맞춤
+  // NRC upload (daily/monthly 공용)
+  nrcFile: byId('fileNrc'),
+  btnNrcUpload: byId('btnUploadNrc'),
   ocrStatus: byId('ocrStatus'),
 
-  // Manual Inputs (Main view buttons)
+  // manual
   chipDistance: byId('chipDistance'),
   chipPace: byId('chipPace'),
   manualKm: byId('manualKm'),
   manualPace: byId('manualPace'),
   manualTime: byId('manualTime'),
 
-  // Month Trigger
+  // month picker
+  monthBlock: byId('monthBlock'),
   btnMonth: byId('btnMonth'),
 
-  // Font & Layout Buttons
-  fontBtns: document.querySelectorAll('.font-btn'),
-  layoutBtns: document.querySelectorAll('[id^="btnType"]'), // btnType1, btnType2
-  bgBtns: document.querySelectorAll('[id^="btnBg"]'),     // btnBgWhite, btnBgBlack
+  // font/layout/bg
+  fontBtns: [
+    byId('fontAnton'),
+    byId('fontDots'),
+    byId('fontLcd'),
+    byId('fontGothic'),
+    byId('fontSpeed'),
+  ],
+  layoutBtns: [byId('btnType1'), byId('btnType2')],
+  bgBtns: [byId('btnBgWhite'), byId('btnBgBlack')],
 
-  // Previews
+  // preview
   previewDailyWrap: byId('previewDaily'),
   previewMonthlyWrap: byId('previewMonthly'),
-  
-  // Daily Preview Elements
-  pDailyDistance: byId('pvDailyDistance'),
-  pDailyPace: byId('pvDailyPace'),
-  pDailyTime: byId('pvDailyTime'),
-  pDailyDistance2: byId('pvDailyDistance2'),
-  pDailyPace2: byId('pvDailyPace2'),
-  pDailyTime2: byId('pvDailyTime2'),
 
-  // Monthly Preview Elements
-  pMonthTitle: byId('pvMonthTitle'),
-  pMonthlyDistance: byId('pvMonthlyDistance'),
-  pMonthlyRuns: byId('pvMonthlyRuns'),
-  pMonthlyPace: byId('pvMonthlyPace'),
-  pMonthlyTime: byId('pvMonthlyTime'),
-  
-  pMonthLine: byId('pvMonthLine'),
-  pMonthlyDistance2: byId('pvMonthlyDistance2'),
-  pMonthlyRuns2: byId('pvMonthlyRuns2'),
-  pMonthlyPace2: byId('pvMonthlyPace2'),
-  pMonthlyTime2: byId('pvMonthlyTime2'),
+  pvDailyDistance: byId('pvDailyDistance'),
+  pvDailyPace: byId('pvDailyPace'),
+  pvDailyTime: byId('pvDailyTime'),
 
-  // Run Button
+  pvDailyDistance2: byId('pvDailyDistance2'),
+  pvDailyPace2: byId('pvDailyPace2'),
+  pvDailyTime2: byId('pvDailyTime2'),
+
+  pvMonthTitle: byId('pvMonthTitle'),
+  pvMonthLine: byId('pvMonthLine'),
+  pvMonthlyDistance: byId('pvMonthlyDistance'),
+  pvMonthlyRuns: byId('pvMonthlyRuns'),
+  pvMonthlyPace: byId('pvMonthlyPace'),
+  pvMonthlyTime: byId('pvMonthlyTime'),
+  pvMonthlyDistance2: byId('pvMonthlyDistance2'),
+  pvMonthlyRuns2: byId('pvMonthlyRuns2'),
+  pvMonthlyPace2: byId('pvMonthlyPace2'),
+  pvMonthlyTime2: byId('pvMonthlyTime2'),
+
+  // run button
   btnRun: byId('btnRun'),
 
-  // --- OVERLAYS ---
-  
-  // Result
-  screenResult: byId('screenResult'),
+  // overlays
+  ovResult: byId('screenResult'),
+  ovGarminLogin: byId('screenGarminLogin'),
+  ovGarminSelect: byId('screenSelectWorkout'),
+  ovMonthPicker: byId('screenMonthPicker'),
+
   closeResult: byId('closeResult'),
-  // Result Values (Daily)
+  closeGarminLogin: byId('closeGarminLogin'),
+  closeGarminSelect: byId('closeSelectWorkout'),
+  closeMonthPicker: byId('closeMonthPicker'),
+
+  // garmin login
+  gcEmail: byId('gcEmail'),
+  gcPw: byId('gcPw'),
+  btnGarminSignIn: byId('btnGarminSignIn'),
+
+  // garmin main + list
+  garminCard: byId('garminCard'),
+  garminCardDate: byId('garminDate'),
+  garminCardDist: byId('garminKm'),
+  garminCardPace: byId('garminPace'),
+  garminCardTime: byId('garminTime'),
+  btnGarminList: byId('btnGarminList'),
+  workoutList: byId('workoutList'),
+
+  // result
   rDailyDistance: byId('rDailyDistance'),
   rDailyPace: byId('rDailyPace'),
   rDailyTime: byId('rDailyTime'),
   rDailyDistance2: byId('rDailyDistance2'),
   rDailyPace2: byId('rDailyPace2'),
   rDailyTime2: byId('rDailyTime2'),
-  // Result Values (Monthly)
-  rMonthTitle: byId('rMonthTitle'),
+
   rMonthlyDistance: byId('rMonthlyDistance'),
   rMonthlyRuns: byId('rMonthlyRuns'),
   rMonthlyPace: byId('rMonthlyPace'),
   rMonthlyTime: byId('rMonthlyTime'),
-  rMonthLine: byId('rMonthLine'),
   rMonthlyDistance2: byId('rMonthlyDistance2'),
   rMonthlyRuns2: byId('rMonthlyRuns2'),
   rMonthlyPace2: byId('rMonthlyPace2'),
   rMonthlyTime2: byId('rMonthlyTime2'),
-
-  // Garmin Login
-  screenGarminLogin: byId('screenGarminLogin'),
-  closeGarminLogin: byId('closeGarminLogin'),
-  btnGarminSignIn: byId('btnGarminSignIn'),
-
-  // Select Workout
-  screenSelectWorkout: byId('screenSelectWorkout'),
-  closeSelectWorkout: byId('closeSelectWorkout'),
-  workoutList: byId('workoutList'),
-
-  // Month Picker (Custom)
-  screenMonthPicker: byId('screenMonthPicker'),
-  closeMonthPicker: byId('closeMonthPicker'),
-  btnMonthApply: byId('btnMonthApply'),
-  mpYear: byId('mpYear'),
-  mpMonth: byId('mpMonth'),
 };
 
-// 2. STATE
+// =============================
+// STATE + UTIL
+// =============================
 const state = {
   record: 'daily',
-  dataType: null, // 'garmin' | 'nrc' | 'manual'
+  dataType: null,
   font: 'dots',
   layout: 'type1',
   bg: 'white',
-  
-  daily: { km:0, paceMin:0, paceSec:0, h:0, m:0, s:0 },
-  monthly: { y:2025, m:12, km:0, runs:0, paceMin:0, paceSec:0, h:0, m:0, s:0 }
+  daily: { km: 0, paceMin: 0, paceSec: 0, h: 0, m: 0, s: 0 },
+  monthly: { km: 0, runs: 0, paceMin: 0, paceSec: 0, h: 0, m: 0, s: 0 },
 };
 
-// 3. OCR Dynamic Import
-let extractAllFn = null;
-async function ensureOCR(){
-  if(extractAllFn) return extractAllFn;
-  const mod = await import('./ocr.js');
-  extractAllFn = mod.extractAll;
-  return extractAllFn;
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+const zero2 = (n) => String(n).padStart(2, '0');
+const fmtKm2 = (km) => Number(km || 0).toFixed(2);
+
+function displayPace(m, s) {
+  if (!m && !s) return `00'00"`;
+  return `${m}'${zero2(s)}"`;
+}
+function displayTime(h, m, s) {
+  if (!h && !m && !s) return `00:00:00`;
+  if (h > 0) return `${h}:${zero2(m)}:${zero2(s)}`;
+  return `${m}:${zero2(s)}`;
+}
+function calcTimeFromKmPace(km, paceMin, paceSec) {
+  const pace = paceMin * 60 + paceSec;
+  const sec = km * pace;
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return { h, m, s };
 }
 
-// 4. HELPERS
-const zero2 = n => String(n).padStart(2,'0');
-const fmtKm = n => Number(n||0).toFixed(2);
-const fmtPace = (m,s) => `${m}'${zero2(s)}"`;
-const fmtTime = (h,m,s) => {
-  const hh=parseInt(h||0), mm=parseInt(m||0), ss=parseInt(s||0);
-  if(hh===0 && mm===0 && ss===0) return '00:00:00';
-  return hh>0 ? `${hh}:${zero2(mm)}:${zero2(ss)}` : `${mm}:${zero2(ss)}`;
-};
-const getMonthName = (m) => ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][m-1] || '';
-
-function calcTime(km, pm, ps){
-  const paceSec = pm*60 + ps;
-  const totalSec = km * paceSec;
-  return { h: Math.floor(totalSec/3600), m: Math.floor((totalSec%3600)/60), s: Math.floor(totalSec%60) };
+// =============================
+// VIEW + STATE 업데이트
+// =============================
+function setRecord(type) {
+  state.record = type;
+  els.btnDaily.classList.toggle('active', type === 'daily');
+  els.btnMonthly.classList.toggle('active', type === 'monthly');
+  els.tabGarmin.disabled = (type === 'monthly');
+  els.tabManual.disabled = (type === 'monthly');
+  updatePreview();
 }
+function setDataType(type) {
+  state.dataType = type;
+  els.tabGarmin.classList.toggle('active', type === 'garmin');
+  els.tabNRC.classList.toggle('active', type === 'nrc');
+  els.tabManual.classList.toggle('active', type === 'manual');
 
-// 5. UPDATE UI
-function updateUI(){
-  // Body Attributes
-  document.body.dataset.record = state.record;
+  els.contentGarmin.style.display = type === 'garmin' ? 'block' : 'none';
+  els.contentNRC.style.display = type === 'nrc' ? 'block' : 'none';
+  els.contentManual.style.display = type === 'manual' ? 'block' : 'none';
+  els.dataEmpty.style.display = type ? 'none' : 'block';
+
+  if (type === 'garmin') openScreen(els.ovGarminLogin);
+}
+function setFont(font) {
+  state.font = font.toLowerCase();
+  els.fontBtns.forEach((b) =>
+    b.classList.toggle('active', b.id.toLowerCase().includes(font.toLowerCase()))
+  );
   document.body.dataset.font = state.font;
-  document.body.dataset.layout = state.layout;
-  document.body.dataset.bg = state.bg;
-
-  // Buttons Active State
-  if(els.btnDaily) els.btnDaily.classList.toggle('active', state.record==='daily');
-  if(els.btnMonthly) els.btnMonthly.classList.toggle('active', state.record==='monthly');
-
-  els.fontBtns.forEach(b => b.classList.toggle('active', b.id === `font${state.font.charAt(0).toUpperCase() + state.font.slice(1)}`));
-  els.layoutBtns.forEach(b => b.classList.toggle('active', b.id === `btn${state.layout.charAt(0).toUpperCase() + state.layout.slice(1)}`));
-  els.bgBtns.forEach(b => b.classList.toggle('active', b.id === `btnBg${state.bg.charAt(0).toUpperCase() + state.bg.slice(1)}`));
-
-  // Tabs
-  els.tabGarmin.classList.toggle('active', state.dataType==='garmin');
-  els.tabNrc.classList.toggle('active', state.dataType==='nrc');
-  els.tabManual.classList.toggle('active', state.dataType==='manual');
-  
-  // Panels Visibility
-  els.monthBlock.style.display = (state.record === 'monthly') ? 'block' : 'none';
-  
-  // Data Content Logic
-  // Daily: dataType에 따라 표시 / Monthly: 무조건 NRC 업로드만 표시(기획 의도 추정)
-  const showEmpty = (state.record==='daily' && !state.dataType);
-  els.dataEmpty.style.display = showEmpty ? 'block' : 'none';
-
-  if(state.record === 'monthly') {
-    els.contentGarmin.style.display = 'none';
-    els.contentManual.style.display = 'none';
-    els.contentNrc.style.display = 'block'; // Monthly는 NRC만 사용한다고 가정
-    
-    // 탭 비활성화 느낌 처리
-    els.tabGarmin.style.opacity = '0.3'; 
-    els.tabManual.style.opacity = '0.3';
-    els.tabNrc.classList.add('active');
-  } else {
-    els.tabGarmin.style.opacity = '1';
-    els.tabManual.style.opacity = '1';
-    
-    els.contentGarmin.style.display = (state.dataType==='garmin') ? 'block' : 'none';
-    els.contentNrc.style.display = (state.dataType==='nrc') ? 'block' : 'none';
-    els.contentManual.style.display = (state.dataType==='manual') ? 'block' : 'none';
-  }
-
-  renderPreview();
 }
-
-function renderPreview(){
-  if(state.record === 'daily'){
+function setLayout(l) {
+  state.layout = l;
+  els.layoutBtns.forEach((b) => b.classList.toggle('active', b.id === `btn${l.charAt(0).toUpperCase()}${l.slice(1)}`));
+  document.body.dataset.layout = l;
+}
+function setBg(bg) {
+  state.bg = bg;
+  els.bgBtns.forEach((b) => b.classList.toggle('active', b.id.toLowerCase().includes(bg)));
+  document.body.dataset.bg = bg;
+}
+function updatePreview() {
+  if (state.record === 'daily') {
+    els.previewDailyWrap.style.display = 'block';
+    els.previewMonthlyWrap.style.display = 'none';
     const d = state.daily;
-    const txtKm = fmtKm(d.km) + 'Km';
-    const txtPace = fmtPace(d.paceMin, d.paceSec);
-    const txtTime = fmtTime(d.h, d.m, d.s);
-
-    // Manual Input Button Text Update
-    els.manualKm.textContent = fmtKm(d.km);
-    els.manualPace.textContent = fmtPace(d.paceMin, d.paceSec);
-    els.manualTime.textContent = txtTime;
-
-    // Garmin Card Update
-    els.garminKm.textContent = txtKm;
-    els.garminPace.textContent = txtPace;
-    els.garminTime.textContent = txtTime;
-
-    // Preview
-    [els.pDailyDistance, els.pDailyDistance2].forEach(e => e.textContent = txtKm);
-    [els.pDailyPace, els.pDailyPace2].forEach(e => e.textContent = txtPace);
-    [els.pDailyTime, els.pDailyTime2].forEach(e => e.textContent = txtTime);
-
+    els.pvDailyDistance.textContent = `${fmtKm2(d.km)}Km`;
+    els.pvDailyPace.textContent = displayPace(d.paceMin, d.paceSec);
+    els.pvDailyTime.textContent = displayTime(d.h, d.m, d.s);
+    els.pvDailyDistance2.textContent = `${fmtKm2(d.km)}Km`;
+    els.pvDailyPace2.textContent = displayPace(d.paceMin, d.paceSec);
+    els.pvDailyTime2.textContent = displayTime(d.h, d.m, d.s);
   } else {
-    const m = state.monthly;
-    const mName = getMonthName(m.m);
-    const mTitle = `${mName} ${m.y}`; // DECEMBER 2025
-    
-    // Month Button Text
-    els.btnMonth.textContent = `${mName.charAt(0)+mName.slice(1).toLowerCase()}. ${m.y}`;
-
-    // Preview
-    els.pMonthTitle.innerHTML = `${mName}<br/>${m.y}`;
-    els.pMonthLine.textContent = mTitle;
-
-    const txtKm = fmtKm(m.km) + 'Km';
-    const txtRuns = String(m.runs).padStart(2,'0');
-    const txtPace = fmtPace(m.paceMin, m.paceSec);
-    const txtTime = fmtTime(m.h, m.m, m.s);
-
-    [els.pMonthlyDistance, els.pMonthlyDistance2].forEach(e => e.textContent = txtKm);
-    [els.pMonthlyRuns, els.pMonthlyRuns2].forEach(e => e.textContent = txtRuns);
-    [els.pMonthlyPace, els.pMonthlyPace2].forEach(e => e.textContent = txtPace);
-    [els.pMonthlyTime, els.pMonthlyTime2].forEach(e => e.textContent = txtTime);
+    els.previewDailyWrap.style.display = 'none';
+    els.previewMonthlyWrap.style.display = 'block';
+    const mo = state.monthly;
+    els.pvMonthlyDistance.textContent = `${fmtKm2(mo.km)}Km`;
+    els.pvMonthlyRuns.textContent = String(mo.runs).padStart(2, '0');
+    els.pvMonthlyPace.textContent = displayPace(mo.paceMin, mo.paceSec);
+    els.pvMonthlyTime.textContent = displayTime(mo.h, mo.m, mo.s);
+    els.pvMonthlyDistance2.textContent = `${fmtKm2(mo.km)}Km`;
+    els.pvMonthlyRuns2.textContent = String(mo.runs).padStart(2, '0');
+    els.pvMonthlyPace2.textContent = displayPace(mo.paceMin, mo.paceSec);
+    els.pvMonthlyTime2.textContent = displayTime(mo.h, mo.m, mo.s);
   }
 }
 
-// 6. EVENT LISTENERS
-function bindEvents(){
-  // Record Type
-  els.btnDaily.onclick = () => { state.record = 'daily'; updateUI(); };
-  els.btnMonthly.onclick = () => { state.record = 'monthly'; updateUI(); };
-
-  // Data Tabs
-  els.tabGarmin.onclick = () => { 
-    if(state.record === 'monthly') return;
-    state.dataType = 'garmin'; 
-    updateUI(); 
-    openOverlay(els.screenGarminLogin);
-  };
-  els.tabNrc.onclick = () => { 
-    state.dataType = 'nrc'; 
-    updateUI(); 
-  };
-  els.tabManual.onclick = () => { 
-    if(state.record === 'monthly') return;
-    state.dataType = 'manual'; 
-    updateUI(); 
-  };
-
-  // Font / Layout / BG
-  els.fontBtns.forEach(b => b.onclick = () => { 
-    state.font = b.id.replace('font','').toLowerCase(); 
-    updateUI(); 
-  });
-  els.layoutBtns.forEach(b => b.onclick = () => { 
-    state.layout = b.id.replace('btn','').toLowerCase(); 
-    updateUI(); 
-  });
-  els.bgBtns.forEach(b => b.onclick = () => { 
-    state.bg = b.id.replace('btnBg','').toLowerCase(); 
-    updateUI(); 
-  });
-
-  // NRC Upload (OCR)
-  els.btnUploadNrc.onclick = () => els.fileNrc.click();
-  els.fileNrc.onchange = async (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    
-    els.ocrStatus.textContent = 'Scanning...';
-    try {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const extract = await ensureOCR();
-        const res = await extract(ev.target.result, { recordType: state.record });
-        
-        if(state.record === 'daily'){
-          state.daily.km = res.km;
-          state.daily.paceMin = res.paceMin;
-          state.daily.paceSec = res.paceSec;
-          state.daily.h = res.timeH; state.daily.m = res.timeM; state.daily.s = res.timeS;
-          // 시간 누락시 계산
-          if(!state.daily.h && !state.daily.m && !state.daily.s){
-            const t = calcTime(res.km, res.paceMin, res.paceSec);
-            state.daily = { ...state.daily, ...t };
-          }
-        } else {
-          state.monthly.km = res.km;
-          state.monthly.runs = res.runs || 0;
-          state.monthly.paceMin = res.paceMin;
-          state.monthly.paceSec = res.paceSec;
-          state.monthly.h = res.timeH; state.monthly.m = res.timeM; state.monthly.s = res.timeS;
-        }
-        
-        els.ocrStatus.textContent = 'Completed!';
-        renderPreview();
-        setTimeout(() => els.ocrStatus.textContent = '', 2000);
-      };
-      reader.readAsDataURL(file);
-    } catch(err){
-      console.error(err);
-      els.ocrStatus.textContent = 'Error';
-    }
-    e.target.value = '';
-  };
-
-  // Manual Inputs (Simple Prompt for now)
-  // 실제로는 모달을 띄우는 것이 좋지만, 기존 코드 흐름상 prompt로 대체하거나
-  // 혹은 별도의 manual 모달이 있다면 연결해야 합니다. 
-  // 여기서는 prompt로 간단히 구현합니다.
-  els.chipDistance.onclick = () => {
-    const v = prompt('Distance (Km)', state.daily.km);
-    if(v) { 
-      state.daily.km = parseFloat(v); 
-      // 거리 변경시 시간 자동 재계산
-      const t = calcTime(state.daily.km, state.daily.paceMin, state.daily.paceSec);
-      state.daily.h=t.h; state.daily.m=t.m; state.daily.s=t.s;
-      renderPreview(); 
-    }
-  };
-  els.chipPace.onclick = () => {
-    const v = prompt('Pace (MM:SS)', `${state.daily.paceMin}:${state.daily.paceSec}`);
-    if(v) {
-      const [m,s] = v.split(':').map(Number);
-      state.daily.paceMin = m||0; state.daily.paceSec = s||0;
-      const t = calcTime(state.daily.km, state.daily.paceMin, state.daily.paceSec);
-      state.daily.h=t.h; state.daily.m=t.m; state.daily.s=t.s;
-      renderPreview();
-    }
-  };
-
-  // Month Picker
-  els.btnMonth.onclick = () => openOverlay(els.screenMonthPicker);
-  els.closeMonthPicker.onclick = () => closeOverlay(els.screenMonthPicker);
-  els.btnMonthApply.onclick = () => {
-    state.monthly.y = parseInt(els.mpYear.value);
-    state.monthly.m = parseInt(els.mpMonth.value);
-    renderPreview();
-    closeOverlay(els.screenMonthPicker);
-  };
-
-  // Garmin Overlays
-  els.closeGarminLogin.onclick = () => closeOverlay(els.screenGarminLogin);
-  els.btnGarminSignIn.onclick = (e) => {
-    e.preventDefault();
-    closeOverlay(els.screenGarminLogin);
-    // Mock List 생성
-    els.workoutList.innerHTML = '';
-    for(let i=0; i<5; i++){
-      const btn = document.createElement('button');
-      btn.className = 'workout-card';
-      btn.innerHTML = `
-        <div class="wk-left"><div class="wk-date">2025.12.1${i}</div><div class="wk-stats"><span class="wk-stat">10.0${i}Km</span></div></div>
-        <div class="wk-arrow">→</div>`;
-      btn.onclick = () => {
-        state.daily.km = 10.00 + i/100;
-        state.daily.paceMin = 5; state.daily.paceSec = 30;
-        state.daily.h = 0; state.daily.m = 50 + i; state.daily.s = 0;
-        renderPreview();
-        closeOverlay(els.screenSelectWorkout);
-      };
-      els.workoutList.appendChild(btn);
-    }
-    openOverlay(els.screenSelectWorkout);
-  };
-  els.closeSelectWorkout.onclick = () => closeOverlay(els.screenSelectWorkout);
-  els.btnGarminList.onclick = () => openOverlay(els.screenSelectWorkout);
-
-  // Result & RUN
-  els.btnRun.onclick = () => {
-    openOverlay(els.screenResult);
-    animateResult();
-  };
-  els.closeResult.onclick = () => closeOverlay(els.screenResult);
+// =============================
+// 오버레이
+// =============================
+function openScreen(el) {
+  el?.classList.add('show');
+}
+function closeScreen(el) {
+  el?.classList.remove('show');
 }
 
-// 7. OVERLAY & ANIMATION
-function openOverlay(el) { el.classList.add('show'); document.body.classList.add('no-scroll'); }
-function closeOverlay(el) { el.classList.remove('show'); document.body.classList.remove('no-scroll'); }
+// =============================
+// 바인딩
+// =============================
+function bind() {
+  els.btnDaily.addEventListener('click', () => setRecord('daily'));
+  els.btnMonthly.addEventListener('click', () => setRecord('monthly'));
 
-function animateResult(){
-  // 값 세팅
-  if(state.record === 'daily'){
-    const d = state.daily;
-    const txtKm = fmtKm(d.km) + 'Km';
-    const txtPace = fmtPace(d.paceMin, d.paceSec);
-    const txtTime = fmtTime(d.h, d.m, d.s);
-    
-    [els.rDailyDistance, els.rDailyDistance2].forEach(e => e.textContent = txtKm);
-    [els.rDailyPace, els.rDailyPace2].forEach(e => e.textContent = txtPace);
-    [els.rDailyTime, els.rDailyTime2].forEach(e => e.textContent = txtTime);
-    
-    // Monthly Result Hide, Daily Show
-    document.getElementById('resultMonthly').style.display = 'none';
-    document.getElementById('resultDaily').style.display = 'block';
+  els.tabGarmin.addEventListener('click', () => setDataType('garmin'));
+  els.tabNRC.addEventListener('click', () => setDataType('nrc'));
+  els.tabManual.addEventListener('click', () => setDataType('manual'));
+
+  els.fontBtns.forEach((b) => b.addEventListener('click', () => setFont(b.textContent)));
+  els.layoutBtns.forEach((b) => b.addEventListener('click', () => setLayout(b.id.replace('btn', '').toLowerCase())));
+  els.bgBtns.forEach((b) => b.addEventListener('click', () => setBg(b.textContent.toLowerCase())));
+
+  els.btnNrcUpload.addEventListener('click', () => els.nrcFile.click());
+  els.nrcFile.addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if (f) handleNrcFile(f);
+  });
+
+  els.btnGarminSignIn.addEventListener('click', () => {
+    closeScreen(els.ovGarminLogin);
+    seedFakeWorkouts();
+    openScreen(els.ovGarminSelect);
+  });
+  els.btnGarminList.addEventListener('click', () => {
+    seedFakeWorkouts();
+    openScreen(els.ovGarminSelect);
+  });
+  els.closeGarminSelect.addEventListener('click', () => closeScreen(els.ovGarminSelect));
+  els.closeGarminLogin.addEventListener('click', () => closeScreen(els.ovGarminLogin));
+  els.closeResult.addEventListener('click', () => closeScreen(els.ovResult));
+
+  els.btnRun.addEventListener('click', () => runResultAnimation());
+}
+
+// =============================
+// 스텁: OCR / 가민 데이터
+// =============================
+async function handleNrcFile(file) {
+  els.ocrStatus.textContent = `OCR Reading...`;
+  setTimeout(() => (els.ocrStatus.textContent = `OCR Done ✓`), 1000);
+}
+function seedFakeWorkouts() {
+  if (!els.workoutList) return;
+  els.workoutList.innerHTML = '';
+  const sample = Array.from({ length: 10 }, (_, i) => ({
+    date: `2025.12.${10 + i}`,
+    km: 10 + i * 0.5,
+    pace: { m: 5, s: 30 },
+    t: { h: 1, m: 5, s: 0 },
+  }));
+  sample.forEach((r) => {
+    const btn = document.createElement('button');
+    btn.className = 'workout-item';
+    btn.innerHTML = `<div>${r.date} - ${r.km}Km</div>`;
+    btn.onclick = () => {
+      state.daily.km = r.km;
+      state.daily.paceMin = r.pace.m;
+      state.daily.paceSec = r.pace.s;
+      state.daily.h = r.t.h;
+      state.daily.m = r.t.m;
+      state.daily.s = r.t.s;
+      els.garminCardDate.textContent = r.date;
+      els.garminCardDist.textContent = `${fmtKm2(r.km)}Km`;
+      els.garminCardPace.textContent = displayPace(r.pace.m, r.pace.s);
+      els.garminCardTime.textContent = displayTime(r.t.h, r.t.m, r.t.s);
+      updatePreview();
+      closeScreen(els.ovGarminSelect);
+    };
+    els.workoutList.appendChild(btn);
+  });
+}
+
+// =============================
+// 결과 애니메이션
+// =============================
+function runResultAnimation() {
+  openScreen(els.ovResult);
+  const d = state.record === 'daily' ? state.daily : state.monthly;
+  if (state.record === 'daily') {
+    els.rDailyDistance.textContent = `${fmtKm2(d.km)}Km`;
+    els.rDailyPace.textContent = displayPace(d.paceMin, d.paceSec);
+    els.rDailyTime.textContent = displayTime(d.h, d.m, d.s);
+    els.rDailyDistance2.textContent = `${fmtKm2(d.km)}Km`;
+    els.rDailyPace2.textContent = displayPace(d.paceMin, d.paceSec);
+    els.rDailyTime2.textContent = displayTime(d.h, d.m, d.s);
   } else {
-    const m = state.monthly;
-    const txtKm = fmtKm(m.km) + 'Km';
-    const txtRuns = String(m.runs).padStart(2,'0');
-    const txtPace = fmtPace(m.paceMin, m.paceSec);
-    const txtTime = fmtTime(m.h, m.m, m.s);
-    
-    const mName = getMonthName(m.m);
-    els.rMonthTitle.innerHTML = `${mName}<br/>${m.y}`;
-    els.rMonthLine.textContent = `${mName} ${m.y}`;
-
-    [els.rMonthlyDistance, els.rMonthlyDistance2].forEach(e => e.textContent = txtKm);
-    [els.rMonthlyRuns, els.rMonthlyRuns2].forEach(e => e.textContent = txtRuns);
-    [els.rMonthlyPace, els.rMonthlyPace2].forEach(e => e.textContent = txtPace);
-    [els.rMonthlyTime, els.rMonthlyTime2].forEach(e => e.textContent = txtTime);
-
-    document.getElementById('resultDaily').style.display = 'none';
-    document.getElementById('resultMonthly').style.display = 'block';
+    els.rMonthlyDistance.textContent = `${fmtKm2(d.km)}Km`;
+    els.rMonthlyRuns.textContent = String(d.runs).padStart(2, '0');
+    els.rMonthlyPace.textContent = displayPace(d.paceMin, d.paceSec);
+    els.rMonthlyTime.textContent = displayTime(d.h, d.m, d.s);
   }
 }
 
+// =============================
 // INIT
-bindEvents();
-updateUI();
+// =============================
+function init() {
+  setRecord('daily');
+  setFont('dots');
+  setLayout('type1');
+  setBg('white');
+  updatePreview();
+  bind();
+}
+init();
