@@ -46,10 +46,10 @@
           <button class="data-tab manual" id="tabManual">MANUAL</button>
         </div>
 
-        <!-- (이미지 3) 미선택 상태: 아래 아무것도 없음 -->
+        <!-- 미선택 상태 -->
         <div class="data-empty" id="dataEmpty"></div>
 
-        <!-- DAILY / GARMIN (선택 후 카드 꽂힘) -->
+        <!-- DAILY / GARMIN -->
         <div class="data-content" id="contentGarmin">
           <div class="garmin-card" id="garminCard">
             <div class="garmin-card-left">
@@ -69,7 +69,7 @@
           </div>
         </div>
 
-        <!-- DAILY / NRC -->
+        <!-- NRC (Daily/Monthly 공용) -->
         <div class="data-content" id="contentNrc">
           <div class="sub-title">Upload Your Record</div>
           <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
@@ -101,12 +101,11 @@
           </div>
         </div>
 
-        <!-- MONTHLY: NRC만 사용 + MONTH 선택 -->
+        <!-- MONTHLY: MONTH 선택 -->
         <div class="month-block" id="monthBlock">
           <div class="sub-title">MONTH</div>
           <button class="month-btn" id="btnMonth">December, 2025</button>
         </div>
-
       </div>
     </section>
 
@@ -149,7 +148,6 @@
       <!-- DAILY PREVIEW -->
       <div id="previewDaily">
         <div class="preview" id="dailyPreview">
-          <!-- type1 -->
           <div class="preview-content pv-type1">
             <div class="data-item">
               <span class="data-label">DISTANCE</span>
@@ -165,7 +163,6 @@
             </div>
           </div>
 
-          <!-- type2 -->
           <div class="preview-content pv-type2">
             <div class="data-item">
               <span class="data-label">DISTANCE</span>
@@ -217,7 +214,7 @@
             </div>
           </div>
 
-          <!-- monthly type2 (✅ month / distance / runs·pace·time 구조) -->
+          <!-- monthly type2: month / distance / runs pace time -->
           <div class="m-content mv-type2">
             <div class="m2-top">
               <div class="m2-month" id="pvMonthLine">DECEMBER 2025</div>
@@ -244,7 +241,6 @@
       </div>
 
     </section>
-
   </div>
 
   <!-- RUN -->
@@ -254,9 +250,8 @@
        OVERLAYS
   ========================== -->
 
-  <!-- GARMIN LOGIN (이미지 4) -->
+  <!-- GARMIN LOGIN -->
   <div class="screen-overlay garmin-login" id="screenGarminLogin" aria-hidden="true">
-    <!-- ✅ 닫기버튼: 활동목록 선택 화면과 동일하게 "작고 가늘게" 통일 -->
     <button class="screen-close" id="closeGarminLogin" aria-label="Close">×</button>
 
     <div class="garmin-login-wrap">
@@ -284,314 +279,13 @@
     </div>
   </div>
 
-  <!-- SELECT WORKOUT (이미지 5) -->
+  <!-- SELECT WORKOUT -->
   <div class="screen-overlay select-workout" id="screenSelectWorkout" aria-hidden="true">
     <button class="screen-close" id="closeSelectWorkout" aria-label="Close">×</button>
 
     <div class="select-wrap">
       <div class="select-title">Select<br/>Workout</div>
-
-      <div class="select-list" id="workoutList">
-        <!-- JS가 더미 목록 채움 -->
-      </div>
-    </div>
-  </div>
-  <!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RUNIMATE v2.0</title>
-  <link rel="stylesheet" href="./style.css" />
-</head>
-
-<body
-  data-record="daily"
-  data-datatype="none"
-  data-layout="type1"
-  data-bg="white"
-  data-font="dots"
->
-  <div class="container">
-
-    <!-- HEADER -->
-    <header class="header">
-      <div class="title">
-        RUNIMATE <span class="version">v.2.0</span>
-      </div>
-      <div class="author">by JS @runarchive.js</div>
-    </header>
-
-    <!-- RECORD TYPE -->
-    <section class="section">
-      <span class="section-label">RECORD TYPE</span>
-      <div class="button-group wide">
-        <button class="toggle-btn flex1" id="btnDaily">Daily</button>
-        <button class="toggle-btn flex1" id="btnMonthly">Monthly</button>
-      </div>
-    </section>
-
-    <!-- DATA TYPE PANEL -->
-    <section class="section">
-      <div class="data-panel" id="dataPanel">
-        <div class="data-panel-head">
-          <div class="data-panel-title">DATA TYPE</div>
-        </div>
-
-        <div class="data-tabs">
-          <button class="data-tab garmin" id="tabGarmin">GARMIN</button>
-          <button class="data-tab nrc" id="tabNrc">NRC</button>
-          <button class="data-tab manual" id="tabManual">MANUAL</button>
-        </div>
-
-        <!-- (이미지 3) 미선택 상태: 아래 아무것도 없음 -->
-        <div class="data-empty" id="dataEmpty"></div>
-
-        <!-- DAILY / GARMIN (선택 후 카드 꽂힘) -->
-        <div class="data-content" id="contentGarmin">
-          <div class="garmin-card" id="garminCard">
-            <div class="garmin-card-left">
-              <div class="garmin-date" id="garminDate">2025.12.12</div>
-              <div class="garmin-stats">
-                <div class="garmin-stat" id="garminKm">14.64Km</div>
-                <div class="garmin-stat" id="garminPace">5'59"</div>
-                <div class="garmin-stat" id="garminTime">1:27:32</div>
-              </div>
-            </div>
-
-            <button class="garmin-list-btn" id="btnGarminList" aria-label="Select workout">
-              <span class="hamburger" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <!-- DAILY / NRC -->
-        <div class="data-content" id="contentNrc">
-          <div class="sub-title">Upload Your Record</div>
-          <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
-          <input type="file" id="fileNrc" accept="image/*" hidden />
-          <div class="ocr-status" id="ocrStatus"></div>
-        </div>
-
-        <!-- DAILY / MANUAL -->
-        <div class="data-content" id="contentManual">
-          <div class="sub-title">Enter Your Record</div>
-
-          <div class="manual-row">
-            <button class="manual-chip" id="chipDistance" type="button">
-              <span class="chip-label">Distance</span>
-              <span class="chip-value" id="manualKm">00.00</span>
-              <span class="chip-unit">Km</span>
-            </button>
-
-            <button class="manual-chip" id="chipPace" type="button">
-              <span class="chip-label">Pace</span>
-              <span class="chip-value" id="manualPace">00'00"</span>
-              <span class="chip-unit">/Km</span>
-            </button>
-          </div>
-
-          <div class="manual-time-line">
-            <span>TIME</span>
-            <span id="manualTime">00:00:00</span>
-          </div>
-        </div>
-
-        <!-- MONTHLY: NRC만 사용 + MONTH 선택 -->
-        <div class="month-block" id="monthBlock">
-          <div class="sub-title">MONTH</div>
-          <button class="month-btn" id="btnMonth">December, 2025</button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- FONT -->
-    <section class="section">
-      <span class="section-label">FONT</span>
-      <div class="button-group font-group">
-        <button class="toggle-btn font-btn font-anton" id="fontAnton">ANTON</button>
-        <button class="toggle-btn font-btn font-dots" id="fontDots">DOTS</button>
-        <button class="toggle-btn font-btn font-lcd" id="fontLcd">LCD</button>
-        <button class="toggle-btn font-btn font-gothic" id="fontGothic">GOTHIC</button>
-        <button class="toggle-btn font-btn font-speed" id="fontSpeed">SPEED</button>
-      </div>
-    </section>
-
-    <!-- LAYOUT + BG -->
-    <section class="section">
-      <div class="two-col">
-        <div class="col">
-          <span class="section-label inline">LAYOUT</span>
-          <div class="button-group">
-            <button class="toggle-btn flex1" id="btnType1">Type 1</button>
-            <button class="toggle-btn flex1" id="btnType2">Type 2</button>
-          </div>
-        </div>
-        <div class="col">
-          <span class="section-label inline">BG COLOR</span>
-          <div class="button-group">
-            <button class="toggle-btn flex1" id="btnBgWhite">White</button>
-            <button class="toggle-btn flex1" id="btnBgBlack">Black</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PREVIEW -->
-    <section class="section">
-      <span class="section-label">PREVIEW</span>
-
-      <!-- DAILY PREVIEW -->
-      <div id="previewDaily">
-        <div class="preview" id="dailyPreview">
-          <!-- type1 -->
-          <div class="preview-content pv-type1">
-            <div class="data-item">
-              <span class="data-label">DISTANCE</span>
-              <span class="data-value is-distance" id="pvDailyDistance">00.00Km</span>
-            </div>
-            <div class="data-item">
-              <span class="data-label">PACE</span>
-              <span class="data-value is-pace" id="pvDailyPace">00'00"</span>
-            </div>
-            <div class="data-item">
-              <span class="data-label">TIME</span>
-              <span class="data-value is-time" id="pvDailyTime">00:00:00</span>
-            </div>
-          </div>
-
-          <!-- type2 -->
-          <div class="preview-content pv-type2">
-            <div class="data-item">
-              <span class="data-label">DISTANCE</span>
-              <span class="data-value is-distance" id="pvDailyDistance2">00.00Km</span>
-            </div>
-            <div class="data-item">
-              <span class="data-label">PACE</span>
-              <span class="data-value is-pace" id="pvDailyPace2">00'00"</span>
-            </div>
-            <div class="data-item">
-              <span class="data-label">TIME</span>
-              <span class="data-value is-time" id="pvDailyTime2">00:00:00</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MONTHLY PREVIEW -->
-      <div id="previewMonthly">
-        <div class="preview monthly" id="monthlyPreview">
-
-          <!-- monthly type1 -->
-          <div class="m-content mv-type1">
-            <div class="m-month" id="pvMonthTitle">DECEMBER<br/>2025</div>
-
-            <div class="m-big">
-              <span class="m-big-value" id="pvMonthlyDistance">00.00Km</span>
-            </div>
-
-            <div class="m-block">
-              <div class="m-row">
-                <span class="m-label">RUNS</span>
-                <span class="m-value" id="pvMonthlyRuns">00</span>
-              </div>
-            </div>
-
-            <div class="m-block">
-              <div class="m-row">
-                <span class="m-label">PACE</span>
-                <span class="m-value" id="pvMonthlyPace">00'00"</span>
-              </div>
-            </div>
-
-            <div class="m-block">
-              <div class="m-row">
-                <span class="m-label">TIME</span>
-                <span class="m-value is-time" id="pvMonthlyTime">00:00:00</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- monthly type2 (✅ month / distance / runs·pace·time 구조) -->
-          <div class="m-content mv-type2">
-            <div class="m2-top">
-              <div class="m2-month" id="pvMonthLine">DECEMBER 2025</div>
-              <div class="m2-distance" id="pvMonthlyDistance2">00.00Km</div>
-            </div>
-
-            <div class="m2-bottom">
-              <div class="m2-item">
-                <div class="m2-label">RUNS</div>
-                <div class="m2-value" id="pvMonthlyRuns2">00</div>
-              </div>
-              <div class="m2-item">
-                <div class="m2-label">PACE</div>
-                <div class="m2-value" id="pvMonthlyPace2">00'00"</div>
-              </div>
-              <div class="m2-item">
-                <div class="m2-label">TIME</div>
-                <div class="m2-value is-time" id="pvMonthlyTime2">00:00:00</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-
-  <!-- RUN -->
-  <button class="run-btn" id="btnRun">RUN</button>
-
-  <!-- =========================
-       OVERLAYS
-  ========================== -->
-
-  <!-- GARMIN LOGIN (이미지 4) -->
-  <div class="screen-overlay garmin-login" id="screenGarminLogin" aria-hidden="true">
-    <!-- ✅ 닫기버튼: 활동목록 선택 화면과 동일하게 "작고 가늘게" 통일 -->
-    <button class="screen-close" id="closeGarminLogin" aria-label="Close">×</button>
-
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title">
-        <div class="gc-big">GARMIN<br/>CONNECT</div>
-        <div class="gc-sub">Sign-In</div>
-      </div>
-
-      <div class="garmin-login-form">
-        <label class="gc-label">enter your @ email.com</label>
-        <input class="gc-input" id="gcEmail" type="email" autocomplete="username" />
-
-        <label class="gc-label">password</label>
-        <input class="gc-input" id="gcPw" type="password" autocomplete="current-password" />
-
-        <div class="gc-note">
-          <div class="gc-smile">:)</div>
-          <div class="gc-note-text">
-            Your Garmin account information is never saved or stored, so you can feel safe using it.
-          </div>
-        </div>
-      </div>
-
-      <button class="gc-cta" id="btnGarminSignIn">Sign-In</button>
-    </div>
-  </div>
-
-  <!-- SELECT WORKOUT (이미지 5) -->
-  <div class="screen-overlay select-workout" id="screenSelectWorkout" aria-hidden="true">
-    <button class="screen-close" id="closeSelectWorkout" aria-label="Close">×</button>
-
-    <div class="select-wrap">
-      <div class="select-title">Select<br/>Workout</div>
-
-      <div class="select-list" id="workoutList">
-        <!-- JS가 더미 목록 채움 -->
-      </div>
+      <div class="select-list" id="workoutList"></div>
     </div>
   </div>
     <!-- MONTH PICKER (월만 선택) -->
@@ -642,8 +336,6 @@
     <div class="result-wrap" id="resultWrap">
       <!-- DAILY RESULT -->
       <div class="result-block" id="resultDaily">
-
-        <!-- type1 (1.5배 / 세로중앙정렬) -->
         <div class="r-daily r-type1">
           <div class="r-item">
             <div class="r-label">DISTANCE</div>
@@ -659,7 +351,6 @@
           </div>
         </div>
 
-        <!-- type2 (preview 동일 사이즈) -->
         <div class="r-daily r-type2">
           <div class="r-item">
             <div class="r-label">DISTANCE</div>
@@ -678,8 +369,6 @@
 
       <!-- MONTHLY RESULT -->
       <div class="result-block" id="resultMonthly">
-
-        <!-- monthly type1 -->
         <div class="r-month r-mtype1">
           <div class="rm-month" id="rMonthTitle">DECEMBER<br/>2025</div>
 
@@ -703,7 +392,6 @@
           </div>
         </div>
 
-        <!-- monthly type2 (✅ month / distance / runs·pace·time) -->
         <div class="r-month r-mtype2">
           <div class="rm2-top">
             <div class="rm2-month" id="rMonthLine">DECEMBER 2025</div>
@@ -725,392 +413,12 @@
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
   </div>
 
-  <!-- OCR (추후 실제 연결) -->
-  <!-- <script type="module" src="./ocr.js"></script> -->
-
-  <script>
-    /***********************
-     * STATE
-     ***********************/
-    const state = {
-      record: 'daily',         // daily | monthly
-      datatype: 'none',        // none | garmin | nrc | manual
-      layout: 'type1',         // type1 | type2
-      bg: 'white',             // white | black
-      font: 'dots',            // anton | dots | lcd | gothic | speed
-      // daily values
-      daily: { km: 0, paceMin: 0, paceSec: 0, h: 0, m: 0, s: 0 },
-      // monthly values
-      monthly: { year: 2025, month: 12, km: 0, runs: 0, paceMin: 0, paceSec: 0, h: 0, m: 0, s: 0 }
-    };
-
-    /***********************
-     * FORMATTERS
-     * - 05'30" -> 5'30"
-     * - 01:27:32 -> 1:27:32
-     * - default 00은 그대로 00으로 유지
-     ***********************/
-    function pad2(n){ return String(n).padStart(2,'0'); }
-
-    function fmtPace(min, sec){
-      const mm = (min === 0) ? '00' : String(min); // 0일 때만 00 유지
-      return mm + "'" + pad2(sec) + '"';
-    }
-
-    function fmtTime(h,m,s){
-      // default는 00:00:00 유지
-      if (h === 0 && m === 0 && s === 0) return '00:00:00';
-
-      if (h > 0) return String(h) + ':' + pad2(m) + ':' + pad2(s);
-      // h==0이면 mm:ss 로(월간 등) 쓰고 싶으면 여기서 변경 가능
-      return pad2(m) + ':' + pad2(s);
-    }
-
-    function fmtKm(km){
-      return (Number(km).toFixed(2)) + 'Km';
-    }
-
-    function monthName(m){
-      const names = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-      return names[(m-1)||0];
-    }
-
-    function applyBody(){
-      document.body.dataset.record = state.record;
-      document.body.dataset.datatype = state.datatype;
-      document.body.dataset.layout = state.layout;
-      document.body.dataset.bg = state.bg;
-      document.body.dataset.font = state.font;
-    }
-
-    /***********************
-     * UI: ACTIVE BUTTONS
-     ***********************/
-    function setActive(el, on){ el.classList.toggle('active', !!on); }
-
-    function syncButtons(){
-      setActive(document.getElementById('btnDaily'), state.record==='daily');
-      setActive(document.getElementById('btnMonthly'), state.record==='monthly');
-
-      // data tabs (monthly는 nrc only)
-      setActive(document.getElementById('tabGarmin'), state.datatype==='garmin');
-      setActive(document.getElementById('tabNrc'), state.datatype==='nrc');
-      setActive(document.getElementById('tabManual'), state.datatype==='manual');
-
-      setActive(document.getElementById('btnType1'), state.layout==='type1');
-      setActive(document.getElementById('btnType2'), state.layout==='type2');
-      setActive(document.getElementById('btnBgWhite'), state.bg==='white');
-      setActive(document.getElementById('btnBgBlack'), state.bg==='black');
-
-      setActive(document.getElementById('fontAnton'), state.font==='anton');
-      setActive(document.getElementById('fontDots'), state.font==='dots');
-      setActive(document.getElementById('fontLcd'), state.font==='lcd');
-      setActive(document.getElementById('fontGothic'), state.font==='gothic');
-      setActive(document.getElementById('fontSpeed'), state.font==='speed');
-    }
-
-    /***********************
-     * DATA PANEL VISIBILITY
-     ***********************/
-    function syncDataPanel(){
-      const empty = document.getElementById('dataEmpty');
-      const g = document.getElementById('contentGarmin');
-      const n = document.getElementById('contentNrc');
-      const m = document.getElementById('contentManual');
-      const monthBlock = document.getElementById('monthBlock');
-
-      // monthly면 탭은 NRC만 유효
-      if(state.record === 'monthly'){
-        monthBlock.style.display = 'block';
-        // monthly는 datatype 강제 nrc
-        if(state.datatype !== 'nrc') state.datatype = (state.datatype==='none' ? 'none' : 'nrc');
-      }else{
-        monthBlock.style.display = 'none';
-      }
-
-      const none = (state.datatype === 'none');
-      empty.style.display = none ? 'block' : 'none';
-      g.style.display = (!none && state.datatype==='garmin') ? 'block' : 'none';
-      n.style.display = (!none && state.datatype==='nrc') ? 'block' : 'none';
-      m.style.display = (!none && state.datatype==='manual') ? 'block' : 'none';
-    }
-
-    /***********************
-     * PREVIEW / RESULT APPLY
-     ***********************/
-    function syncPreview(){
-      // daily
-      const d = state.daily;
-      const dKm = fmtKm(d.km);
-      const dPace = fmtPace(d.paceMin, d.paceSec);
-      const dTime = fmtTime(d.h, d.m, d.s);
-
-      document.getElementById('pvDailyDistance').textContent = dKm;
-      document.getElementById('pvDailyPace').textContent = dPace;
-      document.getElementById('pvDailyTime').textContent = dTime;
-
-      document.getElementById('pvDailyDistance2').textContent = dKm;
-      document.getElementById('pvDailyPace2').textContent = dPace;
-      document.getElementById('pvDailyTime2').textContent = dTime;
-
-      // monthly
-      const mo = state.monthly;
-      const mName = monthName(mo.month);
-      document.getElementById('pvMonthTitle').innerHTML = mName + '<br/>' + mo.year;
-      document.getElementById('pvMonthLine').textContent = mName + ' ' + mo.year;
-
-      document.getElementById('pvMonthlyDistance').textContent = fmtKm(mo.km);
-      document.getElementById('pvMonthlyRuns').textContent = String(mo.runs).padStart(2,'0');
-      document.getElementById('pvMonthlyPace').textContent = fmtPace(mo.paceMin, mo.paceSec);
-      document.getElementById('pvMonthlyTime').textContent = fmtTime(mo.h, mo.m, mo.s);
-
-      document.getElementById('pvMonthlyDistance2').textContent = fmtKm(mo.km);
-      document.getElementById('pvMonthlyRuns2').textContent = String(mo.runs).padStart(2,'0');
-      document.getElementById('pvMonthlyPace2').textContent = fmtPace(mo.paceMin, mo.paceSec);
-      document.getElementById('pvMonthlyTime2').textContent = fmtTime(mo.h, mo.m, mo.s);
-
-      // month button label
-      document.getElementById('btnMonth').textContent =
-        monthName(mo.month).charAt(0) + monthName(mo.month).slice(1).toLowerCase() + ', ' + mo.year;
-
-      // apply preview classes
-      const dailyPreview = document.getElementById('dailyPreview');
-      const monthlyPreview = document.getElementById('monthlyPreview');
-
-      dailyPreview.className = `preview ${state.layout} bg-${state.bg} font-${state.font}`;
-      monthlyPreview.className = `preview monthly ${state.layout} bg-${state.bg} font-${state.font}`;
-    }
-
-    function syncResultTexts(){
-      // daily
-      const d = state.daily;
-      document.getElementById('rDailyDistance').textContent = fmtKm(d.km);
-      document.getElementById('rDailyPace').textContent = fmtPace(d.paceMin, d.paceSec);
-      document.getElementById('rDailyTime').textContent = fmtTime(d.h, d.m, d.s);
-
-      document.getElementById('rDailyDistance2').textContent = fmtKm(d.km);
-      document.getElementById('rDailyPace2').textContent = fmtPace(d.paceMin, d.paceSec);
-      document.getElementById('rDailyTime2').textContent = fmtTime(d.h, d.m, d.s);
-
-      // monthly
-      const mo = state.monthly;
-      const mName = monthName(mo.month);
-      document.getElementById('rMonthTitle').innerHTML = mName + '<br/>' + mo.year;
-      document.getElementById('rMonthLine').textContent = mName + ' ' + mo.year;
-
-      document.getElementById('rMonthlyDistance').textContent = fmtKm(mo.km);
-      document.getElementById('rMonthlyRuns').textContent = String(mo.runs).padStart(2,'0');
-      document.getElementById('rMonthlyPace').textContent = fmtPace(mo.paceMin, mo.paceSec);
-      document.getElementById('rMonthlyTime').textContent = fmtTime(mo.h, mo.m, mo.s);
-
-      document.getElementById('rMonthlyDistance2').textContent = fmtKm(mo.km);
-      document.getElementById('rMonthlyRuns2').textContent = String(mo.runs).padStart(2,'0');
-      document.getElementById('rMonthlyPace2').textContent = fmtPace(mo.paceMin, mo.paceSec);
-      document.getElementById('rMonthlyTime2').textContent = fmtTime(mo.h, mo.m, mo.s);
-
-      // result overlay classes
-      const screen = document.getElementById('screenResult');
-      screen.className = `screen-overlay result-screen bg-${state.bg} font-${state.font}`;
-
-      // wrapper classes
-      const wrap = document.getElementById('resultWrap');
-      wrap.className = `result-wrap ${state.layout} ${state.record}`;
-    }
-
-    function showOverlay(id){
-      document.body.classList.add('no-scroll');
-      document.getElementById(id).classList.add('show');
-      document.getElementById(id).setAttribute('aria-hidden','false');
-    }
-    function hideOverlay(id){
-      document.getElementById(id).classList.remove('show');
-      document.getElementById(id).setAttribute('aria-hidden','true');
-      document.body.classList.remove('no-scroll');
-    }
-
-    /***********************
-     * EVENTS
-     ***********************/
-    document.getElementById('btnDaily').addEventListener('click', ()=>{
-      state.record = 'daily';
-      // daily로 오면 선택 유지(없으면 none)
-      if(state.datatype==='none') state.datatype='none';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-    });
-
-    document.getElementById('btnMonthly').addEventListener('click', ()=>{
-      state.record = 'monthly';
-      // monthly는 NRC만 (미선택이면 none 유지 가능)
-      if(state.datatype !== 'none') state.datatype='nrc';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-    });
-
-    document.getElementById('tabGarmin').addEventListener('click', ()=>{
-      if(state.record==='monthly') return;
-      state.datatype = 'garmin';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-      // GARMIN 선택 시 로그인 화면으로 이동
-      showOverlay('screenGarminLogin');
-    });
-
-    document.getElementById('tabNrc').addEventListener('click', ()=>{
-      state.datatype = 'nrc';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-    });
-
-    document.getElementById('tabManual').addEventListener('click', ()=>{
-      if(state.record==='monthly') return;
-      state.datatype = 'manual';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-    });
-
-    document.getElementById('btnType1').addEventListener('click', ()=>{
-      state.layout='type1';
-      applyBody(); syncButtons(); syncPreview();
-    });
-    document.getElementById('btnType2').addEventListener('click', ()=>{
-      state.layout='type2';
-      applyBody(); syncButtons(); syncPreview();
-    });
-
-    document.getElementById('btnBgWhite').addEventListener('click', ()=>{
-      state.bg='white';
-      applyBody(); syncButtons(); syncPreview();
-    });
-    document.getElementById('btnBgBlack').addEventListener('click', ()=>{
-      state.bg='black';
-      applyBody(); syncButtons(); syncPreview();
-    });
-
-    document.getElementById('fontAnton').addEventListener('click', ()=>{ state.font='anton'; applyBody(); syncButtons(); syncPreview(); });
-    document.getElementById('fontDots').addEventListener('click',  ()=>{ state.font='dots';  applyBody(); syncButtons(); syncPreview(); });
-    document.getElementById('fontLcd').addEventListener('click',   ()=>{ state.font='lcd';   applyBody(); syncButtons(); syncPreview(); });
-    document.getElementById('fontGothic').addEventListener('click',()=>{ state.font='gothic';applyBody(); syncButtons(); syncPreview(); });
-    document.getElementById('fontSpeed').addEventListener('click', ()=>{ state.font='speed'; applyBody(); syncButtons(); syncPreview(); });
-
-    // Garmin Login close
-    document.getElementById('closeGarminLogin').addEventListener('click', ()=> hideOverlay('screenGarminLogin'));
-
-    // Garmin sign-in (더미) -> select workout
-    document.getElementById('btnGarminSignIn').addEventListener('click', ()=>{
-      hideOverlay('screenGarminLogin');
-      // 활동 선택 화면
-      buildDummyWorkouts();
-      showOverlay('screenSelectWorkout');
-    });
-
-    // Select workout close
-    document.getElementById('closeSelectWorkout').addEventListener('click', ()=> hideOverlay('screenSelectWorkout'));
-
-    // 카드 오른쪽 리스트 버튼도 활동 선택 화면으로
-    document.getElementById('btnGarminList').addEventListener('click', (e)=>{
-      e.stopPropagation();
-      buildDummyWorkouts();
-      showOverlay('screenSelectWorkout');
-    });
-
-    // Month picker
-    document.getElementById('btnMonth').addEventListener('click', ()=>{
-      showOverlay('screenMonthPicker');
-    });
-    document.getElementById('closeMonthPicker').addEventListener('click', ()=> hideOverlay('screenMonthPicker'));
-    document.getElementById('btnMonthApply').addEventListener('click', ()=>{
-      const y = parseInt(document.getElementById('mpYear').value,10);
-      const m = parseInt(document.getElementById('mpMonth').value,10);
-      state.monthly.year = y;
-      state.monthly.month = m;
-      hideOverlay('screenMonthPicker');
-      syncPreview();
-    });
-
-    // RUN -> Result
-    document.getElementById('btnRun').addEventListener('click', ()=>{
-      syncResultTexts();
-      showOverlay('screenResult');
-      // 애니메이션은 추후 고도화(여기서는 기본 표시만)
-    });
-    document.getElementById('closeResult').addEventListener('click', ()=> hideOverlay('screenResult'));
-
-    // NRC upload (현재는 UI만)
-    document.getElementById('btnUploadNrc').addEventListener('click', ()=>{
-      document.getElementById('fileNrc').click();
-    });
-    document.getElementById('fileNrc').addEventListener('change', ()=>{
-      const s = document.getElementById('ocrStatus');
-      s.classList.add('show');
-      s.textContent = 'OCR: (stub) 이미지 업로드 됨 — 추후 ocr.js 연결';
-    });
-
-    function buildDummyWorkouts(){
-      const list = document.getElementById('workoutList');
-      list.innerHTML = '';
-      const items = new Array(9).fill(0).map((_,i)=>({
-        date:'2025.12.12',
-        km:'14.64Km',
-        pace:`5'59"`,
-        time:`1:27:32`,
-        active: i===1
-      }));
-
-      items.forEach((it, idx)=>{
-        const card = document.createElement('button');
-        card.type = 'button';
-        card.className = 'workout-card' + (it.active ? ' active' : '');
-        card.innerHTML = `
-          <div class="wk-left">
-            <div class="wk-date">${it.date}</div>
-            <div class="wk-stats">
-              <div class="wk-stat">${it.km}</div>
-              <div class="wk-stat">${it.pace}</div>
-              <div class="wk-stat">${it.time}</div>
-            </div>
-          </div>
-          <div class="wk-arrow">→</div>
-        `;
-        card.addEventListener('click', ()=>{
-          // 선택하면 garmin 카드에 꽂히고 preview 업데이트
-          state.datatype = 'garmin';
-          state.daily.km = 14.64;
-          state.daily.paceMin = 5;
-          state.daily.paceSec = 59;
-          state.daily.h = 1; state.daily.m = 27; state.daily.s = 32;
-
-          applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-          hideOverlay('screenSelectWorkout');
-        });
-        list.appendChild(card);
-      });
-    }
-
-    /***********************
-     * INIT (✅ 기본값: datatype none / 숫자 0)
-     ***********************/
-    function init(){
-      // default active
-      applyBody();
-      syncButtons();
-      syncDataPanel();
-      syncPreview();
-
-      // default: daily active, datatype none
-      state.datatype = 'none';
-      applyBody(); syncButtons(); syncDataPanel(); syncPreview();
-
-      // 버튼 active 초기화
-      setActive(document.getElementById('btnDaily'), true);
-      setActive(document.getElementById('btnMonthly'), false);
-      setActive(document.getElementById('btnType1'), true);
-      setActive(document.getElementById('btnType2'), false);
-      setActive(document.getElementById('btnBgWhite'), true);
-      setActive(document.getElementById('btnBgBlack'), false);
-      setActive(document.getElementById('fontDots'), true);
-    }
-    init();
-  </script>
+  <!-- ✅ 스크립트 분리 -->
+  <script type="module" src="./script.js"></script>
 </body>
 </html>
