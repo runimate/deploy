@@ -148,6 +148,12 @@ body.no-scroll{ overflow: hidden; }
   min-width: 0;
   padding: clamp(7px, 1.7vw, 9px) clamp(8px, 1.8vw, 10px);
   text-align:center;
+
+  /* ✅ FIX #1: gothic만 높이 달라지는 문제 해결 (모든 폰트 버튼 높이 통일) */
+  height: 42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .font-anton{ font-family:'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
 .font-dots{ font-family:'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
@@ -306,7 +312,7 @@ body.no-scroll{ overflow: hidden; }
 .preview.type1 .preview-content{
   display:flex;
   flex-direction:column;
-  gap: 18px;
+  gap: 18px; /* Daily Type1 간격 기준 */
 }
 .preview.type2{ width: 100%; }
 .preview.type2 .preview-content{
@@ -337,6 +343,20 @@ body.no-scroll{ overflow: hidden; }
 }
 .data-value > span{ display:block; width:100%; }
 
+/* ✅ FIX #3: PREVIEW/RESULT 데이터가 영역을 넘지 않도록 */
+.data-value,
+.m1-distance-value,
+.m-value,
+.m2-distance-value,
+.m2-v,
+.result-value,
+.workout-item .w-stats,
+.garmin-stat{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* MONTHLY preview blocks */
 .preview.monthly .monthly-type1{ display:none; }
 .preview.monthly .monthly-type2{ display:none; }
@@ -346,7 +366,15 @@ body.no-scroll{ overflow: hidden; }
 .monthly-type1{ display:flex; flex-direction:column; gap: 14px; }
 .m1-month{ font-weight: 1000; letter-spacing: .2px; font-size: 22px; line-height: 1.1; }
 .m1-distance-value{ display:block; font-weight: 1000; font-size: 52px; line-height: 1.0; white-space: nowrap; }
-.m1-stack{ display:flex; flex-direction:column; gap: 10px; margin-top: 2px; }
+.m1-stack{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-top: 2px;
+
+  /* ✅ FIX #3: Monthly Type1 (Runs/Pace/Time) 간격을 Daily Type1 로직(18px)과 동일하게 */
+  gap: 18px;
+}
 .m-label{ font-size: 12px; font-weight: 900; opacity: .95; margin-bottom: 4px; white-space: nowrap; }
 .m-value{ font-size: 34px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
 
@@ -508,26 +536,30 @@ body.no-scroll{ overflow: hidden; }
 }
 .screen-overlay.show{ display:block; }
 
+/* ✅ FIX #5: Garmin Login 닫기 버튼 얇고 크게 + Select Workout 동일 스타일 */
 .screen-close{
   position:absolute;
   top: 16px;
   right: 16px;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border:none;
   background:transparent;
-  font-size: 34px;
+  font-size: 36px;
+  font-weight: 300;
   line-height:1;
   cursor:pointer;
   color:inherit;
 }
+
+/* 기존 close-big는 동일한 룰로 통일 (혹시 HTML에 남아있어도 동일하게 보이게) */
 .close-big{
-  top: 18px;
-  right: 18px;
-  width: 72px;
-  height: 72px;
-  font-size: 64px;
-  font-weight: 900;
+  top: 16px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  font-size: 36px;
+  font-weight: 300;
   z-index: 5;
 }
 
@@ -539,18 +571,10 @@ body.no-scroll{ overflow: hidden; }
   position:relative;
   padding: 42px 24px 24px 24px;
 }
-.wm-vertical{
-  position:absolute;
-  right: 14px;
-  top: 120px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: .4px;
-  user-select:none;
-  z-index: 2;
-}
+
+/* ✅ FIX #5: 하단 세로 텍스트 제거 */
+.wm-vertical{ display:none !important; }
+
 .garmin-login-title{ margin-top: 8px; }
 .gc-big{ font-size: 40px; font-weight: 1000; letter-spacing: -1px; line-height: .95; }
 .gc-sub{ margin-top: 10px; font-size: 34px; font-weight: 400; letter-spacing: -0.6px; }
@@ -612,8 +636,21 @@ body.no-scroll{ overflow: hidden; }
   align-items:center;
   justify-content:space-between;
   margin-bottom: 12px;
+
+  /* ✅ FIX #6: 파란색(visited/focus) 방지용 기본 색 고정 */
+  color:#000;
+  text-decoration:none;
+  -webkit-tap-highlight-color: transparent;
 }
-.workout-item .w-left{ display:flex; flex-direction:column; gap: 8px; min-width:0; }
+.workout-item .w-left{
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  min-width:0;
+
+  /* ✅ FIX #6: 날짜/스탯 블록 좌측정렬 맞춤 */
+  align-items:flex-start;
+}
 .workout-item .w-date{ font-size: 12px; font-weight: 900; }
 .workout-item .w-stats{
   display:flex;
@@ -621,7 +658,15 @@ body.no-scroll{ overflow: hidden; }
   font-size: 16px;
   font-weight: 900;
   white-space: nowrap;
+
+  /* ✅ FIX #6: 좌측정렬 유지 */
+  justify-content:flex-start;
 }
+.workout-item *{ color:inherit; }
+.workout-item:visited,
+.workout-item:active,
+.workout-item:focus,
+.workout-item:focus-visible{ color:#000; outline:none; }
 .w-arrow{ font-size: 26px; font-weight: 900; color:#000; }
 
 /* Month picker */
@@ -714,7 +759,15 @@ body.no-scroll{ overflow: hidden; }
 /* Monthly result type1 */
 .result-wrap.type1 .m1-month{ font-size: 28px; font-weight: 1000; line-height: 1.05; margin-bottom: 6px; }
 .result-wrap.type1 .m1-distance-value{ font-size: 76px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
-.result-wrap.type1 .m1-stack{ margin-top: 14px; display:flex; flex-direction:column; gap: 16px; }
+.result-wrap.type1 .m1-stack{
+  margin-top: 14px;
+  display:flex;
+  flex-direction:column;
+  gap: 16px;
+
+  /* ✅ FIX #3: Monthly Type1 결과(RUNS/PACE/TIME) 간격을 Daily Type1 결과 로직(34px)과 동일하게 */
+  gap: 34px;
+}
 
 /* Monthly result type2 */
 .result-wrap.type2 .m2-month{
