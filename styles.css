@@ -14,6 +14,9 @@
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
+  /* ✅ type2 간격(Preview/Result/모바일 공통) */
+  --type2-gap: clamp(12px, 4.2vw, 18px);
+
   /* preview/result typography controls (font별로 덮어쓰기) */
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
@@ -30,8 +33,8 @@
   --rs-label-size-t2: 12px; /* 결과 type2 라벨 */
   --rs-value-size-t2: 24px; /* 결과 type2 값 */
 
-  /* ✅ TIME만 살짝 내려앉아 보이는 현상 보정 (모든 폰트 공통) */
-  --time-nudge: -0.06em;  /* -0.04em ~ -0.08em 사이에서 취향 조절 가능 */
+  /* ✅ TIME optical alignment fix */
+  --time-nudge: -0.06em;
 }
 
 body {
@@ -375,7 +378,7 @@ body.no-scroll{ overflow: hidden; }
   width: min(240px, 100%);
 
   background: #fff;
-  overflow: hidden;  /* ✅ 밖으로 삐져나가는 현상 1차 방지 */
+  overflow: hidden;
 }
 
 /* Type1 */
@@ -391,7 +394,7 @@ body.no-scroll{ overflow: hidden; }
 .preview.type2 .preview-content{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 18px;
+  column-gap: var(--type2-gap); /* ✅ 통일 */
   align-items: start;
 }
 
@@ -416,12 +419,11 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   line-height: 1.05;
   letter-spacing: var(--pv-value-ls);
-
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* ✅ 공통 사이즈 (폰트마다 크게 달라보이는 문제 최소화) */
+/* 공통 사이즈 */
 .preview.type1 .data-value{
   font-size: clamp(22px, 7vw, var(--pv-value-size-t1));
 }
@@ -450,32 +452,24 @@ body.no-scroll{ overflow: hidden; }
 .preview.font-speed .data-label,
 .preview.font-speed .data-value{ font-family: 'Quantico', sans-serif; }
 
-/* font별 자간(원하는 값으로 조절) */
+/* font별 자간 */
 .preview.font-anton{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-dots{   --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-lcd{    --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-gothic{ --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 .preview.font-speed{  --pv-value-ls: 0px;  --pv-label-ls: 0px; }
 
-/* ✅ SPEED(Quantico) preview 값이 살짝 작아보이는 보정 */
-.preview.font-speed.type1 { --pv-value-size-t1: 32px; } /* 기본 30px → 32px */
-.preview.font-speed.type2 { --pv-value-size-t2: 26px; } /* 기본 24px → 26px */
+/* ✅ SPEED(Quantico) preview 보정 */
+.preview.font-speed.type1 { --pv-value-size-t1: 32px; }
+.preview.font-speed.type2 { --pv-value-size-t2: 26px; }
 
-/* --------------------
-   ✅ TIME optical alignment fix (Preview/Result 공통)
-   - TIME만 내려앉아 보이는 글리프/메트릭 차이를 보정
-   - id가 없으면 영향 없음
--------------------- */
+/* ✅ TIME optical alignment fix */
 #pvTime,
 #rsTime{
   display: inline-block;
   transform: translateY(var(--time-nudge));
   will-change: transform;
 }
-
-/* (옵션) SPEED에서 TIME만 추가로 1px 키움 — 필요 없으면 삭제
-.preview.font-speed #pvTime{ font-size: calc(1em + 1px); }
-*/
 
 /* --------------------
    RUN button
@@ -657,8 +651,8 @@ body.no-scroll{ overflow: hidden; }
   padding: 0 26px;
 
   display: flex;
-  align-items: center;     /* ✅ 세로 중앙 */
-  justify-content: center; /* ✅ 가로 중앙 */
+  align-items: center;     /* 세로 중앙 */
+  justify-content: center; /* 가로 중앙 */
 }
 
 .result-block{
@@ -666,7 +660,7 @@ body.no-scroll{ overflow: hidden; }
   min-width: 0;
 }
 
-/* type1 = 세로 (preview와 같은 구조 / 1.5배) */
+/* type1 */
 .result-wrap.type1 .result-block{
   width: min(520px, 100%);
   display: flex;
@@ -675,14 +669,14 @@ body.no-scroll{ overflow: hidden; }
   align-items: flex-start;
 }
 
-/* type2 = 가로 (preview와 같은 3컬럼) */
+/* type2 */
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
   margin: 0 auto;
 
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 28px;
+  column-gap: var(--type2-gap); /* ✅ 통일 */
   align-items: start;
 }
 
@@ -699,19 +693,18 @@ body.no-scroll{ overflow: hidden; }
   font-weight: 900;
   opacity: 0.9;
   margin-bottom: 10px;
-
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
 .result-value{
   font-weight: 900;
-  line-height: 1.02; /* ✅ 통일 */
+  line-height: 1.02;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* ✅ type1: 1.5배 느낌 */
+/* type1 size */
 .result-wrap.type1 .result-label{
   font-size: clamp(14px, 3.2vw, var(--rs-label-size-t1));
   margin-bottom: 12px;
@@ -721,7 +714,7 @@ body.no-scroll{ overflow: hidden; }
   font-size: clamp(28px, 8vw, var(--rs-value-size-t1));
 }
 
-/* ✅ type2: preview 사이즈 느낌 유지 + overflow 안전장치 */
+/* type2 size + overflow safety */
 .result-wrap.type2 .result-label{
   font-size: var(--rs-label-size-t2);
   margin-bottom: 8px;
@@ -731,7 +724,7 @@ body.no-scroll{ overflow: hidden; }
   font-size: clamp(16px, 5.6vw, var(--rs-value-size-t2));
 }
 
-/* --- Result fonts (preview와 동일) --- */
+/* result fonts */
 .result-screen.font-anton .result-label,
 .result-screen.font-anton .result-value{ font-family: 'Anton', sans-serif; }
 
@@ -748,7 +741,7 @@ body.no-scroll{ overflow: hidden; }
 .result-screen.font-speed .result-value{ font-family: 'Quantico', sans-serif; }
 
 /* --------------------
-   Garmin Login (4번 이미지)
+   Garmin Login
 -------------------- */
 .garmin-login{
   background: var(--garmin);
@@ -855,7 +848,7 @@ body.no-scroll{ overflow: hidden; }
 }
 
 /* --------------------
-   Garmin Select Workout (5번 이미지)
+   Garmin Select Workout
 -------------------- */
 .select-workout{
   background: #fff;
@@ -932,8 +925,7 @@ body.no-scroll{ overflow: hidden; }
    Responsive guards
 -------------------- */
 @media (max-width: 380px){
-  .preview.type2 .preview-content{ column-gap: 12px; }
-  .result-wrap.type2 .result-block{ column-gap: 16px; }
+  /* ✅ type2 gap은 var(--type2-gap)로 통일하므로 여기서 gap을 건드리지 않음 */
   .result-wrap{ padding: 0 16px; }
 }
 
