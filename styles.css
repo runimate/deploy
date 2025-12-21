@@ -950,3 +950,54 @@ body[data-layout="type2"] .r-mtype2{ display:block; }
   font-style: normal;
   font-display: swap;
 }
+/* =========================
+   ROLLING DIGITS (Result animation)
+   - fixed-width feel + rolling stack
+========================= */
+.roll{
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-variant-numeric: tabular-nums;
+}
+.roll-char{
+  display: inline-block;
+  white-space: pre;
+}
+
+.roll-digit{
+  display: inline-block;
+  position: relative;
+  height: 1em;                 /* 한 줄 높이 */
+  overflow: hidden;
+  vertical-align: baseline;
+  width: 0.62em;               /* 기본 숫자 폭(대부분 폰트에서 안정) */
+}
+.roll-digit.narrow{ width: 0.52em; }
+.roll-digit.wide{ width: 0.72em; }
+
+.roll-stack{
+  display: block;
+  will-change: transform;
+  transform: translateY(0);
+}
+.roll-stack span{
+  display: block;
+  height: 1em;
+  line-height: 1em;
+}
+
+/* leading zero 숨겨도 "자리"는 유지 */
+.roll-digit.is-hidden{
+  opacity: 0;
+}
+
+/* DOTS / LCD는 숫자 폭이 좀 다름 -> 조금만 튜닝 */
+body[data-font="dots"] .roll-digit{ width: 0.68em; }
+body[data-font="lcd"]  .roll-digit{ width: 0.66em; }
+
+/* TIME가 아래로 쳐지는 현상 방지: 기존 --time-raise 사용 */
+.is-time .roll-digit,
+.is-time .roll-char{
+  transform: translateY(calc(-1 * var(--time-raise, 0.06em)));
+}
