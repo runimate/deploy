@@ -838,3 +838,19 @@ body.no-scroll{ overflow: hidden; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
 }
+/* ================================
+   AUTO SCALE VALUE (SAFE)
+================================ */
+.data-value{
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  overflow: hidden;
+}
+
+.data-value > span{
+  display: inline-block;
+  transform-origin: left bottom;
+  white-space: nowrap;
+  max-width: 100%;
+}
