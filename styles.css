@@ -332,10 +332,13 @@ body.no-scroll{ overflow: hidden; }
 .preview.bg-white{ background:#fff; color:#000; }
 .preview.bg-black{ background:#000; color:#fff; }
 
+/* Monthly preview should match wide card */
+.preview.monthly{ width: 100%; }
+
 .preview.type1 .preview-content{
   display:flex;
   flex-direction:column;
-  gap: 18px; /* Daily Type1 간격 기준 */
+  gap: 18px;
 }
 .preview.type2{ width: 100%; }
 .preview.type2 .preview-content{
@@ -358,15 +361,15 @@ body.no-scroll{ overflow: hidden; }
 .data-value{
   font-size: clamp(22px, 7.2vw, calc(34px + var(--pv-value-add)));
   letter-spacing: var(--pv-value-ls);
-  line-height: 1;
+  line-height: 1.05;
   font-weight: 900;
   white-space: nowrap;
   display:flex;
   align-items:flex-end;
 }
-.data-value > span{ display:block; width:100%; }
+.data-value > span{ display:inline-block; width:auto; max-width:100%; transform-origin:left bottom; white-space:nowrap; }
 
-/* ✅ FIX #3: PREVIEW/RESULT 데이터가 영역을 넘지 않도록 */
+/* ✅ FIX: no ellipsis (we scale uniformly instead) */
 .data-value,
 .m1-distance-value,
 .m-value,
@@ -377,7 +380,7 @@ body.no-scroll{ overflow: hidden; }
 .garmin-stat{
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
 }
 
 /* MONTHLY preview blocks */
@@ -388,25 +391,34 @@ body.no-scroll{ overflow: hidden; }
 
 .monthly-type1{ display:flex; flex-direction:column; gap: 14px; }
 .m1-month{ font-weight: 1000; letter-spacing: .2px; font-size: 22px; line-height: 1.1; white-space: nowrap; }
-.m1-distance-value{ display:block; font-weight: 1000; font-size: 52px; line-height: 1.0; white-space: nowrap; }
+.m1-distance-value{ display:block; font-weight: 1000; font-size: 52px; line-height: 1.05; white-space: nowrap; }
 .m1-stack{
   display:flex;
   flex-direction:column;
-  gap: 10px;
-  margin-top: 2px;
-
-  /* ✅ FIX #3: Monthly Type1 (Runs/Pace/Time) 간격을 Daily Type1 로직(18px)과 동일하게 */
   gap: 18px;
+  margin-top: 2px;
 }
 .m-label{ font-size: 12px; font-weight: 900; opacity: .95; margin-bottom: 4px; white-space: nowrap; }
-.m-value{ font-size: 34px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
+.m-value{ font-size: 34px; font-weight: 1000; line-height: 1.05; white-space: nowrap; display:flex; align-items:flex-end; }
 
 .monthly-type2{ display:grid; grid-template-rows: auto auto auto; row-gap: 10px; }
 .m2-month-line{ font-size: 12px; font-weight: 900; white-space: nowrap; opacity: .95; }
-.m2-distance-value{ font-size: clamp(34px, 8.2vw, 46px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
+.m2-distance-value{ font-size: clamp(34px, 8.2vw, 46px); font-weight: 1000; line-height: 1.05; white-space: nowrap; display:block; }
 .m2-row{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: 18px; }
 .m2-l{ font-size: 10px; font-weight: 900; opacity: .95; margin-bottom: 6px; white-space: nowrap; }
-.m2-v{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
+.m2-v{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.05; white-space: nowrap; display:flex; align-items:flex-end; }
+
+.m1-distance-value > span,
+.m-value > span,
+.m2-distance-value > span,
+.m2-v > span,
+.result-value > span{
+  display:inline-block;
+  width:auto;
+  max-width:100%;
+  transform-origin:left bottom;
+  white-space:nowrap;
+}
 
 /* Preview fonts */
 .preview.font-anton .data-value,
@@ -559,7 +571,6 @@ body.no-scroll{ overflow: hidden; }
 }
 .screen-overlay.show{ display:block; }
 
-/* ✅ FIX #5: Garmin Login 닫기 버튼 얇고 크게 + Select Workout 동일 스타일 */
 .screen-close{
   position:absolute;
   top: 16px;
@@ -575,7 +586,6 @@ body.no-scroll{ overflow: hidden; }
   color:inherit;
 }
 
-/* 기존 close-big는 동일한 룰로 통일 (혹시 HTML에 남아있어도 동일하게 보이게) */
 .close-big{
   top: 16px;
   right: 16px;
@@ -595,7 +605,6 @@ body.no-scroll{ overflow: hidden; }
   padding: 42px 24px 24px 24px;
 }
 
-/* ✅ FIX #5: 하단 세로 텍스트 제거 */
 .wm-vertical{ display:none !important; }
 
 .garmin-login-title{ margin-top: 8px; }
@@ -660,7 +669,6 @@ body.no-scroll{ overflow: hidden; }
   justify-content:space-between;
   margin-bottom: 12px;
 
-  /* ✅ FIX #6: 파란색(visited/focus) 방지용 기본 색 고정 */
   color:#000;
   text-decoration:none;
   -webkit-tap-highlight-color: transparent;
@@ -670,8 +678,6 @@ body.no-scroll{ overflow: hidden; }
   flex-direction:column;
   gap: 8px;
   min-width:0;
-
-  /* ✅ FIX #6: 날짜/스탯 블록 좌측정렬 맞춤 */
   align-items:flex-start;
 }
 .workout-item .w-date{ font-size: 12px; font-weight: 900; }
@@ -681,8 +687,6 @@ body.no-scroll{ overflow: hidden; }
   font-size: 16px;
   font-weight: 900;
   white-space: nowrap;
-
-  /* ✅ FIX #6: 좌측정렬 유지 */
   justify-content:flex-start;
 }
 .workout-item *{ color:inherit; }
@@ -698,11 +702,11 @@ body.no-scroll{ overflow: hidden; }
 .month-head{
   display:flex;
   align-items:center;
-  justify-content:center; /* ✅ FIX #8: prevent overlap with close button */
-  gap: 10px;            /* ✅ FIX #8: keep < > tight to year */
+  justify-content:center;
+  gap: 10px;
   margin-top: 12px;
   margin-bottom: 16px;
-  padding-right: 72px;  /* ✅ FIX #8: reserve space for X button */
+  padding-right: 72px;
 }
 .month-year{
   font-size: 32px;
@@ -719,7 +723,7 @@ body.no-scroll{ overflow: hidden; }
   font-size: 26px;
   font-weight: 900;
   cursor:pointer;
-  color:#000; /* ✅ FIX #7/#8: arrows black fixed */
+  color:#000;
 }
 .month-grid{
   display:grid;
@@ -734,7 +738,7 @@ body.no-scroll{ overflow: hidden; }
   background:#fff;
   font-weight: 900;
   cursor:pointer;
-  color:#000; /* ✅ FIX #7: month cell text black fixed */
+  color:#000;
 }
 .month-cell.active{ background:#000; color:#fff; }
 
@@ -756,14 +760,14 @@ body.no-scroll{ overflow: hidden; }
   width: min(520px, 100%);
   display:flex;
   flex-direction:column;
-  gap: 18px; /* ✅ FIX #4: Preview/Result layout parity */
+  gap: 18px;
   align-items:flex-start;
 }
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: 18px; /* ✅ FIX #5: match Preview gaps */
+  column-gap: 18px;
   align-items:start;
   margin: 0 auto;
 }
@@ -774,30 +778,24 @@ body.no-scroll{ overflow: hidden; }
 .result-value{
   font-size: clamp(22px, 7.2vw, calc(34px + var(--rv-value-add)));
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.05;
   display:flex;
   align-items:flex-end;
 }
-.result-value > span{ display:block; width:100%; }
+.result-value > span{ display:inline-block; width:auto; max-width:100%; transform-origin:left bottom; white-space:nowrap; }
 
-/* daily type1 scale */
 .result-wrap.type1 .result-label{ font-size: 18px; margin-bottom: 12px; }
 .result-wrap.type1 .result-value{ font-size: 52px; }
 
-/* Monthly result type1 */
 .result-wrap.type1 .m1-month{ font-size: 28px; font-weight: 1000; line-height: 1.05; margin-bottom: 6px; white-space: nowrap; }
-.result-wrap.type1 .m1-distance-value{ font-size: 76px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
+.result-wrap.type1 .m1-distance-value{ font-size: 76px; font-weight: 1000; line-height: 1.05; white-space: nowrap; display:block; }
 .result-wrap.type1 .m1-stack{
   margin-top: 14px;
   display:flex;
   flex-direction:column;
-  gap: 16px;
-
-  /* ✅ FIX #4: Monthly Type1 결과도 Preview와 동일한 간격 */
-  gap: 18px; /* ✅ FIX #4 */
+  gap: 18px;
 }
 
-/* Monthly result type2 */
 .result-wrap.type2 .m2-month{
   grid-column: 1 / -1;
   font-size: 14px;
@@ -813,7 +811,7 @@ body.no-scroll{ overflow: hidden; }
 .result-wrap.type2 .m2-distance-value{
   font-size: clamp(34px, 8.2vw, 46px);
   font-weight: 1000;
-  line-height: 1.0;
+  line-height: 1.05;
   white-space: nowrap;
   display:block;
 }
@@ -821,7 +819,7 @@ body.no-scroll{ overflow: hidden; }
   grid-column: 1 / -1;
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: 18px; /* ✅ FIX #5: match Preview gaps */
+  column-gap: 18px;
 }
 
 /* Result fonts */
@@ -867,32 +865,11 @@ body.no-scroll{ overflow: hidden; }
   .preview{ width: min(220px, 100%); }
 }
 
-/* ================================
-   AUTO SCALE VALUE (SAFE)
-================================ */
-.data-value{
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  overflow: hidden;
-}
-
-.data-value > span{
-  display: inline-block;
-  transform-origin: left bottom;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-/* ✅ FIX #1: type2 values should shrink, not ellipsis */
-.preview.type2 .data-value,
-.result-wrap.type2 .result-value{ text-overflow: clip; }
-
-/* ✅ FIX #1: autoscale support for result values */
-.result-value > span{ display:inline-block; transform-origin:left bottom; white-space:nowrap; max-width:100%; }
-
 /* ✅ FIX #3: Daily Anton titles use Inter Semibold (match Monthly Anton) */
 .preview.font-anton .data-label,
 .preview.font-anton .m-label,
 .preview.font-anton .m2-l,
-.result-screen.font-anton .result-label{ font-family:'Inter', sans-serif !important; font-weight:600 !important; }
+.result-screen.font-anton .result-label{
+  font-family:'Inter', sans-serif !important;
+  font-weight:600 !important;
+}
