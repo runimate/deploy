@@ -1,30 +1,21 @@
-/* =========================================
-   RESET & VARIABLES
-   ========================================= */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root{
+  --btn-h: 42px; /* ✅ FIX #9: all key buttons unified height */
   --gap: clamp(6px, 1.8vw, 10px);
-  --btn-pad-y: 0px; /* 높이 고정을 위해 패딩 대신 height 사용 */
+  --btn-pad-y: clamp(7px, 1.9vw, 10px);
   --btn-pad-x: clamp(10px, 2.8vw, 18px);
   --btn-font: clamp(12px, 2.8vw, 14px);
   --radius: 999px;
   --stroke: 2px;
 
-  /* Brand Colors */
   --garmin: #76B6FF;
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
-  /* UI Colors */
-  --text-main: #000;
-  
-  /* FIX: 버튼 높이 통일 변수 */
-  --btn-h: 42px;
-
-  /* Preview Spacing Adjustments */
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
+
   --pv-value-add: 0px;
   --rv-value-add: 0px;
 }
@@ -32,7 +23,6 @@
 body{
   background:#fff;
   font-family: 'Inter', sans-serif;
-  color: var(--text-main);
   padding: 20px;
   padding-bottom: 110px;
   min-height: 100vh;
@@ -45,44 +35,67 @@ body.no-scroll{ overflow: hidden; }
   position: relative;
 }
 
-/* JS 로직에 따른 표시 제어 */
+/* ✅ JS가 죽어도 기본 화면이 안 꼬이게: Monthly 관련은 기본 숨김 */
 #previewMonthly{ display:none; }
 #dataTabsMonthly{ display:none; }
 #monthBlock{ display:none; }
 
-/* =========================================
-   FONTS
-   ========================================= */
-@font-face{ font-family:'Inter'; src:url('./fonts/Inter.woff2') format('woff2'); font-weight:100 900; font-display:swap; }
-@font-face{ font-family:'Anton'; src:url('./fonts/Anton.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face{ font-family:'Bitcount Grid Single'; src:url('./fonts/Dots.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face{ font-family:'DS-Digital'; src:url('./fonts/LCD.woff2') format('woff2'); font-weight:400 900; font-display:swap; }
-@font-face{ font-family:'Special Gothic Expanded One'; src:url('./fonts/Gothic.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face{ font-family:'Quantico'; src:url('./fonts/Speed.woff2') format('woff2'); font-weight:400 900; font-display:swap; }
-
-/* =========================================
-   HEADER
-   ========================================= */
-.header {
-  margin-bottom: 22px;
-  border-bottom: 2px solid #000;
-  padding-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+/* Webfonts (./fonts/) */
+@font-face{
+  font-family:'Inter';
+  src:url('./fonts/Inter.woff2') format('woff2');
+  font-weight:100 900;
+  font-style:normal;
+  font-display:swap;
 }
+@font-face{
+  font-family:'Anton';
+  src:url('./fonts/Anton.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Bitcount Grid Single';
+  src:url('./fonts/Dots.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'DS-Digital';
+  src:url('./fonts/LCD.woff2') format('woff2');
+  font-weight:400 900;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Special Gothic Expanded One';
+  src:url('./fonts/Gothic.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Quantico';
+  src:url('./fonts/Speed.woff2') format('woff2');
+  font-weight:400 900;
+  font-style:normal;
+  font-display:swap;
+}
+
+/* Header */
+.header { margin-bottom: 22px; }
 .title{
-  font-size: 20px; /* 사이즈 조정 */
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.9px;
   line-height: 1.0;
 }
-.version{ font-size: 12px; font-weight: 400; margin-left: 4px; }
-.author{ font-size: 10px; color:#666; }
+.version{ font-size: 26px; font-weight: 900; }
+.author{ margin-top: 6px; font-size: 13px; color:#000; }
 
-/* =========================================
-   SECTIONS & BUTTONS
-   ========================================= */
+/* Sections */
 .section{ margin-bottom: 18px; }
 .section-label{
   display:block;
@@ -107,12 +120,10 @@ body.no-scroll{ overflow: hidden; }
   flex: 1 1 0;
   min-width: 0;
 }
-.button-group.no-wrap { overflow-x: auto; padding-bottom: 2px; }
 
-/* FIX: 모든 제어 버튼 높이 통일 (42px) 및 Flex 중앙 정렬 */
+/* Toggle buttons */
 .toggle-btn,
 .action-btn{
-  height: var(--btn-h);
   border: var(--stroke) solid #000;
   border-radius: var(--radius);
   background:#fff;
@@ -120,18 +131,22 @@ body.no-scroll{ overflow: hidden; }
   cursor:pointer;
   font-family:'Inter', sans-serif;
   font-weight: 900;
-  padding: 0 var(--btn-pad-x); /* 상하 패딩 제거, 높이로 제어 */
+  padding: var(--btn-pad-y) var(--btn-pad-x);
   font-size: var(--btn-font);
+  line-height: 1;
   white-space: nowrap;
   min-width: 0;
-  transition: all .15s ease;
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: opacity .15s ease, background .15s ease, color .15s ease;
+
+  /* ✅ FIX #9: key buttons unified height */
+  height: var(--btn-h);
+  padding: 0 var(--btn-pad-x);
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .toggle-btn:hover,
-.action-btn:hover{ background: #f0f0f0; }
+.action-btn:hover{ opacity: .85; }
 .toggle-btn.active,
 .action-btn.active{ background:#000; color:#fff; }
 
@@ -139,11 +154,15 @@ body.no-scroll{ overflow: hidden; }
 .font-group .font-btn{
   flex: 1 1 0;
   min-width: 0;
-  padding: 0 10px;
+  padding: clamp(7px, 1.7vw, 9px) clamp(8px, 1.8vw, 10px);
   text-align:center;
-  height: var(--btn-h); /* 높이 강제 통일 */
+
+  /* ✅ FIX #1: gothic만 높이 달라지는 문제 해결 (모든 폰트 버튼 높이 통일) */
+  height: 42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
-/* 폰트 버튼별 스타일 */
 .font-anton{ font-family:'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
 .font-dots{ font-family:'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
 .font-lcd{ font-family:'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
@@ -154,11 +173,9 @@ body.no-scroll{ overflow: hidden; }
 .two-col{ display:flex; gap: 18px; }
 .two-col .col{ flex:1 1 0; min-width:0; }
 
-/* =========================================
-   DATA PANEL & INPUTS
-   ========================================= */
+/* DATA PANEL */
 .data-panel{
-  border: 1.5px solid #000; /* border color fix */
+  border: 1.5px solid #d9d9d9;
   border-radius: 18px;
   padding: 14px;
   background:#fff;
@@ -183,9 +200,9 @@ body.no-scroll{ overflow: hidden; }
 .data-tab{
   flex: 1 1 0;
   min-width:0;
-  height: 38px; /* 탭 높이 */
   border: var(--stroke) solid #000;
   border-radius: 999px;
+  padding: 10px 10px;
   background:#fff;
   color:#000;
   font-weight: 900;
@@ -193,10 +210,16 @@ body.no-scroll{ overflow: hidden; }
   white-space: nowrap;
   cursor:pointer;
   transition: opacity .15s ease, background .15s ease;
-  display: flex; align-items: center; justify-content: center;
+
+  /* ✅ FIX #9: match height with other key buttons */
+  height: var(--btn-h);
+  padding: 0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .data-tab:hover{ opacity:.88; }
-.data-tab.active{ color:#000; } /* 텍스트 컬러 유지 (요청사항 없음) */
+.data-tab.active{ color:#000; }
 .data-tab.garmin.active{ background: var(--garmin); }
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
@@ -204,7 +227,7 @@ body.no-scroll{ overflow: hidden; }
 .data-empty{ height:0; display:block; }
 .data-content{ display:none; margin-top: 12px; }
 
-.sub-title{ font-size: 12px; font-weight: 900; margin: 0 0 10px 0; color: #666; }
+.sub-title{ font-size: 12px; font-weight: 900; margin: 0 0 10px 0; }
 
 /* Garmin card */
 .garmin-card{
@@ -238,12 +261,12 @@ body.no-scroll{ overflow: hidden; }
 /* NRC */
 .upload-btn{
   width:100%;
-  height: 42px;
   border:none;
   border-radius: 999px;
   background:#000;
   color: var(--nrc);
   font-weight: 900;
+  padding: 12px 14px;
   cursor:pointer;
 }
 .ocr-status{ margin-top: 8px; font-size: 11px; color:#333; display:none; }
@@ -265,9 +288,9 @@ body.no-scroll{ overflow: hidden; }
   cursor:pointer;
   white-space: nowrap;
 }
-.chip-label{ font-size: 11px; font-weight: 900; color: #666; }
+.chip-label{ font-size: 12px; font-weight: 900; }
 .chip-value{ font-size: 16px; font-weight: 900; }
-.chip-unit{ font-size: 11px; font-weight: 900; opacity:.9; }
+.chip-unit{ font-size: 12px; font-weight: 900; opacity:.9; }
 .manual-time-line{
   margin-top: 10px;
   display:flex;
@@ -281,160 +304,178 @@ body.no-scroll{ overflow: hidden; }
 .month-label{ font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
 .month-btn{
   width:100%;
-  height: 40px;
   border: var(--stroke) solid #000;
   border-radius: 999px;
+  padding: 12px 12px;
   background:#fff;
   font-weight: 900;
   cursor:pointer;
+
+  /* ✅ FIX #9: match height + text black fixed */
+  height: var(--btn-h);
+  padding: 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#000;
 }
 
-/* =========================================
-   PREVIEW (Layout Fixes Applied)
-   ========================================= */
+/* PREVIEW */
 .preview{
   border: var(--stroke) solid #000;
   border-radius: 18px;
-  /* 비율 유지를 위해 width/padding 방식 대신 aspect-ratio 사용 권장 */
-  width: 100%;
-  aspect-ratio: 4 / 5;
+  padding: 18px 18px 16px 18px;
+  width: min(240px, 100%);
   background:#fff;
   overflow: hidden;
-  position: relative;
 }
 .preview.bg-white{ background:#fff; color:#000; }
 .preview.bg-black{ background:#000; color:#fff; }
 
-.preview-content{
-  width: 100%; height: 100%;
-  padding: 24px;
-  display: flex; flex-direction: column;
+.preview.type1 .preview-content{
+  display:flex;
+  flex-direction:column;
+  gap: 18px; /* Daily Type1 간격 기준 */
+}
+.preview.type2{ width: 100%; }
+.preview.type2 .preview-content{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: 18px;
+  align-items: start;
 }
 
-/* Display Control based on Layout Type */
-.preview.type1 .d2-layout, .preview.type1 .monthly-type2 { display: none; }
-.preview.type2 .d1-layout, .preview.type2 .monthly-type1 { display: none; }
+.data-item{ min-width:0; }
+.data-label, .data-value{ display:block; width:100%; min-width:0; }
 
-/* ----------------------------------
-   D1 LAYOUT (Default Stack)
-   ---------------------------------- */
-.d1-layout { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
-.d1-main { text-align: center; }
-.d1-grid { display: flex; justify-content: space-around; margin-top: 10px; }
-.d1-item { text-align: center; }
-
-/* ----------------------------------
-   D2 LAYOUT (Horizontal Row - FIXED)
-   ---------------------------------- */
-.d2-layout { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; }
-.d2-row {
-  display: flex;
-  justify-content: space-between; /* FIX: 균등 간격 */
-  align-items: baseline;
-  width: 100%;
-}
-.d2-item {
-  flex: 1;
-  text-align: center;
-  display: flex; flex-direction: column; align-items: center;
-}
-
-/* ----------------------------------
-   M1 LAYOUT (Monthly Type 1 - FIXED)
-   ---------------------------------- */
-.monthly-type1 { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 0; }
-.m1-header { text-align: left; }
-.m1-main-stat { text-align: right; margin-top: auto; margin-bottom: 20px; }
-.m1-grid {
-  display: flex; justify-content: space-between;
-  border-top: 2px solid currentColor;
-  padding-top: 15px;
-}
-.m1-item { text-align: left; }
-.m1-item.right { text-align: right; }
-
-/* ----------------------------------
-   M2 LAYOUT (Monthly Type 2 - FIXED)
-   ---------------------------------- */
-.monthly-type2 { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
-.m2-date-row {
-  display: flex; align-items: baseline; justify-content: flex-start;
-  margin-bottom: 10px; border-bottom: 2px solid currentColor; padding-bottom: 8px;
-}
-.m2-main-stat { text-align: center; margin-bottom: 10px; }
-.m2-grid { display: flex; justify-content: space-between; width: 100%; }
-.m2-item {
-  flex: 1; /* 등분 */
-  text-align: center; display: flex; flex-direction: column; align-items: center;
-}
-
-/* =========================================
-   TEXT SIZES & LABELS (FIXED)
-   ========================================= */
-
-/* Labels (FIX: Anton 모드에서도 라벨은 Inter 고딕체 사용) */
-.d-label, .m-label, .m2-l, .label-text {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  opacity: 0.6;
-  text-transform: uppercase;
+.data-label{
+  font-size: 12px;
+  opacity: .9;
+  margin-bottom: 6px;
+  letter-spacing: var(--pv-label-ls);
   white-space: nowrap;
 }
-/* D1 Size */
-.d-label { font-size: 11px; margin-bottom: 0px; }
-.d-val-lg { font-size: clamp(60px, 18vw, 84px); line-height: 1; font-weight: 900; }
-.d-val-sm { font-size: clamp(24px, 6vw, 32px); line-height: 1; font-weight: 900; }
+.data-value{
+  font-size: clamp(22px, 7.2vw, calc(34px + var(--pv-value-add)));
+  letter-spacing: var(--pv-value-ls);
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  display:flex;
+  align-items:flex-end;
+}
+.data-value > span{ display:block; width:100%; }
 
-/* D2 Size (FIX: 절대 잘리지 않게 Clamp 적용) */
-.d-val-md { font-size: clamp(18px, 9vw, 36px); white-space: nowrap; line-height: 1.1; font-weight: 900; }
-
-/* M1 Size */
-.m1-month { font-size: clamp(40px, 12vw, 56px); line-height: 0.9; text-transform: uppercase; font-weight: 900; }
-.m1-distance-value { font-size: clamp(60px, 19vw, 90px); line-height: 0.9; font-weight: 900; white-space: nowrap; }
-.m-value { font-size: clamp(20px, 6vw, 30px); font-weight: 900; white-space: nowrap; }
-.m-label { font-size: 10px; margin-bottom: 2px; }
-
-/* M2 Size */
-.m2-month-line { font-size: clamp(20px, 8vw, 40px); text-transform: uppercase; line-height: 1; font-weight: 900; white-space: nowrap; }
-.m2-distance-value { font-size: clamp(70px, 20vw, 100px); line-height: 1; font-weight: 900; white-space: nowrap; }
-.m2-v { font-size: clamp(18px, 7vw, 28px); white-space: nowrap; font-weight: 900; }
-.m2-l { font-size: 10px; margin-top: 4px; }
-
-/* Result Label/Value (Share styles) */
-.result-label { font-family: 'Inter', sans-serif; font-weight: 700; opacity: 0.6; font-size: 12px; margin-bottom: 4px; }
-.result-value { font-size: clamp(22px, 7.2vw, 40px); font-weight: 900; line-height: 1; }
-
-/* Common Font Styles for Values */
-.font-anton .d-value, .font-anton .m1-month, .font-anton .m1-distance-value, .font-anton .m-value, .font-anton .m2-month-line, .font-anton .m2-distance-value, .font-anton .m2-v, .font-anton .result-value, .font-anton .d-val-md, .font-anton .d-val-lg, .font-anton .d-val-sm
-{ font-family:'Anton', sans-serif; letter-spacing: 0.5px; }
-
-.font-dots .d-value, .font-dots .m1-month, .font-dots .m1-distance-value, .font-dots .m-value, .font-dots .m2-month-line, .font-dots .m2-distance-value, .font-dots .m2-v, .font-dots .result-value, .font-dots .d-val-md, .font-dots .d-val-lg, .font-dots .d-val-sm
-{ font-family:'Bitcount Grid Single', monospace; }
-
-.font-lcd .d-value, .font-lcd .m1-month, .font-lcd .m1-distance-value, .font-lcd .m-value, .font-lcd .m2-month-line, .font-lcd .m2-distance-value, .font-lcd .m2-v, .font-lcd .result-value, .font-lcd .d-val-md, .font-lcd .d-val-lg, .font-lcd .d-val-sm
-{ font-family:'DS-Digital', monospace; }
-
-.font-gothic .d-value, .font-gothic .m1-month, .font-gothic .m1-distance-value, .font-gothic .m-value, .font-gothic .m2-month-line, .font-gothic .m2-distance-value, .font-gothic .m2-v, .font-gothic .result-value, .font-gothic .d-val-md, .font-gothic .d-val-lg, .font-gothic .d-val-sm
-{ font-family:'Special Gothic Expanded One', sans-serif; }
-
-.font-speed .d-value, .font-speed .m1-month, .font-speed .m1-distance-value, .font-speed .m-value, .font-speed .m2-month-line, .font-speed .m2-distance-value, .font-speed .m2-v, .font-speed .result-value, .font-speed .d-val-md, .font-speed .d-val-lg, .font-speed .d-val-sm
-{ font-family:'Quantico', sans-serif; }
-
-/* Gothic일 때 라벨 폰트 예외 처리 (요청 없다면 Inter 유지, 혹은 Gothic 스타일 살리려면 아래 주석 해제) */
-.font-gothic .d-label, .font-gothic .m-label, .font-gothic .m2-l, .font-gothic .label-text {
-  font-family: 'Special Gothic Expanded One', sans-serif; opacity: 0.8; font-size: 10px;
+/* ✅ FIX #3: PREVIEW/RESULT 데이터가 영역을 넘지 않도록 */
+.data-value,
+.m1-distance-value,
+.m-value,
+.m2-distance-value,
+.m2-v,
+.result-value,
+.workout-item .w-stats,
+.garmin-stat{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* =========================================
-   RUN BUTTON
-   ========================================= */
+/* MONTHLY preview blocks */
+.preview.monthly .monthly-type1{ display:none; }
+.preview.monthly .monthly-type2{ display:none; }
+.preview.monthly.type1 .monthly-type1{ display:block; }
+.preview.monthly.type2 .monthly-type2{ display:block; }
+
+.monthly-type1{ display:flex; flex-direction:column; gap: 14px; }
+.m1-month{ font-weight: 1000; letter-spacing: .2px; font-size: 22px; line-height: 1.1; white-space: nowrap; }
+.m1-distance-value{ display:block; font-weight: 1000; font-size: 52px; line-height: 1.0; white-space: nowrap; }
+.m1-stack{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-top: 2px;
+
+  /* ✅ FIX #3: Monthly Type1 (Runs/Pace/Time) 간격을 Daily Type1 로직(18px)과 동일하게 */
+  gap: 18px;
+}
+.m-label{ font-size: 12px; font-weight: 900; opacity: .95; margin-bottom: 4px; white-space: nowrap; }
+.m-value{ font-size: 34px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
+
+.monthly-type2{ display:grid; grid-template-rows: auto auto auto; row-gap: 10px; }
+.m2-month-line{ font-size: 12px; font-weight: 900; white-space: nowrap; opacity: .95; }
+.m2-distance-value{ font-size: clamp(34px, 8.2vw, 46px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
+.m2-row{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: 18px; }
+.m2-l{ font-size: 10px; font-weight: 900; opacity: .95; margin-bottom: 6px; white-space: nowrap; }
+.m2-v{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
+
+/* Preview fonts */
+.preview.font-anton .data-value,
+.preview.font-anton .m1-month,
+.preview.font-anton .m1-distance-value,
+.preview.font-anton .m-value,
+.preview.font-anton .m2-month-line,
+.preview.font-anton .m2-distance-value,
+.preview.font-anton .m2-v{ font-family:'Anton', sans-serif; }
+.preview.font-anton .data-label,
+.preview.font-anton .m-label,
+.preview.font-anton .m2-l{ font-family:'Inter', sans-serif; }
+
+.preview.font-dots .data-label,
+.preview.font-dots .data-value,
+.preview.font-dots .m1-month,
+.preview.font-dots .m1-distance-value,
+.preview.font-dots .m-label,
+.preview.font-dots .m-value,
+.preview.font-dots .m2-month-line,
+.preview.font-dots .m2-distance-value,
+.preview.font-dots .m2-l,
+.preview.font-dots .m2-v{ font-family:'Bitcount Grid Single', monospace; }
+
+.preview.font-lcd .data-label,
+.preview.font-lcd .data-value,
+.preview.font-lcd .m1-month,
+.preview.font-lcd .m1-distance-value,
+.preview.font-lcd .m-label,
+.preview.font-lcd .m-value,
+.preview.font-lcd .m2-month-line,
+.preview.font-lcd .m2-distance-value,
+.preview.font-lcd .m2-l,
+.preview.font-lcd .m2-v{ font-family:'DS-Digital', monospace; }
+
+.preview.font-gothic .data-label,
+.preview.font-gothic .data-value,
+.preview.font-gothic .m1-month,
+.preview.font-gothic .m1-distance-value,
+.preview.font-gothic .m-label,
+.preview.font-gothic .m-value,
+.preview.font-gothic .m2-month-line,
+.preview.font-gothic .m2-distance-value,
+.preview.font-gothic .m2-l,
+.preview.font-gothic .m2-v{ font-family:'Special Gothic Expanded One', sans-serif; }
+.preview.font-gothic .data-label,
+.preview.font-gothic .m-label,
+.preview.font-gothic .m2-l{ font-size: 10px; }
+
+.preview.font-speed .data-label,
+.preview.font-speed .data-value,
+.preview.font-speed .m1-month,
+.preview.font-speed .m1-distance-value,
+.preview.font-speed .m-label,
+.preview.font-speed .m-value,
+.preview.font-speed .m2-month-line,
+.preview.font-speed .m2-distance-value,
+.preview.font-speed .m2-l,
+.preview.font-speed .m2-v{ font-family:'Quantico', sans-serif; }
+.preview.font-speed{ --pv-value-add: 2px; }
+
+/* RUN button */
 .run-btn{
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
   bottom: 20px;
   width: min(360px, calc(100% - 40px));
-  height: 56px;
+  padding: 16px 16px;
   background: #ff9000;
   border:none;
   border-radius: 999px;
@@ -443,13 +484,10 @@ body.no-scroll{ overflow: hidden; }
   color:#000;
   cursor:pointer;
   z-index: 1000;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 .run-btn:hover{ opacity: .92; }
 
-/* =========================================
-   MODAL (Manual Input)
-   ========================================= */
+/* MODAL */
 .modal-overlay{
   position: fixed;
   inset: 0;
@@ -484,10 +522,9 @@ body.no-scroll{ overflow: hidden; }
 .field-label{ display:block; font-weight:900; font-size:12px; margin-bottom: 8px; }
 .field-input{
   width:100%;
-  height: 40px;
   border: 2px solid #000;
   border-radius: 12px;
-  padding: 0 12px;
+  padding: 12px 12px;
   font-size: 16px;
   font-weight: 900;
   outline:none;
@@ -495,10 +532,9 @@ body.no-scroll{ overflow: hidden; }
 .field-save{
   margin-top: 10px;
   width:100%;
-  height: 42px;
   border:none;
   border-radius: 999px;
-  padding: 0;
+  padding: 12px 12px;
   background:#000;
   color:#fff;
   font-weight:900;
@@ -512,70 +548,7 @@ body.no-scroll{ overflow: hidden; }
 }
 .colon{ font-weight:900; font-size:16px; text-align:center; }
 
-/* =========================================
-   MONTH PICKER OVERLAY (FIXED STYLE)
-   ========================================= */
-.month-picker{ background: rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; }
-.month-picker.show{ display:flex; }
-
-.month-wrap{
-  width: 90%; max-width: 340px;
-  background: #fff;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-/* FIX: Header Black & Tight Year Spacing */
-.month-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom: 16px;
-  color: #000; /* FIX: Black */
-}
-.mp-year-group { display: flex; align-items: center; gap: 2px; } /* FIX: Tight Gap */
-
-.month-year{
-  font-size: 20px;
-  font-weight: 1000;
-  letter-spacing: -0.8px;
-}
-.month-nav{
-  width: 40px; height: 40px;
-  border: none;
-  background: transparent;
-  font-size: 24px;
-  font-weight: 900;
-  cursor:pointer;
-  color: #000; /* FIX: Black */
-  padding: 0;
-}
-.month-close-custom {
-  background: none; border: none; font-size: 20px; cursor: pointer; color: #000; font-weight: bold;
-}
-
-.month-grid{
-  display:grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.month-cell{
-  height: 40px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background:#fff;
-  font-size: 11px;
-  font-weight: 700;
-  cursor:pointer;
-  color: #000;
-}
-.month-cell:hover{ background: #f0f0f0; }
-.month-cell.active{ background:#000; color:#fff; border-color: #000; }
-
-/* =========================================
-   SCREEN OVERLAYS (Garmin, Select)
-   ========================================= */
+/* SCREEN OVERLAYS */
 .screen-overlay{
   position: fixed;
   inset: 0;
@@ -585,6 +558,8 @@ body.no-scroll{ overflow: hidden; }
   color:#000;
 }
 .screen-overlay.show{ display:block; }
+
+/* ✅ FIX #5: Garmin Login 닫기 버튼 얇고 크게 + Select Workout 동일 스타일 */
 .screen-close{
   position:absolute;
   top: 16px;
@@ -599,86 +574,325 @@ body.no-scroll{ overflow: hidden; }
   cursor:pointer;
   color:inherit;
 }
-.close-big{ top: 16px; right: 16px; z-index: 5; }
+
+/* 기존 close-big는 동일한 룰로 통일 (혹시 HTML에 남아있어도 동일하게 보이게) */
+.close-big{
+  top: 16px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  font-size: 36px;
+  font-weight: 300;
+  z-index: 5;
+}
 
 /* Garmin login */
 .garmin-login{ background: var(--garmin); color:#000; }
 .garmin-login-wrap{
-  width:100%; height:100%; position:relative;
+  width:100%;
+  height:100%;
+  position:relative;
   padding: 42px 24px 24px 24px;
 }
+
+/* ✅ FIX #5: 하단 세로 텍스트 제거 */
 .wm-vertical{ display:none !important; }
+
 .garmin-login-title{ margin-top: 8px; }
 .gc-big{ font-size: 40px; font-weight: 1000; letter-spacing: -1px; line-height: .95; }
 .gc-sub{ margin-top: 10px; font-size: 34px; font-weight: 400; letter-spacing: -0.6px; }
 .garmin-login-form{ margin-top: 60px; width: min(520px, 100%); }
 .gc-label{ display:block; font-size: 12px; font-weight: 900; margin-bottom: 8px; }
 .gc-input{
-  width:100%; border:none; border-bottom: 2px solid #000;
-  padding: 10px 2px; font-size: 16px; font-weight: 700;
-  outline:none; background:transparent; margin-bottom: 26px;
+  width:100%;
+  border:none;
+  border-bottom: 2px solid #000;
+  padding: 10px 2px;
+  font-size: 16px;
+  font-weight: 700;
+  outline:none;
+  background:transparent;
+  margin-bottom: 26px;
 }
 .gc-note{ display:flex; gap: 10px; align-items:flex-start; margin-top: 4px; }
 .gc-smile{ font-size: 30px; line-height:1; font-weight: 900; }
 .gc-note-text{ font-size: 12px; font-weight: 800; max-width: 360px; }
 .gc-cta{
-  position:absolute; left: 24px; right: 24px; bottom: 22px;
-  height: 56px; border-radius: 999px; border:none;
-  background:#000; color:#fff; font-size: 20px; font-weight: 900; cursor:pointer;
+  position:absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  height: 56px;
+  border-radius: 999px;
+  border:none;
+  background:#000;
+  color:#fff;
+  font-size: 20px;
+  font-weight: 900;
+  cursor:pointer;
 }
 
 /* Select workout */
 .select-workout{ background:#fff; color:#000; }
-.select-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; display: flex; flex-direction: column; }
+.select-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
 .select-title{
-  font-size: 40px; font-weight: 1000; letter-spacing: -1px; line-height: .95;
-  margin-top: 12px; margin-bottom: 18px;
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: -1px;
+  line-height: .95;
+  margin-top: 12px;
+  margin-bottom: 18px;
 }
-.select-list{ flex: 1; overflow:auto; padding-right: 4px; }
+.select-list{
+  height: calc(100% - 120px);
+  overflow:auto;
+  padding-right: 4px;
+}
 .workout-item{
-  width:100%; border: var(--stroke) solid #000; border-radius: 18px;
-  padding: 12px 12px 12px 14px; background:#fff; cursor:pointer;
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom: 12px; color:#000; text-decoration:none;
+  width:100%;
+  border: var(--stroke) solid #000;
+  border-radius: 18px;
+  padding: 12px 12px 12px 14px;
+  background:#fff;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 12px;
+
+  /* ✅ FIX #6: 파란색(visited/focus) 방지용 기본 색 고정 */
+  color:#000;
+  text-decoration:none;
   -webkit-tap-highlight-color: transparent;
 }
-.workout-item .w-left{ display:flex; flex-direction:column; gap: 8px; min-width:0; align-items:flex-start; }
+.workout-item .w-left{
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  min-width:0;
+
+  /* ✅ FIX #6: 날짜/스탯 블록 좌측정렬 맞춤 */
+  align-items:flex-start;
+}
 .workout-item .w-date{ font-size: 12px; font-weight: 900; }
 .workout-item .w-stats{
-  display:flex; gap: 18px; font-size: 16px; font-weight: 900;
-  white-space: nowrap; justify-content:flex-start;
+  display:flex;
+  gap: 18px;
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+
+  /* ✅ FIX #6: 좌측정렬 유지 */
+  justify-content:flex-start;
 }
 .workout-item *{ color:inherit; }
+.workout-item:visited,
+.workout-item:active,
+.workout-item:focus,
+.workout-item:focus-visible{ color:#000; outline:none; }
 .w-arrow{ font-size: 26px; font-weight: 900; color:#000; }
 
-/* =========================================
-   RESULT SCREEN
-   ========================================= */
+/* Month picker */
+.month-picker{ background:#fff; color:#000; }
+.month-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
+.month-head{
+  display:flex;
+  align-items:center;
+  justify-content:center; /* ✅ FIX #8: prevent overlap with close button */
+  gap: 10px;            /* ✅ FIX #8: keep < > tight to year */
+  margin-top: 12px;
+  margin-bottom: 16px;
+  padding-right: 72px;  /* ✅ FIX #8: reserve space for X button */
+}
+.month-year{
+  font-size: 32px;
+  font-weight: 1000;
+  letter-spacing: -0.8px;
+  color:#000;
+}
+.month-nav{
+  width: 52px;
+  height: 44px;
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  background:#fff;
+  font-size: 26px;
+  font-weight: 900;
+  cursor:pointer;
+  color:#000; /* ✅ FIX #7/#8: arrows black fixed */
+}
+.month-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 6px;
+}
+.month-cell{
+  border: var(--stroke) solid #000;
+  border-radius: 16px;
+  padding: 14px 12px;
+  background:#fff;
+  font-weight: 900;
+  cursor:pointer;
+  color:#000; /* ✅ FIX #7: month cell text black fixed */
+}
+.month-cell.active{ background:#000; color:#fff; }
+
+/* Result */
 .result-screen.bg-white{ background:#fff; color:#000; }
 .result-screen.bg-black{ background:#000; color:#fff; }
 
 .result-wrap{
-  width:100%; height:100%; padding: 0 26px;
-  display:flex; align-items:center; justify-content:center;
+  width:100%;
+  height:100%;
+  padding: 0 26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .result-block{ width:100%; min-width:0; }
-.result-wrap.type1 .result-block,
+
+.result-wrap.type1 .result-block{
+  width: min(520px, 100%);
+  display:flex;
+  flex-direction:column;
+  gap: 18px; /* ✅ FIX #4: Preview/Result layout parity */
+  align-items:flex-start;
+}
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
-  /* Layout handled by internal d1/d2/m1/m2 classes same as Preview */
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: 18px; /* ✅ FIX #5: match Preview gaps */
+  align-items:start;
+  margin: 0 auto;
 }
 
-/* Media Query */
+.result-item{ min-width:0; }
+.result-label, .result-value{ display:block; width:100%; min-width:0; white-space: nowrap; }
+.result-label{ font-size: 12px; font-weight: 900; opacity: .9; margin-bottom: 10px; }
+.result-value{
+  font-size: clamp(22px, 7.2vw, calc(34px + var(--rv-value-add)));
+  font-weight: 900;
+  line-height: 1;
+  display:flex;
+  align-items:flex-end;
+}
+.result-value > span{ display:block; width:100%; }
+
+/* daily type1 scale */
+.result-wrap.type1 .result-label{ font-size: 18px; margin-bottom: 12px; }
+.result-wrap.type1 .result-value{ font-size: 52px; }
+
+/* Monthly result type1 */
+.result-wrap.type1 .m1-month{ font-size: 28px; font-weight: 1000; line-height: 1.05; margin-bottom: 6px; white-space: nowrap; }
+.result-wrap.type1 .m1-distance-value{ font-size: 76px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
+.result-wrap.type1 .m1-stack{
+  margin-top: 14px;
+  display:flex;
+  flex-direction:column;
+  gap: 16px;
+
+  /* ✅ FIX #4: Monthly Type1 결과도 Preview와 동일한 간격 */
+  gap: 18px; /* ✅ FIX #4 */
+}
+
+/* Monthly result type2 */
+.result-wrap.type2 .m2-month{
+  grid-column: 1 / -1;
+  font-size: 14px;
+  font-weight: 900;
+  opacity: .95;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.result-wrap.type2 .m2-distance{
+  grid-column: 1 / -1;
+  margin-bottom: 10px;
+}
+.result-wrap.type2 .m2-distance-value{
+  font-size: clamp(34px, 8.2vw, 46px);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+}
+.result-wrap.type2 .m2-row{
+  grid-column: 1 / -1;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: 18px; /* ✅ FIX #5: match Preview gaps */
+}
+
+/* Result fonts */
+.result-screen.font-anton .result-value,
+.result-screen.font-anton .m1-month,
+.result-screen.font-anton .m1-distance-value,
+.result-screen.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
+.result-screen.font-anton .result-label{ font-family:'Inter', sans-serif; }
+
+.result-screen.font-dots .result-label,
+.result-screen.font-dots .result-value,
+.result-screen.font-dots .m1-month,
+.result-screen.font-dots .m1-distance-value,
+.result-screen.font-dots .m2-month,
+.result-screen.font-dots .m2-distance-value{ font-family:'Bitcount Grid Single', monospace; }
+
+.result-screen.font-lcd .result-label,
+.result-screen.font-lcd .result-value,
+.result-screen.font-lcd .m1-month,
+.result-screen.font-lcd .m1-distance-value,
+.result-screen.font-lcd .m2-month,
+.result-screen.font-lcd .m2-distance-value{ font-family:'DS-Digital', monospace; }
+
+.result-screen.font-gothic .result-label,
+.result-screen.font-gothic .result-value,
+.result-screen.font-gothic .m1-month,
+.result-screen.font-gothic .m1-distance-value,
+.result-screen.font-gothic .m2-month,
+.result-screen.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
+.result-screen.font-gothic .result-label{ font-size: 10px; }
+
+.result-screen.font-speed .result-label,
+.result-screen.font-speed .result-value,
+.result-screen.font-speed .m1-month,
+.result-screen.font-speed .m1-distance-value,
+.result-screen.font-speed .m2-month,
+.result-screen.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
+.result-screen.font-speed{ --rv-value-add: 2px; }
+
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
 }
 
-/* Auto Scale Safety */
-.d-value, .m-value, .d-val-lg, .d-val-md, .d-val-sm, .m2-v, .result-value {
-  display: flex; align-items: flex-end; width: 100%; overflow: hidden;
+/* ================================
+   AUTO SCALE VALUE (SAFE)
+================================ */
+.data-value{
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  overflow: hidden;
 }
-.d-value > span, .m-value > span, .result-value > span {
-  display: inline-block; white-space: nowrap; max-width: 100%;
+
+.data-value > span{
+  display: inline-block;
+  transform-origin: left bottom;
+  white-space: nowrap;
+  max-width: 100%;
 }
+
+/* ✅ FIX #1: type2 values should shrink, not ellipsis */
+.preview.type2 .data-value,
+.result-wrap.type2 .result-value{ text-overflow: clip; }
+
+/* ✅ FIX #1: autoscale support for result values */
+.result-value > span{ display:inline-block; transform-origin:left bottom; white-space:nowrap; max-width:100%; }
+
+/* ✅ FIX #3: Daily Anton titles use Inter Semibold (match Monthly Anton) */
+.preview.font-anton .data-label,
+.preview.font-anton .m-label,
+.preview.font-anton .m2-l,
+.result-screen.font-anton .result-label{ font-family:'Inter', sans-serif !important; font-weight:600 !important; }
