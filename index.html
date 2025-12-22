@@ -194,8 +194,7 @@
 
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
-
-  <!-- Manual modal -->
+    <!-- Manual modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-head">
@@ -280,30 +279,31 @@
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
-
-  <script type="module">
+    <script type="module">
     // ---------- helpers ----------
     const $ = (s)=>document.querySelector(s);
     const pad2 = (n)=>String(n).padStart(2,'0');
     const clamp = (v,min,max)=>Math.max(min, Math.min(max,v));
 
-    // ---------- autoscale (no clip) ----------
-    function autoScaleWithin(container, minScale=0.70){
+    // ---------- auto fit (uniform scale, keep aspect ratio) ----------
+    function autoFitUniform(container, minScale=0.72){
       if (!container) return;
-      const spans = container.querySelectorAll(
+      // targets: preview + monthly + result value spans
+      const targets = container.querySelectorAll(
         '.data-value > span, .m1-distance-value > span, .m-value > span, .m2-distance-value > span, .m2-v > span, .result-value > span'
       );
-      spans.forEach((s)=>{
+      targets.forEach((s)=>{
         const wrap = s.parentElement;
         if (!wrap) return;
-        s.style.transform = 'scaleX(1)';
+        // reset
+        s.style.transform = 'scale(1)';
         const w = wrap.clientWidth || 0;
         const sw = s.scrollWidth || 0;
         if (w > 0 && sw > w + 1){
           let sc = w / sw;
           if (sc < minScale) sc = minScale;
           if (sc > 1) sc = 1;
-          s.style.transform = `scaleX(${sc.toFixed(4)})`;
+          s.style.transform = `scale(${sc.toFixed(4)})`;
         }
       });
     }
@@ -613,7 +613,7 @@
       // monthly
       const m = state.monthly;
       el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
-      el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;  // ✅ FIX #6: one-line date
+      el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
       el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
 
       const kmText = fmtKmPreview(m.km);
@@ -631,15 +631,9 @@
       el.pvPaceMonthlyT2.textContent = paceText;
       el.pvTimeMonthlyT2.textContent = timeText;
 
-      // garmin card
-      el.garminDateText.textContent = state.garmin.date;
-      el.garminDistanceText.textContent = fmtKmPreview(state.garmin.km);
-      el.garminPaceText.textContent = fmtPaceResult(state.garmin.paceSec);
-      el.garminTimeText.textContent = fmtTimeResult(state.garmin.timeSec);
-
-      // ✅ FIX #1/#2/#5: never clip (Preview) — stronger in type2
-      const minS = (state.layout==='type2') ? 0.66 : 0.74;
-      autoScaleWithin(state.recordType==='monthly' ? el.previewMonthly : el.previewDaily, minS);
+      // auto fit (uniform) — keep font aspect ratio
+      autoFitUniform(el.previewDaily, state.layout==='type2' ? 0.70 : 0.78);
+      autoFitUniform(el.previewMonthly, state.layout==='type2' ? 0.70 : 0.78);
     }
 
     // ---------- Garmin (mock) ----------
@@ -932,9 +926,8 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
         if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
 
-        // ✅ FIX #1/#2/#5: never clip (Result) — stronger in type2
-        const minS = (state.layout==='type2') ? 0.66 : 0.74;
-        autoScaleWithin(el.resultBlock, minS);
+        // auto fit (uniform) — keep font aspect ratio
+        autoFitUniform(el.resultBlock, state.layout==='type2' ? 0.70 : 0.78);
 
         if (p < 1) requestAnimationFrame(frame);
       }
@@ -970,7 +963,7 @@
       b.addEventListener('click', ()=>{
         state.font = b.dataset.font;
         applyFont();
-        updatePreview(); // 폰트 바뀌면 폭도 달라져서 즉시 autoscale 재실행
+        updatePreview();
       });
     });
 
