@@ -166,24 +166,25 @@
             </div>
           </div>
 
-          <!-- Monthly Type2 -->
+          <!-- ✅ Monthly Type2 (BOTTOM = D2 방식 3등분) -->
           <div class="monthly-type2">
             <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
             <div class="m2-distance">
               <span class="m2-distance-value"><span id="pvDistanceMonthlyT2">00.00Km</span></span>
             </div>
-            <div class="m2-row">
-              <div class="m2-item">
-                <div class="m2-l">RUNS</div>
-                <div class="m2-v"><span id="pvRunsMonthlyT2">00</span></div>
+
+            <div class="m2-bottom">
+              <div class="data-item">
+                <span class="data-label">RUNS</span>
+                <span class="data-value"><span id="pvRunsMonthlyT2">00</span></span>
               </div>
-              <div class="m2-item">
-                <div class="m2-l">PACE</div>
-                <div class="m2-v"><span id="pvPaceMonthlyT2">0'00"</span></div>
+              <div class="data-item">
+                <span class="data-label">PACE</span>
+                <span class="data-value"><span id="pvPaceMonthlyT2">0'00"</span></span>
               </div>
-              <div class="m2-item">
-                <div class="m2-l">TIME</div>
-                <div class="m2-v"><span id="pvTimeMonthlyT2">0:00</span></div>
+              <div class="data-item">
+                <span class="data-label">TIME</span>
+                <span class="data-value"><span id="pvTimeMonthlyT2">0:00</span></span>
               </div>
             </div>
           </div>
@@ -194,7 +195,6 @@
 
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
-
   <!-- Manual modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
@@ -264,6 +264,7 @@
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
+
   <script type="module">
     // ---------- helpers ----------
     const $ = (s)=>document.querySelector(s);
@@ -315,18 +316,17 @@
       return need;
     }
 
-    /* ✅ FIX #4: Preview에서 앞자리 0 제거 (PACE/TIME) */
     function fmtKmPreview(km){
-      return `${Number(km||0).toFixed(2)}Km`; // 거리 표기는 기존 유지
+      return `${Number(km||0).toFixed(2)}Km`;
     }
     function fmtRunsPreview(r){
-      return pad2(Number(r||0)); // runs는 2자리 유지(기존 UI 유지)
+      return pad2(Number(r||0));
     }
     function fmtPacePreview(sec){
       const s = Math.max(0, Math.floor(sec||0));
       const m = Math.floor(s/60);
       const r = s%60;
-      return `${m}'${pad2(r)}"`; // ✅ 00'00" → 0'00"
+      return `${m}'${pad2(r)}"`;
     }
     function fmtTimePreview(sec){
       const s = Math.max(0, Math.floor(sec||0));
@@ -334,10 +334,8 @@
       const m = Math.floor((s%3600)/60);
       const r = s%60;
       if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      return `${m}:${pad2(r)}`; // ✅ 00:00:00 → 0:00 (m:ss)
+      return `${m}:${pad2(r)}`;
     }
-
-    // result format: remove leading 0 at very front (pace, time)
     function fmtPaceResult(sec){
       const s = Math.max(0, Math.floor(sec||0));
       const m = Math.floor(s/60);
@@ -403,7 +401,6 @@
       monthBlock: $('#monthBlock'),
       dataEmpty: $('#dataEmpty'),
 
-      // garmin card
       garminCard: $('#garminCard'),
       garminDateText: $('#garminDateText'),
       garminDistanceText: $('#garminDistanceText'),
@@ -411,15 +408,12 @@
       garminTimeText: $('#garminTimeText'),
       btnGarminList: $('#btnGarminList'),
 
-      // month
       btnMonthPick: $('#btnMonthPick'),
-      monthPickerScreen: $('#monthPickerScreen'),
       monthPrevYear: $('#monthPrevYear'),
       monthNextYear: $('#monthNextYear'),
       monthYearText: $('#monthYearText'),
       monthGrid: $('#monthGrid'),
 
-      // preview
       previewDaily: $('#previewDaily'),
       previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'),
@@ -437,22 +431,18 @@
       pvPaceMonthlyT2: $('#pvPaceMonthlyT2'),
       pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
 
-      // font
       fontGroup: $('#fontGroup'),
 
-      // layout/bg
       btnType1: $('#btnType1'),
       btnType2: $('#btnType2'),
       btnBgWhite: $('#btnBgWhite'),
       btnBgBlack: $('#btnBgBlack'),
 
-      // run/result
       btnRun: $('#btnRun'),
       resultScreen: $('#resultScreen'),
       resultWrap: $('#resultWrap'),
       resultBlock: $('#resultBlock'),
 
-      // modals
       modalOverlay: $('#modalOverlay'),
       modalClose: $('#modalClose'),
       modalSave: $('#modalSave'),
@@ -465,17 +455,16 @@
       manualPaceText: $('#manualPaceText'),
       manualTimeText: $('#manualTimeText'),
 
-      // ocr
       btnUploadNrc: $('#btnUploadNrc'),
       fileNrc: $('#fileNrc'),
       ocrStatus: $('#ocrStatus'),
 
-      // overlays
       garminLoginScreen: $('#garminLoginScreen'),
       garminSelectScreen: $('#garminSelectScreen'),
       garminLoginForm: $('#garminLoginForm'),
       workoutList: $('#workoutList'),
     };
+
     // ---------- overlay utils ----------
     function openScreen(id){
       const node = document.getElementById(id);
@@ -496,7 +485,6 @@
         closeScreen(btn.getAttribute('data-close'));
       });
     });
-
     // ---------- apply UI ----------
     function applyRecordType(){
       el.btnDaily.classList.toggle('active', state.recordType==='daily');
@@ -509,9 +497,9 @@
       el.dataTabsMonthly.style.display = isMonthly ? 'flex' : 'none';
       el.monthBlock.style.display = isMonthly ? 'block' : 'none';
 
-      // preview visibility
+      // ✅ FIX(결함): previewMonthly가 daily에서도 block이던 버그 수정
       el.previewDaily.style.display = isMonthly ? 'none' : 'block';
-      el.previewMonthly.style.display = isMonthly ? 'block' : 'block';
+      el.previewMonthly.style.display = isMonthly ? 'block' : 'none';
 
       // default datatype
       if (isMonthly){
@@ -527,7 +515,6 @@
     function applyDataType(){
       const isMonthly = state.recordType==='monthly';
 
-      // active tabs
       if (!isMonthly){
         el.tabGarmin.classList.toggle('active', state.dataType==='garmin');
         el.tabNrc.classList.toggle('active', state.dataType==='nrc');
@@ -536,12 +523,11 @@
         el.tabNrcMonthly.classList.toggle('active', state.dataType==='nrc');
       }
 
-      // content visibility
       el.contentGarmin.style.display = (!isMonthly && state.dataType==='garmin') ? 'block' : 'none';
       el.contentNrc.style.display = ((!isMonthly && state.dataType==='nrc') || (isMonthly && state.dataType==='nrc')) ? 'block' : 'none';
       el.contentManual.style.display = (!isMonthly && state.dataType==='manual') ? 'block' : 'none';
 
-      el.dataEmpty.style.height = (state.dataType==='garmin' && !isMonthly) ? '0' : '0';
+      el.dataEmpty.style.height = '0';
     }
 
     function applyFont(){
@@ -549,8 +535,8 @@
         btn.classList.toggle('active', btn.dataset.font === state.font);
       });
 
-      // preview/result class
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node=>{
+        if (!node) return;
         node.classList.remove('font-anton','font-dots','font-lcd','font-gothic','font-speed');
         node.classList.add(`font-${state.font}`);
       });
@@ -577,6 +563,7 @@
 
       const bgClass = `bg-${state.bg}`;
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node=>{
+        if (!node) return;
         node.classList.remove('bg-white','bg-black');
         node.classList.add(bgClass);
       });
@@ -619,28 +606,19 @@
       el.garminPaceText.textContent = fmtPaceResult(state.garmin.paceSec);
       el.garminTimeText.textContent = fmtTimeResult(state.garmin.timeSec);
 
-      // ✅ Fit (Preview) — Type2는 3개 값이 같은 크기로 줄어들어야 함
       requestAnimationFrame(()=>{
         if (state.layout === 'type2'){
           // D2: distance/pace/time 모두 같은 scale 적용
-          fitGroup([
-            el.pvDistanceDaily,
-            el.pvPaceDaily,
-            el.pvTimeDaily
-          ], 0.58);
+          fitGroup([ el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily ], 0.58);
 
-          // M2: runs/pace/time 같은 scale 적용 + distance는 별도
+          // M2: distance 별도 + 하단 3개는 D2처럼 동일 scale
           fitOne(el.pvDistanceMonthlyT2, 0.60);
-          fitGroup([
-            el.pvRunsMonthlyT2,
-            el.pvPaceMonthlyT2,
-            el.pvTimeMonthlyT2
-          ], 0.58);
+          fitGroup([ el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2 ], 0.58);
         } else {
-          // Type1: 각각 안전하게
           fitOne(el.pvDistanceDaily, 0.72);
           fitOne(el.pvPaceDaily, 0.72);
           fitOne(el.pvTimeDaily, 0.72);
+
           fitOne(el.pvDistanceMonthlyT1, 0.72);
           fitOne(el.pvRunsMonthlyT1, 0.72);
           fitOne(el.pvPaceMonthlyT1, 0.72);
@@ -770,11 +748,6 @@
       if (e.target === el.modalOverlay) closeManualModal();
     });
 
-    function recalcManualTime(){
-      // if pace & km set, optionally compute time; here keep existing behavior
-      updatePreview();
-    }
-
     el.modalSave.addEventListener('click', ()=>{
       if (activeManualType==='distance'){
         const v = Number($('#modalInput').value || 0);
@@ -787,7 +760,6 @@
         state.daily.paceSec = Math.max(0, Math.floor(m*60 + s));
         el.manualPaceText.textContent = fmtPacePreview(state.daily.paceSec);
       }
-      recalcManualTime();
       closeManualModal();
       updatePreview();
     });
@@ -813,7 +785,6 @@
         const result = await mod.extractAll(img);
 
         if (state.recordType==='daily'){
-          // daily mode: distance must be OCR (no calc)
           state.daily.km = Number(result.distanceKm || 0);
           state.daily.paceSec = Number(result.paceSec || 0);
           state.daily.timeSec = Number(result.timeSec || 0);
@@ -878,8 +849,8 @@
         return { km: d.km, paceSec: d.paceSec, timeSec: d.timeSec, runs: null };
       }
 
-      // monthly
       const m = state.monthly;
+
       if (state.layout === 'type1'){
         el.resultBlock.innerHTML = `
           <div class="monthly-type1 result-monthly">
@@ -904,24 +875,26 @@
           </div>
         `;
       } else {
+        // ✅ M2 결과도 프리뷰와 동일: 하단 3등분(D2 구조)
         el.resultBlock.innerHTML = `
           <div class="monthly-type2 result-monthly">
             <div class="m2-month-line">${monthName(m.month)} ${m.year}</div>
             <div class="m2-distance">
               <span class="m2-distance-value"><span id="rvDistance">${fmtKmPreview(0)}</span></span>
             </div>
-            <div class="m2-row">
-              <div class="m2-item">
-                <div class="m2-l">RUNS</div>
-                <div class="m2-v"><span id="rvRuns">${fmtRunsPreview(0)}</span></div>
+
+            <div class="m2-bottom">
+              <div class="data-item">
+                <span class="data-label">RUNS</span>
+                <span class="data-value"><span id="rvRuns">${fmtRunsPreview(0)}</span></span>
               </div>
-              <div class="m2-item">
-                <div class="m2-l">PACE</div>
-                <div class="m2-v"><span id="rvPace">${fmtPaceResult(0)}</span></div>
+              <div class="data-item">
+                <span class="data-label">PACE</span>
+                <span class="data-value"><span id="rvPace">${fmtPaceResult(0)}</span></span>
               </div>
-              <div class="m2-item">
-                <div class="m2-l">TIME</div>
-                <div class="m2-v"><span id="rvTime">${fmtTimeResult(0)}</span></div>
+              <div class="data-item">
+                <span class="data-label">TIME</span>
+                <span class="data-value"><span id="rvTime">${fmtTimeResult(0)}</span></span>
               </div>
             </div>
           </div>
@@ -964,7 +937,6 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
         if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
 
-        // ✅ Fit (Result) — Type2는 3개 값이 같은 크기로 줄어들어야 함
         if (state.layout === 'type2'){
           if (state.recordType === 'daily'){
             fitGroup([rvDistance, rvPace, rvTime], 0.58);
@@ -974,9 +946,9 @@
           }
         } else {
           fitOne(rvDistance, 0.70);
+          if (rvRuns) fitOne(rvRuns, 0.70);
           fitOne(rvPace, 0.70);
           fitOne(rvTime, 0.70);
-          if (rvRuns) fitOne(rvRuns, 0.70);
         }
 
         if (p < 1) requestAnimationFrame(frame);
@@ -994,11 +966,7 @@
     el.btnDaily.addEventListener('click', ()=>{ state.recordType='daily'; applyRecordType(); });
     el.btnMonthly.addEventListener('click', ()=>{ state.recordType='monthly'; applyRecordType(); });
 
-    el.tabGarmin.addEventListener('click', ()=>{
-      state.dataType='garmin';
-      applyDataType();
-      updatePreview();
-    });
+    el.tabGarmin.addEventListener('click', ()=>{ state.dataType='garmin'; applyDataType(); updatePreview(); });
     el.tabNrc.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', ()=>{ state.dataType='manual'; applyDataType(); updatePreview(); });
     el.tabNrcMonthly.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
