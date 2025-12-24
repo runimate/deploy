@@ -166,12 +166,14 @@
             </div>
           </div>
 
-          <!-- Monthly Type2 -->
+          <!-- Monthly Type2 (✅ HTML 구조 정상화) -->
           <div class="monthly-type2">
             <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
+
             <div class="m2-distance">
               <span class="m2-distance-value"><span id="pvDistanceMonthlyT2">00.00Km</span></span>
             </div>
+
             <div class="m2-row">
               <div class="data-item">
                 <span class="data-label">RUNS</span>
@@ -185,8 +187,6 @@
                 <span class="data-label">TIME</span>
                 <span class="data-value"><span id="pvTimeMonthlyT2">0:00</span></span>
               </div>
-</div>
-              </div>
             </div>
           </div>
 
@@ -196,7 +196,8 @@
 
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
-    <!-- Manual modal -->
+
+  <!-- Manual modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-head">
@@ -226,7 +227,6 @@
   <!-- Garmin Login -->
   <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
     <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <!-- ✅ FIX #5: 세로 텍스트 삭제 (wm-vertical 제거) -->
 
     <div class="garmin-login-wrap">
       <div class="garmin-login-title">
@@ -282,24 +282,26 @@
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
-    <script type="module">
+
+  <script type="module">
+    import { applyUIConfigToRoot } from './ui_config.js';
+
     // ---------- helpers ----------
     const $ = (s)=>document.querySelector(s);
     const pad2 = (n)=>String(n).padStart(2,'0');
     const clamp = (v,min,max)=>Math.max(min, Math.min(max,v));
 
-    /* ✅ FIX #4: Preview에서 앞자리 0 제거 (PACE/TIME) */
     function fmtKmPreview(km){
-      return `${Number(km||0).toFixed(2)}Km`; // 거리 표기는 기존 유지
+      return `${Number(km||0).toFixed(2)}Km`;
     }
     function fmtRunsPreview(r){
-      return pad2(Number(r||0)); // runs는 2자리 유지(기존 UI 유지)
+      return pad2(Number(r||0));
     }
     function fmtPacePreview(sec){
       const s = Math.max(0, Math.floor(sec||0));
       const m = Math.floor(s/60);
       const r = s%60;
-      return `${m}'${pad2(r)}"`; // ✅ 00'00" → 0'00"
+      return `${m}'${pad2(r)}"`;
     }
     function fmtTimePreview(sec){
       const s = Math.max(0, Math.floor(sec||0));
@@ -307,10 +309,8 @@
       const m = Math.floor((s%3600)/60);
       const r = s%60;
       if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      return `${m}:${pad2(r)}`; // ✅ 00:00:00 → 0:00 (m:ss)
+      return `${m}:${pad2(r)}`;
     }
-
-    // result format: remove leading 0 at very front (pace, time)
     function fmtPaceResult(sec){
       const s = Math.max(0, Math.floor(sec||0));
       const m = Math.floor(s/60);
@@ -337,7 +337,6 @@
     // ---------- fit (uniform scale-down to prevent clipping) ----------
     function fitOne(span, minScale = 0.35){
       if (!span) return;
-      // reset
       span.style.transform = '';
       span.style.transformOrigin = 'left bottom';
       const parent = span.parentElement;
@@ -352,7 +351,6 @@
       const arr = (spans || []).filter(Boolean);
       if (!arr.length) return;
 
-      // reset
       arr.forEach(sp=>{
         sp.style.transform = '';
         sp.style.transformOrigin = 'left bottom';
@@ -373,8 +371,6 @@
         sp.style.transform = (need < 1) ? `scale(${need})` : '';
       });
     }
-
-
 
     // ---------- OCR loader (supports ./js/ocr.js or ./ocr.js) ----------
     let OCR = null;
@@ -508,35 +504,38 @@
       if (closeId) closeScreen(closeId);
     });
 
+    // ---------- UI CONFIG APPLY ----------
+    function applyUIConfig(){
+      applyUIConfigToRoot({
+        font: state.font,
+        recordType: state.recordType,
+        layout: state.layout
+      });
+    }
+
     // ---------- apply UI ----------
     function applyRecordType(){
       document.body.dataset.record = state.recordType;
       el.btnDaily.classList.toggle('active', state.recordType==='daily');
       el.btnMonthly.classList.toggle('active', state.recordType==='monthly');
 
-      /* ✅ FIX #2: Monthly는 NRC only → DATA TYPE 영역(타이틀/탭/빈영역) 숨김, 바로 Upload 노출 */
       if (state.recordType === 'monthly'){
-        // UI
         el.dataPanelHead.style.display = 'none';
         el.dataTabsDaily.style.display = 'none';
         el.dataTabsMonthly.style.display = 'none';
         el.dataEmpty.style.display = 'none';
 
-        // 강제 NRC
         state.dataType = 'nrc';
 
-        // content
         el.contentGarmin.style.display = 'none';
         el.contentManual.style.display = 'none';
         el.contentNrc.style.display = 'block';
 
-        // month + preview
         el.dataPanel.classList.add('monthly');
         el.monthBlock.style.display = 'block';
         el.previewDaily.style.display = 'none';
         el.previewMonthly.style.display = 'block';
       } else {
-        // daily로 돌아올 때 원복
         el.dataPanelHead.style.display = 'flex';
         el.dataTabsDaily.style.display = 'flex';
         el.dataTabsMonthly.style.display = 'none';
@@ -547,16 +546,15 @@
         el.previewDaily.style.display = 'block';
         el.previewMonthly.style.display = 'none';
 
-        // daily는 기존처럼 dataType 선택하도록 초기화(기존 흐름 유지)
         if (state.dataType === 'nrc' || state.dataType === 'garmin' || state.dataType === 'manual'){
           // 유지
         } else {
           state.dataType = null;
         }
-
         applyDataType();
       }
 
+      applyUIConfig();
       applyLayout();
       applyBG();
       applyFont();
@@ -571,7 +569,6 @@
         el.tabNrcMonthly.classList.toggle('active', state.recordType==='monthly' && state.dataType==='nrc');
       }
 
-      // monthly에서는 이미 위에서 content를 강제 노출하므로 여기선 daily 중심으로만
       if (state.recordType === 'monthly'){
         el.dataEmpty.style.display = 'none';
         el.contentGarmin.style.display = 'none';
@@ -595,6 +592,9 @@
         node.classList.remove('font-anton','font-dots','font-lcd','font-gothic','font-speed');
         node.classList.add(fontClass);
       });
+
+      applyUIConfig();
+      updatePreview();
     }
 
     function applyLayout(){
@@ -609,6 +609,8 @@
 
       el.resultWrap.classList.toggle('type1', state.layout==='type1');
       el.resultWrap.classList.toggle('type2', state.layout==='type2');
+
+      applyUIConfig();
       updatePreview();
     }
 
@@ -621,6 +623,28 @@
         node.classList.remove('bg-white','bg-black');
         node.classList.add(bgClass);
       });
+    }
+
+    function applyFitPreview(){
+      if (state.recordType === 'daily'){
+        if (state.layout === 'type2'){
+          fitGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
+        } else {
+          fitOne(el.pvDistanceDaily, 0.30);
+          fitOne(el.pvPaceDaily, 0.30);
+          fitOne(el.pvTimeDaily, 0.30);
+        }
+        return;
+      }
+
+      // monthly
+      fitOne(el.pvDistanceMonthlyT1, 0.26);
+      fitOne(el.pvRunsMonthlyT1, 0.30);
+      fitOne(el.pvPaceMonthlyT1, 0.30);
+      fitOne(el.pvTimeMonthlyT1, 0.30);
+
+      fitOne(el.pvDistanceMonthlyT2, 0.26);
+      fitGroup([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], 0.30);
     }
 
     function updatePreview(){
@@ -659,37 +683,8 @@
       el.garminDistanceText.textContent = fmtKmPreview(state.garmin.km);
       el.garminPaceText.textContent = fmtPaceResult(state.garmin.paceSec);
       el.garminTimeText.textContent = fmtTimeResult(state.garmin.timeSec);
-    
 
-      // fit (preview) — make sure nothing clips (D2/M2 uses grouped scale)
       requestAnimationFrame(applyFitPreview);
-
-
-    function applyFitPreview(){
-      // DAILY
-      if (state.recordType === 'daily'){
-        if (state.layout === 'type2'){
-          fitGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
-        } else {
-          fitOne(el.pvDistanceDaily, 0.30);
-          fitOne(el.pvPaceDaily, 0.30);
-          fitOne(el.pvTimeDaily, 0.30);
-        }
-        return;
-      }
-
-      // MONTHLY
-      // Type1
-      fitOne(el.pvDistanceMonthlyT1, 0.26);
-      fitOne(el.pvRunsMonthlyT1, 0.30);
-      fitOne(el.pvPaceMonthlyT1, 0.30);
-      fitOne(el.pvTimeMonthlyT1, 0.30);
-
-      // Type2
-      fitOne(el.pvDistanceMonthlyT2, 0.26);
-      fitGroup([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], 0.30);
-    }
-
     }
 
     // ---------- Garmin (mock) ----------
@@ -881,6 +876,8 @@
       el.resultWrap.classList.toggle('type1', state.layout==='type1');
       el.resultWrap.classList.toggle('type2', state.layout==='type2');
 
+      applyUIConfig();
+
       if (state.recordType==='daily'){
         const src = (state.dataType==='garmin')
           ? { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec }
@@ -949,7 +946,6 @@
       return { km:+(m.km||0), runs:+(m.runs||0), paceSec:+(m.paceSec||0), timeSec:+(m.timeSec||0) };
     }
 
-
     function applyFitResult(){
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
@@ -967,7 +963,6 @@
         return;
       }
 
-      // monthly
       fitOne(rvDistance, 0.26);
       if (state.layout === 'type2'){
         fitGroup([rvRuns, rvPace, rvTime], 0.30);
@@ -977,7 +972,6 @@
         fitOne(rvTime, 0.30);
       }
     }
-
 
     function animateAll(target){
       const rvDistance = $('#rvDistance');
@@ -1014,7 +1008,6 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
         if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
 
-        // fit (result)
         applyFitResult();
 
         if (p < 1) requestAnimationFrame(frame);
@@ -1066,6 +1059,7 @@
       state.layout = 'type1';
       state.bg = 'white';
 
+      applyUIConfig();
       applyRecordType();
       applyFont();
       applyLayout();
