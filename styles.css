@@ -366,13 +366,18 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   gap: var(--ui-stack-gap);
 }
 
-/* D2 (3 columns) */
-.preview.type2{ width: 100%; }
-.preview.type2 .preview-content{
+/* ✅ D2 전용: Daily Type2에서만 전체 3등분 grid 적용 */
+.preview:not(.monthly).type2{ width: 100%; }
+.preview:not(.monthly).type2 .preview-content{
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
   column-gap: var(--ui-col-gap);
   align-items: start;
+}
+
+/* ✅ Monthly Type2는 전체를 grid로 만들면 안 됨 (M2 내부 m2-row가 D2처럼 3등분 담당) */
+.preview.monthly.type2 .preview-content{
+  display:block;
 }
 
 .data-item{ min-width:0; }
@@ -397,7 +402,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items:flex-end;
 }
 .preview.type1 .data-item:first-child .data-value{
-  /* D1에서 거리만 따로 조절 가능 */
   font-size: var(--ui-distance-value-size);
 }
 .data-value > span{
@@ -412,7 +416,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .m1-distance-value,
 .m-value,
 .m2-distance-value,
-.m2-v,
 .result-value,
 .workout-item .w-stats,
 .garmin-stat{
@@ -512,20 +515,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items:start;
 }
 
-/* M2 하단: D2와 동일한 label/value 구조를 그대로 사용 */
-.monthly-type2 .m2-row .data-label{
-  font-size: var(--ui-m-label-size);
-  font-weight: 600;
-  opacity: .95;
-  margin-bottom: var(--ui-label-to-value-gap);
-  white-space: nowrap;
-  font-family:'Inter', sans-serif;
-}
-.monthly-type2 .m2-row .data-value{
-  font-size: var(--ui-m-value-size);
-  font-weight: 1000;
-  line-height: 1.0;
-}
+/* ✅ M2 하단은 D2 그대로: data-label/data-value 기본 규칙을 그대로 사용 (추가 오버라이드 없음) */
 
 /* Preview fonts (값은 폰트, 라벨은 Inter 유지) */
 .preview.font-anton .data-value,
