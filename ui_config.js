@@ -23,18 +23,21 @@ export const UI_CONFIG = {
     // 거리 = anton 36
     // 라벨 = inter 10
     // 숫자 = anton 24
+    //
+    // ✅ 단, 요청 반영:
+    // M2 하단(run/pace/time)은 D2와 동일 사이즈/간격 사용
     // =========================
     anton: {
       d1: {
         labelSize: 12,
         valueSize: 34,
-        distanceValueSize: 34, // D1에서 거리만 따로 키우고 싶을 때
+        distanceValueSize: 34,
         labelToValueGap: 6,
         stackGap: 18,
       },
       d2: {
         labelSize: 12,
-        valueSize: 34, // D2는 3개 동일
+        valueSize: 34,
         labelToValueGap: 6,
         colGap: 18,
       },
@@ -54,8 +57,10 @@ export const UI_CONFIG = {
         monthToDistanceGap: 8,
         distanceSize: 36,
         distanceToRowGap: 14,
-        labelSize: 10,
-        valueSize: 24,
+
+        // ✅ M2 하단은 D2 그대로
+        labelSize: 12,
+        valueSize: 34,
         labelToValueGap: 6,
         colGap: 18,
       },
@@ -68,7 +73,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, colGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
 
     // =========================
@@ -78,7 +83,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, colGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
 
     // =========================
@@ -88,7 +93,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
       d2: { labelSize: 10, valueSize: 34, labelToValueGap: 6, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, colGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
 
     // =========================
@@ -98,7 +103,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, colGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
   },
 };
@@ -110,39 +115,33 @@ export const UI_CONFIG = {
 export function applyUIConfigToRoot({ font, recordType, layout }) {
   const f = UI_CONFIG.fonts[font] || UI_CONFIG.fonts.anton;
 
-  // 어떤 프리셋을 쓸지 결정
-  // daily: d1/d2, monthly: m1/m2 (layout type1/type2)
+  // daily: d1/d2, monthly: m1/m2
   const key =
     recordType === 'daily'
       ? (layout === 'type1' ? 'd1' : 'd2')
       : (layout === 'type1' ? 'm1' : 'm2');
 
   const preset = f[key];
-
   const root = document.documentElement;
 
-  // 공통 gap (기본값 + 프리셋이 있으면 덮어씀)
+  const set = (name, v) => root.style.setProperty(name, `${v}px`);
+
+  // gap
   const colGap = (preset.colGap != null) ? preset.colGap : UI_CONFIG.global.colGap;
   const stackGap = (preset.stackGap != null) ? preset.stackGap : UI_CONFIG.global.rowGap;
 
-  // 기본: 모두 px 고정
-  const set = (name, v) => root.style.setProperty(name, `${v}px`);
-
-  // 공통(현재 모드) 변수
   set('--ui-col-gap', colGap);
   set('--ui-stack-gap', stackGap);
 
-  // label/value 사이
   if (preset.labelToValueGap != null) set('--ui-label-to-value-gap', preset.labelToValueGap);
 
-  // daily
-  if (key === 'd1' || key === 'd2') {
-    set('--ui-label-size', preset.labelSize);
-    set('--ui-value-size', preset.valueSize);
-    set('--ui-distance-value-size', preset.distanceValueSize ?? preset.valueSize);
-  }
+  // daily vars
+  // ✅ monthly m2에서도 D2 값을 쓰기 위해 여기서도 세팅해준다.
+  if (preset.labelSize != null) set('--ui-label-size', preset.labelSize);
+  if (preset.valueSize != null) set('--ui-value-size', preset.valueSize);
+  set('--ui-distance-value-size', preset.distanceValueSize ?? preset.valueSize ?? 34);
 
-  // monthly
+  // monthly vars
   if (key === 'm1' || key === 'm2') {
     if (preset.monthSize != null) set('--ui-month-size', preset.monthSize);
     if (preset.monthToDistanceGap != null) set('--ui-month-to-distance-gap', preset.monthToDistanceGap);
@@ -151,7 +150,10 @@ export function applyUIConfigToRoot({ font, recordType, layout }) {
     if (preset.distanceToStatsGap != null) set('--ui-distance-to-stats-gap', preset.distanceToStatsGap);
     if (preset.distanceToRowGap != null) set('--ui-distance-to-row-gap', preset.distanceToRowGap);
 
-    set('--ui-m-label-size', preset.labelSize);
-    set('--ui-m-value-size', preset.valueSize);
+    // M1에서만 쓰는 전용(세로 스택) 변수는 유지
+    if (key === 'm1') {
+      set('--ui-m-label-size', preset.labelSize);
+      set('--ui-m-value-size', preset.valueSize);
+    }
   }
 }
