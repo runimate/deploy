@@ -486,7 +486,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 
 /* =========
    M2 (핵심)
-   - 구조: month(1줄) + distance + (D2 동일한 3등분 row)
 ========= */
 .monthly-type2{
   display:flex;
@@ -500,6 +499,12 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-family:'Inter', sans-serif;
   margin-bottom: var(--ui-month-to-distance-gap);
 }
+/* ✅ M2 날짜는 폰트 선택과 무관하게 Inter SemiBold 고정 */
+.preview.monthly .m2-month-line{
+  font-family:'Inter', sans-serif !important;
+  font-weight: 600 !important;
+}
+
 .m2-distance-value{
   font-size: var(--ui-month-distance-size);
   font-weight: 1000;
@@ -514,8 +519,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   column-gap: var(--ui-col-gap);
   align-items:start;
 }
-
-/* ✅ M2 하단은 D2 그대로: data-label/data-value 기본 규칙을 그대로 사용 (추가 오버라이드 없음) */
 
 /* Preview fonts (값은 폰트, 라벨은 Inter 유지) */
 .preview.font-anton .data-value,
@@ -845,16 +848,53 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   width: min(520px, 100%);
   display:flex;
   flex-direction:column;
-  gap: 34px;
+  gap: var(--ui-stack-gap); /* ✅ preview와 동일 */
   align-items:flex-start;
 }
-.result-wrap.type2 .result-block{
+
+/* ✅ Daily Type2만 3컬럼 grid */
+.result-wrap:not(.monthly).type2 .result-block{
   width: min(520px, 100%);
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
   column-gap: var(--ui-col-gap);
   align-items:start;
   margin: 0 auto;
+}
+
+/* ✅ Monthly Type2 result: preview와 동일 구조(세로 + 하단 3등분) */
+.result-wrap.monthly.type2 .result-block{
+  width: min(520px, 100%);
+  display:flex;
+  flex-direction:column;
+  gap: 0;
+  align-items:flex-start;
+  margin: 0 auto;
+}
+.result-wrap.monthly.type2 .m2-month{
+  font-family:'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: var(--ui-month-size);
+  line-height: 1.1;
+  white-space: nowrap;
+  margin-bottom: var(--ui-month-to-distance-gap);
+}
+.result-wrap.monthly.type2 .m2-distance{
+  margin-bottom: var(--ui-distance-to-row-gap);
+}
+.result-wrap.monthly.type2 .m2-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+}
+.result-wrap.monthly.type2 .m2-row{
+  width:100%;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: var(--ui-col-gap);
+  align-items:start;
 }
 
 .result-item{ min-width:0; }
@@ -901,34 +941,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   gap: var(--ui-stack-gap);
 }
 
-/* Monthly result type2 (M2 = D2 로직 동일) */
-.result-wrap.type2 .m2-month{
-  grid-column: 1 / -1;
-  font-size: var(--ui-month-size);
-  font-weight: 600;
-  opacity: .95;
-  margin-bottom: var(--ui-month-to-distance-gap);
-  white-space: nowrap;
-  font-family:'Inter', sans-serif;
-}
-.result-wrap.type2 .m2-distance{
-  grid-column: 1 / -1;
-  margin-bottom: var(--ui-distance-to-row-gap);
-}
-.result-wrap.type2 .m2-distance-value{
-  font-size: var(--ui-month-distance-size);
-  font-weight: 1000;
-  line-height: 1.0;
-  white-space: nowrap;
-  display:block;
-}
-.result-wrap.type2 .m2-row{
-  grid-column: 1 / -1;
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
-}
-
 /* result fonts */
 .result-screen.font-anton .result-value,
 .result-screen.font-anton .m1-distance-value,
@@ -964,6 +976,12 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .result-screen.font-speed .m1-distance-value,
 .result-screen.font-speed .m2-month,
 .result-screen.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
+
+/* ✅ Result M2 날짜 Inter SemiBold 고정 (안전망) */
+.result-screen .m2-month{
+  font-family:'Inter', sans-serif !important;
+  font-weight: 600 !important;
+}
 
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
