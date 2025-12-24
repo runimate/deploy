@@ -18,6 +18,30 @@
 
   --pv-value-add: 0px;
   --rv-value-add: 0px;
+
+  /* =========================
+     UI CONFIG (ui_config.js에서 주입)
+  ========================= */
+  --ui-col-gap: 18px;
+  --ui-stack-gap: 18px;
+
+  --ui-label-to-value-gap: 6px;
+
+  /* daily (D1/D2) */
+  --ui-label-size: 12px;
+  --ui-value-size: 34px;
+  --ui-distance-value-size: 34px;
+
+  /* monthly (M1/M2) */
+  --ui-month-size: 14px;
+  --ui-month-to-distance-gap: 8px;
+  --ui-month-distance-size: 36px;
+
+  --ui-distance-to-stats-gap: 14px; /* M1 stack 위 */
+  --ui-distance-to-row-gap: 14px;   /* M2 row 위 */
+
+  --ui-m-label-size: 10px;
+  --ui-m-value-size: 24px;
 }
 
 body{
@@ -153,8 +177,6 @@ body.no-scroll{ overflow: hidden; }
   min-width: 0;
   padding: clamp(7px, 1.7vw, 9px) clamp(8px, 1.8vw, 10px);
   text-align:center;
-
-  /* ✅ FIX #1: gothic만 높이 달라지는 문제 해결 (모든 폰트 버튼 높이 통일) */
   height: 42px;
   display:flex;
   align-items:center;
@@ -191,7 +213,6 @@ body.no-scroll{ overflow: hidden; }
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
-
 
 /* ✅ Monthly: NRC only (hide DATA TYPE UI completely) */
 body[data-record="monthly"] #dataPanelHead,
@@ -342,13 +363,15 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.type1 .preview-content{
   display:flex;
   flex-direction:column;
-  gap: 18px; /* Daily Type1 간격 기준 */
+  gap: var(--ui-stack-gap);
 }
+
+/* D2 (3 columns) */
 .preview.type2{ width: 100%; }
 .preview.type2 .preview-content{
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: 18px;
+  column-gap: var(--ui-col-gap);
   align-items: start;
 }
 
@@ -356,14 +379,16 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .data-label, .data-value{ display:block; width:100%; min-width:0; }
 
 .data-label{
-  font-size: 12px;
+  font-size: var(--ui-label-size);
   opacity: .9;
-  margin-bottom: 6px;
+  margin-bottom: var(--ui-label-to-value-gap);
   letter-spacing: var(--pv-label-ls);
   white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
 }
 .data-value{
-  font-size: clamp(22px, 7.2vw, calc(34px + var(--pv-value-add)));
+  font-size: var(--ui-value-size);
   letter-spacing: var(--pv-value-ls);
   line-height: 1;
   font-weight: 900;
@@ -371,9 +396,18 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   display:flex;
   align-items:flex-end;
 }
-.data-value > span{ display:inline-block; width:auto; transform-origin: left bottom; padding-right: .14em; }
+.preview.type1 .data-item:first-child .data-value{
+  /* D1에서 거리만 따로 조절 가능 */
+  font-size: var(--ui-distance-value-size);
+}
+.data-value > span{
+  display:inline-block;
+  width:auto;
+  transform-origin: left bottom;
+  padding-right: .14em;
+}
 
-/* ✅ FIX #3: PREVIEW/RESULT 데이터가 영역을 넘지 않도록 */
+/* 안전: 넘침 방지 */
 .data-value,
 .m1-distance-value,
 .m-value,
@@ -393,21 +427,51 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.monthly.type1 .monthly-type1{ display:block; }
 .preview.monthly.type2 .monthly-type2{ display:block; }
 
-.monthly-type1{ display:flex; flex-direction:column; gap: 14px; }
-.m1-month{ font-weight: 1000; letter-spacing: .2px; font-size: 22px; line-height: 1.1; }
-.m1-distance-value{ display:block; font-weight: 1000; font-size: 52px; line-height: 1.0; white-space: nowrap; }
+/* =========
+   M1 (세로 스택)
+========= */
+.monthly-type1{
+  display:flex;
+  flex-direction:column;
+}
+.m1-month{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  letter-spacing: .2px;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+  margin-bottom: var(--ui-month-to-distance-gap);
+}
+.m1-distance-value{
+  display:block;
+  font-weight: 1000;
+  font-size: var(--ui-month-distance-size);
+  line-height: 1.0;
+  white-space: nowrap;
+  margin-bottom: var(--ui-distance-to-stats-gap);
+}
 .m1-stack{
   display:flex;
   flex-direction:column;
-  gap: 10px;
-  margin-top: 2px;
-
-  /* ✅ FIX #3: Monthly Type1 (Runs/Pace/Time) 간격을 Daily Type1 로직(18px)과 동일하게 */
-  gap: 18px;
+  gap: var(--ui-stack-gap);
 }
-.m-label{ font-size: 12px; font-weight: 900; opacity: .95; margin-bottom: 4px; white-space: nowrap; }
-.m-value{ font-size: 34px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
-
+.m-label{
+  font-size: var(--ui-m-label-size);
+  font-weight: 600;
+  opacity: .95;
+  margin-bottom: var(--ui-label-to-value-gap);
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+}
+.m-value{
+  font-size: var(--ui-m-value-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:flex;
+  align-items:flex-end;
+}
 .m1-distance-value > span,
 .m-value > span,
 .m2-distance-value > span{
@@ -417,34 +481,61 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   padding-right: .14em;
 }
 
+/* =========
+   M2 (핵심)
+   - 구조: month(1줄) + distance + (D2 동일한 3등분 row)
+========= */
+.monthly-type2{
+  display:flex;
+  flex-direction:column;
+}
+.m2-month-line{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: .95;
+  font-family:'Inter', sans-serif;
+  margin-bottom: var(--ui-month-to-distance-gap);
+}
+.m2-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+  margin-bottom: var(--ui-distance-to-row-gap);
+}
+.m2-row{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: var(--ui-col-gap);
+  align-items:start;
+}
 
-.monthly-type2{ display:grid; grid-template-rows: auto auto auto; row-gap: 10px; }
-.m2-month-line{ font-size: 12px; font-weight: 900; white-space: nowrap; opacity: .95; }
-.m2-distance-value{ font-size: clamp(34px, 8.2vw, 46px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
-.m2-row{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: 18px; }
+/* M2 하단: D2와 동일한 label/value 구조를 그대로 사용 */
+.monthly-type2 .m2-row .data-label{
+  font-size: var(--ui-m-label-size);
+  font-weight: 600;
+  opacity: .95;
+  margin-bottom: var(--ui-label-to-value-gap);
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+}
+.monthly-type2 .m2-row .data-value{
+  font-size: var(--ui-m-value-size);
+  font-weight: 1000;
+  line-height: 1.0;
+}
 
-.monthly-type2 .m2-row .data-label{ font-size: 10px; font-weight: 900; opacity: .95; margin-bottom: 6px; white-space: nowrap; }
-.monthly-type2 .m2-row .data-value{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.0; }
-.m2-l{ font-size: 10px; font-weight: 900; opacity: .95; margin-bottom: 6px; white-space: nowrap; }
-.m2-v{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.0; white-space: nowrap; display:flex; align-items:flex-end; }
-
-/* Preview fonts */
+/* Preview fonts (값은 폰트, 라벨은 Inter 유지) */
 .preview.font-anton .data-value,
-.preview.font-anton .m1-month,
 .preview.font-anton .m1-distance-value,
 .preview.font-anton .m-value,
-.preview.font-anton .m2-month-line,
-.preview.font-anton .m2-distance-value,
-.preview.font-anton .m2-v{ font-family:'Anton', sans-serif; }
+.preview.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
 .preview.font-anton .data-label,
+.preview.font-anton .m1-month,
 .preview.font-anton .m-label,
-.preview.font-anton .m2-l{ font-family:'Inter', sans-serif; }
-.preview.font-anton .data-label,
-.preview.font-anton .m-label,
-.preview.font-anton .m2-l{ font-weight: 600; }
-
-.result-screen.font-anton .result-label{ font-weight: 600; }
-
+.preview.font-anton .m2-month-line{ font-family:'Inter', sans-serif; }
 
 .preview.font-dots .data-label,
 .preview.font-dots .data-value,
@@ -453,9 +544,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.font-dots .m-label,
 .preview.font-dots .m-value,
 .preview.font-dots .m2-month-line,
-.preview.font-dots .m2-distance-value,
-.preview.font-dots .m2-l,
-.preview.font-dots .m2-v{ font-family:'Bitcount Grid Single', monospace; }
+.preview.font-dots .m2-distance-value{ font-family:'Bitcount Grid Single', monospace; }
 
 .preview.font-lcd .data-label,
 .preview.font-lcd .data-value,
@@ -464,9 +553,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.font-lcd .m-label,
 .preview.font-lcd .m-value,
 .preview.font-lcd .m2-month-line,
-.preview.font-lcd .m2-distance-value,
-.preview.font-lcd .m2-l,
-.preview.font-lcd .m2-v{ font-family:'DS-Digital', monospace; }
+.preview.font-lcd .m2-distance-value{ font-family:'DS-Digital', monospace; }
 
 .preview.font-gothic .data-label,
 .preview.font-gothic .data-value,
@@ -475,12 +562,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.font-gothic .m-label,
 .preview.font-gothic .m-value,
 .preview.font-gothic .m2-month-line,
-.preview.font-gothic .m2-distance-value,
-.preview.font-gothic .m2-l,
-.preview.font-gothic .m2-v{ font-family:'Special Gothic Expanded One', sans-serif; }
-.preview.font-gothic .data-label,
-.preview.font-gothic .m-label,
-.preview.font-gothic .m2-l{ font-size: 10px; }
+.preview.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
 
 .preview.font-speed .data-label,
 .preview.font-speed .data-value,
@@ -489,10 +571,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.font-speed .m-label,
 .preview.font-speed .m-value,
 .preview.font-speed .m2-month-line,
-.preview.font-speed .m2-distance-value,
-.preview.font-speed .m2-l,
-.preview.font-speed .m2-v{ font-family:'Quantico', sans-serif; }
-.preview.font-speed{ --pv-value-add: 2px; }
+.preview.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
 
 /* RUN button */
 .run-btn{
@@ -585,7 +664,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .screen-overlay.show{ display:block; }
 
-/* ✅ FIX #5: Garmin Login 닫기 버튼 얇고 크게 + Select Workout 동일 스타일 */
+/* Close */
 .screen-close{
   position:absolute;
   top: 16px;
@@ -600,8 +679,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   cursor:pointer;
   color:inherit;
 }
-
-/* 기존 close-big는 동일한 룰로 통일 (혹시 HTML에 남아있어도 동일하게 보이게) */
 .close-big{
   top: 16px;
   right: 16px;
@@ -620,8 +697,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   position:relative;
   padding: 42px 24px 24px 24px;
 }
-
-/* ✅ FIX #5: 하단 세로 텍스트 제거 */
 .wm-vertical{ display:none !important; }
 
 .garmin-login-title{ margin-top: 8px; }
@@ -685,8 +760,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items:center;
   justify-content:space-between;
   margin-bottom: 12px;
-
-  /* ✅ FIX #6: 파란색(visited/focus) 방지용 기본 색 고정 */
   color:#000;
   text-decoration:none;
   -webkit-tap-highlight-color: transparent;
@@ -696,8 +769,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   flex-direction:column;
   gap: 8px;
   min-width:0;
-
-  /* ✅ FIX #6: 날짜/스탯 블록 좌측정렬 맞춤 */
   align-items:flex-start;
 }
 .workout-item .w-date{ font-size: 12px; font-weight: 900; }
@@ -707,8 +778,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-size: 16px;
   font-weight: 900;
   white-space: nowrap;
-
-  /* ✅ FIX #6: 좌측정렬 유지 */
   justify-content:flex-start;
 }
 .workout-item *{ color:inherit; }
@@ -793,55 +862,71 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   width: min(520px, 100%);
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: 18px;
+  column-gap: var(--ui-col-gap);
   align-items:start;
   margin: 0 auto;
 }
 
 .result-item{ min-width:0; }
 .result-label, .result-value{ display:block; width:100%; min-width:0; white-space: nowrap; }
-.result-label{ font-size: 12px; font-weight: 900; opacity: .9; margin-bottom: 10px; }
+
+.result-label{
+  font-size: var(--ui-label-size);
+  font-weight: 900;
+  opacity: .9;
+  margin-bottom: var(--ui-label-to-value-gap);
+  font-family:'Inter', sans-serif;
+}
 .result-value{
-  font-size: clamp(22px, 7.2vw, calc(34px + var(--rv-value-add)));
+  font-size: var(--ui-value-size);
   font-weight: 900;
   line-height: 1;
   display:flex;
   align-items:flex-end;
 }
+.result-wrap.type1 .result-item:first-child .result-value{
+  font-size: var(--ui-distance-value-size);
+}
 .result-value > span{ display:inline-block; width:auto; transform-origin: left bottom; padding-right: .14em; }
 
-/* daily type1 scale */
-.result-wrap.type1 .result-label{ font-size: 18px; margin-bottom: 12px; }
-.result-wrap.type1 .result-value{ font-size: 52px; }
-
 /* Monthly result type1 */
-.result-wrap.type1 .m1-month{ font-size: 28px; font-weight: 1000; line-height: 1.05; margin-bottom: 6px; }
-.result-wrap.type1 .m1-distance-value{ font-size: 76px; font-weight: 1000; line-height: 1.0; white-space: nowrap; display:block; }
+.result-wrap.type1 .m1-month{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  line-height: 1.05;
+  margin-bottom: var(--ui-month-to-distance-gap);
+  font-family:'Inter', sans-serif;
+}
+.result-wrap.type1 .m1-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+  margin-bottom: var(--ui-distance-to-stats-gap);
+}
 .result-wrap.type1 .m1-stack{
-  margin-top: 14px;
   display:flex;
   flex-direction:column;
-  gap: 16px;
-
-  /* ✅ FIX #3: Monthly Type1 결과(RUNS/PACE/TIME) 간격을 Daily Type1 결과 로직(34px)과 동일하게 */
-  gap: 34px;
+  gap: var(--ui-stack-gap);
 }
 
-/* Monthly result type2 */
+/* Monthly result type2 (M2 = D2 로직 동일) */
 .result-wrap.type2 .m2-month{
   grid-column: 1 / -1;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: var(--ui-month-size);
+  font-weight: 600;
   opacity: .95;
-  margin-bottom: 6px;
+  margin-bottom: var(--ui-month-to-distance-gap);
   white-space: nowrap;
+  font-family:'Inter', sans-serif;
 }
 .result-wrap.type2 .m2-distance{
   grid-column: 1 / -1;
-  margin-bottom: 10px;
+  margin-bottom: var(--ui-distance-to-row-gap);
 }
 .result-wrap.type2 .m2-distance-value{
-  font-size: clamp(34px, 8.2vw, 46px);
+  font-size: var(--ui-month-distance-size);
   font-weight: 1000;
   line-height: 1.0;
   white-space: nowrap;
@@ -851,18 +936,16 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   grid-column: 1 / -1;
   display:grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: 18px;
+  column-gap: var(--ui-col-gap);
 }
 
-.result-wrap.type2 .m2-row .result-label{ font-size: 10px; font-weight: 900; opacity: .95; margin-bottom: 6px; white-space: nowrap; }
-.result-wrap.type2 .m2-row .result-value{ font-size: clamp(18px, 5.3vw, 26px); font-weight: 1000; line-height: 1.0; }
-
-/* Result fonts */
+/* result fonts */
 .result-screen.font-anton .result-value,
-.result-screen.font-anton .m1-month,
 .result-screen.font-anton .m1-distance-value,
 .result-screen.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
-.result-screen.font-anton .result-label{ font-family:'Inter', sans-serif; }
+.result-screen.font-anton .result-label,
+.result-screen.font-anton .m1-month,
+.result-screen.font-anton .m2-month{ font-family:'Inter', sans-serif; font-weight:600; }
 
 .result-screen.font-dots .result-label,
 .result-screen.font-dots .result-value,
@@ -884,7 +967,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .result-screen.font-gothic .m1-distance-value,
 .result-screen.font-gothic .m2-month,
 .result-screen.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
-.result-screen.font-gothic .result-label{ font-size: 10px; }
 
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value,
@@ -892,23 +974,20 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .result-screen.font-speed .m1-distance-value,
 .result-screen.font-speed .m2-month,
 .result-screen.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
-.result-screen.font-speed{ --rv-value-add: 2px; }
 
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
 }
-/* ================================
-   AUTO SCALE VALUE (SAFE)
-================================ */
+
+/* AUTO SCALE VALUE (SAFE) */
 .data-value{
   display: flex;
   align-items: flex-end;
   width: 100%;
   overflow: hidden;
 }
-
 .data-value > span{
   display: inline-block;
   transform-origin: left bottom;
