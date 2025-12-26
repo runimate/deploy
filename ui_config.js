@@ -71,7 +71,7 @@ export const UI_CONFIG = {
     // =========================
     dots: {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
       m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
@@ -81,7 +81,7 @@ export const UI_CONFIG = {
     // =========================
     lcd: {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
       m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
@@ -91,7 +91,7 @@ export const UI_CONFIG = {
     // =========================
     gothic: {
       d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 10, valueSize: 34, labelToValueGap: 1, colGap: 18 },
+      d2: { labelSize: 10, valueSize: 34, labelToValueGap: 0, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
       m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
@@ -101,7 +101,7 @@ export const UI_CONFIG = {
     // =========================
     speed: {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
       m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
       m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
     },
