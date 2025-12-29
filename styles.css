@@ -10,6 +10,7 @@
   --btn-h: 42px;
 
   --garmin: #76B6FF;
+  --strava: #FC4C02; /* ✅ NEW */
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
@@ -246,6 +247,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .data-tab:hover{ opacity:.88; }
 .data-tab.active{ color:#000; }
 .data-tab.garmin.active{ background: var(--garmin); }
+.data-tab.strava.active{ background: var(--strava); } /* ✅ NEW */
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
@@ -282,7 +284,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .hamburger{ width: 18px; display:flex; flex-direction:column; gap:3px; }
 .hamburger span{ height:2px; background:#000; border-radius:2px; display:block; }
-
 /* NRC */
 .upload-btn{
   width:100%;
@@ -739,6 +740,9 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-weight: 900;
   cursor:pointer;
 }
+
+/* ✅ Strava connect overlay (같은 레이아웃 + 배경만 Strava) */
+#stravaLoginScreen.garmin-login{ background: var(--strava); color:#000; }
 
 /* Select workout */
 .select-workout{ background:#fff; color:#000; }
