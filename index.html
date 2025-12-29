@@ -27,8 +27,10 @@
           <div class="data-panel-title">DATA TYPE</div>
         </div>
 
+        <!-- ✅ DAILY: 3개 → 4개 (STRAVA 추가) -->
         <div class="data-tabs" id="dataTabsDaily">
           <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
+          <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
           <button class="data-tab nrc" id="tabNrc" data-datatype="nrc">NRC</button>
           <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
         </div>
@@ -39,6 +41,7 @@
 
         <div class="data-empty" id="dataEmpty"></div>
 
+        <!-- ✅ GARMIN/STRAVA 공용 카드: UI는 그대로, 데이터만 분기 주입 -->
         <div class="data-content" id="contentGarmin">
           <div class="garmin-card" id="garminCard">
             <div class="garmin-card-left">
@@ -253,7 +256,28 @@
     </div>
   </div>
 
-  <!-- Select Workout -->
+  <!-- ✅ STRAVA CONNECT (신규) -->
+  <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
+
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title">
+        <div class="gc-big">STRAVA</div>
+        <div class="gc-sub">Connect</div>
+      </div>
+
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+          Your Strava account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+
+      <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
+    </div>
+  </div>
+
+  <!-- Select Workout (GARMIN/STRAVA 공유) -->
   <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
     <button class="screen-close" data-close="garminSelectScreen" aria-label="Close">×</button>
     <div class="select-wrap">
@@ -282,8 +306,7 @@
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
-
-  <script type="module">
+    <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
     // ---------- helpers ----------
@@ -435,7 +458,10 @@
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
 
-      garmin: { date: '2025.12.12', km: 14.64, paceSec: 5*60+59, timeSec: 1*3600+27*60+32 }
+      garmin: { date: '2025.12.12', km: 14.64, paceSec: 5*60+59, timeSec: 1*3600+27*60+32 },
+
+      // ✅ STRAVA 상태 추가 (Garmin과 동일한 shape)
+      strava: { date: '2025.12.14', km: 12.30, paceSec: 5*60+40, timeSec: 1*3600+9*60 }
     };
 
     // ---------- elements ----------
@@ -451,6 +477,7 @@
       dataEmpty: $('#dataEmpty'),
 
       tabGarmin: $('#tabGarmin'),
+      tabStrava: $('#tabStrava'), // ✅ 추가
       tabNrc: $('#tabNrc'),
       tabManual: $('#tabManual'),
       tabNrcMonthly: $('#tabNrcMonthly'),
@@ -525,7 +552,10 @@
       btnRun: $('#btnRun'),
       resultScreen: $('#resultScreen'),
       resultWrap: $('#resultWrap'),
-      resultBlock: $('#resultBlock')
+      resultBlock: $('#resultBlock'),
+
+      // ✅ STRAVA CONNECT
+      btnStravaConnect: $('#btnStravaConnect')
     };
 
     // ---------- overlay open/close ----------
@@ -589,7 +619,7 @@
         el.previewDaily.style.display = 'block';
         el.previewMonthly.style.display = 'none';
 
-        if (state.dataType === 'nrc' || state.dataType === 'garmin' || state.dataType === 'manual'){
+        if (state.dataType === 'nrc' || state.dataType === 'garmin' || state.dataType === 'manual' || state.dataType === 'strava'){
           // 유지
         } else {
           state.dataType = null;
@@ -605,9 +635,12 @@
     }
 
     function applyDataType(){
-      [el.tabGarmin, el.tabNrc, el.tabManual].forEach(t=>{
+      // ✅ STRAVA 탭까지 active 처리
+      [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t=>{
+        if (!t) return;
         t.classList.toggle('active', state.dataType === t.dataset.datatype);
       });
+
       if (el.tabNrcMonthly){
         el.tabNrcMonthly.classList.toggle('active', state.recordType==='monthly' && state.dataType==='nrc');
       }
@@ -621,7 +654,9 @@
       }
 
       el.dataEmpty.style.display = state.dataType ? 'none' : 'block';
-      el.contentGarmin.style.display = (state.recordType==='daily' && state.dataType==='garmin') ? 'block' : 'none';
+
+      // ✅ Garmin UI를 Strava도 재사용 (카드 그대로)
+      el.contentGarmin.style.display = (state.recordType==='daily' && (state.dataType==='garmin' || state.dataType==='strava')) ? 'block' : 'none';
       el.contentNrc.style.display = (state.dataType==='nrc') ? 'block' : 'none';
       el.contentManual.style.display = (state.recordType==='daily' && state.dataType==='manual') ? 'block' : 'none';
     }
@@ -693,9 +728,16 @@
     function updatePreview(){
       // daily
       let d = state.daily;
+
       if (state.recordType==='daily' && state.dataType==='garmin'){
         d = { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec };
       }
+
+      // ✅ STRAVA: 미리보기 주입
+      if (state.recordType==='daily' && state.dataType==='strava'){
+        d = { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec };
+      }
+
       el.pvDistanceDaily.textContent = fmtKmPreview(d.km);
       el.pvPaceDaily.textContent = fmtPacePreview(d.paceSec);
       el.pvTimeDaily.textContent = fmtTimePreview(d.timeSec);
@@ -721,11 +763,13 @@
       el.pvPaceMonthlyT2.textContent = paceText;
       el.pvTimeMonthlyT2.textContent = timeText;
 
-      // garmin card
-      el.garminDateText.textContent = state.garmin.date;
-      el.garminDistanceText.textContent = fmtKmPreview(state.garmin.km);
-      el.garminPaceText.textContent = fmtPaceResult(state.garmin.paceSec);
-      el.garminTimeText.textContent = fmtTimeResult(state.garmin.timeSec);
+      // ✅ 카드 데이터: garmin DOM을 strava도 공유
+      const cardSrc = (state.recordType==='daily' && state.dataType==='strava') ? state.strava : state.garmin;
+
+      el.garminDateText.textContent = cardSrc.date;
+      el.garminDistanceText.textContent = fmtKmPreview(cardSrc.km);
+      el.garminPaceText.textContent = fmtPaceResult(cardSrc.paceSec);
+      el.garminTimeText.textContent = fmtTimeResult(cardSrc.timeSec);
 
       requestAnimationFrame(applyFitPreview);
     }
@@ -738,9 +782,21 @@
       { date:'2025.12.05', km:21.10, paceSec:5*60+30, timeSec:1*3600+56*60+5 },
       { date:'2025.11.30', km:7.20,  paceSec:6*60+10, timeSec:44*60+20 }
     ];
-    function renderWorkoutList(){
+
+    // ✅ STRAVA (mock) — 나중에 API 붙이면 여기만 교체하면 됨
+    const mockStravaWorkouts = [
+      { date:'2025.12.14', km:12.30, paceSec:5*60+40, timeSec:1*3600+9*60 },
+      { date:'2025.12.11', km:8.50,  paceSec:5*60+55, timeSec:50*60 },
+      { date:'2025.12.07', km:15.00, paceSec:6*60+5,  timeSec:1*3600+31*60+15 }
+    ];
+
+    // ✅ 공용 리스트 렌더러 (GARMIN/STRAVA 공유)
+    function renderWorkoutList(kind = 'garmin'){
       el.workoutList.innerHTML = '';
-      mockWorkouts.forEach((w)=>{
+
+      const list = (kind === 'strava') ? mockStravaWorkouts : mockWorkouts;
+
+      list.forEach((w)=>{
         const btn = document.createElement('button');
         btn.className = 'workout-item';
         btn.type = 'button';
@@ -756,8 +812,13 @@
           <div class="w-arrow">→</div>
         `;
         btn.addEventListener('click', ()=>{
-          state.garmin = { ...w };
-          state.dataType = 'garmin';
+          if (kind === 'strava'){
+            state.strava = { ...w };
+            state.dataType = 'strava';
+          } else {
+            state.garmin = { ...w };
+            state.dataType = 'garmin';
+          }
           applyDataType();
           updatePreview();
           closeScreen('garminSelectScreen');
@@ -765,15 +826,20 @@
         el.workoutList.appendChild(btn);
       });
     }
+
+    // ✅ Garmin 로그인 후: Garmin 리스트
     el.garminLoginForm.addEventListener('submit', (e)=>{
       e.preventDefault();
       closeScreen('garminLoginScreen');
-      renderWorkoutList();
+      renderWorkoutList('garmin');
       openScreen('garminSelectScreen');
     });
+
+    // ✅ 카드의 리스트 버튼: 현재 선택된 datatype에 맞춰 리스트 오픈
     el.btnGarminList.addEventListener('click', (e)=>{
       e.stopPropagation();
-      renderWorkoutList();
+      const kind = (state.dataType === 'strava') ? 'strava' : 'garmin';
+      renderWorkoutList(kind);
       openScreen('garminSelectScreen');
     });
 
@@ -924,7 +990,9 @@
       if (state.recordType==='daily'){
         const src = (state.dataType==='garmin')
           ? { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec }
-          : state.daily;
+          : (state.dataType==='strava'
+              ? { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec }
+              : state.daily);
 
         el.resultBlock.innerHTML = `
           <div class="result-item">
@@ -1023,29 +1091,23 @@
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      // 1) set FINAL texts temporarily (to compute worst-case width once)
       if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
       if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
       if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
       if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
 
-      // 2) compute scales
       let distScale = 1;
       let groupScale = 1;
 
-      // distance is always "one"
       distScale = computeScaleForSpan(rvDistance, 0.26);
 
       if (state.recordType === 'daily'){
         if (state.layout === 'type2'){
           groupScale = computeScaleForGroup([rvDistance, rvPace, rvTime], 0.30);
-          // daily type2: distance included in groupScale, override distScale too
           distScale = groupScale;
         } else {
-          // daily type1: each independently (but lock each)
           const paceScale = computeScaleForSpan(rvPace, 0.30);
           const timeScale = computeScaleForSpan(rvTime, 0.30);
-          // apply individually
           applyLockedScale([rvDistance], distScale);
           applyLockedScale([rvPace], paceScale);
           applyLockedScale([rvTime], timeScale);
@@ -1058,7 +1120,6 @@
           };
         }
       } else {
-        // monthly
         if (state.layout === 'type2'){
           groupScale = computeScaleForGroup([rvRuns, rvPace, rvTime], 0.30);
           applyLockedScale([rvDistance], distScale);
@@ -1072,7 +1133,6 @@
             }
           };
         } else {
-          // monthly type1: each independently (lock each)
           const runsScale = computeScaleForSpan(rvRuns, 0.30);
           const paceScale = computeScaleForSpan(rvPace, 0.30);
           const timeScale = computeScaleForSpan(rvTime, 0.30);
@@ -1091,7 +1151,6 @@
         }
       }
 
-      // daily type2: lock group all together
       applyLockedScale([rvDistance, rvPace, rvTime], groupScale);
 
       return {
@@ -1110,11 +1169,7 @@
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      // ✅ 핵심: 애니메이션 시작 전에 "최종값 기준"으로 scale 잠금
-      // (레이아웃/간격 만족 + 애니 중 들쭉날쭉 제거)
       const locker = lockFitResultTransforms(target);
-
-      // 0으로 되돌리고 시작 (transform은 잠긴 상태 유지)
       locker.resetToStart();
 
       const hold = 500;
@@ -1139,7 +1194,6 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
         if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
 
-        // ✅ 여기서 applyFitResult()를 호출하지 않음 (크기 변동 원인 제거)
         if (p < 1) requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
@@ -1160,6 +1214,23 @@
       applyDataType();
       openScreen('garminLoginScreen');
     });
+
+    // ✅ STRAVA 탭: Strava Connect 화면으로
+    el.tabStrava.addEventListener('click', ()=>{
+      state.dataType='strava';
+      applyDataType();
+      openScreen('stravaLoginScreen');
+      updatePreview();
+    });
+
+    // ✅ Strava Connect → (OAuth 대신) 데모로 Select Workout 열기
+    // 나중에 실제 OAuth 붙일 때는 여기서 window.location = '/api/strava/login' 같은 걸로 교체
+    el.btnStravaConnect.addEventListener('click', ()=>{
+      closeScreen('stravaLoginScreen');
+      renderWorkoutList('strava');
+      openScreen('garminSelectScreen');
+    });
+
     el.tabNrc.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', ()=>{ state.dataType='manual'; applyDataType(); updatePreview(); });
     el.tabNrcMonthly.addEventListener('click', ()=>{ state.dataType='nrc'; applyDataType(); updatePreview(); });
@@ -1199,5 +1270,5 @@
     }
     initDefaults();
   </script>
-</body>
+  </body>
 </html>
