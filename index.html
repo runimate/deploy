@@ -12,8 +12,8 @@
   <div class="container">
     <header class="header">
       <a class="title title-link" href="./count.html" title="Go to COUNT">
-  RUNIMATE <span class="version">v.2.0</span>
-</a>
+        RUNIMATE <span class="version">v.2.0</span>
+      </a>
       <div class="author">by JS @runarchive.js</div>
     </header>
 
@@ -28,10 +28,9 @@
     <section class="section">
       <div class="data-panel" id="dataPanel">
         <div class="data-panel-head" id="dataPanelHead">
-          <div class="data-panel-title">DATA TYPE2</div>
+          <div class="data-panel-title">DATA TYPE</div>
         </div>
 
-        <!-- ✅ DAILY: 3개 → 4개 (STRAVA 추가) -->
         <div class="data-tabs" id="dataTabsDaily">
           <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
           <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
@@ -45,7 +44,6 @@
 
         <div class="data-empty" id="dataEmpty"></div>
 
-        <!-- ✅ GARMIN/STRAVA 공용 카드: UI는 그대로, 데이터만 분기 주입 -->
         <div class="data-content" id="contentGarmin">
           <div class="garmin-card" id="garminCard">
             <div class="garmin-card-left">
@@ -151,7 +149,6 @@
       <div class="preview monthly type1 bg-white font-dots" id="previewMonthly">
         <div class="preview-content">
 
-          <!-- Monthly Type1 -->
           <div class="monthly-type1">
             <div class="m1-month" id="pvMonthType1">DECEMBER 2025</div>
             <div class="m1-distance">
@@ -173,7 +170,6 @@
             </div>
           </div>
 
-          <!-- Monthly Type2 -->
           <div class="monthly-type2">
             <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
 
@@ -204,7 +200,6 @@
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
-  <!-- Manual modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-head">
@@ -231,7 +226,6 @@
     </div>
   </div>
 
-  <!-- Garmin Login -->
   <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
     <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
 
@@ -260,7 +254,6 @@
     </div>
   </div>
 
-  <!-- ✅ STRAVA CONNECT (신규) -->
   <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
     <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
 
@@ -281,7 +274,6 @@
     </div>
   </div>
 
-  <!-- Select Workout (GARMIN/STRAVA 공유) -->
   <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
     <button class="screen-close" data-close="garminSelectScreen" aria-label="Close">×</button>
     <div class="select-wrap">
@@ -290,7 +282,6 @@
     </div>
   </div>
 
-  <!-- Month Picker -->
   <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
     <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
     <div class="month-wrap">
@@ -303,7 +294,6 @@
     </div>
   </div>
 
-  <!-- Result -->
   <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
     <div class="result-wrap type1" id="resultWrap">
@@ -319,7 +309,7 @@
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
     function fmtKmPreview(km) {
-      return ${Number(km || 0).toFixed(2)}Km;
+      return `${Number(km || 0).toFixed(2)}Km`;
     }
     function fmtRunsPreview(r) {
       return pad2(Number(r || 0));
@@ -328,29 +318,29 @@
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      return ${m}'${pad2(r)}";
+      return `${m}'${pad2(r)}"`;
     }
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      if (h > 0) return ${h}:${pad2(m)}:${pad2(r)};
-      return ${m}:${pad2(r)};
+      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
+      return `${m}:${pad2(r)}`;
     }
     function fmtPaceResult(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      return ${m}'${pad2(r)}";
+      return `${m}'${pad2(r)}"`;
     }
     function fmtTimeResult(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      if (h > 0) return ${h}:${pad2(m)}:${pad2(r)};
-      return ${m}:${pad2(r)};
+      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
+      return `${m}:${pad2(r)}`;
     }
     function monthName(m) {
       const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
@@ -372,7 +362,7 @@
       const sw = span.scrollWidth;
       if (!w || !sw) return;
       const s = Math.max(minScale, Math.min(1, (w - 1) / sw));
-      span.style.transform = (s < 1) ? scale(${s}) : '';
+      span.style.transform = (s < 1) ? `scale(${s})` : '';
     }
     function fitGroup(spans, minScale = 0.35) {
       const arr = (spans || []).filter(Boolean);
@@ -395,7 +385,7 @@
 
       need = Math.max(minScale, Math.min(1, need));
       arr.forEach(sp => {
-        sp.style.transform = (need < 1) ? scale(${need}) : '';
+        sp.style.transform = (need < 1) ? `scale(${need})` : '';
       });
     }
 
@@ -438,7 +428,7 @@
       const arr = (spans || []).filter(Boolean);
       arr.forEach(sp => {
         sp.style.transformOrigin = 'left bottom';
-        sp.style.transform = (scale < 1) ? scale(${scale}) : '';
+        sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
       });
     }
 
@@ -669,7 +659,7 @@
       el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
         b.classList.toggle('active', b.dataset.font === state.font);
       });
-      const fontClass = font-${state.font};
+      const fontClass = `font-${state.font}`;
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node => {
         node.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed');
         node.classList.add(fontClass);
@@ -700,7 +690,7 @@
       el.btnBgWhite.classList.toggle('active', state.bg === 'white');
       el.btnBgBlack.classList.toggle('active', state.bg === 'black');
 
-      const bgClass = bg-${state.bg};
+      const bgClass = `bg-${state.bg}`;
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node => {
         node.classList.remove('bg-white', 'bg-black');
         node.classList.add(bgClass);
@@ -748,9 +738,9 @@
 
       // monthly
       const m = state.monthly;
-      el.btnMonthPick.textContent = ${monthNameCap(m.month)}. ${m.year};
-      el.pvMonthType1.textContent = ${monthName(m.month)} ${m.year};
-      el.pvMonthType2.textContent = ${monthName(m.month)} ${m.year};
+      el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
+      el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
+      el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
 
       const kmText = fmtKmPreview(m.km);
       const runsText = fmtRunsPreview(m.runs);
@@ -804,7 +794,8 @@
         const btn = document.createElement('button');
         btn.className = 'workout-item';
         btn.type = 'button';
-        btn.innerHTML = 
+        // HTML Template String fixed below
+        btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
             <div class="w-stats">
@@ -814,7 +805,7 @@
             </div>
           </div>
           <div class="w-arrow">→</div>
-        ;
+        `;
         btn.addEventListener('click', () => {
           if (kind === 'strava') {
             state.strava = { ...w };
@@ -998,7 +989,8 @@
             ? { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec }
             : state.daily);
 
-        el.resultBlock.innerHTML = 
+        // Fixed JSX to Template String
+        el.resultBlock.innerHTML = `
           <div class="result-item">
             <span class="result-label">DISTANCE</span>
             <span class="result-value"><span id="rvDistance"></span></span>
@@ -1011,15 +1003,16 @@
             <span class="result-label">TIME</span>
             <span class="result-value"><span id="rvTime"></span></span>
           </div>
-        ;
+        `;
         return { km: +(src.km || 0), runs: null, paceSec: +(src.paceSec || 0), timeSec: +(src.timeSec || 0) };
       }
 
       const m = state.monthly;
-      const monthLine = ${monthName(m.month)} ${m.year};
+      const monthLine = `${monthName(m.month)} ${m.year}`;
 
       if (state.layout === 'type1') {
-        el.resultBlock.innerHTML = 
+        // Fixed JSX to Template String
+        el.resultBlock.innerHTML = `
           <div class="m1-month">${monthName(m.month)} ${m.year}</div>
           <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
           <div class="m1-stack">
@@ -1036,9 +1029,10 @@
               <div class="result-value"><span id="rvTime"></span></div>
             </div>
           </div>
-        ;
+        `;
       } else {
-        el.resultBlock.innerHTML = 
+        // Fixed JSX to Template String
+        el.resultBlock.innerHTML = `
           <div class="m2-month">${monthLine}</div>
           <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
           <div class="m2-row">
@@ -1055,7 +1049,7 @@
               <span class="result-value"><span id="rvTime"></span></span>
             </div>
           </div>
-        ;
+        `;
       }
 
       return { km: +(m.km || 0), runs: +(m.runs || 0), paceSec: +(m.paceSec || 0), timeSec: +(m.timeSec || 0) };
