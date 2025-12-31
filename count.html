@@ -9,6 +9,49 @@
   <link rel="stylesheet" href="./styles.css" />
 
   <style>
+    @font-face {
+  font-family: 'Anton';
+  src: url('../fonts/Anton.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dots';
+  src: url('../fonts/Dots.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LCD';
+  src: url('../fonts/LCD.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gothic';
+  src: url('../fonts/Gothic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Speed';
+  src: url('../fonts/Speed.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* font utility (index.html과 동일 개념) */
+.font-anton  { font-family: 'Anton', sans-serif; }
+.font-dots   { font-family: 'Dots', sans-serif; }
+.font-lcd    { font-family: 'LCD', monospace; }
+.font-gothic { font-family: 'Gothic', sans-serif; }
+.font-speed  { font-family: 'Speed', sans-serif; }
+    
     /* 타이틀 링크: 컬러/밑줄 제거 */
     .title-link,
     .title-link:link,
@@ -311,7 +354,8 @@
         </div>
       `;
 
-      const rvCount = $('#rvCount');
+     const rvCount = $('#rvCount');
+rvCount.classList.add(`font-${state.font}`);
       const built = buildRolling(text);
       rvCount.innerHTML = '';
       rvCount.appendChild(built.frag);
