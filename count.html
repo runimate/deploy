@@ -5,54 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>COUNT — RUNIMATE v2.0</title>
 
-  <!-- RUNIMATE v2.0 스타일 그대로 재사용 -->
+  <!-- RUNIMATE v2.0 styles -->
   <link rel="stylesheet" href="./styles.css" />
 
+  <!-- FORCE FONT LOAD (v2.0 fonts) -->
   <style>
     @font-face {
-  font-family: 'Anton';
-  src: url('../fonts/Anton.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Dots';
-  src: url('../fonts/Dots.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'LCD';
-  src: url('../fonts/LCD.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gothic';
-  src: url('../fonts/Gothic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Speed';
-  src: url('../fonts/Speed.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+      font-family: 'Anton';
+      src: url('../fonts/Anton.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Dots';
+      src: url('../fonts/Dots.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'LCD';
+      src: url('../fonts/LCD.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Gothic';
+      src: url('../fonts/Gothic.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Speed';
+      src: url('../fonts/Speed.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
 
-/* font utility (index.html과 동일 개념) */
-.font-anton  { font-family: 'Anton', sans-serif; }
-.font-dots   { font-family: 'Dots', sans-serif; }
-.font-lcd    { font-family: 'LCD', monospace; }
-.font-gothic { font-family: 'Gothic', sans-serif; }
-.font-speed  { font-family: 'Speed', sans-serif; }
-    
-    /* 타이틀 링크: 컬러/밑줄 제거 */
+    .font-anton  { font-family: 'Anton', sans-serif; }
+    .font-dots   { font-family: 'Dots', sans-serif; }
+    .font-lcd    { font-family: 'LCD', monospace; }
+    .font-gothic { font-family: 'Gothic', sans-serif; }
+    .font-speed  { font-family: 'Speed', sans-serif; }
+
+    body { background:#000; }
+
     .title-link,
     .title-link:link,
     .title-link:visited,
@@ -62,53 +63,45 @@
       text-decoration: none !important;
     }
 
-    body{ background:#000; }
-
-    /* COUNT PREVIEW: 기존 preview 박스 재사용 + 중앙정렬 */
-    .count-preview .data-item{ width:100%; }
-    .count-preview .data-label{ display:none; }
-    .count-preview .data-value{ width:100%; display:block; text-align:center; }
-    .count-preview .count-value{
-      display:inline-block;
-      transform-origin: center bottom;
-      will-change: transform;
-      white-space: nowrap;
+    /* COUNT preview */
+    .count-preview .data-label { display:none; }
+    .count-preview .data-value {
+      width:100%;
+      display:block;
+      text-align:center;
     }
 
     /* RESULT rolling */
     .count-roll{
-      width:100%;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      gap: 0.02em;
-      line-height: 1;
-      white-space: nowrap;
-      transform-origin: center bottom;
-      will-change: transform;
+      white-space:nowrap;
+      line-height:1;
     }
     .count-cell{
       position:relative;
       display:inline-flex;
       align-items:flex-end;
       justify-content:center;
-      height: 1em;
+      height:1em;
       overflow:hidden;
     }
-    .count-cell.static{ overflow:visible; }
+    .count-cell.static{
+      overflow:visible;
+    }
     .count-stack{
       position:absolute;
       left:0;
       bottom:0;
-      transform: translateY(0);
-      will-change: transform;
+      will-change:transform;
     }
     .count-glyph{
-      height: 1em;
+      height:1em;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      padding: 0 0.02em;
+      padding:0 0.02em;
     }
   </style>
 </head>
@@ -116,9 +109,7 @@
 <body>
   <div class="container">
     <header class="header">
-      <a class="title title-link" href="./count.html" title="COUNT">
-        RUNIMATE <span class="version">v.2.0</span>
-      </a>
+      <a class="title title-link" href="./index.html">RUNIMATE <span class="version">v.2.0</span></a>
       <div class="author">by JS @runarchive.js</div>
     </header>
 
@@ -128,16 +119,16 @@
       <div class="button-group wide" style="gap:10px;">
         <input
           id="countInput"
-          style="flex:1; min-width:200px;"
           class="field-input"
           placeholder="예: 1,900 / RUNIMATE / HELLO 1900"
           autocomplete="off"
+          style="flex:1;"
         />
-        <button class="toggle-btn" id="btnRunInline" style="min-width:110px;">RUN</button>
+        <button class="toggle-btn" id="btnRunInline">RUN</button>
       </div>
     </section>
 
-    <!-- FONT (RUNIMATE v2.0 5 fonts) -->
+    <!-- FONT -->
     <section class="section">
       <span class="section-label">FONT</span>
       <div class="button-group font-group no-wrap" id="fontGroup">
@@ -149,16 +140,14 @@
       </div>
     </section>
 
-    <!-- PREVIEW (bg-black 고정) -->
+    <!-- PREVIEW -->
     <section class="section">
       <span class="section-label">PREVIEW</span>
-
       <div class="preview type1 bg-black font-anton count-preview" id="countPreview">
         <div class="preview-content">
           <div class="data-item">
-            <span class="data-label">COUNT</span>
             <span class="data-value">
-              <span id="pvCount" class="count-value">0</span>
+              <span id="pvCount">0</span>
             </span>
           </div>
         </div>
@@ -168,70 +157,24 @@
     <button class="run-btn" id="btnRunBottom">RUN</button>
   </div>
 
-  <!-- RESULT OVERLAY (index.html과 동일 패턴: 기본은 숨김, show 붙으면 노출) -->
+  <!-- RESULT -->
   <div class="screen-overlay result-screen bg-black font-anton" id="resultScreen" aria-hidden="true">
-    <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
-    <div class="result-wrap type1" id="resultWrap">
+    <button class="screen-close" data-close="resultScreen">×</button>
+    <div class="result-wrap type1">
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
 
   <script>
-    // ---------- helpers ----------
-    const $ = (s) => document.querySelector(s);
+    const $ = s => document.querySelector(s);
 
-    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+    const DIGITS = "0123456789";
+    const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const LOWER = "abcdefghijklmnopqrstuvwxyz";
+    const STATIC = new Set([",","."," ","-","_","/"]);
 
-    function openScreen(id) {
-      document.body.classList.add('no-scroll');
-      const node = document.getElementById(id);
-      node.classList.add('show');
-      node.setAttribute('aria-hidden', 'false');
-    }
-    function closeScreen(id) {
-      const node = document.getElementById(id);
-      node.classList.remove('show');
-      node.setAttribute('aria-hidden', 'true');
-      const anyOpen = document.querySelector('.screen-overlay.show, .modal-overlay.show');
-      if (!anyOpen) document.body.classList.remove('no-scroll');
-    }
-    document.addEventListener('click', (e) => {
-      const closeId = e.target?.dataset?.close;
-      if (closeId) closeScreen(closeId);
-    });
+    const state = { font:'anton' };
 
-    async function safeFontsReady(){
-      if (document.fonts && document.fonts.ready) {
-        try { await document.fonts.ready; } catch(e) {}
-      }
-    }
-
-    // fit (scale down once)
-    function computeScaleForSpan(span, minScale = 0.28) {
-      if (!span) return 1;
-      const parent = span.parentElement;
-      if (!parent) return 1;
-
-      span.style.transform = '';
-      span.style.transformOrigin = 'center bottom';
-
-      const w = parent.clientWidth;
-      const sw = span.scrollWidth;
-      if (!w || !sw) return 1;
-
-      return Math.max(minScale, Math.min(1, (w - 1) / sw));
-    }
-    function applyLockedScale(span, scale) {
-      if (!span) return;
-      span.style.transformOrigin = 'center bottom';
-      span.style.transform = (scale < 1) ? `scale(${scale})` : '';
-    }
-
-    function sanitizeInput(raw){
-      return String(raw ?? '').replace(/\s{2,}/g, ' ').trim();
-    }
-
-    // ---------- elements ----------
     const el = {
       input: $('#countInput'),
       pv: $('#pvCount'),
@@ -240,219 +183,152 @@
       btnRunInline: $('#btnRunInline'),
       btnRunBottom: $('#btnRunBottom'),
       resultScreen: $('#resultScreen'),
-      resultWrap: $('#resultWrap'),
       resultBlock: $('#resultBlock')
     };
 
-    // ---------- state ----------
-    const state = { font: 'anton' };
+    function sanitize(v){
+      return String(v||'').replace(/\s+/g,' ').trim() || '0';
+    }
 
     function applyFont(){
-      el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
+      el.fontGroup.querySelectorAll('[data-font]').forEach(b=>{
         b.classList.toggle('active', b.dataset.font === state.font);
       });
-
-      const fontClass = `font-${state.font}`;
-
-      [el.preview, el.resultScreen].forEach(node => {
-        node.classList.remove('font-anton','font-dots','font-lcd','font-gothic','font-speed');
-        node.classList.add(fontClass);
+      const cls = `font-${state.font}`;
+      [el.preview, el.resultScreen].forEach(n=>{
+        n.classList.remove('font-anton','font-dots','font-lcd','font-gothic','font-speed');
+        n.classList.add(cls);
       });
-
       renderPreview();
     }
 
     function renderPreview(){
-      const text = sanitizeInput(el.input.value) || '0';
-      el.pv.textContent = text;
-
-      requestAnimationFrame(() => {
-        const s = computeScaleForSpan(el.pv, 0.22);
-        applyLockedScale(el.pv, s);
-      });
+      el.pv.textContent = sanitize(el.input.value);
     }
-
-    // ---------- rolling sets ----------
-    const DIGITS = "0123456789";
-    const ALPHA_UP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const ALPHA_LOW = "abcdefghijklmnopqrstuvwxyz";
-    const STATIC_CHARS = new Set([",", ".", " ", "-", "_", "/", ":", "·"]);
 
     function buildRolling(text){
       const frag = document.createDocumentFragment();
       const cells = [];
 
-      Array.from(text).forEach((ch, idx) => {
-        if (STATIC_CHARS.has(ch)) {
-          const sp = document.createElement('span');
-          sp.className = 'count-cell static';
-          sp.textContent = ch;
-          frag.appendChild(sp);
+      [...text].forEach((ch,i)=>{
+        if(STATIC.has(ch)){
+          const s = document.createElement('span');
+          s.className='count-cell static';
+          s.textContent=ch;
+          frag.appendChild(s);
           return;
         }
 
-        const isDigit = DIGITS.includes(ch);
-        const isUpper = ALPHA_UP.includes(ch);
-        const isLower = ALPHA_LOW.includes(ch);
-
-        if(!isDigit && !isUpper && !isLower){
-          const sp = document.createElement('span');
-          sp.className = 'count-cell static';
-          sp.textContent = ch;
-          frag.appendChild(sp);
+        let set = null;
+        if(DIGITS.includes(ch)) set=DIGITS;
+        else if(UPPER.includes(ch)) set=UPPER;
+        else if(LOWER.includes(ch)) set=LOWER;
+        else{
+          const s=document.createElement('span');
+          s.className='count-cell static';
+          s.textContent=ch;
+          frag.appendChild(s);
           return;
         }
 
-        const set = isDigit ? DIGITS : (isUpper ? ALPHA_UP : ALPHA_LOW);
+        const cell=document.createElement('span');
+        cell.className='count-cell';
 
-        const cell = document.createElement('span');
-        cell.className = 'count-cell';
+        const stack=document.createElement('div');
+        stack.className='count-stack';
 
-        const stack = document.createElement('div');
-        stack.className = 'count-stack';
-
-        const loops = 3 + Math.floor(Math.random() * 4);
-        const seq = [];
-
-        for(let i=0;i<loops;i++){
-          for(const s of set) seq.push(s);
+        const loops=4;
+        for(let l=0;l<loops;l++){
+          for(const c of set){
+            const g=document.createElement('div');
+            g.className='count-glyph';
+            g.textContent=c;
+            stack.appendChild(g);
+          }
         }
-        for(const s of set) seq.push(s); // 마지막 1바퀴
-
-        seq.forEach(s => {
-          const g = document.createElement('div');
-          g.className = 'count-glyph';
-          g.textContent = s;
-          stack.appendChild(g);
-        });
 
         cell.appendChild(stack);
         frag.appendChild(cell);
 
         cells.push({
-          idx,
           stack,
-          set,
-          targetIndex: set.indexOf(ch),
-          anim: null
+          target:set.indexOf(ch),
+          setLen:set.length,
+          idx:i
         });
       });
 
-      return { frag, cells };
+      return {frag,cells};
     }
 
     async function animateResult(text){
-      el.resultWrap.classList.toggle('type1', true);
-      el.resultWrap.classList.toggle('type2', false);
-
-      el.resultBlock.innerHTML = `
+      el.resultBlock.innerHTML=`
         <div class="result-item" style="width:100%;">
-          <span class="result-label" style="display:none;">COUNT</span>
           <span class="result-value" style="width:100%; text-align:center;">
-            <span id="rvCount" class="count-roll"></span>
+            <span class="result-value-inner">
+              <span id="rvCount" class="count-roll"></span>
+            </span>
           </span>
         </div>
       `;
 
-     const rvCount = $('#rvCount');
-rvCount.classList.add(`font-${state.font}`);
-      const built = buildRolling(text);
-      rvCount.innerHTML = '';
+      const rvCount=$('#rvCount');
+      rvCount.classList.add(`font-${state.font}`);
+
+      const built=buildRolling(text);
       rvCount.appendChild(built.frag);
 
-      // 폰트 로딩/레이아웃 확정
-      await safeFontsReady();
-      void rvCount.offsetHeight;
+      const g=rvCount.querySelector('.count-glyph');
+      if(!g) return;
+      const h=g.offsetHeight;
 
-      // fit 1회 계산 후 고정
-      requestAnimationFrame(() => {
-        const s = computeScaleForSpan(rvCount, 0.18);
-        applyLockedScale(rvCount, s);
-      });
+      built.cells.forEach(c=>{
+        const total=c.stack.children.length;
+        const lastLoop=total-c.setLen;
+        const y=-(lastLoop+c.target)*h;
 
-      // glyph height 확보
-      let glyphH = 0;
-      let tries = 0;
-      while((!glyphH || glyphH < 1) && tries < 16){
-        await new Promise(r => requestAnimationFrame(r));
-        const g = rvCount.querySelector('.count-glyph');
-        glyphH = g ? g.offsetHeight : 0;
-        tries++;
-      }
-      if(!glyphH || glyphH < 1) return;
-
-      // Web Animations API로 강제 롤링
-      built.cells.forEach(c => {
-        const setLen = c.set.length;
-        const total = c.stack.children.length;
-        const lastLoopStart = total - setLen;
-        const target = lastLoopStart + c.targetIndex;
-        const y = -(target * glyphH);
-
-        try { if (c.anim) c.anim.cancel(); } catch(e){}
-
-        c.stack.style.transform = 'translateY(0px)';
-        void c.stack.offsetHeight;
-
-        const base = 820;
-        const extra = 520 + Math.floor(Math.random()*700);
-        const duration = base + extra + (c.idx * 26);
-        const delay = 70 + (c.idx * 14);
-
-        c.anim = c.stack.animate(
+        c.stack.animate(
           [
-            { transform: 'translateY(0px)' },
-            { transform: `translateY(${y}px)` }
+            {transform:'translateY(0)'},
+            {transform:`translateY(${y}px)`}
           ],
           {
-            duration,
-            delay,
-            easing: 'cubic-bezier(.12,.82,.18,1)',
-            fill: 'forwards'
+            duration:1400 + c.idx*60,
+            easing:'cubic-bezier(.12,.82,.18,1)',
+            fill:'forwards'
           }
         );
       });
     }
 
-    function run(){
-      const text = sanitizeInput(el.input.value) || '0';
-      openScreen('resultScreen');
-      animateResult(text);
+    function openResult(){
+      el.resultScreen.classList.add('show');
+      el.resultScreen.setAttribute('aria-hidden','false');
     }
 
-    // ---------- events ----------
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-      b.addEventListener('click', () => {
-        state.font = b.dataset.font;
+    function run(){
+      const t=sanitize(el.input.value);
+      openResult();
+      animateResult(t);
+    }
+
+    el.fontGroup.querySelectorAll('[data-font]').forEach(b=>{
+      b.addEventListener('click',()=>{
+        state.font=b.dataset.font;
         applyFont();
       });
     });
 
-    el.input.addEventListener('input', renderPreview);
-    el.input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        run();
-      }
+    el.input.addEventListener('input',renderPreview);
+    el.input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); run(); }
     });
 
-    el.btnRunInline.addEventListener('click', run);
-    el.btnRunBottom.addEventListener('click', run);
+    el.btnRunInline.addEventListener('click',run);
+    el.btnRunBottom.addEventListener('click',run);
 
-    // ---------- init ----------
-    function init(){
-      // bg-black 고정
-      el.preview.classList.remove('bg-white');
-      el.preview.classList.add('bg-black');
-
-      el.resultScreen.classList.remove('bg-white');
-      el.resultScreen.classList.add('bg-black');
-
-      state.font = 'anton';
-      applyFont();
-      renderPreview();
-    }
-    init();
+    applyFont();
+    renderPreview();
   </script>
 </body>
 </html>
