@@ -121,17 +121,19 @@ body.no-scroll{ overflow: hidden; }
 .author{ margin-top: 6px; font-size: 13px; color:#000; }
 
 .title-link{
-  display: inline-flex;      /* 기존 title 레이아웃 유지 */
+  display: inline-flex;
   align-items: baseline;
-  gap: 6px;                  /* RUNIMATE와 v.2.0 사이 간격(원래 있으면 삭제해도 됨) */
-  color: inherit;
-  text-decoration: none;
+  color: inherit;          /* 링크 컬러 제거 */
+  text-decoration: none;   /* 밑줄 제거 */
   cursor: pointer;
 }
 
-.title-link:hover{
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.title-link:hover,
+.title-link:active,
+.title-link:visited,
+.title-link:focus{
+  color: inherit;
+  text-decoration: none;   /* hover/focus에서도 밑줄 X */
 }
 /* Sections */
 .section{ margin-bottom: 18px; }
