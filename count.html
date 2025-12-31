@@ -5,12 +5,50 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>COUNT — RUNIMATE style</title>
 
-  <!-- Google Fonts (사용자 선호 폰트 위주) -->
+  <!-- Anton만 Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@400;700&family=Fugaz+One&family=Notable&family=Monoton&family=Permanent+Marker&family=Lobster&family=Rock+Salt&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 
   <style>
+    /* =========================
+       v2.0 FONT SET (5)
+       - dots/lcd/gothic/speed는 커스텀 웹폰트라고 가정
+       - 폰트 파일 경로가 다르면 src만 수정
+    ========================= */
+    @font-face{
+      font-family: "RM Dots";
+      src: url("./fonts/dots.woff2") format("woff2"),
+           url("./fonts/dots.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "RM LCD";
+      src: url("./fonts/lcd.woff2") format("woff2"),
+           url("./fonts/lcd.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "RM Gothic";
+      src: url("./fonts/gothic.woff2") format("woff2"),
+           url("./fonts/gothic.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "RM Speed";
+      src: url("./fonts/speed.woff2") format("woff2"),
+           url("./fonts/speed.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root{
       --bg:#000;
       --fg:#fff;
@@ -22,7 +60,8 @@
       --gap: clamp(10px, 2vw, 14px);
 
       --ui-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic";
-      --display-font: "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      /* 기본 표시 폰트(2.0 느낌으로) */
+      --display-font: "Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
     *{ box-sizing: border-box; }
@@ -45,7 +84,6 @@
       gap: var(--gap);
     }
 
-    /* ---------- “pages” ---------- */
     .page{
       width:min(980px, 100%);
       display:none;
@@ -53,7 +91,6 @@
     }
     .page.is-active{ display:flex; flex-direction:column; }
 
-    /* ---------- card ---------- */
     .card{
       border: 1px solid rgba(255,255,255,.14);
       border-radius: var(--radius);
@@ -62,7 +99,6 @@
       padding: var(--pad);
     }
 
-    /* ---------- input row ---------- */
     .row{
       display:flex;
       flex-wrap:wrap;
@@ -142,17 +178,17 @@
       border-radius: 999px;
       cursor:pointer;
       font-size: 12px;
-      letter-spacing:.02em;
+      letter-spacing:.08em;
       white-space:nowrap;
+      text-transform: uppercase;
     }
     .fontbtn.is-active{
       background: rgba(255,255,255,.18);
       border-color: rgba(255,255,255,.25);
       color: #fff;
-      font-weight: 700;
+      font-weight: 800;
     }
 
-    /* ---------- preview / result display area ---------- */
     .stage{
       position:relative;
       height: clamp(170px, 24vw, 260px);
@@ -178,7 +214,6 @@
       position: relative;
     }
 
-    /* 문자 전체가 width에 맞게 줄어들도록 JS에서 --fit-size로 세팅 */
     .display .fit{
       font-size: var(--fit-size, clamp(44px, 9.5vw, 110px));
       display:flex;
@@ -189,7 +224,6 @@
       will-change: transform;
     }
 
-    /* ---------- rolling glyph columns ---------- */
     .cell{
       position:relative;
       display:inline-flex;
@@ -199,10 +233,7 @@
       width: auto;
       overflow:hidden;
     }
-
-    .cell.static{
-      overflow:visible;
-    }
+    .cell.static{ overflow:visible; }
 
     .stack{
       position:absolute;
@@ -219,7 +250,6 @@
       padding: 0 0.02em;
     }
 
-    /* subtle glow like RUNIMATE */
     .fit{
       text-shadow:
         0 0 18px rgba(255,255,255,.10),
@@ -232,7 +262,6 @@
       margin-top: 10px;
     }
 
-    /* result top bar */
     .topbar{
       display:flex;
       align-items:center;
@@ -267,7 +296,7 @@
         <div class="label" style="margin-top:14px;">Font</div>
         <div class="fontbar" id="fontBar"></div>
 
-        <div class="hint">숫자/콤마/알파벳 혼합 가능. 길면 자동으로 크기가 줄어들어 잘리지 않게 표시돼.</div>
+        <div class="hint">숫자/콤마/알파벳 혼합 가능. (dots/lcd/gothic/speed는 ./fonts/에 폰트파일이 있어야 적용됨)</div>
       </div>
 
       <div class="card">
@@ -302,28 +331,21 @@
 
   <script>
     /* =========================
-       CONFIG
+       CONFIG (v2.0 5 fonts)
     ========================= */
     const FONT_OPTIONS = [
-      { key:"Orbitron", label:"Orbitron", family:`"Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Anton", label:"Anton", family:`"Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Fugaz One", label:"Fugaz One", family:`"Fugaz One", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Notable", label:"Notable", family:`"Notable", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Monoton", label:"Monoton", family:`"Monoton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Permanent Marker", label:"Permanent Marker", family:`"Permanent Marker", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Lobster", label:"Lobster", family:`"Lobster", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"Rock Salt", label:"Rock Salt", family:`"Rock Salt", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"anton",  label:"ANTON",  family:`"Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"dots",   label:"DOTS",   family:`"RM Dots", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"lcd",    label:"LCD",    family:`"RM LCD", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"gothic", label:"GOTHIC", family:`"RM Gothic", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"speed",  label:"SPEED",  family:`"RM Speed", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
     ];
 
-    // 롤링 가능한 문자 집합 (숫자 + 알파벳)
     const DIGITS = "0123456789";
     const ALPHA_UP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const ALPHA_LOW = "abcdefghijklmnopqrstuvwxyz";
-
-    // 콤마/공백 등은 “정적” 표시(원하면 여기도 rolling에 포함 가능)
     const STATIC_CHARS = new Set([",", ".", " ", "-", "_", "/", ":", "·"]);
 
-    const $ = (sel) => document.querySelector(sel);
     const byId = (id) => document.getElementById(id);
 
     const els = {
@@ -335,21 +357,13 @@
       fontBar: byId("fontBar"),
       previewFit: byId("previewFit"),
       resultFit: byId("resultFit"),
-      previewDisplay: byId("previewDisplay"),
-      resultDisplay: byId("resultDisplay"),
     };
 
-    /* =========================
-       STATE
-    ========================= */
     const state = {
-      fontKey: "Orbitron",
+      fontKey: "anton",
       text: "",
     };
 
-    /* =========================
-       FONT UI
-    ========================= */
     function renderFontButtons(){
       els.fontBar.innerHTML = "";
       FONT_OPTIONS.forEach(opt => {
@@ -372,26 +386,18 @@
       document.documentElement.style.setProperty("--display-font", opt.family);
     }
 
-    /* =========================
-       FIT TO WIDTH
-       - previewFit / resultFit 컨테이너 width에 맞춰 폰트 크기 줄임
-    ========================= */
     function fitText(containerFitEl){
-      // 기본 크게 시작 -> 줄여가며 맞춤
       const stage = containerFitEl.closest(".stage");
       if(!stage) return;
 
-      // 기준 폰트 사이즈(픽셀)
       const minPx = 26;
       const maxPx = Math.max(44, Math.floor(stage.clientHeight * 0.62));
       let size = maxPx;
 
       containerFitEl.style.setProperty("--fit-size", size + "px");
 
-      // 여러 번 줄여가며 맞추기
       let guard = 60;
       while(guard-- > 0){
-        // scrollWidth가 stage padding 포함 영역 넘어가면 줄임
         const overflow = containerFitEl.scrollWidth > (stage.clientWidth - 24);
         if(!overflow) break;
         size -= 2;
@@ -400,35 +406,15 @@
       }
     }
 
-    /* =========================
-       BUILD CELLS
-       - preview: static render
-       - result: rolling render + animate
-    ========================= */
     function sanitizeInput(raw){
-      // “자유 방식” 그대로 두되, 너무 긴 연속 공백은 1개로
       return (raw ?? "").replace(/\s{2,}/g, " ").trim();
     }
 
     function clearEl(el){ el.innerHTML = ""; }
 
-    function renderPreview(){
-      const text = sanitizeInput(els.input.value || state.text || "0");
-      state.text = text;
-
-      clearEl(els.previewFit);
-      const frag = buildStaticCells(text);
-      els.previewFit.appendChild(frag);
-
-      // fit
-      requestAnimationFrame(() => fitText(els.previewFit));
-    }
-
     function buildStaticCells(text){
       const frag = document.createDocumentFragment();
-      const chars = Array.from(text);
-
-      chars.forEach(ch => {
+      Array.from(text).forEach(ch => {
         const cell = document.createElement("span");
         cell.className = "cell static";
         const span = document.createElement("span");
@@ -438,8 +424,16 @@
         cell.appendChild(span);
         frag.appendChild(cell);
       });
-
       return frag;
+    }
+
+    function renderPreview(){
+      const text = sanitizeInput(els.input.value || state.text || "0");
+      state.text = text;
+
+      clearEl(els.previewFit);
+      els.previewFit.appendChild(buildStaticCells(text));
+      requestAnimationFrame(() => fitText(els.previewFit));
     }
 
     function buildRollingCells(text){
@@ -465,7 +459,6 @@
         const isUpper = ALPHA_UP.includes(ch);
         const isLower = ALPHA_LOW.includes(ch);
 
-        // 숫자/알파벳 외(예: 한글 등)는 정적으로 처리
         if(!isDigit && !isUpper && !isLower){
           const cell = document.createElement("span");
           cell.className = "cell static";
@@ -481,25 +474,20 @@
 
         const set = isDigit ? DIGITS : (isUpper ? ALPHA_UP : ALPHA_LOW);
 
-        // cell wrapper
         const cell = document.createElement("span");
         cell.className = "cell";
-        cell.dataset.set = isDigit ? "digit" : (isUpper ? "upper" : "lower");
 
-        // stack (여러 바퀴 + 목표문자)
         const stack = document.createElement("div");
         stack.className = "stack";
 
-        // 최소 2~5바퀴 랜덤 + 목표 set 1회
         const loops = 2 + Math.floor(Math.random() * 4);
         const seq = [];
 
         for(let i=0;i<loops;i++){
           for(const s of set) seq.push(s);
         }
-        for(const s of set) seq.push(s); // 마지막 한 바퀴는 “정확히” 목표로 착지하기 좋게
+        for(const s of set) seq.push(s);
 
-        // glyph nodes
         seq.forEach(s => {
           const g = document.createElement("div");
           g.className = "glyph";
@@ -511,14 +499,7 @@
         frag.appendChild(cell);
 
         const targetIndexInSet = set.indexOf(ch);
-        cells.push({
-          type:"rolling",
-          el: cell,
-          stack,
-          set,
-          targetIndexInSet,
-          idx,
-        });
+        cells.push({ type:"rolling", stack, set, targetIndexInSet, idx });
       });
 
       return { frag, cells };
@@ -530,56 +511,48 @@
       const { frag, cells } = buildRollingCells(text);
       els.resultFit.appendChild(frag);
 
-      // fit 먼저(레이아웃 확정 후 애니메이션)
-      requestAnimationFrame(() => {
+      const start = () => {
         fitText(els.resultFit);
 
-        // glyph height 계산(1em 기준) 위해 첫 rolling cell을 잡음
         const firstRolling = cells.find(c => c.type === "rolling");
-        const glyphH = firstRolling
-          ? firstRolling.stack.querySelector(".glyph").getBoundingClientRect().height
-          : 0;
+        if(!firstRolling) return;
 
-        cells.forEach((c, i) => {
+        const glyphEl = firstRolling.stack.querySelector(".glyph");
+        const glyphH = glyphEl ? glyphEl.getBoundingClientRect().height : 0;
+
+        if(!glyphH || glyphH < 1){
+          requestAnimationFrame(start);
+          return;
+        }
+
+        cells.forEach((c) => {
           if(c.type !== "rolling") return;
 
           const setLen = c.set.length;
-          // seq 길이 = loops*setLen + setLen (마지막 1바퀴)
           const totalGlyphs = c.stack.children.length;
-
-          // “마지막 바퀴” 영역의 시작 인덱스
           const lastLoopStart = totalGlyphs - setLen;
-
-          // 마지막 바퀴에서 목표로 착지
           const target = lastLoopStart + c.targetIndexInSet;
 
-          // 시작은 맨 위(0)에서 내려가도록
-          c.stack.style.transform = `translateY(0px)`;
+          c.stack.style.transition = "none";
+          c.stack.style.transform = "translateY(0px)";
 
-          // duration / delay (RUNIMATE 느낌: 약간씩 어긋나게)
-          const base = 700;
-          const extra = 650 + Math.floor(Math.random()*600);
-          const duration = base + extra + (c.idx * 35);
-          const delay = 80 + (c.idx * 18);
+          const base = 720;
+          const extra = 520 + Math.floor(Math.random()*700);
+          const duration = base + extra + (c.idx * 32);
+          const delay = 80 + (c.idx * 16);
 
-          // easing
-          c.stack.style.transition = `transform ${duration}ms cubic-bezier(.12,.82,.18,1) ${delay}ms`;
-
-          // 이동량 = -(target * glyphH)
           const y = -(target * glyphH);
 
-          // trigger
           requestAnimationFrame(() => {
+            c.stack.style.transition = `transform ${duration}ms cubic-bezier(.12,.82,.18,1) ${delay}ms`;
             c.stack.style.transform = `translateY(${y}px)`;
           });
         });
-      });
+      };
+
+      requestAnimationFrame(start);
     }
 
-    /* =========================
-       NAV / RUN
-       - “다음 페이지”는 같은 파일의 result page로 전환 + query 저장
-    ========================= */
     function goto(page){
       const isEdit = page === "edit";
       els.pageEdit.classList.toggle("is-active", isEdit);
@@ -590,7 +563,6 @@
       const raw = els.input.value;
       const text = sanitizeInput(raw || "0");
 
-      // query에 저장해서 “다음 페이지”처럼 동작
       const params = new URLSearchParams(location.search);
       params.set("v", text);
       params.set("font", state.fontKey);
@@ -598,7 +570,12 @@
 
       goto("result");
       applyFont();
-      animateToText(text);
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => animateToText(text));
+      } else {
+        animateToText(text);
+      }
     }
 
     function back(){
@@ -610,9 +587,6 @@
       els.input.focus();
     }
 
-    /* =========================
-       INIT
-    ========================= */
     function initFromQuery(){
       const params = new URLSearchParams(location.search);
       const qFont = params.get("font");
@@ -625,25 +599,26 @@
       renderFontButtons();
 
       if(qValue !== null){
-        // result mode
         state.text = sanitizeInput(qValue);
         els.input.value = state.text;
         goto("result");
-        animateToText(state.text);
+
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => animateToText(state.text));
+        } else {
+          animateToText(state.text);
+        }
       } else {
-        // edit mode
         goto("edit");
         els.input.value = state.text || "";
         renderPreview();
       }
     }
 
-    // events
     els.input.addEventListener("input", renderPreview);
     els.btnRun.addEventListener("click", run);
     els.btnBack.addEventListener("click", back);
 
-    // Enter => RUN
     els.input.addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
         e.preventDefault();
@@ -651,7 +626,6 @@
       }
     });
 
-    // resize refit
     window.addEventListener("resize", () => {
       if(els.pageEdit.classList.contains("is-active")){
         fitText(els.previewFit);
@@ -660,7 +634,6 @@
       }
     });
 
-    // popstate handling (뒤로가기)
     window.addEventListener("popstate", () => {
       initFromQuery();
     });
