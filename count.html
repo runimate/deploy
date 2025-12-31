@@ -5,45 +5,55 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>COUNT — RUNIMATE style</title>
 
-  <!-- Anton만 Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
-
   <style>
     /* =========================
-       v2.0 FONT SET (5)
-       - dots/lcd/gothic/speed는 커스텀 웹폰트라고 가정
-       - 폰트 파일 경로가 다르면 src만 수정
+       LOCAL WEBFONTS (match your GitHub /fonts exactly)
+       ./fonts/
+       - Anton.woff2
+       - Dots.woff2
+       - LCD.woff2
+       - Gothic.woff2
+       - Speed.woff2
+       - Inter.woff2
     ========================= */
     @font-face{
+      font-family: "RM Anton";
+      src: url("./fonts/Anton.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
       font-family: "RM Dots";
-      src: url("./fonts/dots.woff2") format("woff2"),
-           url("./fonts/dots.woff") format("woff");
+      src: url("./fonts/Dots.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face{
       font-family: "RM LCD";
-      src: url("./fonts/lcd.woff2") format("woff2"),
-           url("./fonts/lcd.woff") format("woff");
+      src: url("./fonts/LCD.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face{
       font-family: "RM Gothic";
-      src: url("./fonts/gothic.woff2") format("woff2"),
-           url("./fonts/gothic.woff") format("woff");
+      src: url("./fonts/Gothic.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face{
       font-family: "RM Speed";
-      src: url("./fonts/speed.woff2") format("woff2"),
-           url("./fonts/speed.woff") format("woff");
+      src: url("./fonts/Speed.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "RM Inter";
+      src: url("./fonts/Inter.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -53,15 +63,13 @@
       --bg:#000;
       --fg:#fff;
       --muted: rgba(255,255,255,.65);
-      --stroke: 1px;
       --radius: 16px;
       --btn-radius: 999px;
       --pad: clamp(14px, 2.4vw, 22px);
       --gap: clamp(10px, 2vw, 14px);
 
-      --ui-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic";
-      /* 기본 표시 폰트(2.0 느낌으로) */
-      --display-font: "Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --ui-font: "RM Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic";
+      --display-font: "RM Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
     *{ box-sizing: border-box; }
@@ -140,6 +148,7 @@
       outline:none;
       font-size: 16px;
       letter-spacing: .01em;
+      font-family: var(--ui-font);
     }
     input[type="text"]::placeholder{ color: rgba(255,255,255,.35); }
 
@@ -153,17 +162,16 @@
       font-size: 13px;
       letter-spacing:.02em;
       user-select:none;
+      font-family: var(--ui-font);
     }
     .btn:hover{ background: rgba(255,255,255,.10); }
     .btn:active{ transform: translateY(1px); }
-
     .btn.primary{
       background: rgba(255,255,255,.16);
       border-color: rgba(255,255,255,.22);
       font-weight: 700;
     }
 
-    /* ---------- font buttons ---------- */
     .fontbar{
       display:flex;
       flex-wrap:wrap;
@@ -181,6 +189,7 @@
       letter-spacing:.08em;
       white-space:nowrap;
       text-transform: uppercase;
+      font-family: var(--ui-font);
     }
     .fontbtn.is-active{
       background: rgba(255,255,255,.18);
@@ -230,7 +239,6 @@
       align-items:flex-end;
       justify-content:center;
       height: 1em;
-      width: auto;
       overflow:hidden;
     }
     .cell.static{ overflow:visible; }
@@ -239,8 +247,8 @@
       position:absolute;
       left:0;
       bottom:0;
-      will-change: transform;
       transform: translateY(0);
+      will-change: transform;
     }
     .glyph{
       height: 1em;
@@ -296,13 +304,13 @@
         <div class="label" style="margin-top:14px;">Font</div>
         <div class="fontbar" id="fontBar"></div>
 
-        <div class="hint">숫자/콤마/알파벳 혼합 가능. (dots/lcd/gothic/speed는 ./fonts/에 폰트파일이 있어야 적용됨)</div>
+        <div class="hint">숫자/콤마/알파벳 혼합 가능. 길면 자동으로 크기가 줄어들어 잘리지 않게 표시돼.</div>
       </div>
 
       <div class="card">
         <div class="label">Preview</div>
         <div class="stage">
-          <div class="display" id="previewDisplay">
+          <div class="display">
             <div class="fit" id="previewFit"></div>
           </div>
         </div>
@@ -320,7 +328,7 @@
 
       <div class="card">
         <div class="stage">
-          <div class="display" id="resultDisplay">
+          <div class="display">
             <div class="fit" id="resultFit"></div>
           </div>
         </div>
@@ -331,314 +339,11 @@
 
   <script>
     /* =========================
-       CONFIG (v2.0 5 fonts)
+       CONFIG (RUNIMATE v2.0 font keys)
     ========================= */
     const FONT_OPTIONS = [
-      { key:"anton",  label:"ANTON",  family:`"Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
+      { key:"anton",  label:"ANTON",  family:`"RM Anton", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
       { key:"dots",   label:"DOTS",   family:`"RM Dots", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
       { key:"lcd",    label:"LCD",    family:`"RM LCD", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
       { key:"gothic", label:"GOTHIC", family:`"RM Gothic", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-      { key:"speed",  label:"SPEED",  family:`"RM Speed", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial` },
-    ];
-
-    const DIGITS = "0123456789";
-    const ALPHA_UP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const ALPHA_LOW = "abcdefghijklmnopqrstuvwxyz";
-    const STATIC_CHARS = new Set([",", ".", " ", "-", "_", "/", ":", "·"]);
-
-    const byId = (id) => document.getElementById(id);
-
-    const els = {
-      pageEdit: byId("page-edit"),
-      pageResult: byId("page-result"),
-      input: byId("inputText"),
-      btnRun: byId("btnRun"),
-      btnBack: byId("btnBack"),
-      fontBar: byId("fontBar"),
-      previewFit: byId("previewFit"),
-      resultFit: byId("resultFit"),
-    };
-
-    const state = {
-      fontKey: "anton",
-      text: "",
-    };
-
-    function renderFontButtons(){
-      els.fontBar.innerHTML = "";
-      FONT_OPTIONS.forEach(opt => {
-        const b = document.createElement("button");
-        b.className = "fontbtn" + (opt.key === state.fontKey ? " is-active" : "");
-        b.textContent = opt.label;
-        b.style.fontFamily = opt.family;
-        b.addEventListener("click", () => {
-          state.fontKey = opt.key;
-          applyFont();
-          renderFontButtons();
-          renderPreview();
-        });
-        els.fontBar.appendChild(b);
-      });
-    }
-
-    function applyFont(){
-      const opt = FONT_OPTIONS.find(f => f.key === state.fontKey) || FONT_OPTIONS[0];
-      document.documentElement.style.setProperty("--display-font", opt.family);
-    }
-
-    function fitText(containerFitEl){
-      const stage = containerFitEl.closest(".stage");
-      if(!stage) return;
-
-      const minPx = 26;
-      const maxPx = Math.max(44, Math.floor(stage.clientHeight * 0.62));
-      let size = maxPx;
-
-      containerFitEl.style.setProperty("--fit-size", size + "px");
-
-      let guard = 60;
-      while(guard-- > 0){
-        const overflow = containerFitEl.scrollWidth > (stage.clientWidth - 24);
-        if(!overflow) break;
-        size -= 2;
-        if(size <= minPx) { size = minPx; break; }
-        containerFitEl.style.setProperty("--fit-size", size + "px");
-      }
-    }
-
-    function sanitizeInput(raw){
-      return (raw ?? "").replace(/\s{2,}/g, " ").trim();
-    }
-
-    function clearEl(el){ el.innerHTML = ""; }
-
-    function buildStaticCells(text){
-      const frag = document.createDocumentFragment();
-      Array.from(text).forEach(ch => {
-        const cell = document.createElement("span");
-        cell.className = "cell static";
-        const span = document.createElement("span");
-        span.textContent = ch;
-        span.style.position = "relative";
-        span.style.padding = "0 0.02em";
-        cell.appendChild(span);
-        frag.appendChild(cell);
-      });
-      return frag;
-    }
-
-    function renderPreview(){
-      const text = sanitizeInput(els.input.value || state.text || "0");
-      state.text = text;
-
-      clearEl(els.previewFit);
-      els.previewFit.appendChild(buildStaticCells(text));
-      requestAnimationFrame(() => fitText(els.previewFit));
-    }
-
-    function buildRollingCells(text){
-      const frag = document.createDocumentFragment();
-      const cells = [];
-      const chars = Array.from(text);
-
-      chars.forEach((ch, idx) => {
-        if (STATIC_CHARS.has(ch)) {
-          const cell = document.createElement("span");
-          cell.className = "cell static";
-          const span = document.createElement("span");
-          span.textContent = ch;
-          span.style.position = "relative";
-          span.style.padding = "0 0.02em";
-          cell.appendChild(span);
-          frag.appendChild(cell);
-          cells.push({ type:"static", el: cell, ch });
-          return;
-        }
-
-        const isDigit = DIGITS.includes(ch);
-        const isUpper = ALPHA_UP.includes(ch);
-        const isLower = ALPHA_LOW.includes(ch);
-
-        if(!isDigit && !isUpper && !isLower){
-          const cell = document.createElement("span");
-          cell.className = "cell static";
-          const span = document.createElement("span");
-          span.textContent = ch;
-          span.style.position = "relative";
-          span.style.padding = "0 0.02em";
-          cell.appendChild(span);
-          frag.appendChild(cell);
-          cells.push({ type:"static", el: cell, ch });
-          return;
-        }
-
-        const set = isDigit ? DIGITS : (isUpper ? ALPHA_UP : ALPHA_LOW);
-
-        const cell = document.createElement("span");
-        cell.className = "cell";
-
-        const stack = document.createElement("div");
-        stack.className = "stack";
-
-        const loops = 2 + Math.floor(Math.random() * 4);
-        const seq = [];
-
-        for(let i=0;i<loops;i++){
-          for(const s of set) seq.push(s);
-        }
-        for(const s of set) seq.push(s);
-
-        seq.forEach(s => {
-          const g = document.createElement("div");
-          g.className = "glyph";
-          g.textContent = s;
-          stack.appendChild(g);
-        });
-
-        cell.appendChild(stack);
-        frag.appendChild(cell);
-
-        const targetIndexInSet = set.indexOf(ch);
-        cells.push({ type:"rolling", stack, set, targetIndexInSet, idx });
-      });
-
-      return { frag, cells };
-    }
-
-    function animateToText(text){
-      clearEl(els.resultFit);
-
-      const { frag, cells } = buildRollingCells(text);
-      els.resultFit.appendChild(frag);
-
-      const start = () => {
-        fitText(els.resultFit);
-
-        const firstRolling = cells.find(c => c.type === "rolling");
-        if(!firstRolling) return;
-
-        const glyphEl = firstRolling.stack.querySelector(".glyph");
-        const glyphH = glyphEl ? glyphEl.getBoundingClientRect().height : 0;
-
-        if(!glyphH || glyphH < 1){
-          requestAnimationFrame(start);
-          return;
-        }
-
-        cells.forEach((c) => {
-          if(c.type !== "rolling") return;
-
-          const setLen = c.set.length;
-          const totalGlyphs = c.stack.children.length;
-          const lastLoopStart = totalGlyphs - setLen;
-          const target = lastLoopStart + c.targetIndexInSet;
-
-          c.stack.style.transition = "none";
-          c.stack.style.transform = "translateY(0px)";
-
-          const base = 720;
-          const extra = 520 + Math.floor(Math.random()*700);
-          const duration = base + extra + (c.idx * 32);
-          const delay = 80 + (c.idx * 16);
-
-          const y = -(target * glyphH);
-
-          requestAnimationFrame(() => {
-            c.stack.style.transition = `transform ${duration}ms cubic-bezier(.12,.82,.18,1) ${delay}ms`;
-            c.stack.style.transform = `translateY(${y}px)`;
-          });
-        });
-      };
-
-      requestAnimationFrame(start);
-    }
-
-    function goto(page){
-      const isEdit = page === "edit";
-      els.pageEdit.classList.toggle("is-active", isEdit);
-      els.pageResult.classList.toggle("is-active", !isEdit);
-    }
-
-    function run(){
-      const raw = els.input.value;
-      const text = sanitizeInput(raw || "0");
-
-      const params = new URLSearchParams(location.search);
-      params.set("v", text);
-      params.set("font", state.fontKey);
-      history.pushState({}, "", `${location.pathname}?${params.toString()}`);
-
-      goto("result");
-      applyFont();
-
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => animateToText(text));
-      } else {
-        animateToText(text);
-      }
-    }
-
-    function back(){
-      const params = new URLSearchParams(location.search);
-      params.delete("v");
-      history.pushState({}, "", `${location.pathname}${params.toString() ? "?" + params.toString() : ""}`);
-      goto("edit");
-      renderPreview();
-      els.input.focus();
-    }
-
-    function initFromQuery(){
-      const params = new URLSearchParams(location.search);
-      const qFont = params.get("font");
-      const qValue = params.get("v");
-
-      if(qFont && FONT_OPTIONS.some(f => f.key === qFont)){
-        state.fontKey = qFont;
-      }
-      applyFont();
-      renderFontButtons();
-
-      if(qValue !== null){
-        state.text = sanitizeInput(qValue);
-        els.input.value = state.text;
-        goto("result");
-
-        if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(() => animateToText(state.text));
-        } else {
-          animateToText(state.text);
-        }
-      } else {
-        goto("edit");
-        els.input.value = state.text || "";
-        renderPreview();
-      }
-    }
-
-    els.input.addEventListener("input", renderPreview);
-    els.btnRun.addEventListener("click", run);
-    els.btnBack.addEventListener("click", back);
-
-    els.input.addEventListener("keydown", (e) => {
-      if(e.key === "Enter"){
-        e.preventDefault();
-        run();
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      if(els.pageEdit.classList.contains("is-active")){
-        fitText(els.previewFit);
-      } else {
-        fitText(els.resultFit);
-      }
-    });
-
-    window.addEventListener("popstate", () => {
-      initFromQuery();
-    });
-
-    initFromQuery();
-  </script>
-</body>
-</html>
+      { key:"speed",  label:"SPEED",
