@@ -1020,3 +1020,15 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   max-width: 100%;
 }
+/* ===== FORCE remove link style for RUNIMATE title ===== */
+a.title-link,
+a.title-link:link,
+a.title-link:visited,
+a.title-link:hover,
+a.title-link:active,
+a.title-link:focus{
+  color: inherit !important;
+  text-decoration: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
