@@ -1,547 +1,336 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RUNIMATE v2.0</title>
-  <link rel="stylesheet" href="./styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Record Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Codystar&family=Fugaz+One&family=Oswald:wght@500&family=VT323&display=swap" rel="stylesheet">
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --text-color: #000;
+            --highlight-color: #ff9500;
+            --preview-bg: #ffffff;
+            --preview-text: #000000;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1c2c31; /* 배경색 (스크린샷 참고) */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--bg-color);
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+
+        h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* 버튼 그룹 공통 스타일 */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        /* 스크롤 가능한 폰트 버튼 영역 */
+        .scroll-row {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .scroll-row::-webkit-scrollbar {
+            display: none; /* Chrome, Safari */
+        }
+
+        /* 1. 수정사항: 레이아웃/BG 컬러 버튼 한 줄 정렬 */
+        .full-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        button {
+            border: 2px solid #000;
+            background: white;
+            color: black;
+            border-radius: 30px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        /* 버튼 꽉 차게 (Type 1, Type 2 등) */
+        .btn-expand {
+            flex: 1; /* 남은 공간을 균등하게 차지 */
+            text-align: center;
+        }
+
+        button:hover {
+            background-color: #eee;
+        }
+
+        button.active {
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* 프리뷰 박스 */
+        #preview-container {
+            border: 3px solid #000;
+            border-radius: 20px;
+            padding: 30px;
+            background-color: var(--preview-bg);
+            color: var(--preview-text);
+            margin-bottom: 20px;
+            position: relative;
+            /* 애니메이션 제거 및 고정 */
+        }
+
+        .record-item {
+            margin-bottom: 20px;
+        }
+        .record-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 2px;
+            font-family: 'Helvetica Neue', Arial, sans-serif !important; /* 라벨은 기본 폰트 유지 */
+        }
+
+        .value {
+            font-size: 48px;
+            line-height: 1;
+            font-weight: 400; /* 폰트에 따라 weight 조정 */
+        }
+
+        /* 2. 수정사항: 폰트 적용 클래스 */
+        .font-anton .value { font-family: 'Anton', sans-serif; }
+        .font-dots .value { font-family: 'Codystar', cursive; font-weight: 900; }
+        .font-lcd .value { font-family: 'VT323', monospace; font-size: 56px; } /* LCD는 조금 더 크게 */
+        .font-gothic .value { font-family: 'Oswald', sans-serif; }
+        .font-speed .value { font-family: 'Fugaz One', cursive; }
+
+        /* 사용자 입력창 (타이틀용) - 기존 빈 박스 대체 */
+        .user-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #000;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            outline: none;
+            text-align: center;
+        }
+
+        /* RUN 버튼 */
+        .run-btn {
+            width: 100%;
+            background-color: var(--highlight-color);
+            border: none;
+            color: black;
+            font-size: 24px;
+            font-weight: 900;
+            padding: 15px;
+            border-radius: 30px;
+            text-transform: uppercase;
+        }
+        .run-btn:hover {
+            opacity: 0.9;
+            background-color: #e68600;
+        }
+
+        /* 결과 모달 (숨김 처리) */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 999;
+        }
+        #result-img {
+            max-width: 90%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+        }
+
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <a class="title title-link" href="./count.html" title="Go to COUNT">RUNIMATE <span class="version">v.2.0</span></a>
-      <div class="author">by JS @runarchive.js</div>
-    </header>
 
-    <section class="section">
-      <span class="section-label">RECORD TYPE</span>
-      <div class="button-group wide">
-        <button class="toggle-btn flex1" id="btnDaily" data-record="daily">Daily</button>
-        <button class="toggle-btn flex1" id="btnMonthly" data-record="monthly">Monthly</button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="data-panel" id="dataPanel">
-        <div class="data-panel-head" id="dataPanelHead"><div class="data-panel-title">DATA TYPE</div></div>
-        
-        <div class="data-tabs" id="dataTabsDaily">
-          <button class="data-tab garmin" data-datatype="garmin">GARMIN</button>
-          <button class="data-tab strava" data-datatype="strava">STRAVA</button>
-          <button class="data-tab nrc" data-datatype="nrc">NRC</button>
-          <button class="data-tab manual" data-datatype="manual">MANUAL</button>
-        </div>
-        <div class="data-tabs" id="dataTabsMonthly">
-          <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
-        </div>
-
-        <div class="data-empty" id="dataEmpty"></div>
-
-        <div class="data-content" id="contentCard">
-          <div class="garmin-card">
-            <div class="garmin-card-left">
-              <div class="garmin-date" id="cardDate"></div>
-              <div class="garmin-stats">
-                <div class="garmin-stat" id="cardDist"></div>
-                <div class="garmin-stat" id="cardPace"></div>
-                <div class="garmin-stat" id="cardTime"></div>
-              </div>
-            </div>
-            <button class="garmin-list-btn" id="btnCardList"><div class="hamburger"><span></span><span></span><span></span></div></button>
-          </div>
-        </div>
-
-        <div class="data-content" id="contentNrc">
-          <div class="sub-title">Upload Your Record</div>
-          <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
-          <div class="ocr-status" id="ocrStatus"></div>
-          <input type="file" id="fileNrc" accept="image/*" hidden />
-        </div>
-
-        <div class="data-content" id="contentManual">
-          <div class="sub-title">Enter Your Record</div>
-          <div class="manual-row">
-            <button class="manual-chip" id="chipDistance">
-              <span class="chip-label">Distance</span><span class="chip-value" id="manualDistanceText">00.00</span><span class="chip-unit">Km</span>
-            </button>
-            <button class="manual-chip" id="chipPace">
-              <span class="chip-label">Pace</span><span class="chip-value" id="manualPaceText">00'00"</span><span class="chip-unit">/Km</span>
-            </button>
-          </div>
-          <div class="manual-time-line"><span>Time</span><span id="manualTimeText">00:00:00</span></div>
-        </div>
-
-        <div class="month-block" id="monthBlock">
-          <div class="month-label">MONTH</div>
-          <button class="month-btn" id="btnMonthPick"></button>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <span class="section-label">FONT</span>
-      <div class="button-group font-group no-wrap" id="fontGroup">
-        <button class="toggle-btn font-btn" data-font="anton">ANTON</button>
-        <button class="toggle-btn font-btn" data-font="dots">DOTS</button>
-        <button class="toggle-btn font-btn" data-font="lcd">LCD</button>
-        <button class="toggle-btn font-btn" data-font="gothic">GOTHIC</button>
-        <button class="toggle-btn font-btn" data-font="speed">SPEED</button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="two-col">
-        <div class="col">
-          <span class="section-label inline">LAYOUT</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnType1" data-layout="type1">Type 1</button>
-            <button class="toggle-btn flex1" id="btnType2" data-layout="type2">Type 2</button>
-          </div>
-        </div>
-        <div class="col">
-          <span class="section-label inline">BG COLOR</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnBgWhite" data-bg="white">White</button>
-            <button class="toggle-btn flex1" id="btnBgBlack" data-bg="black">Black</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <span class="section-label">PREVIEW</span>
-      <div class="preview type1 bg-white font-dots" id="previewDaily">
-        <div class="preview-content">
-          <div class="data-item"><span class="data-label">DISTANCE</span><span class="data-value"><span id="pvDistD"></span></span></div>
-          <div class="data-item"><span class="data-label">PACE</span><span class="data-value"><span id="pvPaceD"></span></span></div>
-          <div class="data-item"><span class="data-label">TIME</span><span class="data-value"><span id="pvTimeD"></span></span></div>
-        </div>
-      </div>
-      <div class="preview monthly type1 bg-white font-dots" id="previewMonthly">
-        <div class="preview-content">
-          <div class="monthly-type1">
-            <div class="m1-month pvMonthText"></div>
-            <div class="m1-distance"><span class="m1-distance-value"><span id="pvDistM1"></span></span></div>
-            <div class="m1-stack">
-              <div class="m1-item"><div class="m-label">RUNS</div><div class="m-value"><span id="pvRunsM1"></span></div></div>
-              <div class="m1-item"><div class="m-label">PACE</div><div class="m-value"><span id="pvPaceM1"></span></div></div>
-              <div class="m1-item"><div class="m-label">TIME</div><div class="m-value"><span id="pvTimeM1"></span></div></div>
-            </div>
-          </div>
-          <div class="monthly-type2">
-            <div class="m2-month-line pvMonthText"></div>
-            <div class="m2-distance"><span class="m2-distance-value"><span id="pvDistM2"></span></span></div>
-            <div class="m2-row">
-              <div class="data-item"><span class="data-label">RUNS</span><span class="data-value"><span id="pvRunsM2"></span></span></div>
-              <div class="data-item"><span class="data-label">PACE</span><span class="data-value"><span id="pvPaceM2"></span></span></div>
-              <div class="data-item"><span class="data-label">TIME</span><span class="data-value"><span id="pvTimeM2"></span></span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <button class="run-btn" id="btnRun">RUN</button>
-  </div>
-
-  <div class="modal-overlay" id="modalInput"><div class="modal">
-    <div class="modal-head"><div class="modal-title" id="modalTitle">Input</div><button class="modal-close" data-close="modalInput">×</button></div>
-    <div class="modal-body">
-      <form class="manual-form" id="formDistance" hidden><label class="field-label">Distance (Km)</label><input class="field-input" id="inpDist" inputmode="decimal" placeholder="e.g. 14.64"/><button class="field-save" type="submit">Save</button></form>
-      <form class="manual-form" id="formPace" hidden><label class="field-label">Pace (mm:ss /Km)</label><div class="pace-grid"><input class="field-input" id="inpPm" inputmode="numeric" placeholder="mm"/><div class="colon">:</div><input class="field-input" id="inpPs" inputmode="numeric" placeholder="ss"/></div><button class="field-save" type="submit">Save</button></form>
-    </div>
-  </div></div>
-
-  <div class="screen-overlay garmin-login" id="loginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="loginScreen">×</button>
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title"><div class="gc-big" id="loginTitle">GARMIN</div><div class="gc-sub">Sign-In</div></div>
-      <form class="garmin-login-form" id="loginForm">
-        <div id="loginInputs">
-          <label class="gc-label">email</label><input class="gc-input" type="email" />
-          <label class="gc-label">password</label><input class="gc-input" type="password" />
-        </div>
-        <div class="gc-note"><div class="gc-smile">:)</div><div class="gc-note-text">Account info is not stored.</div></div>
-        <button class="gc-cta" type="submit" id="btnLoginAction">Sign-In</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="screen-overlay select-workout" id="workoutScreen" aria-hidden="true">
-    <button class="screen-close" data-close="workoutScreen">×</button>
-    <div class="select-wrap"><div class="select-title">Select<br />Workout</div><div class="select-list" id="workoutList"></div></div>
-  </div>
-
-  <div class="screen-overlay month-picker" id="monthScreen" aria-hidden="true">
-    <button class="screen-close" data-close="monthScreen">×</button>
-    <div class="month-wrap">
-      <div class="month-head"><button class="month-nav" id="mPrev">‹</button><div class="month-year" id="mYear">2025</div><button class="month-nav" id="mNext">›</button></div>
-      <div class="month-grid" id="monthGrid"></div>
-    </div>
-  </div>
-
-  <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
-    <button class="screen-close" data-close="resultScreen">×</button>
-    <div class="result-wrap type1" id="resultWrap"><div class="result-block" id="resultBlock"></div></div>
-  </div>
-
-  <script type="module">
-    import { applyUIConfigToRoot } from './ui_config.js';
-
-    // --- Helpers & Formatters ---
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-    const pad = n => String(n || 0).padStart(2, '0');
-    const getMonthName = (m) => ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][clamp(m,1,12)-1];
+<div class="container">
     
-    const Format = {
-      km: k => `${Number(k||0).toFixed(2)}Km`,
-      runs: r => pad(r),
-      pace: s => {
-        const m = Math.floor((s||0)/60), r = Math.floor((s||0)%60);
-        return `${m}'${pad(r)}"`;
-      },
-      time: s => {
-        s = Math.floor(s||0);
-        const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), r = s%60;
-        return h>0 ? `${h}:${pad(m)}:${pad(r)}` : `${m}:${pad(r)}`;
-      },
-      cap: s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-    };
+    <div class="control-group">
+        <h3>Font</h3>
+        <div class="scroll-row" id="font-controls">
+            <button class="active" onclick="setFont('anton', this)">ANTON</button>
+            <button onclick="setFont('dots', this)">DOTS</button>
+            <button onclick="setFont('lcd', this)">LCD</button>
+            <button onclick="setFont('gothic', this)">GOTHIC</button>
+            <button onclick="setFont('speed', this)">SPEED</button>
+        </div>
+    </div>
 
-    // --- Auto Scaling Logic ---
-    const AutoFit = {
-      compute(els, minScale = 0.35) {
-        const arr = Array.isArray(els) ? els : [els];
-        let scale = 1;
-        arr.forEach(el => {
-          if(!el || !el.parentElement) return;
-          el.style.transform = '';
-          const pW = el.parentElement.clientWidth, cW = el.scrollWidth;
-          if(cW > pW) scale = Math.min(scale, (pW-1)/cW);
+    <div class="control-group">
+        <h3>Layout</h3>
+        <div class="full-row">
+            <button class="btn-expand active" onclick="setLayout('type1', this)">Type 1</button>
+            <button class="btn-expand" onclick="setLayout('type2', this)">Type 2</button>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <h3>Bg Color</h3>
+        <div class="full-row">
+            <button class="btn-expand active" onclick="setBg('white', this)">White</button>
+            <button class="btn-expand" onclick="setBg('black', this)">Black</button>
+        </div>
+    </div>
+
+    <h3>Preview</h3>
+    <div id="preview-container" class="font-anton">
+        <div class="record-item">
+            <div class="label">Distance</div>
+            <div class="value">10.00Km</div>
+        </div>
+        <div class="record-item">
+            <div class="label">Pace</div>
+            <div class="value">5'30"</div>
+        </div>
+        <div class="record-item">
+            <div class="label">Time</div>
+            <div class="value">55:00</div>
+        </div>
+    </div>
+
+    <input type="text" class="user-input" placeholder="Title (Optional)" id="title-input">
+
+    <button class="run-btn" onclick="generateImage()">RUN</button>
+</div>
+
+<div id="result-modal">
+    <img id="result-img" src="" alt="Result">
+    <button class="close-btn" onclick="closeModal()">Close / Downloaded</button>
+</div>
+
+<script>
+    const previewContainer = document.getElementById('preview-container');
+    const titleInput = document.getElementById('title-input');
+
+    // 폰트 변경 함수
+    function setFont(fontName, btn) {
+        // 모든 버튼 비활성화
+        const buttons = btn.parentElement.querySelectorAll('button');
+        buttons.forEach(b => b.classList.remove('active'));
+        // 클릭된 버튼 활성화
+        btn.classList.add('active');
+
+        // 프리뷰 컨테이너의 클래스 초기화 후 새 폰트 클래스 추가
+        // 기존 클래스 중 font- 로 시작하는 것 제거
+        previewContainer.classList.forEach(cls => {
+            if(cls.startsWith('font-')) previewContainer.classList.remove(cls);
         });
-        return Math.max(minScale, Math.min(1, scale));
-      },
-      apply(els, scale) {
-        const arr = Array.isArray(els) ? els : [els];
-        arr.forEach(el => { if(el) { el.style.transformOrigin='left bottom'; el.style.transform = scale < 1 ? `scale(${scale})` : ''; } });
-      },
-      fit(els, min = 0.35) { this.apply(els, this.compute(els, min)); }
-    };
-
-    // --- State & Mock Data ---
-    const state = {
-      rec: 'daily', type: null, font: 'anton', layout: 'type1', bg: 'white',
-      daily: { km: 0, pace: 0, time: 0 },
-      monthly: { km: 0, runs: 0, pace: 0, time: 0, m: 12, y: 2025 },
-      garmin: { date:'2025.12.12', km:14.64, pace:359, time:4052 },
-      strava: { date:'2025.12.14', km:12.30, pace:340, time:4140 }
-    };
-    const Mocks = {
-      garmin: [
-        { date:'2025.12.12', km:14.64, pace:359, time:4052 },
-        { date:'2025.12.10', km:10.00, pace:320, time:3200 },
-        { date:'2025.12.05', km:21.10, pace:330, time:6965 }
-      ],
-      strava: [
-        { date:'2025.12.14', km:12.30, pace:340, time:4140 },
-        { date:'2025.12.07', km:15.00, pace:365, time:5475 }
-      ]
-    };
-
-    // --- Elements ---
-    const el = {
-      views: { daily: $('#previewDaily'), monthly: $('#previewMonthly') },
-      tabs: $$('.data-tab'),
-      panels: { card: $('#contentCard'), nrc: $('#contentNrc'), manual: $('#contentManual'), empty: $('#dataEmpty') },
-      pv: {
-        d: { dist: $('#pvDistD'), pace: $('#pvPaceD'), time: $('#pvTimeD') },
-        m1: { dist: $('#pvDistM1'), runs: $('#pvRunsM1'), pace: $('#pvPaceM1'), time: $('#pvTimeM1') },
-        m2: { dist: $('#pvDistM2'), runs: $('#pvRunsM2'), pace: $('#pvPaceM2'), time: $('#pvTimeM2') },
-        mTxt: $$('.pvMonthText')
-      },
-      card: { date: $('#cardDate'), dist: $('#cardDist'), pace: $('#cardPace'), time: $('#cardTime') },
-      manual: { dist: $('#manualDistanceText'), pace: $('#manualPaceText'), time: $('#manualTimeText') }
-    };
-
-    // --- Core Logic ---
-    function getCurrentData() {
-      if(state.rec === 'monthly') return state.monthly;
-      if(state.type === 'garmin') return state.garmin;
-      if(state.type === 'strava') return state.strava;
-      return state.daily;
+        previewContainer.classList.add('font-' + fontName);
     }
 
-    function applyConfig() {
-      // Classes
-      document.body.dataset.record = state.rec;
-      $('#btnDaily').classList.toggle('active', state.rec==='daily');
-      $('#btnMonthly').classList.toggle('active', state.rec==='monthly');
-      
-      // Data Tabs
-      el.tabs.forEach(t => t.classList.toggle('active', state.type === t.dataset.datatype));
-      const showM = state.rec === 'monthly';
-      $('#dataTabsDaily').style.display = showM ? 'none' : 'flex';
-      $('#dataTabsMonthly').style.display = showM ? 'flex' : 'none';
-      $('#monthBlock').style.display = showM ? 'block' : 'none';
+    // 레이아웃 변경 함수 (현재는 정렬만 바뀌는 예시)
+    function setLayout(type, btn) {
+        const buttons = btn.parentElement.querySelectorAll('button');
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-      // Panels
-      const dt = state.type;
-      el.panels.nrc.style.display = dt === 'nrc' ? 'block' : 'none';
-      el.panels.manual.style.display = (!showM && dt === 'manual') ? 'block' : 'none';
-      el.panels.card.style.display = (!showM && (dt === 'garmin' || dt === 'strava')) ? 'block' : 'none';
-      el.panels.empty.style.display = (dt || showM) ? 'none' : 'block';
-
-      // Visuals
-      const styling = [el.views.daily, el.views.monthly, $('#resultScreen')];
-      styling.forEach(n => {
-        n.className = `preview ${state.rec === 'monthly' ? 'monthly' : ''} ${state.layout} bg-${state.bg} font-${state.font}`;
-      });
-      $('#fontGroup').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.font===state.font));
-      $('#btnType1').classList.toggle('active', state.layout==='type1');
-      $('#btnType2').classList.toggle('active', state.layout==='type2');
-      $('#btnBgWhite').classList.toggle('active', state.bg==='white');
-      $('#btnBgBlack').classList.toggle('active', state.bg==='black');
-      $('#resultWrap').className = `result-wrap ${state.layout}`;
-
-      applyUIConfigToRoot({ font: state.font, recordType: state.rec, layout: state.layout });
-      updatePreview();
-    }
-
-    function updatePreview() {
-      const d = getCurrentData();
-      const isM = state.rec === 'monthly';
-
-      el.views.daily.style.display = isM ? 'none' : 'block';
-      el.views.monthly.style.display = isM ? 'block' : 'none';
-
-      if (!isM) {
-        // Daily
-        el.pv.d.dist.textContent = Format.km(d.km);
-        el.pv.d.pace.textContent = Format.pace(d.pace);
-        el.pv.d.time.textContent = Format.time(d.time);
-        // Card (Garmin/Strava)
-        if(state.type === 'garmin' || state.type === 'strava') {
-          el.card.date.textContent = d.date;
-          el.card.dist.textContent = Format.km(d.km);
-          el.card.pace.textContent = Format.pace(d.pace);
-          el.card.time.textContent = Format.time(d.time);
+        if(type === 'type1') {
+            previewContainer.style.textAlign = 'left';
+        } else {
+            previewContainer.style.textAlign = 'center'; // Type 2는 가운데 정렬 예시
         }
-      } else {
-        // Monthly
-        const mn = getMonthName(state.monthly.m), yr = state.monthly.y;
-        $('#btnMonthPick').textContent = `${Format.cap(mn)}. ${yr}`;
-        el.pv.mTxt.forEach(t => t.textContent = `${mn} ${yr}`);
-        
-        [el.pv.m1, el.pv.m2].forEach(grp => {
-          grp.dist.textContent = Format.km(d.km);
-          grp.runs.textContent = Format.runs(d.runs);
-          grp.pace.textContent = Format.pace(d.pace);
-          grp.time.textContent = Format.time(d.time);
+    }
+
+    // 배경색 변경 함수
+    function setBg(color, btn) {
+        const buttons = btn.parentElement.querySelectorAll('button');
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if(color === 'white') {
+            previewContainer.style.backgroundColor = '#ffffff';
+            previewContainer.style.color = '#000000';
+            previewContainer.style.borderColor = '#000000';
+        } else {
+            previewContainer.style.backgroundColor = '#000000';
+            previewContainer.style.color = '#ffffff';
+            previewContainer.style.borderColor = '#ffffff'; // 테두리도 흰색으로
+        }
+    }
+
+    // RUN 버튼 클릭 시 이미지 생성
+    function generateImage() {
+        // html2canvas로 캡처
+        html2canvas(previewContainer, {
+            backgroundColor: null, // 투명 배경 방지
+            scale: 2 // 고해상도
+        }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            
+            // 1. 다운로드 트리거
+            const link = document.createElement('a');
+            link.download = 'run-record.png';
+            link.href = imgData;
+            link.click();
+
+            // 2. 모달에 띄우기 (옵션)
+            // document.getElementById('result-img').src = imgData;
+            // document.getElementById('result-modal').style.display = 'flex';
         });
-      }
-      requestAnimationFrame(fitPreview);
     }
 
-    function fitPreview() {
-      const isType2 = state.layout === 'type2';
-      if (state.rec === 'daily') {
-        const { dist, pace, time } = el.pv.d;
-        if(isType2) AutoFit.fit([dist, pace, time], 0.30);
-        else [dist, pace, time].forEach(x => AutoFit.fit(x, 0.30));
-      } else {
-        AutoFit.fit(el.pv.m1.dist, 0.26);
-        [el.pv.m1.runs, el.pv.m1.pace, el.pv.m1.time].forEach(x => AutoFit.fit(x, 0.30));
-        
-        AutoFit.fit(el.pv.m2.dist, 0.26);
-        AutoFit.fit([el.pv.m2.runs, el.pv.m2.pace, el.pv.m2.time], 0.30);
-      }
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
     }
 
-    // --- Overlay & Modal ---
-    const overlay = (id, show) => {
-      const node = $(`#${id}`);
-      node.classList.toggle('show', show);
-      node.setAttribute('aria-hidden', !show);
-      document.body.classList.toggle('no-scroll', show || document.querySelector('.show'));
-    };
-    document.addEventListener('click', e => { if(e.target.dataset.close) overlay(e.target.dataset.close, false); });
+    // 입력창에 글자 쓰면 프리뷰 어딘가에 넣고 싶다면 여기 추가 로직 작성
+    // 현재는 그냥 입력창만 존재함
+</script>
 
-    // --- Interactive Logic ---
-    // Record & Tabs
-    $('#btnDaily').onclick = () => { state.rec='daily'; applyConfig(); };
-    $('#btnMonthly').onclick = () => { state.rec='monthly'; applyConfig(); };
-    el.tabs.forEach(b => b.onclick = () => {
-      state.type = b.dataset.datatype;
-      if(['garmin','strava'].includes(state.type)) {
-        $('#loginTitle').innerHTML = state.type === 'garmin' ? 'GARMIN<br/>CONNECT' : 'STRAVA';
-        $('#loginInputs').style.display = state.type === 'garmin' ? 'block' : 'none'; // Strava is just a button demo
-        $('#btnLoginAction').textContent = state.type === 'garmin' ? 'Sign-In' : 'Connect Strava';
-        overlay('loginScreen', true);
-      }
-      applyConfig(); updatePreview();
-    });
-
-    // Login Mock
-    $('#loginForm').onsubmit = (e) => {
-      e.preventDefault();
-      overlay('loginScreen', false);
-      const list = Mocks[state.type] || [];
-      $('#workoutList').innerHTML = list.map((w, i) => `
-        <button class="workout-item" data-idx="${i}">
-          <div class="w-left"><div class="w-date">${w.date}</div>
-          <div class="w-stats"><span>${Format.km(w.km)}</span><span>${Format.pace(w.pace)}</span><span>${Format.time(w.time)}</span></div></div>
-          <div class="w-arrow">→</div>
-        </button>`).join('');
-      $('#workoutList').onclick = (ev) => {
-        const btn = ev.target.closest('button');
-        if(btn) {
-          Object.assign(state[state.type], list[btn.dataset.idx]);
-          overlay('workoutScreen', false);
-          updatePreview();
-        }
-      };
-      overlay('workoutScreen', true);
-    };
-
-    // Manual Input
-    $('#chipDistance').onclick = () => { $('#formDistance').hidden=false; $('#formPace').hidden=true; $('#modalTitle').textContent='Distance'; overlay('modalInput', true); };
-    $('#chipPace').onclick = () => { $('#formDistance').hidden=true; $('#formPace').hidden=false; $('#modalTitle').textContent='Pace'; overlay('modalInput', true); };
-    
-    const updateManualTime = () => {
-      const t = Math.round((state.daily.km||0) * (state.daily.pace||0));
-      state.daily.time = t;
-      el.manual.time.textContent = Format.time(t);
-    };
-    
-    $('#formDistance').onsubmit = (e) => {
-      e.preventDefault();
-      const v = parseFloat($('#inpDist').value);
-      state.daily.km = isFinite(v)?v:0;
-      el.manual.dist.textContent = state.daily.km.toFixed(2);
-      updateManualTime(); overlay('modalInput', false); updatePreview();
-    };
-    $('#formPace').onsubmit = (e) => {
-      e.preventDefault();
-      const s = (parseInt($('#inpPm').value)||0)*60 + (parseInt($('#inpPs').value)||0);
-      state.daily.pace = s;
-      el.manual.pace.textContent = Format.pace(s);
-      updateManualTime(); overlay('modalInput', false); updatePreview();
-    };
-
-    // Month Picker
-    const refreshMonth = () => { $('#mYear').textContent = state.monthly.y; updatePreview(); };
-    $('#mPrev').onclick = () => { state.monthly.y--; refreshMonth(); };
-    $('#mNext').onclick = () => { state.monthly.y++; refreshMonth(); };
-    $('#btnMonthPick').onclick = () => {
-      $('#monthGrid').innerHTML = Array.from({length:12},(_,i)=>i+1).map(m=>`<button class="${m===state.monthly.m?'active':''}">${Format.cap(getMonthName(m))}</button>`).join('');
-      $('#monthGrid').onclick = (e) => { if(e.target.tagName==='BUTTON') { state.monthly.m = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(e.target.textContent.slice(0,3).toUpperCase())+1; refreshMonth(); overlay('monthScreen',false); }};
-      overlay('monthScreen', true);
-    };
-
-    // NRC / OCR Loader
-    $('#btnUploadNrc').onclick = () => $('#fileNrc').click();
-    $('#fileNrc').onchange = async (e) => {
-      const f = e.target.files?.[0]; if(!f) return;
-      $('#ocrStatus').textContent = 'Reading...';
-      const reader = new FileReader();
-      reader.onload = async () => {
-        let OCR; try { OCR = await import('./js/ocr.js'); } catch { try { OCR = await import('./ocr.js'); } catch{} }
-        if(!OCR || !OCR.extractAll) {
-          // Demo fallback
-          const dest = state.rec==='daily' ? state.daily : state.monthly;
-          Object.assign(dest, state.rec==='daily' ? {km:14.64, pace:359, time:5252} : {km:160.5, runs:16, pace:370, time:176000});
-          $('#ocrStatus').textContent = 'Demo Data Loaded';
-        } else {
-          try {
-            const out = await OCR.extractAll(reader.result, { recordType: state.rec });
-            const p = (out.paceMin||0)*60 + (out.paceSec||0);
-            const t = (out.timeH||0)*3600 + (out.timeM||0)*60 + (out.timeS||0);
-            if(state.rec === 'daily') state.daily = { km:Number(out.km)||0, pace:p, time:t };
-            else Object.assign(state.monthly, { km:Number(out.km)||0, runs:Number(out.runs)||0, pace:p, time:t });
-            $('#ocrStatus').textContent = 'Done';
-          } catch { $('#ocrStatus').textContent = 'Error'; }
-        }
-        updatePreview();
-      };
-      reader.readAsDataURL(f);
-    };
-
-    // Styling Toggles
-    $('#fontGroup').onclick = (e) => { if(e.target.dataset.font) { state.font = e.target.dataset.font; applyConfig(); } };
-    $('#btnType1').onclick = () => { state.layout='type1'; applyConfig(); };
-    $('#btnType2').onclick = () => { state.layout='type2'; applyConfig(); };
-    $('#btnBgWhite').onclick = () => { state.bg='white'; applyConfig(); };
-    $('#btnBgBlack').onclick = () => { state.bg='black'; applyConfig(); };
-    $('#btnCardList').onclick = (e) => { e.stopPropagation(); $('#loginForm').onsubmit({preventDefault:()=>{}}); };
-
-    // --- RUN / Result Animation ---
-    $('#btnRun').onclick = () => {
-      overlay('resultScreen', true);
-      const d = getCurrentData();
-      const mName = `${getMonthName(state.monthly.m)} ${state.monthly.y}`;
-      const isD = state.rec === 'daily';
-      const box = $('#resultBlock');
-
-      // Generate HTML (Unified)
-      const row = (l, id) => `<div class="${isD?'result-item':(state.layout==='type1'?'m1-item':'result-item')}"><span class="result-label">${l}</span><span class="result-value"><span id="${id}"></span></span></div>`;
-      if (isD) {
-        box.innerHTML = row('DISTANCE','rvDist') + row('PACE','rvPace') + row('TIME','rvTime');
-      } else if (state.layout === 'type1') {
-        box.innerHTML = `<div class="m1-month">${mName}</div><div class="m1-distance"><span class="m1-distance-value"><span id="rvDist"></span></span></div><div class="m1-stack">${row('RUNS','rvRuns')}${row('PACE','rvPace')}${row('TIME','rvTime')}</div>`;
-      } else {
-        box.innerHTML = `<div class="m2-month">${mName}</div><div class="m2-distance"><span class="m2-distance-value"><span id="rvDist"></span></span></div><div class="m2-row">${row('RUNS','rvRuns')}${row('PACE','rvPace')}${row('TIME','rvTime')}</div>`;
-      }
-
-      // Pre-calc scales (Lock Logic)
-      const refs = { dist: $('#rvDist'), runs: $('#rvRuns'), pace: $('#rvPace'), time: $('#rvTime') };
-      refs.dist.textContent = Format.km(d.km);
-      refs.pace.textContent = Format.pace(d.pace);
-      refs.time.textContent = Format.time(d.time);
-      if(refs.runs) refs.runs.textContent = Format.runs(d.runs);
-
-      // Compute locked scales
-      const sc = { dist: 1, group: 1, runs: 1, pace: 1, time: 1 };
-      sc.dist = AutoFit.compute(refs.dist, 0.26);
-      if(state.layout === 'type2') {
-        const grp = [refs.pace, refs.time]; if(refs.runs) grp.push(refs.runs);
-        sc.group = AutoFit.compute(grp, 0.30);
-      } else {
-        sc.pace = AutoFit.compute(refs.pace, 0.30);
-        sc.time = AutoFit.compute(refs.time, 0.30);
-        if(refs.runs) sc.runs = AutoFit.compute(refs.runs, 0.30);
-      }
-
-      // Animate Loop
-      const start = performance.now();
-      const ease = t => 1 - Math.pow(1 - t, 3);
-      const frame = (now) => {
-        const p = clamp((now - start - 500) / 1600, 0, 1);
-        const k = ease(p);
-        
-        refs.dist.textContent = Format.km(d.km * k);
-        refs.pace.textContent = Format.pace(d.pace * k);
-        refs.time.textContent = Format.time(d.time * k);
-        if(refs.runs) refs.runs.textContent = Format.runs(Math.round(d.runs * k));
-
-        // Apply locked scales
-        AutoFit.apply(refs.dist, sc.dist);
-        if(state.layout === 'type2') {
-          AutoFit.apply([refs.runs, refs.pace, refs.time], sc.group);
-        } else {
-          AutoFit.apply(refs.pace, sc.pace);
-          AutoFit.apply(refs.time, sc.time);
-          AutoFit.apply(refs.runs, sc.runs);
-        }
-
-        if(p < 1) requestAnimationFrame(frame);
-      };
-      requestAnimationFrame(frame);
-    };
-
-    // Init
-    applyConfig();
-  </script>
 </body>
 </html>
