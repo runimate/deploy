@@ -1,4 +1,3 @@
-// /api/strava/callback.js
 import crypto from "crypto";
 
 export default async function handler(req, res) {
@@ -43,16 +42,16 @@ export default async function handler(req, res) {
   }
 
   const tokenJson = await tokenRes.json();
-  // tokenJson: { access_token, refresh_token, expires_at, athlete... }
   const payload = {
     access_token: tokenJson.access_token,
     refresh_token: tokenJson.refresh_token,
-    expires_at: tokenJson.expires_at, // unix seconds
+    expires_at: tokenJson.expires_at,
   };
 
-  // 쿠키에 암호화 저장 (HttpOnly)
+  // 암호화
   const enc = encryptJSON(payload, sessionSecret);
 
+  // 1. 세션 쿠키 저장 (로그인 성공)
   setCookie(res, "strava_session", enc, {
     httpOnly: true,
     secure: true,
@@ -61,7 +60,7 @@ export default async function handler(req, res) {
     maxAge: 30 * 24 * 60 * 60, // 30일
   });
 
-  // state 쿠키는 삭제
+  // 2. 임시 state 쿠키 삭제 (중요: setCookie가 덮어쓰지 않도록 수정됨)
   setCookie(res, "strava_oauth_state", "", {
     httpOnly: true,
     secure: true,
@@ -70,11 +69,13 @@ export default async function handler(req, res) {
     maxAge: 0,
   });
 
-  // 메인 페이지로 돌아가기 (원하는 쿼리 붙여도 됨)
+  // 메인 페이지로 돌아가기
   res.statusCode = 302;
   res.setHeader("Location", "/?strava=connected");
   res.end();
 }
+
+// --- Helpers ---
 
 function getCookie(req, name) {
   const raw = req.headers.cookie || "";
@@ -89,6 +90,7 @@ function getCookie(req, name) {
   return null;
 }
 
+// ✅ [수정됨] 기존 헤더를 덮어쓰지 않고 추가하는 방식
 function setCookie(res, name, value, opt = {}) {
   const parts = [`${name}=${encodeURIComponent(value)}`];
   if (opt.maxAge != null) parts.push(`Max-Age=${opt.maxAge}`);
@@ -96,7 +98,24 @@ function setCookie(res, name, value, opt = {}) {
   if (opt.httpOnly) parts.push("HttpOnly");
   if (opt.secure) parts.push("Secure");
   if (opt.sameSite) parts.push(`SameSite=${opt.sameSite}`);
-  res.setHeader("Set-Cookie", parts.join("; "));
+  
+  const cookieString = parts.join("; ");
+  
+  // 기존 Set-Cookie 헤더가 있는지 확인
+  const prev = res.getHeader("Set-Cookie");
+  
+  if (prev) {
+    if (Array.isArray(prev)) {
+      // 배열이면 추가
+      res.setHeader("Set-Cookie", [...prev, cookieString]);
+    } else {
+      // 문자열이면 배열로 변환해서 추가
+      res.setHeader("Set-Cookie", [prev, cookieString]);
+    }
+  } else {
+    // 없으면 그냥 설정
+    res.setHeader("Set-Cookie", cookieString);
+  }
 }
 
 function encryptJSON(obj, secret) {
@@ -106,7 +125,6 @@ function encryptJSON(obj, secret) {
   const plaintext = Buffer.from(JSON.stringify(obj), "utf8");
   const enc = Buffer.concat([cipher.update(plaintext), cipher.final()]);
   const tag = cipher.getAuthTag();
-  // iv + tag + data -> base64
   return Buffer.concat([iv, tag, enc]).toString("base64");
 }
 
