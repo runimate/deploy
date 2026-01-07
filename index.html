@@ -295,17 +295,12 @@
   <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
-    // ---------- helpers ----------
     const $ = (s) => document.querySelector(s);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    function fmtKmPreview(km) {
-      return `${Number(km || 0).toFixed(2)}Km`;
-    }
-    function fmtRunsPreview(r) {
-      return pad2(Number(r || 0));
-    }
+    function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
+    function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
@@ -343,7 +338,6 @@
       return names[clamp(m, 1, 12) - 1];
     }
 
-    // ---------- fit ----------
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = '';
@@ -416,7 +410,6 @@
       });
     }
 
-    // ---------- OCR loader ----------
     let OCR = null;
     async function loadOCR() {
       if (OCR) return OCR;
@@ -425,17 +418,14 @@
       return null;
     }
 
-    // ---------- state ----------
     const state = {
       recordType: 'daily',
       dataType: null,
       font: 'anton',
       layout: 'type1',
       bg: 'white',
-
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
-
       garmin: { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
       strava: { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 }
     };
@@ -475,7 +465,6 @@
       }
     }
 
-    // ---------- elements ----------
     const el = {
       btnDaily: $('#btnDaily'),
       btnMonthly: $('#btnMonthly'),
@@ -535,6 +524,7 @@
       garminDistanceText: $('#garminDistanceText'),
       garminPaceText: $('#garminPaceText'),
       garminTimeText: $('#garminTimeText'),
+      garminLoginForm: $('#garminLoginForm'),
       workoutList: $('#workoutList'),
       monthPickerScreen: $('#monthPickerScreen'),
       monthGrid: $('#monthGrid'),
@@ -546,7 +536,7 @@
       resultWrap: $('#resultWrap'),
       resultBlock: $('#resultBlock'),
       btnStravaConnect: $('#btnStravaConnect'),
-      btnGarminToStrava: $('#btnGarminToStrava'), // ✅ 추가된 버튼
+      btnGarminToStrava: $('#btnGarminToStrava'),
       garminCard: $('#garminCard'),
       garminIntro: $('.garmin-login-wrap')
     };
@@ -581,7 +571,6 @@
       document.body.dataset.record = state.recordType;
       el.btnDaily.classList.toggle('active', state.recordType === 'daily');
       el.btnMonthly.classList.toggle('active', state.recordType === 'monthly');
-
       if (state.recordType === 'monthly') {
         el.dataPanelHead.style.display = 'none';
         el.dataTabsDaily.style.display = 'none';
@@ -604,7 +593,6 @@
         el.previewDaily.style.display = 'block';
         el.previewMonthly.style.display = 'none';
         if (state.dataType === 'nrc' || state.dataType === 'garmin' || state.dataType === 'manual' || state.dataType === 'strava') {
-          // 유지
         } else {
           state.dataType = null;
         }
@@ -730,27 +718,27 @@
       el.garminDistanceText.textContent = fmtKmPreview(cardSrc.km);
       el.garminPaceText.textContent = fmtPaceResult(cardSrc.paceSec);
       el.garminTimeText.textContent = fmtTimeResult(cardSrc.timeSec);
-      
+
       requestAnimationFrame(applyFitPreview);
     }
 
     const mockWorkouts = [
       { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
-      { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 }
+      { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 },
+      { date: '2025.12.08', km: 5.00, paceSec: 4 * 60 + 55, timeSec: 24 * 60 + 35 },
+      { date: '2025.12.05', km: 21.10, paceSec: 5 * 60 + 30, timeSec: 1 * 3600 + 56 * 60 + 5 },
+      { date: '2025.11.30', km: 7.20, paceSec: 6 * 60 + 10, timeSec: 44 * 60 + 20 }
+    ];
+
+    const mockStravaWorkouts = [
+      { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 },
+      { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 },
+      { date: '2025.12.07', km: 15.00, paceSec: 6 * 60 + 5, timeSec: 1 * 3600 + 31 * 60 + 15 }
     ];
 
     function renderWorkoutList(kind = 'garmin') {
       el.workoutList.innerHTML = '';
-      let list;
-      if (kind === 'strava') {
-        list = realStravaWorkouts.length > 0 ? realStravaWorkouts : []; 
-        if (list.length === 0) {
-           el.workoutList.innerHTML = '<div style="padding:20px; text-align:center; font-weight:900;">No Strava runs found.<br>Please go for a run!</div>';
-           return;
-        }
-      } else {
-        list = mockWorkouts; 
-      }
+      const list = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : mockStravaWorkouts) : mockWorkouts;
       list.forEach((w) => {
         const btn = document.createElement('button');
         btn.className = 'workout-item';
@@ -763,7 +751,6 @@
               <span>${fmtPaceResult(w.paceSec)}</span>
               <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
-            <div style="font-size:10px; opacity:0.6; margin-top:4px;">${w.name || 'Run'}</div>
           </div>
           <div class="w-arrow">→</div>
         `;
@@ -771,8 +758,6 @@
           if (kind === 'strava') {
             state.strava = { ...w };
             state.dataType = 'strava';
-            
-            // 만약 가민 탭에서 들어왔다면 UI를 복구
             if(el.garminCard) el.garminCard.style.display = 'flex';
             if(el.garminIntro) el.garminIntro.style.display = 'none';
           } else {
@@ -787,6 +772,13 @@
       });
     }
 
+    el.garminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      closeScreen('garminLoginScreen');
+      renderWorkoutList('garmin');
+      openScreen('garminSelectScreen');
+    });
+
     el.btnGarminList.addEventListener('click', (e) => {
       e.stopPropagation();
       const kind = (state.dataType === 'strava') ? 'strava' : 'garmin';
@@ -794,7 +786,6 @@
       openScreen('garminSelectScreen');
     });
 
-    // ✅ 가민 -> 스트라바 연결 버튼 로직
     if(el.btnGarminToStrava) {
       el.btnGarminToStrava.addEventListener('click', async () => {
         state.dataType = 'strava';
@@ -935,7 +926,6 @@
       reader.readAsDataURL(f);
     });
 
-    // ✅ [수정] 결과 화면 DOM 생성 (프리뷰와 구조/간격 완전 일치화)
     function buildResultDOM() {
       el.resultWrap.classList.toggle('type1', state.layout === 'type1');
       el.resultWrap.classList.toggle('type2', state.layout === 'type2');
@@ -1032,18 +1022,39 @@
       }
     }
 
+    // ✅ [수정] 떨림 방지: 최종 텍스트 길이를 계산해서 width를 고정(Lock)
     function lockFitResultTransforms(target) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
+
+      // 1. 먼저 최종 텍스트를 세팅
       if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
       if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
       if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
       if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
+
+      // 2. Scale 계산 (기존 로직)
       let distScale = 1;
       let groupScale = 1;
       distScale = computeScaleForSpan(rvDistance, 0.26);
+
+      // 3. Width 고정 함수 (Jitter Fix)
+      const lockWidth = (el) => {
+        if(!el) return;
+        const w = el.offsetWidth; // 현재 최종 텍스트의 너비
+        el.style.width = w + 'px'; // 너비 고정
+        el.style.display = 'inline-block';
+        el.style.whiteSpace = 'nowrap';
+      };
+
+      lockWidth(rvDistance);
+      lockWidth(rvPace);
+      lockWidth(rvTime);
+      lockWidth(rvRuns);
+
+      // 4. Scale 적용 (기존 로직)
       if (state.recordType === 'daily') {
         if (state.layout === 'type2') {
           groupScale = computeScaleForGroup([rvDistance, rvPace, rvTime], 0.30);
@@ -1109,12 +1120,15 @@
       const rvPace = $('#rvPace');
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
+      
       const locker = lockFitResultTransforms(target);
       locker.resetToStart();
+      
       const hold = 500;
       const dur = 1600;
       const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+      
       function frame(now) {
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
@@ -1144,7 +1158,6 @@
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin';
       applyDataType();
-      // 가민 정책 안내 UI 보여주기 위해 카드는 숨기고 안내문 보이기
       if(el.garminCard) el.garminCard.style.display = 'none';
       if(el.garminIntro) el.garminIntro.style.display = 'block';
     });
