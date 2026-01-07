@@ -1,18 +1,13 @@
-/* =========================================================
-  RUNIMATE — UI CONFIG (preview/result layout tuning)
-  - 목적: 폰트별/레이아웃별 사이즈 & 간격을 여기서만 조절
-  - 원칙: “데이터 들어와도 폰트/간격이 변하지 않게” 고정 px 기반
-  - preview/result는 동일 변수를 공유 (원하면 분리 가능)
-========================================================= */
+/* ui_config.js */
 
 export const UI_CONFIG = {
   // 공통(전체 UI)
   global: {
-    // D2/M2 3등분 간격 (기본)
-    colGap: 18, // px
-    // D1/M1 세로 스택 간격 (기본)
-    rowGap: 18, // px (preview)
-    // ✅ [수정] 결과 화면도 프리뷰와 똑같이 18px로 통일
+    // D2/M2 데이터 간격 (Flex gap)
+    colGap: 24, // ✅ Type 2 간격 (18 -> 24로 조정, 취향껏 변경 가능)
+    
+    // D1/M1 세로 스택 간격
+    rowGap: 18, 
     rowGapResult: 18, 
   },
 
@@ -26,14 +21,14 @@ export const UI_CONFIG = {
         labelSize: 12,
         valueSize: 34,
         distanceValueSize: 34,
-        labelToValueGap: 6,
+        labelToValueGap: 2, // ✅ 6 -> 2 (축소)
         stackGap: 18,
       },
       d2: {
         labelSize: 12,
         valueSize: 34,
-        labelToValueGap: 6,
-        colGap: 18,
+        labelToValueGap: 2, // ✅ 6 -> 2
+        colGap: 24,         // global 값 상속받거나 개별 지정
       },
       m1: {
         monthSize: 14,
@@ -42,7 +37,7 @@ export const UI_CONFIG = {
         distanceToStatsGap: 14,
         labelSize: 10,
         valueSize: 24,
-        labelToValueGap: 6,
+        labelToValueGap: 2, // ✅ 6 -> 2
         stackGap: 18,
       },
       m2: {
@@ -52,8 +47,8 @@ export const UI_CONFIG = {
         distanceToRowGap: 14,
         labelSize: 12,
         valueSize: 34,
-        labelToValueGap: 6,
-        colGap: 18,
+        labelToValueGap: 2, // ✅ 6 -> 2
+        colGap: 24,
       },
     },
 
@@ -61,40 +56,40 @@ export const UI_CONFIG = {
     // DOTS
     // =========================
     dots: {
-      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
     },
 
     // =========================
     // LCD
     // =========================
     lcd: {
-      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
     },
 
     // =========================
     // GOTHIC
     // =========================
     gothic: {
-      d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 10, valueSize: 34, labelToValueGap: 0, colGap: 18 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
+      d2: { labelSize: 10, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: 2, colGap: 24 },
     },
 
     // =========================
     // SPEED
     // =========================
     speed: {
-      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 6, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 0, colGap: 18 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 6, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 6, colGap: 18 },
+      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
     },
   },
 };
