@@ -4,8 +4,7 @@ export const UI_CONFIG = {
   // 공통(전체 UI)
   global: {
     // D2/M2 데이터 간격 (Flex gap)
-    colGap: 24, // ✅ Type 2 간격 (18 -> 24로 조정, 취향껏 변경 가능)
-    
+    colGap: 24, 
     // D1/M1 세로 스택 간격
     rowGap: 18, 
     rowGapResult: 18, 
@@ -14,21 +13,21 @@ export const UI_CONFIG = {
   // 폰트별 설정
   fonts: {
     // =========================
-    // ANTON
+    // ANTON (상하 간격 넓힘)
     // =========================
     anton: {
       d1: {
         labelSize: 12,
         valueSize: 34,
         distanceValueSize: 34,
-        labelToValueGap: 2, // ✅ 6 -> 2 (축소)
+        labelToValueGap: 8, // ✅ 2 -> 8 (넓힘)
         stackGap: 18,
       },
       d2: {
         labelSize: 12,
         valueSize: 34,
-        labelToValueGap: 2, // ✅ 6 -> 2
-        colGap: 24,         // global 값 상속받거나 개별 지정
+        labelToValueGap: 8, // ✅ 2 -> 8
+        colGap: 24,
       },
       m1: {
         monthSize: 14,
@@ -37,7 +36,7 @@ export const UI_CONFIG = {
         distanceToStatsGap: 14,
         labelSize: 10,
         valueSize: 24,
-        labelToValueGap: 2, // ✅ 6 -> 2
+        labelToValueGap: 8, // ✅ 2 -> 8
         stackGap: 18,
       },
       m2: {
@@ -47,23 +46,23 @@ export const UI_CONFIG = {
         distanceToRowGap: 14,
         labelSize: 12,
         valueSize: 34,
-        labelToValueGap: 2, // ✅ 6 -> 2
+        labelToValueGap: 8, // ✅ 2 -> 8
         colGap: 24,
       },
     },
 
     // =========================
-    // DOTS
+    // DOTS (상하 간격 좁힘)
     // =========================
     dots: {
-      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: -4, stackGap: 18 }, // ✅ -4
+      d2: { labelSize: 12, valueSize: 34, labelToValueGap: -4, colGap: 24 }, // ✅ -4
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: -4, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 12, valueSize: 34, labelToValueGap: -4, colGap: 24 },
     },
 
     // =========================
-    // LCD
+    // LCD (보통)
     // =========================
     lcd: {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
@@ -73,17 +72,17 @@ export const UI_CONFIG = {
     },
 
     // =========================
-    // GOTHIC
+    // GOTHIC (상하 간격 좁힘)
     // =========================
     gothic: {
-      d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
-      d2: { labelSize: 10, valueSize: 34, labelToValueGap: 2, colGap: 24 },
-      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: 2, stackGap: 18 },
-      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: 2, colGap: 24 },
+      d1: { labelSize: 10, valueSize: 34, distanceValueSize: 34, labelToValueGap: -3, stackGap: 18 }, // ✅ -3
+      d2: { labelSize: 10, valueSize: 34, labelToValueGap: -3, colGap: 24 }, // ✅ -3
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToStatsGap: 14, labelSize: 10, valueSize: 24, labelToValueGap: -3, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 36, distanceToRowGap: 14, labelSize: 10, valueSize: 34, labelToValueGap: -3, colGap: 24 },
     },
 
     // =========================
-    // SPEED
+    // SPEED (보통)
     // =========================
     speed: {
       d1: { labelSize: 12, valueSize: 34, distanceValueSize: 34, labelToValueGap: 2, stackGap: 18 },
