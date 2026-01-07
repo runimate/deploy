@@ -453,10 +453,53 @@
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
 
       garmin: { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
-
-      // ✅ STRAVA 상태 추가 (Garmin과 동일한 shape)
       strava: { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 }
     };
+
+    let realStravaWorkouts = []; // ✅ 실제 Strava 데이터 저장용
+
+    // ✅ Strava 활동 데이터 가져오기 (API 호출)
+    async function fetchStravaActivities() {
+      try {
+        const res = await fetch('/api/strava/activities?per_page=30');
+        if (!res.ok) {
+          if (res.status === 401) return false; // 미로그인 상태
+          throw new Error('Failed to fetch');
+        }
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.workouts)) {
+          realStravaWorkouts = data.workouts;
+          return true; // 로그인 됨 & 데이터 있음
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return false;
+    }
+
+    // ✅ 페이지 로드 시 Strava 로그인 상태 체크
+    async function checkStravaSession() {
+      // 1. 로그인 직후 리다이렉트된 경우인지 확인 (?strava=connected)
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('strava') === 'connected') {
+        // URL 파라미터 청소
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // Strava 탭으로 자동 이동
+        state.dataType = 'strava';
+        applyDataType(); 
+      }
+
+      // 2. 데이터 가져오기 시도
+      const isLoggedIn = await fetchStravaActivities();
+      
+      // 3. 로그인 상태라면 UI 업데이트 (로그인 화면 숨김 처리 등)
+      if (isLoggedIn && state.dataType === 'strava') {
+        // 이미 로그인 되었으므로 로그인 화면이 열려있다면 닫고, 리스트 오픈
+        closeScreen('stravaLoginScreen');
+        renderWorkoutList('strava');
+        openScreen('garminSelectScreen');
+      }
+    }
 
     // ---------- elements ----------
     const el = {
@@ -471,7 +514,7 @@
       dataEmpty: $('#dataEmpty'),
 
       tabGarmin: $('#tabGarmin'),
-      tabStrava: $('#tabStrava'), // ✅ 추가
+      tabStrava: $('#tabStrava'),
       tabNrc: $('#tabNrc'),
       tabManual: $('#tabManual'),
       tabNrcMonthly: $('#tabNrcMonthly'),
@@ -548,7 +591,6 @@
       resultWrap: $('#resultWrap'),
       resultBlock: $('#resultBlock'),
 
-      // ✅ STRAVA CONNECT
       btnStravaConnect: $('#btnStravaConnect')
     };
 
@@ -629,7 +671,6 @@
     }
 
     function applyDataType() {
-      // ✅ STRAVA 탭까지 active 처리
       [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
         if (!t) return;
         t.classList.toggle('active', state.dataType === t.dataset.datatype);
@@ -777,24 +818,28 @@
       { date: '2025.11.30', km: 7.20, paceSec: 6 * 60 + 10, timeSec: 44 * 60 + 20 }
     ];
 
-    // ✅ STRAVA (mock) — 나중에 API 붙이면 여기만 교체하면 됨
-    const mockStravaWorkouts = [
-      { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 },
-      { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 },
-      { date: '2025.12.07', km: 15.00, paceSec: 6 * 60 + 5, timeSec: 1 * 3600 + 31 * 60 + 15 }
-    ];
-
-    // ✅ 공용 리스트 렌더러 (GARMIN/STRAVA 공유)
+    // ✅ 공용 리스트 렌더러 (Mock -> Real Strava)
     function renderWorkoutList(kind = 'garmin') {
       el.workoutList.innerHTML = '';
 
-      const list = (kind === 'strava') ? mockStravaWorkouts : mockWorkouts;
+      let list;
+      if (kind === 'strava') {
+        // Strava는 실제 데이터가 있으면 쓰고, 없으면 빈 배열
+        list = realStravaWorkouts.length > 0 ? realStravaWorkouts : []; 
+        
+        if (list.length === 0) {
+           el.workoutList.innerHTML = '<div style="padding:20px; text-align:center; font-weight:900;">No Strava runs found.<br>Please go for a run!</div>';
+           return;
+        }
+      } else {
+        // Garmin은 기존 Mock 데이터 유지
+        list = mockWorkouts; 
+      }
 
       list.forEach((w) => {
         const btn = document.createElement('button');
         btn.className = 'workout-item';
         btn.type = 'button';
-        // HTML Template String fixed below
         btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
@@ -803,6 +848,7 @@
               <span>${fmtPaceResult(w.paceSec)}</span>
               <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
+            <div style="font-size:10px; opacity:0.6; margin-top:4px;">${w.name || 'Run'}</div>
           </div>
           <div class="w-arrow">→</div>
         `;
@@ -989,7 +1035,6 @@
             ? { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec }
             : state.daily);
 
-        // Fixed JSX to Template String
         el.resultBlock.innerHTML = `
           <div class="result-item">
             <span class="result-label">DISTANCE</span>
@@ -1011,7 +1056,6 @@
       const monthLine = `${monthName(m.month)} ${m.year}`;
 
       if (state.layout === 'type1') {
-        // Fixed JSX to Template String
         el.resultBlock.innerHTML = `
           <div class="m1-month">${monthName(m.month)} ${m.year}</div>
           <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
@@ -1031,7 +1075,6 @@
           </div>
         `;
       } else {
-        // Fixed JSX to Template String
         el.resultBlock.innerHTML = `
           <div class="m2-month">${monthLine}</div>
           <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
@@ -1213,20 +1256,30 @@
       openScreen('garminLoginScreen');
     });
 
-    // ✅ STRAVA 탭: Strava Connect 화면으로
-    el.tabStrava.addEventListener('click', () => {
+    // ✅ [수정] Strava 탭 클릭 시 실제 데이터 로드 시도
+    el.tabStrava.addEventListener('click', async () => {
       state.dataType = 'strava';
       applyDataType();
-      openScreen('stravaLoginScreen');
       updatePreview();
+
+      // 데이터가 없으면 로그인 화면 띄우기, 있으면 리스트 바로 띄우기
+      if (realStravaWorkouts.length === 0) {
+        const success = await fetchStravaActivities();
+        if (success) {
+           renderWorkoutList('strava');
+           openScreen('garminSelectScreen');
+        } else {
+           openScreen('stravaLoginScreen');
+        }
+      } else {
+        renderWorkoutList('strava');
+        openScreen('garminSelectScreen');
+      }
     });
 
-    // ✅ Strava Connect → (OAuth 대신) 데모로 Select Workout 열기
-    // 나중에 실제 OAuth 붙일 때는 여기서 window.location = '/api/strava/login' 같은 걸로 교체
+    // ✅ [수정] Strava Connect -> 실제 서버 인증 페이지로 이동
     el.btnStravaConnect.addEventListener('click', () => {
-      closeScreen('stravaLoginScreen');
-      renderWorkoutList('strava');
-      openScreen('garminSelectScreen');
+      window.location.href = '/api/strava/connect';
     });
 
     el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
@@ -1265,6 +1318,9 @@
       applyBG();
       updatePreview();
       applyDataType();
+
+      // ✅ 앱 초기화 시 Strava 세션 체크
+      checkStravaSession();
     }
     initDefaults();
   </script>
