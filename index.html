@@ -444,30 +444,44 @@
 
     let realStravaWorkouts = [];
 
- async function fetchStravaActivities() {
+    async function fetchStravaActivities() {
       try {
-        // 1. 저장된 토큰 꺼내기
         const token = localStorage.getItem('strava_access_token');
         if (!token) return false;
 
-        // 2. 토큰을 헤더에 담아서 요청 보내기
-        const res = await fetch('/api/strava/activities', {
+        // 실제 Strava API 호출
+        // (참고: 로컬 파일이나 CORS 설정이 없는 환경에서는 직접 호출이 차단될 수 있습니다.)
+        const res = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=30', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
         if (!res.ok) {
-          if (res.status === 401) return false; // 토큰 만료 등
+          if (res.status === 401) {
+             console.log("Token expired");
+             localStorage.removeItem('strava_access_token');
+             return false;
+          }
           throw new Error('Failed to fetch');
         }
         
         const data = await res.json();
         
-        // 3. 데이터가 잘 왔는지 확인
-        if (data.ok && Array.isArray(data.workouts)) {
-          realStravaWorkouts = data.workouts;
-          return true;
+        if (Array.isArray(data)) {
+            realStravaWorkouts = data.map(item => {
+                const d = new Date(item.start_date_local);
+                const dateStr = `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}`;
+                
+                // Strava returns distance in meters, moving_time in seconds
+                return {
+                    date: dateStr,
+                    km: item.distance / 1000, 
+                    paceSec: (item.distance > 0) ? (item.moving_time / (item.distance / 1000)) : 0,
+                    timeSec: item.moving_time
+                };
+            });
+            return true;
         }
       } catch (err) {
         console.error(err);
@@ -477,22 +491,20 @@
 
     async function checkStravaSession() {
       const params = new URLSearchParams(window.location.search);
-      // callback.html에서 돌아왔을 때 처리 (localStorage에 토큰이 있다고 가정)
-      // 여기서는 UI 상태 복구에 집중
+      // callback.html에서 돌아왔을 때 처리
       if (params.get('strava') === 'connected') {
         window.history.replaceState({}, document.title, window.location.pathname);
         state.dataType = 'strava';
         applyDataType(); 
       }
       
-      // 토큰 확인 (간단 체크)
       const token = localStorage.getItem('strava_access_token');
       if (token) {
-        // 실제로는 여기서 토큰 유효성 체크를 하면 좋음
-        if (state.dataType === 'strava') {
+        // 이미 토큰이 있으면 데이터 로드 시도
+        const success = await fetchStravaActivities();
+        if (success && state.dataType === 'strava') {
             closeScreen('stravaLoginScreen');
-            // Mock 데이터 대신 실제 데이터를 로드하고 싶다면 여기서 fetch 로직 구현 필요
-            // 일단은 UI 흐름상 로그인 화면 닫기 처리
+            renderWorkoutList('strava');
         }
       }
     }
@@ -758,6 +770,7 @@
       { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
       { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 }
     ];
+    // 이 더미 데이터는 API 실패시 혹은 데이터가 없을 때 표시될 수 있음
     const mockStravaWorkouts = [
       { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 },
       { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 }
@@ -765,6 +778,7 @@
 
     function renderWorkoutList(kind = 'garmin') {
       el.workoutList.innerHTML = '';
+      // Strava인 경우 realStravaWorkouts가 있으면 그것을, 없으면 mock을 사용
       const list = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : mockStravaWorkouts) : mockWorkouts;
       list.forEach((w) => {
         const btn = document.createElement('button');
@@ -808,7 +822,7 @@
 
     // --- STRAVA AUTH LOGIC START ---
     function initiateStravaAuth() {
-        // ⚠️⚠️⚠️ 여기를 수정하세요! 본인의 Client ID로 ⚠️⚠️⚠️
+        // ⚠️ 본인의 Client ID로 교체 필요
         const CLIENT_ID = '192399'; 
         
         const REDIRECT_URI = window.location.origin + '/callback.html';
@@ -823,14 +837,18 @@
       el.btnGarminToStrava.addEventListener('click', async () => {
         state.dataType = 'strava';
         applyDataType(); 
-        const token = localStorage.getItem('strava_access_token');
         
-        // 토큰이 없으면 로그인 유도 (화면 띄우기)
+        const token = localStorage.getItem('strava_access_token');
         if (!token) {
              openScreen('stravaLoginScreen');
         } else {
-             renderWorkoutList('strava');
-             openScreen('garminSelectScreen');
+             const success = await fetchStravaActivities();
+             if (success) {
+                 renderWorkoutList('strava');
+                 openScreen('garminSelectScreen');
+             } else {
+                 openScreen('stravaLoginScreen');
+             }
         }
       });
     }
@@ -1171,17 +1189,23 @@
       if(el.garminIntro) el.garminIntro.style.display = 'block';
     });
     
-    // 스트라바 탭 클릭 시 (토큰 없으면 로그인 창, 있으면 리스트)
+    // 스트라바 탭 클릭 시 로직 수정 (토큰 확인 -> fetch 시도 -> 성공 시 오픈)
     el.tabStrava.addEventListener('click', async () => {
       state.dataType = 'strava';
       applyDataType();
       updatePreview();
+      
       const token = localStorage.getItem('strava_access_token');
       if (!token) {
         openScreen('stravaLoginScreen');
       } else {
-        renderWorkoutList('strava');
-        openScreen('garminSelectScreen');
+        const success = await fetchStravaActivities();
+        if (success) {
+            renderWorkoutList('strava');
+            openScreen('garminSelectScreen');
+        } else {
+            openScreen('stravaLoginScreen');
+        }
       }
     });
 
