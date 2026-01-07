@@ -1,19 +1,22 @@
-export default async function handler(request, response) {
-    // 1. 프론트엔드에서 보낸 'code' 받기
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
+export default async function handler(req, res) {
+    // [수정된 부분] new URL()을 쓰지 않고, req.query에서 바로 꺼냅니다.
+    const { code } = req.query;
 
     if (!code) {
-        return response.status(400).json({ error: 'Missing code' });
+        return res.status(400).json({ error: '인증 코드가 전달되지 않았습니다.' });
     }
 
-    // 2. 환경변수에서 비밀키 꺼내기 (Vercel 설정에서 넣어줄 예정)
+    // 환경변수 확인
     const CLIENT_ID = process.env.STRAVA_CLIENT_ID;
     const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
 
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+        // 이 에러가 뜨면 Vercel 환경변수 설정을 다시 확인해야 합니다.
+        return res.status(500).json({ error: '서버 설정 오류: 스트라바 키가 없습니다.' });
+    }
+
     try {
-        // 3. 스트라바에 진짜 토큰 요청
-        const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
+        const response = await fetch('https://www.strava.com/oauth/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -24,12 +27,16 @@ export default async function handler(request, response) {
             })
         });
 
-        const data = await tokenResponse.json();
+        const data = await response.json();
 
-        // 4. 결과 반환
-        return response.status(200).json(data);
+        if (data.errors) {
+            return res.status(500).json({ error: JSON.stringify(data) });
+        }
+
+        return res.status(200).json(data);
 
     } catch (error) {
-        return response.status(500).json({ error: 'Internal Server Error' });
+        console.error(error);
+        return res.status(500).json({ error: '서버 내부 오류 발생' });
     }
 }
