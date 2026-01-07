@@ -10,7 +10,7 @@
   --btn-h: 42px;
 
   --garmin: #76B6FF;
-  --strava: #FC4C02; /* ✅ NEW */
+  --strava: #FC4C02;
   --nrc: #5CE45C;
   --manual: #9B7CFF;
 
@@ -38,8 +38,8 @@
   --ui-month-to-distance-gap: 8px;
   --ui-month-distance-size: 36px;
 
-  --ui-distance-to-stats-gap: 14px; /* M1 stack 위 */
-  --ui-distance-to-row-gap: 14px;   /* M2 row 위 */
+  --ui-distance-to-stats-gap: 14px;
+  --ui-distance-to-row-gap: 14px;
 
   --ui-m-label-size: 10px;
   --ui-m-value-size: 24px;
@@ -60,12 +60,12 @@ body.no-scroll{ overflow: hidden; }
   position: relative;
 }
 
-/* ✅ JS가 죽어도 기본 화면이 안 꼬이게: Monthly 관련은 기본 숨김 */
+/* ✅ Monthly 관련 기본 숨김 */
 #previewMonthly{ display:none; }
 #dataTabsMonthly{ display:none; }
 #monthBlock{ display:none; }
 
-/* Webfonts (./fonts/) */
+/* Webfonts */
 @font-face{
   font-family:'Inter';
   src:url('./fonts/Inter.woff2') format('woff2');
@@ -123,18 +123,18 @@ body.no-scroll{ overflow: hidden; }
 .title-link{
   display: inline-flex;
   align-items: baseline;
-  color: inherit;          /* 링크 컬러 제거 */
-  text-decoration: none;   /* 밑줄 제거 */
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
-
 .title-link:hover,
 .title-link:active,
 .title-link:visited,
 .title-link:focus{
   color: inherit;
-  text-decoration: none;   /* hover/focus에서도 밑줄 X */
+  text-decoration: none;
 }
+
 /* Sections */
 .section{ margin-bottom: 18px; }
 .section-label{
@@ -230,7 +230,6 @@ body.no-scroll{ overflow: hidden; }
   letter-spacing: 0.4px;
 }
 
-/* ✅ Monthly: NRC only (hide DATA TYPE UI completely) */
 body[data-record="monthly"] #dataPanelHead,
 body[data-record="monthly"] #dataTabsDaily,
 body[data-record="monthly"] #dataTabsMonthly,
@@ -262,7 +261,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .data-tab:hover{ opacity:.88; }
 .data-tab.active{ color:#000; }
 .data-tab.garmin.active{ background: var(--garmin); }
-.data-tab.strava.active{ background: var(--strava); } /* ✅ NEW */
+.data-tab.strava.active{ background: var(--strava); }
 .data-tab.nrc.active{ background: var(--nrc); }
 .data-tab.manual.active{ background: var(--manual); }
 
@@ -299,6 +298,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .hamburger{ width: 18px; display:flex; flex-direction:column; gap:3px; }
 .hamburger span{ height:2px; background:#000; border-radius:2px; display:block; }
+
 /* NRC */
 .upload-btn{
   width:100%;
@@ -382,7 +382,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   gap: var(--ui-stack-gap);
 }
 
-/* ✅ D2 전용: Daily Type2에서만 전체 3등분 grid 적용 */
 .preview:not(.monthly).type2{ width: 100%; }
 .preview:not(.monthly).type2 .preview-content{
   display:grid;
@@ -391,20 +390,11 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items: start;
 }
 
-
-/* TYPE2 alignment lock: labels/values are LEFT-aligned in both preview and result */
 .preview.type2 .data-item,
-.result-wrap.type2 .result-item{
-  text-align: left;
-}
+.result-wrap.type2 .result-item{ text-align: left; }
 .preview.type2 .data-value,
-.result-wrap.type2 .result-value{
-  justify-content: flex-start;
-}
-/* ✅ Monthly Type2는 전체를 grid로 만들면 안 됨 (M2 내부 m2-row가 D2처럼 3등분 담당) */
-.preview.monthly.type2 .preview-content{
-  display:block;
-}
+.result-wrap.type2 .result-value{ justify-content: flex-start; }
+.preview.monthly.type2 .preview-content{ display:block; }
 
 .data-item{ min-width:0; }
 .data-label, .data-value{ display:block; width:100%; min-width:0; }
@@ -427,9 +417,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   display:flex;
   align-items:flex-end;
 }
-.preview.type1 .data-item:first-child .data-value{
-  font-size: var(--ui-distance-value-size);
-}
+.preview.type1 .data-item:first-child .data-value{ font-size: var(--ui-distance-value-size); }
 .data-value > span{
   display:inline-block;
   width:auto;
@@ -437,25 +425,18 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   padding-right: 0;
 }
 
-
-/* D1/M1 전용: 세로 스택에서만 미세한 여백(단위/마지막 글자 붙음 방지) */
+/* 미세 여백 */
 .preview.type1 .data-value > span,
 .preview.monthly.type1 .m1-distance-value > span,
 .preview.monthly.type1 .m-value > span,
 .result-wrap.type1 .result-value > span,
 .result-wrap.type1 .m1-distance-value > span,
-.result-wrap.type1 .m-value > span{
-  padding-right: .14em;
-}
-/* 안전: 넘침 방지 */
+.result-wrap.type1 .m-value > span{ padding-right: .14em; }
+
 .data-value,
 .result-value,
 .workout-item .w-stats,
-.garmin-stat{
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.garmin-stat{ max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* MONTHLY preview blocks */
 .preview.monthly .monthly-type1{ display:none; }
@@ -463,13 +444,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .preview.monthly.type1 .monthly-type1{ display:block; }
 .preview.monthly.type2 .monthly-type2{ display:block; }
 
-/* =========
-   M1 (세로 스택)
-========= */
-.monthly-type1{
-  display:flex;
-  flex-direction:column;
-}
+.monthly-type1{ display:flex; flex-direction:column; }
 .m1-month{
   font-size: var(--ui-month-size);
   font-weight: 600;
@@ -487,11 +462,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   margin-bottom: var(--ui-distance-to-stats-gap);
 }
-.m1-stack{
-  display:flex;
-  flex-direction:column;
-  gap: var(--ui-stack-gap);
-}
+.m1-stack{ display:flex; flex-direction:column; gap: var(--ui-stack-gap); }
 .m-label{
   font-size: var(--ui-m-label-size);
   font-weight: 600;
@@ -516,15 +487,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 
 .preview.monthly.type2{ width: 100%; }
-
-/* =========
-   M2 (핵심)
-   - 구조: month(1줄) + distance + (D2 동일한 3등분 row)
-========= */
-.monthly-type2{
-  display:flex;
-  flex-direction:column;
-}
+.monthly-type2{ display:flex; flex-direction:column; }
 .m2-month-line{
   font-size: var(--ui-month-size);
   font-weight: 600;
@@ -548,9 +511,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items:start;
 }
 
-/* ✅ M2 하단은 D2 그대로: data-label/data-value 기본 규칙을 그대로 사용 (추가 오버라이드 없음) */
-
-/* Preview fonts (값은 폰트, 라벨은 Inter 유지) */
+/* Preview fonts */
 .preview.font-anton .data-value,
 .preview.font-anton .m1-distance-value,
 .preview.font-anton .m-value,
@@ -687,7 +648,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .screen-overlay.show{ display:block; }
 
-/* Close */
 .screen-close{
   position:absolute;
   top: 16px;
@@ -756,7 +716,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   cursor:pointer;
 }
 
-/* ✅ Strava connect overlay (같은 레이아웃 + 배경만 Strava) */
 #stravaLoginScreen.garmin-login{ background: var(--strava); color:#000; }
 
 /* Select workout */
@@ -770,11 +729,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   margin-top: 12px;
   margin-bottom: 18px;
 }
-.select-list{
-  height: calc(100% - 120px);
-  overflow:auto;
-  padding-right: 4px;
-}
+.select-list{ height: calc(100% - 120px); overflow:auto; padding-right: 4px; }
 .workout-item{
   width:100%;
   border: var(--stroke) solid #000;
@@ -790,47 +745,18 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   text-decoration:none;
   -webkit-tap-highlight-color: transparent;
 }
-.workout-item .w-left{
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-  min-width:0;
-  align-items:flex-start;
-}
+.workout-item .w-left{ display:flex; flex-direction:column; gap: 8px; min-width:0; align-items:flex-start; }
 .workout-item .w-date{ font-size: 12px; font-weight: 900; }
-.workout-item .w-stats{
-  display:flex;
-  gap: 18px;
-  font-size: 16px;
-  font-weight: 900;
-  white-space: nowrap;
-  justify-content:flex-start;
-}
+.workout-item .w-stats{ display:flex; gap: 18px; font-size: 16px; font-weight: 900; white-space: nowrap; justify-content:flex-start; }
 .workout-item *{ color:inherit; }
-.workout-item:visited,
-.workout-item:active,
-.workout-item:focus,
-.workout-item:focus-visible{ color:#000; outline:none; }
+.workout-item:visited, .workout-item:active, .workout-item:focus, .workout-item:focus-visible{ color:#000; outline:none; }
 .w-arrow{ font-size: 26px; font-weight: 900; color:#000; }
 
 /* Month picker */
 .month-picker{ background:#fff; color:#000; }
 .month-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
-.month-head{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap: 12px;
-  margin-top: 12px;
-  margin-bottom: 16px;
-}
-.month-year{
-  min-width: 96px;
-  text-align:center;
-  font-size: 32px;
-  font-weight: 1000;
-  letter-spacing: -0.8px;
-}
+.month-head{ display:flex; align-items:center; justify-content:center; gap: 12px; margin-top: 12px; margin-bottom: 16px; }
+.month-year{ min-width: 96px; text-align:center; font-size: 32px; font-weight: 1000; letter-spacing: -0.8px; }
 .month-nav{
   width: 44px;
   height: var(--btn-h);
@@ -844,12 +770,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-weight: 900;
   cursor:pointer;
 }
-.month-grid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  padding-top: 6px;
-}
+.month-grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 6px; }
 .month-cell{
   color:#000;
   appearance:none;
@@ -881,9 +802,11 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   width: min(520px, 100%);
   display:flex;
   flex-direction:column;
-  gap: 34px;
+  /* ✅ [수정] 34px 고정값을 지우고 변수로 변경 */
+  gap: var(--ui-stack-gap);
   align-items:flex-start;
 }
+
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
   display:grid;
@@ -910,12 +833,9 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   display:flex;
   align-items:flex-end;
 }
-.result-wrap.type1 .result-item:first-child .result-value{
-  font-size: var(--ui-distance-value-size);
-}
+.result-wrap.type1 .result-item:first-child .result-value{ font-size: var(--ui-distance-value-size); }
 .result-value > span{ display:inline-block; width:auto; transform-origin: left bottom; padding-right: 0; }
 
-/* Monthly result type1 */
 .result-wrap.type1 .m1-month{
   font-size: var(--ui-month-size);
   font-weight: 600;
@@ -931,13 +851,8 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   display:block;
   margin-bottom: var(--ui-distance-to-stats-gap);
 }
-.result-wrap.type1 .m1-stack{
-  display:flex;
-  flex-direction:column;
-  gap: var(--ui-stack-gap);
-}
+.result-wrap.type1 .m1-stack{ display:flex; flex-direction:column; gap: var(--ui-stack-gap); }
 
-/* Monthly result type2 (M2 = D2 로직 동일) */
 .result-wrap.type2 .m2-month{
   grid-column: 1 / -1;
   font-size: var(--ui-month-size);
@@ -947,10 +862,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   font-family:'Inter', sans-serif;
 }
-.result-wrap.type2 .m2-distance{
-  grid-column: 1 / -1;
-  margin-bottom: var(--ui-distance-to-row-gap);
-}
+.result-wrap.type2 .m2-distance{ grid-column: 1 / -1; margin-bottom: var(--ui-distance-to-row-gap); }
 .result-wrap.type2 .m2-distance-value{
   font-size: var(--ui-month-distance-size);
   font-weight: 1000;
@@ -958,12 +870,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   display:block;
 }
-.result-wrap.type2 .m2-row{
-  grid-column: 1 / -1;
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
-}
+.result-wrap.type2 .m2-row{ grid-column: 1 / -1; display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: var(--ui-col-gap); }
 
 /* result fonts */
 .result-screen.font-anton .result-value,
@@ -1007,20 +914,9 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   .preview{ width: min(220px, 100%); }
 }
 
-/* AUTO SCALE VALUE (SAFE) */
-.data-value{
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  overflow: hidden;
-}
-.data-value > span{
-  display: inline-block;
-  transform-origin: left bottom;
-  white-space: nowrap;
-  max-width: 100%;
-}
-/* ===== FORCE remove link style for RUNIMATE title ===== */
+.data-value{ display: flex; align-items: flex-end; width: 100%; overflow: hidden; }
+.data-value > span{ display: inline-block; transform-origin: left bottom; white-space: nowrap; max-width: 100%; }
+
 a.title-link,
 a.title-link:link,
 a.title-link:visited,
