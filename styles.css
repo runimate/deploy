@@ -23,7 +23,7 @@
   --ui-col-gap: 24px;
   --ui-stack-gap: 18px;
 
-  --ui-label-to-value-gap: 2px; /* ✅ 6 -> 2 초기값 */
+  --ui-label-to-value-gap: 2px; /* 초기값 */
 
   /* daily (D1/D2) */
   --ui-label-size: 12px;
@@ -378,10 +378,10 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   gap: var(--ui-stack-gap);
 }
 
-/* ✅ Type 2: Flex 적용으로 간격(gap) 동일 보장 */
+/* ✅ Daily Type 2 & Monthly Type 2 모두 Flex로 통일 */
 .preview:not(.monthly).type2{ width: 100%; }
 .preview:not(.monthly).type2 .preview-content{
-  display: flex; /* Grid -> Flex */
+  display: flex;
   gap: var(--ui-col-gap);
   align-items: flex-start;
 }
@@ -401,7 +401,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .data-label{
   font-size: var(--ui-label-size);
   opacity: .9;
-  margin-bottom: var(--ui-label-to-value-gap); /* 2px 적용됨 */
+  margin-bottom: var(--ui-label-to-value-gap);
   letter-spacing: var(--pv-label-ls);
   white-space: nowrap;
   font-family: 'Inter', sans-serif;
@@ -502,11 +502,12 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   display:block;
   margin-bottom: var(--ui-distance-to-row-gap);
 }
+
+/* ✅ [수정] Monthly Type 2 하단 로직: Grid -> Flex로 변경하여 Daily와 동일 간격 적용 */
 .m2-row{
-  display:grid; /* M2 하단은 3등분 grid 유지 (Monthly 특성) */
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
-  align-items:start;
+  display: flex; /* Grid 제거 */
+  gap: var(--ui-col-gap); /* 간격 변수 사용 */
+  align-items: flex-start;
 }
 
 /* Preview fonts */
@@ -574,7 +575,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .run-btn:hover{ opacity: .92; }
 
-/* MODAL & OVERLAYS... (생략 없이 유지) */
+/* MODAL & OVERLAYS... */
 .modal-overlay{
   position: fixed;
   inset: 0;
@@ -847,12 +848,15 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   display:block;
 }
+
+/* ✅ [수정] Result Monthly Type 2 하단 로직: Grid -> Flex로 변경 */
 .result-wrap.type2 .m2-row{
   grid-column: 1 / -1;
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
+  display: flex; /* Grid -> Flex */
+  gap: var(--ui-col-gap); /* 간격 변수 사용 */
+  align-items: flex-start;
 }
+
 .result-screen.font-anton .result-value,
 .result-screen.font-anton .m1-distance-value,
 .result-screen.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
