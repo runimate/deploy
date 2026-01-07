@@ -45,15 +45,23 @@
         <div class="data-empty" id="dataEmpty"></div>
 
         <div class="data-content" id="contentGarmin">
-          <div class="garmin-login-wrap" style="padding: 10px 0; text-align:center;">
-            <div class="gc-big" style="font-size: 24px; margin-bottom:10px;">GARMIN SYNC</div>
-            <div class="gc-note" style="justify-content:center; margin-bottom: 20px;">
-              <div class="gc-note-text" style="text-align:center; opacity:0.8; line-height:1.4;">
+          <div class="garmin-login-wrap" style="height: auto; padding: 24px 0; text-align: center; background: none;">
+            
+            <div class="gc-big" style="font-size: 24px; margin-bottom: 16px;">GARMIN SYNC</div>
+            
+            <div class="gc-note" style="flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px; gap: 10px;">
+              <div class="gc-note-text" style="text-align: center; opacity: 0.7; line-height: 1.4; font-size: 12px; max-width: 100%;">
                 Garmin policy restricts direct access.<br>
                 Please import your Garmin runs via <b>Strava</b>.
               </div>
+              <div class="gc-note-text" style="text-align: center; opacity: 0.9; line-height: 1.4; font-size: 12px; font-weight: 700; max-width: 100%; color: var(--strava);">
+                가민 정책상 직접 연동이 지원되지 않습니다.<br>
+                <b>Strava</b>를 통해 데이터를 불러오세요.
+              </div>
             </div>
-            <button class="gc-cta" id="btnGarminToStrava" type="button" style="position:static; margin-top:0;">
+
+            <button class="gc-cta" id="btnGarminToStrava" type="button" 
+              style="position: static; margin: 0 auto; width: auto; padding: 0 40px; background: var(--strava); color: #fff; border: none; min-width: 200px;">
               Connect via Strava
             </button>
           </div>
@@ -292,6 +300,7 @@
       <div class="result-block" id="resultBlock"></div>
     </div>
   </div>
+
   <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
@@ -338,6 +347,7 @@
       return names[clamp(m, 1, 12) - 1];
     }
 
+    // --- FIT HELPERS ---
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = '';
@@ -410,6 +420,7 @@
       });
     }
 
+    // --- OCR LOAD ---
     let OCR = null;
     async function loadOCR() {
       if (OCR) return OCR;
@@ -418,6 +429,7 @@
       return null;
     }
 
+    // --- STATE ---
     const state = {
       recordType: 'daily',
       dataType: null,
@@ -465,6 +477,7 @@
       }
     }
 
+    // --- ELEMENTS ---
     const el = {
       btnDaily: $('#btnDaily'),
       btnMonthly: $('#btnMonthly'),
@@ -524,7 +537,7 @@
       garminDistanceText: $('#garminDistanceText'),
       garminPaceText: $('#garminPaceText'),
       garminTimeText: $('#garminTimeText'),
-      garminLoginForm: $('#garminLoginForm'),
+      // garminLoginForm (삭제됨)
       workoutList: $('#workoutList'),
       monthPickerScreen: $('#monthPickerScreen'),
       monthGrid: $('#monthGrid'),
@@ -538,7 +551,7 @@
       btnStravaConnect: $('#btnStravaConnect'),
       btnGarminToStrava: $('#btnGarminToStrava'),
       garminCard: $('#garminCard'),
-      garminIntro: $('.garmin-login-wrap')
+      garminIntro: $('#contentGarmin .garmin-login-wrap') // 인라인 래퍼 선택
     };
 
     function openScreen(id) {
@@ -724,16 +737,11 @@
 
     const mockWorkouts = [
       { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
-      { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 },
-      { date: '2025.12.08', km: 5.00, paceSec: 4 * 60 + 55, timeSec: 24 * 60 + 35 },
-      { date: '2025.12.05', km: 21.10, paceSec: 5 * 60 + 30, timeSec: 1 * 3600 + 56 * 60 + 5 },
-      { date: '2025.11.30', km: 7.20, paceSec: 6 * 60 + 10, timeSec: 44 * 60 + 20 }
+      { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 }
     ];
-
     const mockStravaWorkouts = [
       { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 },
-      { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 },
-      { date: '2025.12.07', km: 15.00, paceSec: 6 * 60 + 5, timeSec: 1 * 3600 + 31 * 60 + 15 }
+      { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 }
     ];
 
     function renderWorkoutList(kind = 'garmin') {
@@ -772,12 +780,7 @@
       });
     }
 
-    el.garminLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      closeScreen('garminLoginScreen');
-      renderWorkoutList('garmin');
-      openScreen('garminSelectScreen');
-    });
+    // (garminLoginForm 이벤트 제거됨)
 
     el.btnGarminList.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -997,54 +1000,26 @@
       return { km: +(m.km || 0), runs: +(m.runs || 0), paceSec: +(m.paceSec || 0), timeSec: +(m.timeSec || 0) };
     }
 
-    function applyFitResult() {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-      if (state.recordType === 'daily') {
-        if (state.layout === 'type2') {
-          fitGroup([rvDistance, rvPace, rvTime], 0.30);
-        } else {
-          fitOne(rvDistance, 0.30);
-          fitOne(rvPace, 0.30);
-          fitOne(rvTime, 0.30);
-        }
-        return;
-      }
-      fitOne(rvDistance, 0.26);
-      if (state.layout === 'type2') {
-        fitGroup([rvRuns, rvPace, rvTime], 0.30);
-      } else {
-        fitOne(rvRuns, 0.30);
-        fitOne(rvPace, 0.30);
-        fitOne(rvTime, 0.30);
-      }
-    }
-
-    // ✅ [수정] 떨림 방지: 최종 텍스트 길이를 계산해서 width를 고정(Lock)
+    // 떨림 방지: width Lock 로직
     function lockFitResultTransforms(target) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      // 1. 먼저 최종 텍스트를 세팅
       if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
       if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
       if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
       if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
 
-      // 2. Scale 계산 (기존 로직)
       let distScale = 1;
       let groupScale = 1;
       distScale = computeScaleForSpan(rvDistance, 0.26);
 
-      // 3. Width 고정 함수 (Jitter Fix)
       const lockWidth = (el) => {
         if(!el) return;
-        const w = el.offsetWidth; // 현재 최종 텍스트의 너비
-        el.style.width = w + 'px'; // 너비 고정
+        const w = el.offsetWidth;
+        el.style.width = w + 'px';
         el.style.display = 'inline-block';
         el.style.whiteSpace = 'nowrap';
       };
@@ -1054,7 +1029,6 @@
       lockWidth(rvTime);
       lockWidth(rvRuns);
 
-      // 4. Scale 적용 (기존 로직)
       if (state.recordType === 'daily') {
         if (state.layout === 'type2') {
           groupScale = computeScaleForGroup([rvDistance, rvPace, rvTime], 0.30);
@@ -1158,6 +1132,7 @@
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin';
       applyDataType();
+      // 가민 탭 인라인 요소 제어
       if(el.garminCard) el.garminCard.style.display = 'none';
       if(el.garminIntro) el.garminIntro.style.display = 'block';
     });
