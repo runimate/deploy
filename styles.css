@@ -17,16 +17,13 @@
   --pv-value-ls: 0px;
   --pv-label-ls: 0px;
 
-  --pv-value-add: 0px;
-  --rv-value-add: 0px;
-
   /* =========================
      UI CONFIG (ui_config.js에서 주입)
   ========================= */
-  --ui-col-gap: 18px;
+  --ui-col-gap: 24px;
   --ui-stack-gap: 18px;
 
-  --ui-label-to-value-gap: 6px;
+  --ui-label-to-value-gap: 2px; /* ✅ 6 -> 2 초기값 */
 
   /* daily (D1/D2) */
   --ui-label-size: 12px;
@@ -60,7 +57,6 @@ body.no-scroll{ overflow: hidden; }
   position: relative;
 }
 
-/* ✅ Monthly 관련 기본 숨김 */
 #previewMonthly{ display:none; }
 #dataTabsMonthly{ display:none; }
 #monthBlock{ display:none; }
@@ -382,18 +378,21 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   gap: var(--ui-stack-gap);
 }
 
+/* ✅ Type 2: Flex 적용으로 간격(gap) 동일 보장 */
 .preview:not(.monthly).type2{ width: 100%; }
 .preview:not(.monthly).type2 .preview-content{
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
-  align-items: start;
+  display: flex; /* Grid -> Flex */
+  gap: var(--ui-col-gap);
+  align-items: flex-start;
 }
 
+/* Type2 Alignment */
 .preview.type2 .data-item,
 .result-wrap.type2 .result-item{ text-align: left; }
 .preview.type2 .data-value,
 .result-wrap.type2 .result-value{ justify-content: flex-start; }
+
+/* Monthly Type2 */
 .preview.monthly.type2 .preview-content{ display:block; }
 
 .data-item{ min-width:0; }
@@ -402,7 +401,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .data-label{
   font-size: var(--ui-label-size);
   opacity: .9;
-  margin-bottom: var(--ui-label-to-value-gap);
+  margin-bottom: var(--ui-label-to-value-gap); /* 2px 적용됨 */
   letter-spacing: var(--pv-label-ls);
   white-space: nowrap;
   font-family: 'Inter', sans-serif;
@@ -425,7 +424,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   padding-right: 0;
 }
 
-/* 미세 여백 */
 .preview.type1 .data-value > span,
 .preview.monthly.type1 .m1-distance-value > span,
 .preview.monthly.type1 .m-value > span,
@@ -505,7 +503,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   margin-bottom: var(--ui-distance-to-row-gap);
 }
 .m2-row{
-  display:grid;
+  display:grid; /* M2 하단은 3등분 grid 유지 (Monthly 특성) */
   grid-template-columns: repeat(3, minmax(0,1fr));
   column-gap: var(--ui-col-gap);
   align-items:start;
@@ -576,7 +574,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .run-btn:hover{ opacity: .92; }
 
-/* MODAL */
+/* MODAL & OVERLAYS... (생략 없이 유지) */
 .modal-overlay{
   position: fixed;
   inset: 0;
@@ -588,7 +586,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   z-index: 2400;
 }
 .modal-overlay.show{ display:flex; }
-
 .modal{
   width: min(420px, 100%);
   background:#fff;
@@ -607,7 +604,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .modal-close{ border:none; background:transparent; font-size:22px; font-weight:900; cursor:pointer; }
 .modal-body{ padding: 12px 14px; max-height: 60vh; overflow:auto; }
 .manual-form{ display:none; }
-
 .field-label{ display:block; font-weight:900; font-size:12px; margin-bottom: 8px; }
 .field-input{
   width:100%;
@@ -636,8 +632,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   align-items:center;
 }
 .colon{ font-weight:900; font-size:16px; text-align:center; }
-
-/* SCREEN OVERLAYS */
 .screen-overlay{
   position: fixed;
   inset: 0;
@@ -647,7 +641,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   color:#000;
 }
 .screen-overlay.show{ display:block; }
-
 .screen-close{
   position:absolute;
   top: 16px;
@@ -671,8 +664,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-weight: 300;
   z-index: 5;
 }
-
-/* Garmin login */
 .garmin-login{ background: var(--garmin); color:#000; }
 .garmin-login-wrap{
   width:100%;
@@ -681,7 +672,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   padding: 42px 24px 24px 24px;
 }
 .wm-vertical{ display:none !important; }
-
 .garmin-login-title{ margin-top: 8px; }
 .gc-big{ font-size: 40px; font-weight: 1000; letter-spacing: -1px; line-height: .95; }
 .gc-sub{ margin-top: 10px; font-size: 34px; font-weight: 400; letter-spacing: -0.6px; }
@@ -715,10 +705,7 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   font-weight: 900;
   cursor:pointer;
 }
-
 #stravaLoginScreen.garmin-login{ background: var(--strava); color:#000; }
-
-/* Select workout */
 .select-workout{ background:#fff; color:#000; }
 .select-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
 .select-title{
@@ -751,8 +738,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 .workout-item *{ color:inherit; }
 .workout-item:visited, .workout-item:active, .workout-item:focus, .workout-item:focus-visible{ color:#000; outline:none; }
 .w-arrow{ font-size: 26px; font-weight: 900; color:#000; }
-
-/* Month picker */
 .month-picker{ background:#fff; color:#000; }
 .month-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
 .month-head{ display:flex; align-items:center; justify-content:center; gap: 12px; margin-top: 12px; margin-bottom: 16px; }
@@ -783,11 +768,8 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   cursor:pointer;
 }
 .month-cell.active{ background:#000; color:#fff; }
-
-/* Result */
 .result-screen.bg-white{ background:#fff; color:#000; }
 .result-screen.bg-black{ background:#000; color:#fff; }
-
 .result-wrap{
   width:100%;
   height:100%;
@@ -797,33 +779,30 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   justify-content:center;
 }
 .result-block{ width:100%; min-width:0; }
-
 .result-wrap.type1 .result-block{
   width: min(520px, 100%);
   display:flex;
   flex-direction:column;
-  /* ✅ [수정] 34px 고정값을 지우고 변수로 변경 */
   gap: var(--ui-stack-gap);
   align-items:flex-start;
 }
 
+/* ✅ Result Type 2: Flex 적용 */
 .result-wrap.type2 .result-block{
   width: min(520px, 100%);
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  column-gap: var(--ui-col-gap);
-  align-items:start;
+  display: flex; /* Grid -> Flex */
+  gap: var(--ui-col-gap);
+  align-items: flex-start;
   margin: 0 auto;
 }
 
 .result-item{ min-width:0; }
 .result-label, .result-value{ display:block; width:100%; min-width:0; white-space: nowrap; }
-
 .result-label{
   font-size: var(--ui-label-size);
   font-weight: 900;
   opacity: .9;
-  margin-bottom: var(--ui-label-to-value-gap);
+  margin-bottom: var(--ui-label-to-value-gap); /* 2px 적용됨 */
   font-family:'Inter', sans-serif;
 }
 .result-value{
@@ -835,7 +814,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
 }
 .result-wrap.type1 .result-item:first-child .result-value{ font-size: var(--ui-distance-value-size); }
 .result-value > span{ display:inline-block; width:auto; transform-origin: left bottom; padding-right: 0; }
-
 .result-wrap.type1 .m1-month{
   font-size: var(--ui-month-size);
   font-weight: 600;
@@ -852,7 +830,6 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   margin-bottom: var(--ui-distance-to-stats-gap);
 }
 .result-wrap.type1 .m1-stack{ display:flex; flex-direction:column; gap: var(--ui-stack-gap); }
-
 .result-wrap.type2 .m2-month{
   grid-column: 1 / -1;
   font-size: var(--ui-month-size);
@@ -870,59 +847,50 @@ body[data-record="monthly"] #contentNrc{ display:block !important; }
   white-space: nowrap;
   display:block;
 }
-.result-wrap.type2 .m2-row{ grid-column: 1 / -1; display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: var(--ui-col-gap); }
-
-/* result fonts */
+.result-wrap.type2 .m2-row{
+  grid-column: 1 / -1;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: var(--ui-col-gap);
+}
 .result-screen.font-anton .result-value,
 .result-screen.font-anton .m1-distance-value,
 .result-screen.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
 .result-screen.font-anton .result-label,
 .result-screen.font-anton .m1-month,
 .result-screen.font-anton .m2-month{ font-family:'Inter', sans-serif; font-weight:600; }
-
 .result-screen.font-dots .result-label,
 .result-screen.font-dots .result-value,
 .result-screen.font-dots .m1-month,
 .result-screen.font-dots .m1-distance-value,
 .result-screen.font-dots .m2-month,
 .result-screen.font-dots .m2-distance-value{ font-family:'Bitcount Grid Single', monospace; }
-
 .result-screen.font-lcd .result-label,
 .result-screen.font-lcd .result-value,
 .result-screen.font-lcd .m1-month,
 .result-screen.font-lcd .m1-distance-value,
 .result-screen.font-lcd .m2-month,
 .result-screen.font-lcd .m2-distance-value{ font-family:'DS-Digital', monospace; }
-
 .result-screen.font-gothic .result-label,
 .result-screen.font-gothic .result-value,
 .result-screen.font-gothic .m1-month,
 .result-screen.font-gothic .m1-distance-value,
 .result-screen.font-gothic .m2-month,
 .result-screen.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
-
 .result-screen.font-speed .result-label,
 .result-screen.font-speed .result-value,
 .result-screen.font-speed .m1-month,
 .result-screen.font-speed .m1-distance-value,
 .result-screen.font-speed .m2-month,
 .result-screen.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
-
 @media (max-width: 340px){
   body{ padding: 16px; padding-bottom: 110px; }
   .two-col{ gap: 12px; }
   .preview{ width: min(220px, 100%); }
 }
-
 .data-value{ display: flex; align-items: flex-end; width: 100%; overflow: hidden; }
 .data-value > span{ display: inline-block; transform-origin: left bottom; white-space: nowrap; max-width: 100%; }
-
-a.title-link,
-a.title-link:link,
-a.title-link:visited,
-a.title-link:hover,
-a.title-link:active,
-a.title-link:focus{
+a.title-link, a.title-link:link, a.title-link:visited, a.title-link:hover, a.title-link:active, a.title-link:focus{
   color: inherit !important;
   text-decoration: none !important;
   outline: none !important;
