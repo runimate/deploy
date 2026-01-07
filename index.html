@@ -10,7 +10,7 @@
 
 <body>
   <div class="container">
-<header class="header">
+    <header class="header">
       <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">
         RUNIMATE <span class="version">v.2.0</span>
       </a>
@@ -464,16 +464,23 @@
 
     async function checkStravaSession() {
       const params = new URLSearchParams(window.location.search);
+      // callback.html에서 돌아왔을 때 처리 (localStorage에 토큰이 있다고 가정)
+      // 여기서는 UI 상태 복구에 집중
       if (params.get('strava') === 'connected') {
         window.history.replaceState({}, document.title, window.location.pathname);
         state.dataType = 'strava';
         applyDataType(); 
       }
-      const isLoggedIn = await fetchStravaActivities();
-      if (isLoggedIn && state.dataType === 'strava') {
-        closeScreen('stravaLoginScreen');
-        renderWorkoutList('strava');
-        openScreen('garminSelectScreen');
+      
+      // 토큰 확인 (간단 체크)
+      const token = localStorage.getItem('strava_access_token');
+      if (token) {
+        // 실제로는 여기서 토큰 유효성 체크를 하면 좋음
+        if (state.dataType === 'strava') {
+            closeScreen('stravaLoginScreen');
+            // Mock 데이터 대신 실제 데이터를 로드하고 싶다면 여기서 fetch 로직 구현 필요
+            // 일단은 UI 흐름상 로그인 화면 닫기 처리
+        }
       }
     }
 
@@ -537,7 +544,6 @@
       garminDistanceText: $('#garminDistanceText'),
       garminPaceText: $('#garminPaceText'),
       garminTimeText: $('#garminTimeText'),
-      // garminLoginForm (삭제됨)
       workoutList: $('#workoutList'),
       monthPickerScreen: $('#monthPickerScreen'),
       monthGrid: $('#monthGrid'),
@@ -551,7 +557,7 @@
       btnStravaConnect: $('#btnStravaConnect'),
       btnGarminToStrava: $('#btnGarminToStrava'),
       garminCard: $('#garminCard'),
-      garminIntro: $('#contentGarmin .garmin-login-wrap') // 인라인 래퍼 선택
+      garminIntro: $('#contentGarmin .garmin-login-wrap')
     };
 
     function openScreen(id) {
@@ -780,8 +786,6 @@
       });
     }
 
-    // (garminLoginForm 이벤트 제거됨)
-
     el.btnGarminList.addEventListener('click', (e) => {
       e.stopPropagation();
       const kind = (state.dataType === 'strava') ? 'strava' : 'garmin';
@@ -789,24 +793,41 @@
       openScreen('garminSelectScreen');
     });
 
+    // --- STRAVA AUTH LOGIC START ---
+    function initiateStravaAuth() {
+        // ⚠️⚠️⚠️ 여기를 수정하세요! 본인의 Client ID로 ⚠️⚠️⚠️
+        const CLIENT_ID = 'YOUR_CLIENT_ID'; 
+        
+        const REDIRECT_URI = window.location.origin + '/callback.html';
+        const RESPONSE_TYPE = 'code';
+        const SCOPE = 'activity:read_all';
+
+        const authUrl = `https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
+        window.location.href = authUrl;
+    }
+
     if(el.btnGarminToStrava) {
       el.btnGarminToStrava.addEventListener('click', async () => {
         state.dataType = 'strava';
         applyDataType(); 
-        if (realStravaWorkouts.length === 0) {
-          const success = await fetchStravaActivities();
-          if (success) {
+        const token = localStorage.getItem('strava_access_token');
+        
+        // 토큰이 없으면 로그인 유도 (화면 띄우기)
+        if (!token) {
+             openScreen('stravaLoginScreen');
+        } else {
              renderWorkoutList('strava');
              openScreen('garminSelectScreen');
-          } else {
-             window.location.href = '/api/strava/connect';
-          }
-        } else {
-          renderWorkoutList('strava');
-          openScreen('garminSelectScreen');
         }
       });
     }
+    
+    // 모달창 내 'Connect Strava' 버튼
+    el.btnStravaConnect.addEventListener('click', () => {
+      initiateStravaAuth();
+    });
+    // --- STRAVA AUTH LOGIC END ---
+
 
     function buildMonthGrid() {
       el.monthGrid.innerHTML = '';
@@ -1136,26 +1157,21 @@
       if(el.garminCard) el.garminCard.style.display = 'none';
       if(el.garminIntro) el.garminIntro.style.display = 'block';
     });
+    
+    // 스트라바 탭 클릭 시 (토큰 없으면 로그인 창, 있으면 리스트)
     el.tabStrava.addEventListener('click', async () => {
       state.dataType = 'strava';
       applyDataType();
       updatePreview();
-      if (realStravaWorkouts.length === 0) {
-        const success = await fetchStravaActivities();
-        if (success) {
-           renderWorkoutList('strava');
-           openScreen('garminSelectScreen');
-        } else {
-           openScreen('stravaLoginScreen');
-        }
+      const token = localStorage.getItem('strava_access_token');
+      if (!token) {
+        openScreen('stravaLoginScreen');
       } else {
         renderWorkoutList('strava');
         openScreen('garminSelectScreen');
       }
     });
-    el.btnStravaConnect.addEventListener('click', () => {
-      window.location.href = '/api/strava/connect';
-    });
+
     el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
     el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
