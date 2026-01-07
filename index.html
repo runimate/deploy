@@ -444,14 +444,27 @@
 
     let realStravaWorkouts = [];
 
-    async function fetchStravaActivities() {
+ async function fetchStravaActivities() {
       try {
-        const res = await fetch('/api/strava/activities?per_page=30');
+        // 1. 저장된 토큰 꺼내기
+        const token = localStorage.getItem('strava_access_token');
+        if (!token) return false;
+
+        // 2. 토큰을 헤더에 담아서 요청 보내기
+        const res = await fetch('/api/strava/activities', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
         if (!res.ok) {
-          if (res.status === 401) return false;
+          if (res.status === 401) return false; // 토큰 만료 등
           throw new Error('Failed to fetch');
         }
+        
         const data = await res.json();
+        
+        // 3. 데이터가 잘 왔는지 확인
         if (data.ok && Array.isArray(data.workouts)) {
           realStravaWorkouts = data.workouts;
           return true;
