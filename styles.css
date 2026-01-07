@@ -1,1219 +1,898 @@
-<!doctype html>
-<html lang="ko">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RUNIMATE v2.0</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-
-<body>
-  <div class="container">
-    <header class="header">
-      <a class="title title-link" href="./count.html" title="Go to COUNT">
-        RUNIMATE <span class="version">v.2.0</span>
-      </a>
-      <div class="author">by JS @runarchive.js</div>
-    </header>
-
-    <section class="section">
-      <span class="section-label">RECORD TYPE</span>
-      <div class="button-group wide">
-        <button class="toggle-btn flex1" id="btnDaily" data-record="daily">Daily</button>
-        <button class="toggle-btn flex1" id="btnMonthly" data-record="monthly">Monthly</button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="data-panel" id="dataPanel">
-        <div class="data-panel-head" id="dataPanelHead">
-          <div class="data-panel-title">DATA TYPE</div>
-        </div>
-
-        <div class="data-tabs" id="dataTabsDaily">
-          <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
-          <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
-          <button class="data-tab nrc" id="tabNrc" data-datatype="nrc">NRC</button>
-          <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
-        </div>
-
-        <div class="data-tabs" id="dataTabsMonthly">
-          <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
-        </div>
-
-        <div class="data-empty" id="dataEmpty"></div>
-
-        <div class="data-content" id="contentGarmin">
-          <div class="garmin-login-wrap" style="padding: 10px 0; text-align:center;">
-            <div class="gc-big" style="font-size: 24px; margin-bottom:10px;">GARMIN SYNC</div>
-            <div class="gc-note" style="justify-content:center; margin-bottom: 20px;">
-              <div class="gc-note-text" style="text-align:center; opacity:0.8; line-height:1.4;">
-                Garmin policy restricts direct access.<br>
-                Please import your Garmin runs via <b>Strava</b>.
-              </div>
-            </div>
-            <button class="gc-cta" id="btnGarminToStrava" type="button" style="position:static; margin-top:0;">
-              Connect via Strava
-            </button>
-          </div>
-          
-          <div class="garmin-card" id="garminCard" style="display:none; margin-top:20px;">
-            <div class="garmin-card-left">
-              <div class="garmin-date" id="garminDateText">0000.00.00</div>
-              <div class="garmin-stats">
-                <div class="garmin-stat" id="garminDistanceText">00.00Km</div>
-                <div class="garmin-stat" id="garminPaceText">0'00"</div>
-                <div class="garmin-stat" id="garminTimeText">0:00</div>
-              </div>
-            </div>
-            <button class="garmin-list-btn" id="btnGarminList" aria-label="Open workout list">
-              <div class="hamburger" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="data-content" id="contentNrc">
-          <div class="sub-title">Upload Your Record</div>
-          <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
-          <div class="ocr-status" id="ocrStatus"></div>
-          <input type="file" id="fileNrc" accept="image/*" hidden />
-        </div>
-
-        <div class="data-content" id="contentManual">
-          <div class="sub-title">Enter Your Record</div>
-          <div class="manual-row">
-            <button class="manual-chip" id="chipDistance">
-              <span class="chip-label">Distance</span>
-              <span class="chip-value" id="manualDistanceText">00.00</span>
-              <span class="chip-unit">Km</span>
-            </button>
-            <button class="manual-chip" id="chipPace">
-              <span class="chip-label">Pace</span>
-              <span class="chip-value" id="manualPaceText">00'00"</span>
-              <span class="chip-unit">/Km</span>
-            </button>
-          </div>
-          <div class="manual-time-line">
-            <span>Time</span>
-            <span id="manualTimeText">00:00:00</span>
-          </div>
-        </div>
-
-        <div class="month-block" id="monthBlock">
-          <div class="month-label">MONTH</div>
-          <button class="month-btn" id="btnMonthPick">December. 2025</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <span class="section-label">FONT</span>
-      <div class="button-group font-group no-wrap" id="fontGroup">
-        <button class="toggle-btn font-btn font-anton" data-font="anton">ANTON</button>
-        <button class="toggle-btn font-btn font-dots" data-font="dots">DOTS</button>
-        <button class="toggle-btn font-btn font-lcd" data-font="lcd">LCD</button>
-        <button class="toggle-btn font-btn font-gothic" data-font="gothic">GOTHIC</button>
-        <button class="toggle-btn font-btn font-speed" data-font="speed">SPEED</button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="two-col">
-        <div class="col">
-          <span class="section-label inline">LAYOUT</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnType1" data-layout="type1">Type 1</button>
-            <button class="toggle-btn flex1" id="btnType2" data-layout="type2">Type 2</button>
-          </div>
-        </div>
-        <div class="col">
-          <span class="section-label inline">BG COLOR</span>
-          <div class="button-group two">
-            <button class="toggle-btn flex1" id="btnBgWhite" data-bg="white">White</button>
-            <button class="toggle-btn flex1" id="btnBgBlack" data-bg="black">Black</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <span class="section-label">PREVIEW</span>
-
-      <div class="preview type1 bg-white font-dots" id="previewDaily">
-        <div class="preview-content">
-          <div class="data-item">
-            <span class="data-label">DISTANCE</span>
-            <span class="data-value"><span id="pvDistanceDaily">00.00Km</span></span>
-          </div>
-          <div class="data-item">
-            <span class="data-label">PACE</span>
-            <span class="data-value"><span id="pvPaceDaily">0'00"</span></span>
-          </div>
-          <div class="data-item">
-            <span class="data-label">TIME</span>
-            <span class="data-value"><span id="pvTimeDaily">0:00</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="preview monthly type1 bg-white font-dots" id="previewMonthly">
-        <div class="preview-content">
-
-          <div class="monthly-type1">
-            <div class="m1-month" id="pvMonthType1">DECEMBER 2025</div>
-            <div class="m1-distance">
-              <span class="m1-distance-value"><span id="pvDistanceMonthlyT1">00.00Km</span></span>
-            </div>
-            <div class="m1-stack">
-              <div class="m1-item">
-                <div class="m-label">RUNS</div>
-                <div class="m-value"><span id="pvRunsMonthlyT1">00</span></div>
-              </div>
-              <div class="m1-item">
-                <div class="m-label">PACE</div>
-                <div class="m-value"><span id="pvPaceMonthlyT1">0'00"</span></div>
-              </div>
-              <div class="m1-item">
-                <div class="m-label">TIME</div>
-                <div class="m-value"><span id="pvTimeMonthlyT1">0:00</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="monthly-type2">
-            <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
-
-            <div class="m2-distance">
-              <span class="m2-distance-value"><span id="pvDistanceMonthlyT2">00.00Km</span></span>
-            </div>
-
-            <div class="m2-row">
-              <div class="data-item">
-                <span class="data-label">RUNS</span>
-                <span class="data-value"><span id="pvRunsMonthlyT2">00</span></span>
-              </div>
-              <div class="data-item">
-                <span class="data-label">PACE</span>
-                <span class="data-value"><span id="pvPaceMonthlyT2">0'00"</span></span>
-              </div>
-              <div class="data-item">
-                <span class="data-label">TIME</span>
-                <span class="data-value"><span id="pvTimeMonthlyT2">0:00</span></span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <button class="run-btn" id="btnRun">RUN</button>
-  </div>
-
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title" id="modalTitle">Input</div>
-        <button class="modal-close" id="modalClose" aria-label="Close">×</button>
-      </div>
-      <div class="modal-body">
-        <form class="manual-form" id="formDistance">
-          <label class="field-label">Distance (Km)</label>
-          <input class="field-input" id="inputDistance" inputmode="decimal" placeholder="e.g. 14.64" />
-          <button class="field-save" type="submit">Save</button>
-        </form>
-
-        <form class="manual-form" id="formPace">
-          <label class="field-label">Pace (mm:ss /Km)</label>
-          <div class="pace-grid">
-            <input class="field-input" id="inputPaceMin" inputmode="numeric" placeholder="mm" />
-            <div class="colon">:</div>
-            <input class="field-input" id="inputPaceSec" inputmode="numeric" placeholder="ss" />
-          </div>
-          <button class="field-save" type="submit">Save</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title"><div class="gc-big">GARMIN<br />CONNECT</div></div>
-    </div>
-  </div>
-
-  <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
-
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title">
-        <div class="gc-big">STRAVA</div>
-        <div class="gc-sub">Connect</div>
-      </div>
-
-      <div class="gc-note">
-        <div class="gc-smile">:)</div>
-        <div class="gc-note-text">
-          Your Strava account information is never saved or stored, so you can feel safe using it.
-        </div>
-      </div>
-
-      <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
-    </div>
-  </div>
-
-  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
-    <button class="screen-close" data-close="garminSelectScreen" aria-label="Close">×</button>
-    <div class="select-wrap">
-      <div class="select-title">Select<br />Workout</div>
-      <div class="select-list" id="workoutList"></div>
-    </div>
-  </div>
-
-  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
-    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
-    <div class="month-wrap">
-      <div class="month-head">
-        <button class="month-nav" id="monthPrevYear" aria-label="Prev year">‹</button>
-        <div class="month-year" id="monthYearText">2025</div>
-        <button class="month-nav" id="monthNextYear" aria-label="Next year">›</button>
-      </div>
-      <div class="month-grid" id="monthGrid"></div>
-    </div>
-  </div>
-
-  <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
-    <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
-    <div class="result-wrap type1" id="resultWrap">
-      <div class="result-block" id="resultBlock"></div>
-    </div>
-  </div>
-  <script type="module">
-    import { applyUIConfigToRoot } from './ui_config.js';
-
-    const $ = (s) => document.querySelector(s);
-    const pad2 = (n) => String(n).padStart(2, '0');
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-    function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
-    function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
-    function fmtPacePreview(sec) {
-      const s = Math.max(0, Math.floor(sec || 0));
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return `${m}'${pad2(r)}"`;
-    }
-    function fmtTimePreview(sec) {
-      const s = Math.max(0, Math.floor(sec || 0));
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const r = s % 60;
-      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      return `${m}:${pad2(r)}`;
-    }
-    function fmtPaceResult(sec) {
-      const s = Math.max(0, Math.floor(sec || 0));
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return `${m}'${pad2(r)}"`;
-    }
-    function fmtTimeResult(sec) {
-      const s = Math.max(0, Math.floor(sec || 0));
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const r = s % 60;
-      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      return `${m}:${pad2(r)}`;
-    }
-    function monthName(m) {
-      const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-      return names[clamp(m, 1, 12) - 1];
-    }
-    function monthNameCap(m) {
-      const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      return names[clamp(m, 1, 12) - 1];
-    }
-
-    function fitOne(span, minScale = 0.35) {
-      if (!span) return;
-      span.style.transform = '';
-      span.style.transformOrigin = 'left bottom';
-      const parent = span.parentElement;
-      if (!parent) return;
-      const w = parent.clientWidth;
-      const sw = span.scrollWidth;
-      if (!w || !sw) return;
-      const s = Math.max(minScale, Math.min(1, (w - 1) / sw));
-      span.style.transform = (s < 1) ? `scale(${s})` : '';
-    }
-    function fitGroup(spans, minScale = 0.35) {
-      const arr = (spans || []).filter(Boolean);
-      if (!arr.length) return;
-      arr.forEach(sp => {
-        sp.style.transform = '';
-        sp.style.transformOrigin = 'left bottom';
-      });
-      let need = 1;
-      arr.forEach(sp => {
-        const parent = sp.parentElement;
-        if (!parent) return;
-        const w = parent.clientWidth;
-        const sw = sp.scrollWidth;
-        if (!w || !sw) return;
-        if (sw > w) need = Math.min(need, (w - 1) / sw);
-      });
-      need = Math.max(minScale, Math.min(1, need));
-      arr.forEach(sp => {
-        sp.style.transform = (need < 1) ? `scale(${need})` : '';
-      });
-    }
-    function computeScaleForSpan(span, minScale = 0.35) {
-      if (!span) return 1;
-      const parent = span.parentElement;
-      if (!parent) return 1;
-      span.style.transform = '';
-      span.style.transformOrigin = 'left bottom';
-      const w = parent.clientWidth;
-      const sw = span.scrollWidth;
-      if (!w || !sw) return 1;
-      const s = Math.max(minScale, Math.min(1, (w - 1) / sw));
-      return s;
-    }
-    function computeScaleForGroup(spans, minScale = 0.35) {
-      const arr = (spans || []).filter(Boolean);
-      if (!arr.length) return 1;
-      arr.forEach(sp => {
-        sp.style.transform = '';
-        sp.style.transformOrigin = 'left bottom';
-      });
-      let need = 1;
-      arr.forEach(sp => {
-        const parent = sp.parentElement;
-        if (!parent) return;
-        const w = parent.clientWidth;
-        const sw = sp.scrollWidth;
-        if (!w || !sw) return;
-        if (sw > w) need = Math.min(need, (w - 1) / sw);
-      });
-      need = Math.max(minScale, Math.min(1, need));
-      return need;
-    }
-    function applyLockedScale(spans, scale) {
-      const arr = (spans || []).filter(Boolean);
-      arr.forEach(sp => {
-        sp.style.transformOrigin = 'left bottom';
-        sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
-      });
-    }
-
-    let OCR = null;
-    async function loadOCR() {
-      if (OCR) return OCR;
-      try { OCR = await import('./js/ocr.js'); return OCR; } catch (_e) { }
-      try { OCR = await import('./ocr.js'); return OCR; } catch (_e) { }
-      return null;
-    }
-
-    const state = {
-      recordType: 'daily',
-      dataType: null,
-      font: 'anton',
-      layout: 'type1',
-      bg: 'white',
-      daily: { km: 0, paceSec: 0, timeSec: 0 },
-      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
-      garmin: { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
-      strava: { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 }
-    };
-
-    let realStravaWorkouts = [];
-
-    async function fetchStravaActivities() {
-      try {
-        const res = await fetch('/api/strava/activities?per_page=30');
-        if (!res.ok) {
-          if (res.status === 401) return false;
-          throw new Error('Failed to fetch');
-        }
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.workouts)) {
-          realStravaWorkouts = data.workouts;
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-      return false;
-    }
-
-    async function checkStravaSession() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('strava') === 'connected') {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        state.dataType = 'strava';
-        applyDataType(); 
-      }
-      const isLoggedIn = await fetchStravaActivities();
-      if (isLoggedIn && state.dataType === 'strava') {
-        closeScreen('stravaLoginScreen');
-        renderWorkoutList('strava');
-        openScreen('garminSelectScreen');
-      }
-    }
-
-    const el = {
-      btnDaily: $('#btnDaily'),
-      btnMonthly: $('#btnMonthly'),
-      dataPanel: $('#dataPanel'),
-      dataPanelHead: $('#dataPanelHead'),
-      dataTabsDaily: $('#dataTabsDaily'),
-      dataTabsMonthly: $('#dataTabsMonthly'),
-      dataEmpty: $('#dataEmpty'),
-      tabGarmin: $('#tabGarmin'),
-      tabStrava: $('#tabStrava'),
-      tabNrc: $('#tabNrc'),
-      tabManual: $('#tabManual'),
-      tabNrcMonthly: $('#tabNrcMonthly'),
-      contentGarmin: $('#contentGarmin'),
-      contentNrc: $('#contentNrc'),
-      contentManual: $('#contentManual'),
-      monthBlock: $('#monthBlock'),
-      btnMonthPick: $('#btnMonthPick'),
-      fontGroup: $('#fontGroup'),
-      btnType1: $('#btnType1'),
-      btnType2: $('#btnType2'),
-      btnBgWhite: $('#btnBgWhite'),
-      btnBgBlack: $('#btnBgBlack'),
-      previewDaily: $('#previewDaily'),
-      previewMonthly: $('#previewMonthly'),
-      pvDistanceDaily: $('#pvDistanceDaily'),
-      pvPaceDaily: $('#pvPaceDaily'),
-      pvTimeDaily: $('#pvTimeDaily'),
-      pvMonthType1: $('#pvMonthType1'),
-      pvMonthType2: $('#pvMonthType2'),
-      pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'),
-      pvRunsMonthlyT1: $('#pvRunsMonthlyT1'),
-      pvPaceMonthlyT1: $('#pvPaceMonthlyT1'),
-      pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
-      pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'),
-      pvRunsMonthlyT2: $('#pvRunsMonthlyT2'),
-      pvPaceMonthlyT2: $('#pvPaceMonthlyT2'),
-      pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
-      btnUploadNrc: $('#btnUploadNrc'),
-      fileNrc: $('#fileNrc'),
-      ocrStatus: $('#ocrStatus'),
-      chipDistance: $('#chipDistance'),
-      chipPace: $('#chipPace'),
-      manualDistanceText: $('#manualDistanceText'),
-      manualPaceText: $('#manualPaceText'),
-      manualTimeText: $('#manualTimeText'),
-      modalOverlay: $('#modalOverlay'),
-      modalClose: $('#modalClose'),
-      modalTitle: $('#modalTitle'),
-      formDistance: $('#formDistance'),
-      formPace: $('#formPace'),
-      inputDistance: $('#inputDistance'),
-      inputPaceMin: $('#inputPaceMin'),
-      inputPaceSec: $('#inputPaceSec'),
-      btnGarminList: $('#btnGarminList'),
-      garminDateText: $('#garminDateText'),
-      garminDistanceText: $('#garminDistanceText'),
-      garminPaceText: $('#garminPaceText'),
-      garminTimeText: $('#garminTimeText'),
-      garminLoginForm: $('#garminLoginForm'),
-      workoutList: $('#workoutList'),
-      monthPickerScreen: $('#monthPickerScreen'),
-      monthGrid: $('#monthGrid'),
-      monthYearText: $('#monthYearText'),
-      monthPrevYear: $('#monthPrevYear'),
-      monthNextYear: $('#monthNextYear'),
-      btnRun: $('#btnRun'),
-      resultScreen: $('#resultScreen'),
-      resultWrap: $('#resultWrap'),
-      resultBlock: $('#resultBlock'),
-      btnStravaConnect: $('#btnStravaConnect'),
-      btnGarminToStrava: $('#btnGarminToStrava'),
-      garminCard: $('#garminCard'),
-      garminIntro: $('.garmin-login-wrap')
-    };
-
-    function openScreen(id) {
-      document.body.classList.add('no-scroll');
-      const node = document.getElementById(id);
-      node.classList.add('show');
-      node.setAttribute('aria-hidden', 'false');
-    }
-    function closeScreen(id) {
-      const node = document.getElementById(id);
-      node.classList.remove('show');
-      node.setAttribute('aria-hidden', 'true');
-      const anyOpen = document.querySelector('.screen-overlay.show, .modal-overlay.show');
-      if (!anyOpen) document.body.classList.remove('no-scroll');
-    }
-    document.addEventListener('click', (e) => {
-      const closeId = e.target?.dataset?.close;
-      if (closeId) closeScreen(closeId);
-    });
-
-    function applyUIConfig() {
-      applyUIConfigToRoot({
-        font: state.font,
-        recordType: state.recordType,
-        layout: state.layout
-      });
-    }
-
-    function applyRecordType() {
-      document.body.dataset.record = state.recordType;
-      el.btnDaily.classList.toggle('active', state.recordType === 'daily');
-      el.btnMonthly.classList.toggle('active', state.recordType === 'monthly');
-      if (state.recordType === 'monthly') {
-        el.dataPanelHead.style.display = 'none';
-        el.dataTabsDaily.style.display = 'none';
-        el.dataTabsMonthly.style.display = 'none';
-        el.dataEmpty.style.display = 'none';
-        state.dataType = 'nrc';
-        el.contentGarmin.style.display = 'none';
-        el.contentManual.style.display = 'none';
-        el.contentNrc.style.display = 'block';
-        el.dataPanel.classList.add('monthly');
-        el.monthBlock.style.display = 'block';
-        el.previewDaily.style.display = 'none';
-        el.previewMonthly.style.display = 'block';
-      } else {
-        el.dataPanelHead.style.display = 'flex';
-        el.dataTabsDaily.style.display = 'flex';
-        el.dataTabsMonthly.style.display = 'none';
-        el.dataPanel.classList.remove('monthly');
-        el.monthBlock.style.display = 'none';
-        el.previewDaily.style.display = 'block';
-        el.previewMonthly.style.display = 'none';
-        if (state.dataType === 'nrc' || state.dataType === 'garmin' || state.dataType === 'manual' || state.dataType === 'strava') {
-        } else {
-          state.dataType = null;
-        }
-        applyDataType();
-      }
-      applyUIConfig();
-      applyLayout();
-      applyBG();
-      applyFont();
-      updatePreview();
-    }
-
-    function applyDataType() {
-      [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
-        if (!t) return;
-        t.classList.toggle('active', state.dataType === t.dataset.datatype);
-      });
-      if (el.tabNrcMonthly) {
-        el.tabNrcMonthly.classList.toggle('active', state.recordType === 'monthly' && state.dataType === 'nrc');
-      }
-      if (state.recordType === 'monthly') {
-        el.dataEmpty.style.display = 'none';
-        el.contentGarmin.style.display = 'none';
-        el.contentManual.style.display = 'none';
-        el.contentNrc.style.display = 'block';
-        return;
-      }
-      el.dataEmpty.style.display = state.dataType ? 'none' : 'block';
-      el.contentGarmin.style.display = (state.recordType === 'daily' && (state.dataType === 'garmin' || state.dataType === 'strava')) ? 'block' : 'none';
-      el.contentNrc.style.display = (state.dataType === 'nrc') ? 'block' : 'none';
-      el.contentManual.style.display = (state.recordType === 'daily' && state.dataType === 'manual') ? 'block' : 'none';
-    }
-
-    function applyFont() {
-      el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-        b.classList.toggle('active', b.dataset.font === state.font);
-      });
-      const fontClass = `font-${state.font}`;
-      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node => {
-        node.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed');
-        node.classList.add(fontClass);
-      });
-      applyUIConfig();
-      updatePreview();
-    }
-
-    function applyLayout() {
-      el.btnType1.classList.toggle('active', state.layout === 'type1');
-      el.btnType2.classList.toggle('active', state.layout === 'type2');
-      el.previewDaily.classList.toggle('type1', state.layout === 'type1');
-      el.previewDaily.classList.toggle('type2', state.layout === 'type2');
-      el.previewMonthly.classList.toggle('type1', state.layout === 'type1');
-      el.previewMonthly.classList.toggle('type2', state.layout === 'type2');
-      el.resultWrap.classList.toggle('type1', state.layout === 'type1');
-      el.resultWrap.classList.toggle('type2', state.layout === 'type2');
-      applyUIConfig();
-      updatePreview();
-    }
-
-    function applyBG() {
-      el.btnBgWhite.classList.toggle('active', state.bg === 'white');
-      el.btnBgBlack.classList.toggle('active', state.bg === 'black');
-      const bgClass = `bg-${state.bg}`;
-      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(node => {
-        node.classList.remove('bg-white', 'bg-black');
-        node.classList.add(bgClass);
-      });
-    }
-
-    function applyFitPreview() {
-      if (state.recordType === 'daily') {
-        if (state.layout === 'type2') {
-          fitGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
-        } else {
-          fitOne(el.pvDistanceDaily, 0.30);
-          fitOne(el.pvPaceDaily, 0.30);
-          fitOne(el.pvTimeDaily, 0.30);
-        }
-        return;
-      }
-      fitOne(el.pvDistanceMonthlyT1, 0.26);
-      fitOne(el.pvRunsMonthlyT1, 0.30);
-      fitOne(el.pvPaceMonthlyT1, 0.30);
-      fitOne(el.pvTimeMonthlyT1, 0.30);
-      fitOne(el.pvDistanceMonthlyT2, 0.26);
-      fitGroup([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], 0.30);
-    }
-
-    function updatePreview() {
-      let d = state.daily;
-      if (state.recordType === 'daily' && state.dataType === 'garmin') {
-        d = { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec };
-      }
-      if (state.recordType === 'daily' && state.dataType === 'strava') {
-        d = { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec };
-      }
-      el.pvDistanceDaily.textContent = fmtKmPreview(d.km);
-      el.pvPaceDaily.textContent = fmtPacePreview(d.paceSec);
-      el.pvTimeDaily.textContent = fmtTimePreview(d.timeSec);
-
-      const m = state.monthly;
-      el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
-      el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
-      el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
-
-      const kmText = fmtKmPreview(m.km);
-      const runsText = fmtRunsPreview(m.runs);
-      const paceText = fmtPacePreview(m.paceSec);
-      const timeText = fmtTimePreview(m.timeSec);
-
-      el.pvDistanceMonthlyT1.textContent = kmText;
-      el.pvRunsMonthlyT1.textContent = runsText;
-      el.pvPaceMonthlyT1.textContent = paceText;
-      el.pvTimeMonthlyT1.textContent = timeText;
-
-      el.pvDistanceMonthlyT2.textContent = kmText;
-      el.pvRunsMonthlyT2.textContent = runsText;
-      el.pvPaceMonthlyT2.textContent = paceText;
-      el.pvTimeMonthlyT2.textContent = timeText;
-
-      const cardSrc = (state.recordType === 'daily' && state.dataType === 'strava') ? state.strava : state.garmin;
-      el.garminDateText.textContent = cardSrc.date;
-      el.garminDistanceText.textContent = fmtKmPreview(cardSrc.km);
-      el.garminPaceText.textContent = fmtPaceResult(cardSrc.paceSec);
-      el.garminTimeText.textContent = fmtTimeResult(cardSrc.timeSec);
-
-      requestAnimationFrame(applyFitPreview);
-    }
-
-    const mockWorkouts = [
-      { date: '2025.12.12', km: 14.64, paceSec: 5 * 60 + 59, timeSec: 1 * 3600 + 27 * 60 + 32 },
-      { date: '2025.12.10', km: 10.00, paceSec: 5 * 60 + 20, timeSec: 53 * 60 + 20 },
-      { date: '2025.12.08', km: 5.00, paceSec: 4 * 60 + 55, timeSec: 24 * 60 + 35 },
-      { date: '2025.12.05', km: 21.10, paceSec: 5 * 60 + 30, timeSec: 1 * 3600 + 56 * 60 + 5 },
-      { date: '2025.11.30', km: 7.20, paceSec: 6 * 60 + 10, timeSec: 44 * 60 + 20 }
-    ];
-
-    const mockStravaWorkouts = [
-      { date: '2025.12.14', km: 12.30, paceSec: 5 * 60 + 40, timeSec: 1 * 3600 + 9 * 60 },
-      { date: '2025.12.11', km: 8.50, paceSec: 5 * 60 + 55, timeSec: 50 * 60 },
-      { date: '2025.12.07', km: 15.00, paceSec: 6 * 60 + 5, timeSec: 1 * 3600 + 31 * 60 + 15 }
-    ];
-
-    function renderWorkoutList(kind = 'garmin') {
-      el.workoutList.innerHTML = '';
-      const list = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : mockStravaWorkouts) : mockWorkouts;
-      list.forEach((w) => {
-        const btn = document.createElement('button');
-        btn.className = 'workout-item';
-        btn.type = 'button';
-        btn.innerHTML = `
-          <div class="w-left">
-            <div class="w-date">${w.date}</div>
-            <div class="w-stats">
-              <span>${fmtKmPreview(w.km)}</span>
-              <span>${fmtPaceResult(w.paceSec)}</span>
-              <span>${fmtTimeResult(w.timeSec)}</span>
-            </div>
-          </div>
-          <div class="w-arrow">→</div>
-        `;
-        btn.addEventListener('click', () => {
-          if (kind === 'strava') {
-            state.strava = { ...w };
-            state.dataType = 'strava';
-            if(el.garminCard) el.garminCard.style.display = 'flex';
-            if(el.garminIntro) el.garminIntro.style.display = 'none';
-          } else {
-            state.garmin = { ...w };
-            state.dataType = 'garmin';
-          }
-          applyDataType();
-          updatePreview();
-          closeScreen('garminSelectScreen');
-        });
-        el.workoutList.appendChild(btn);
-      });
-    }
-
-    el.garminLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      closeScreen('garminLoginScreen');
-      renderWorkoutList('garmin');
-      openScreen('garminSelectScreen');
-    });
-
-    el.btnGarminList.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const kind = (state.dataType === 'strava') ? 'strava' : 'garmin';
-      renderWorkoutList(kind);
-      openScreen('garminSelectScreen');
-    });
-
-    if(el.btnGarminToStrava) {
-      el.btnGarminToStrava.addEventListener('click', async () => {
-        state.dataType = 'strava';
-        applyDataType(); 
-        if (realStravaWorkouts.length === 0) {
-          const success = await fetchStravaActivities();
-          if (success) {
-             renderWorkoutList('strava');
-             openScreen('garminSelectScreen');
-          } else {
-             window.location.href = '/api/strava/connect';
-          }
-        } else {
-          renderWorkoutList('strava');
-          openScreen('garminSelectScreen');
-        }
-      });
-    }
-
-    function buildMonthGrid() {
-      el.monthGrid.innerHTML = '';
-      for (let i = 1; i <= 12; i++) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'month-cell';
-        b.textContent = monthNameCap(i);
-        b.classList.toggle('active', i === state.monthly.month);
-        b.addEventListener('click', () => {
-          state.monthly.month = i;
-          updatePreview();
-          closeScreen('monthPickerScreen');
-        });
-        el.monthGrid.appendChild(b);
-      }
-    }
-    el.monthPrevYear.addEventListener('click', () => {
-      state.monthly.year -= 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    el.monthNextYear.addEventListener('click', () => {
-      state.monthly.year += 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    el.btnMonthPick.addEventListener('click', () => {
-      el.monthYearText.textContent = state.monthly.year;
-      buildMonthGrid();
-      openScreen('monthPickerScreen');
-    });
-
-    function openManualModal(type) {
-      el.modalOverlay.classList.add('show');
-      document.body.classList.add('no-scroll');
-      el.formDistance.style.display = (type === 'distance') ? 'block' : 'none';
-      el.formPace.style.display = (type === 'pace') ? 'block' : 'none';
-      el.modalTitle.textContent = (type === 'distance') ? 'Distance' : 'Pace';
-    }
-    function closeManualModal() {
-      el.modalOverlay.classList.remove('show');
-      const anyOpen = document.querySelector('.screen-overlay.show');
-      if (!anyOpen) document.body.classList.remove('no-scroll');
-    }
-    el.modalClose.addEventListener('click', closeManualModal);
-    el.modalOverlay.addEventListener('click', (e) => {
-      if (e.target === el.modalOverlay) closeManualModal();
-    });
-
-    function recalcManualTime() {
-      const km = state.daily.km || 0;
-      const pace = state.daily.paceSec || 0;
-      const t = (km > 0 && pace > 0) ? Math.round(km * pace) : 0;
-      state.daily.timeSec = t;
-      el.manualTimeText.textContent = fmtTimePreview(t);
-    }
-    el.chipDistance.addEventListener('click', () => openManualModal('distance'));
-    el.chipPace.addEventListener('click', () => openManualModal('pace'));
-    el.formDistance.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const v = parseFloat(String(el.inputDistance.value || '').replace(',', '.'));
-      state.daily.km = isFinite(v) ? v : 0;
-      el.manualDistanceText.textContent = (state.daily.km || 0).toFixed(2);
-      recalcManualTime();
-      updatePreview();
-      closeManualModal();
-    });
-    el.formPace.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const mm = parseInt(el.inputPaceMin.value || '0', 10);
-      const ss = parseInt(el.inputPaceSec.value || '0', 10);
-      const sec = (isFinite(mm) ? mm : 0) * 60 + clamp(isFinite(ss) ? ss : 0, 0, 59);
-      state.daily.paceSec = sec;
-      el.manualPaceText.textContent = fmtPacePreview(sec);
-      recalcManualTime();
-      updatePreview();
-      closeManualModal();
-    });
-
-    el.btnUploadNrc.addEventListener('click', () => el.fileNrc.click());
-    el.fileNrc.addEventListener('change', async (e) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
-      el.ocrStatus.textContent = 'Reading...';
-      el.ocrStatus.classList.add('show');
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const dataURL = reader.result;
-        const mod = await loadOCR();
-        if (!mod || typeof mod.extractAll !== 'function') {
-          el.ocrStatus.textContent = 'OCR module not found. Using demo values.';
-          updatePreview();
-          return;
-        }
-        try {
-          const out = await mod.extractAll(dataURL, { recordType: state.recordType });
-          if (state.recordType === 'daily') {
-            const km = Number(out.km || 0);
-            const paceSec = (out.paceMin != null && out.paceSec != null) ? (out.paceMin * 60 + out.paceSec) : 0;
-            const timeSec = (out.timeH != null && out.timeM != null && out.timeS != null)
-              ? (out.timeH * 3600 + out.timeM * 60 + out.timeS)
-              : (out.timeM != null && out.timeS != null ? (out.timeM * 60 + out.timeS) : 0);
-            state.daily = { km, paceSec, timeSec };
-          } else {
-            const km = Number(out.km || 0);
-            const runs = Number(out.runs || 0);
-            const paceSec = (out.paceMin != null && out.paceSec != null) ? (out.paceMin * 60 + out.paceSec) : 0;
-            const timeSec = (out.timeH != null && out.timeM != null && out.timeS != null)
-              ? (out.timeH * 3600 + out.timeM * 60 + out.timeS)
-              : (out.timeM != null && out.timeS != null ? (out.timeM * 60 + out.timeS) : 0);
-            state.monthly = { ...state.monthly, km, runs, paceSec, timeSec };
-          }
-          el.ocrStatus.textContent = 'Done.';
-          updatePreview();
-        } catch (err) {
-          el.ocrStatus.textContent = 'Failed to read. Try another image.';
-        }
-      };
-      reader.readAsDataURL(f);
-    });
-
-    function buildResultDOM() {
-      el.resultWrap.classList.toggle('type1', state.layout === 'type1');
-      el.resultWrap.classList.toggle('type2', state.layout === 'type2');
-      applyUIConfig();
-      if (state.recordType === 'daily') {
-        const src = (state.dataType === 'garmin')
-          ? { km: state.garmin.km, paceSec: state.garmin.paceSec, timeSec: state.garmin.timeSec }
-          : (state.dataType === 'strava'
-            ? { km: state.strava.km, paceSec: state.strava.paceSec, timeSec: state.strava.timeSec }
-            : state.daily);
-
-        el.resultBlock.innerHTML = `
-          <div class="result-item">
-            <span class="result-label">DISTANCE</span>
-            <span class="result-value"><span id="rvDistance"></span></span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">PACE</span>
-            <span class="result-value"><span id="rvPace"></span></span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">TIME</span>
-            <span class="result-value"><span id="rvTime"></span></span>
-          </div>
-        `;
-        return { km: +(src.km || 0), runs: null, paceSec: +(src.paceSec || 0), timeSec: +(src.timeSec || 0) };
-      }
-      const m = state.monthly;
-      const monthLine = `${monthName(m.month)} ${m.year}`;
-      if (state.layout === 'type1') {
-        el.resultBlock.innerHTML = `
-          <div class="m1-month">${monthName(m.month)} ${m.year}</div>
-          <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
-          <div class="m1-stack">
-            <div class="m1-item">
-              <div class="result-label">RUNS</div>
-              <div class="result-value"><span id="rvRuns"></span></div>
-            </div>
-            <div class="m1-item">
-              <div class="result-label">PACE</div>
-              <div class="result-value"><span id="rvPace"></span></div>
-            </div>
-            <div class="m1-item">
-              <div class="result-label">TIME</div>
-              <div class="result-value"><span id="rvTime"></span></div>
-            </div>
-          </div>
-        `;
-      } else {
-        el.resultBlock.innerHTML = `
-          <div class="m2-month">${monthLine}</div>
-          <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
-          <div class="m2-row">
-            <div class="result-item">
-              <span class="result-label">RUNS</span>
-              <span class="result-value"><span id="rvRuns"></span></span>
-            </div>
-            <div class="result-item">
-              <span class="result-label">PACE</span>
-              <span class="result-value"><span id="rvPace"></span></span>
-            </div>
-            <div class="result-item">
-              <span class="result-label">TIME</span>
-              <span class="result-value"><span id="rvTime"></span></span>
-            </div>
-          </div>
-        `;
-      }
-      return { km: +(m.km || 0), runs: +(m.runs || 0), paceSec: +(m.paceSec || 0), timeSec: +(m.timeSec || 0) };
-    }
-
-    function applyFitResult() {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-      if (state.recordType === 'daily') {
-        if (state.layout === 'type2') {
-          fitGroup([rvDistance, rvPace, rvTime], 0.30);
-        } else {
-          fitOne(rvDistance, 0.30);
-          fitOne(rvPace, 0.30);
-          fitOne(rvTime, 0.30);
-        }
-        return;
-      }
-      fitOne(rvDistance, 0.26);
-      if (state.layout === 'type2') {
-        fitGroup([rvRuns, rvPace, rvTime], 0.30);
-      } else {
-        fitOne(rvRuns, 0.30);
-        fitOne(rvPace, 0.30);
-        fitOne(rvTime, 0.30);
-      }
-    }
-
-    // ✅ [수정] 떨림 방지: 최종 텍스트 길이를 계산해서 width를 고정(Lock)
-    function lockFitResultTransforms(target) {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-
-      // 1. 먼저 최종 텍스트를 세팅
-      if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
-      if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
-      if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
-      if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
-
-      // 2. Scale 계산 (기존 로직)
-      let distScale = 1;
-      let groupScale = 1;
-      distScale = computeScaleForSpan(rvDistance, 0.26);
-
-      // 3. Width 고정 함수 (Jitter Fix)
-      const lockWidth = (el) => {
-        if(!el) return;
-        const w = el.offsetWidth; // 현재 최종 텍스트의 너비
-        el.style.width = w + 'px'; // 너비 고정
-        el.style.display = 'inline-block';
-        el.style.whiteSpace = 'nowrap';
-      };
-
-      lockWidth(rvDistance);
-      lockWidth(rvPace);
-      lockWidth(rvTime);
-      lockWidth(rvRuns);
-
-      // 4. Scale 적용 (기존 로직)
-      if (state.recordType === 'daily') {
-        if (state.layout === 'type2') {
-          groupScale = computeScaleForGroup([rvDistance, rvPace, rvTime], 0.30);
-          distScale = groupScale;
-        } else {
-          const paceScale = computeScaleForSpan(rvPace, 0.30);
-          const timeScale = computeScaleForSpan(rvTime, 0.30);
-          applyLockedScale([rvDistance], distScale);
-          applyLockedScale([rvPace], paceScale);
-          applyLockedScale([rvTime], timeScale);
-          return {
-            resetToStart() {
-              if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-              if (rvPace) rvPace.textContent = fmtPaceResult(0);
-              if (rvTime) rvTime.textContent = fmtTimeResult(0);
-            }
-          };
-        }
-      } else {
-        if (state.layout === 'type2') {
-          groupScale = computeScaleForGroup([rvRuns, rvPace, rvTime], 0.30);
-          applyLockedScale([rvDistance], distScale);
-          applyLockedScale([rvRuns, rvPace, rvTime], groupScale);
-          return {
-            resetToStart() {
-              if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-              if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
-              if (rvPace) rvPace.textContent = fmtPaceResult(0);
-              if (rvTime) rvTime.textContent = fmtTimeResult(0);
-            }
-          };
-        } else {
-          const runsScale = computeScaleForSpan(rvRuns, 0.30);
-          const paceScale = computeScaleForSpan(rvPace, 0.30);
-          const timeScale = computeScaleForSpan(rvTime, 0.30);
-          applyLockedScale([rvDistance], distScale);
-          applyLockedScale([rvRuns], runsScale);
-          applyLockedScale([rvPace], paceScale);
-          applyLockedScale([rvTime], timeScale);
-          return {
-            resetToStart() {
-              if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-              if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
-              if (rvPace) rvPace.textContent = fmtPaceResult(0);
-              if (rvTime) rvTime.textContent = fmtTimeResult(0);
-            }
-          };
-        }
-      }
-      applyLockedScale([rvDistance, rvPace, rvTime], groupScale);
-      return {
-        resetToStart() {
-          if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-          if (rvPace) rvPace.textContent = fmtPaceResult(0);
-          if (rvTime) rvTime.textContent = fmtTimeResult(0);
-          if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
-        }
-      };
-    }
-
-    function animateAll(target) {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-      
-      const locker = lockFitResultTransforms(target);
-      locker.resetToStart();
-      
-      const hold = 500;
-      const dur = 1600;
-      const t0 = performance.now();
-      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
-      
-      function frame(now) {
-        const dt = now - t0;
-        if (dt < hold) { requestAnimationFrame(frame); return; }
-        const p = clamp((dt - hold) / dur, 0, 1);
-        const k = easeOutCubic(p);
-        const km = target.km * k;
-        const pace = target.paceSec * k;
-        const time = target.timeSec * k;
-        const runs = (target.runs == null) ? null : Math.round(target.runs * k);
-        if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
-        if (rvPace) rvPace.textContent = fmtPaceResult(pace);
-        if (rvTime) rvTime.textContent = fmtTimeResult(time);
-        if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
-        if (p < 1) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
-    }
-
-    el.btnRun.addEventListener('click', () => {
-      const target = buildResultDOM();
-      openScreen('resultScreen');
-      animateAll(target);
-    });
-
-    el.btnDaily.addEventListener('click', () => { state.recordType = 'daily'; applyRecordType(); });
-    el.btnMonthly.addEventListener('click', () => { state.recordType = 'monthly'; applyRecordType(); });
-    el.tabGarmin.addEventListener('click', () => {
-      state.dataType = 'garmin';
-      applyDataType();
-      if(el.garminCard) el.garminCard.style.display = 'none';
-      if(el.garminIntro) el.garminIntro.style.display = 'block';
-    });
-    el.tabStrava.addEventListener('click', async () => {
-      state.dataType = 'strava';
-      applyDataType();
-      updatePreview();
-      if (realStravaWorkouts.length === 0) {
-        const success = await fetchStravaActivities();
-        if (success) {
-           renderWorkoutList('strava');
-           openScreen('garminSelectScreen');
-        } else {
-           openScreen('stravaLoginScreen');
-        }
-      } else {
-        renderWorkoutList('strava');
-        openScreen('garminSelectScreen');
-      }
-    });
-    el.btnStravaConnect.addEventListener('click', () => {
-      window.location.href = '/api/strava/connect';
-    });
-    el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-    el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
-    el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-      b.addEventListener('click', () => {
-        state.font = b.dataset.font;
-        applyFont();
-      });
-    });
-
-    function initDefaults() {
-      state.recordType = 'daily';
-      state.dataType = null;
-      state.daily = { km: 0, paceSec: 0, timeSec: 0 };
-      state.monthly = { ...state.monthly, km: 0, runs: 0, paceSec: 0, timeSec: 0 };
-      state.font = 'anton';
-      state.layout = 'type1';
-      state.bg = 'white';
-      applyUIConfig();
-      applyRecordType();
-      applyFont();
-      applyLayout();
-      applyBG();
-      updatePreview();
-      applyDataType();
-      checkStravaSession();
-    }
-    initDefaults();
-  </script>
-</body>
-
-</html>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --gap: clamp(6px, 1.8vw, 10px);
+  --btn-pad-y: clamp(7px, 1.9vw, 10px);
+  --btn-pad-x: clamp(10px, 2.8vw, 18px);
+  --btn-font: clamp(12px, 2.8vw, 14px);
+  --radius: 999px;
+  --stroke: 2px;
+  --btn-h: 42px;
+
+  --garmin: #76B6FF;
+  --strava: #FC4C02;
+  --nrc: #5CE45C;
+  --manual: #9B7CFF;
+
+  --pv-value-ls: 0px;
+  --pv-label-ls: 0px;
+
+  /* =========================
+     UI CONFIG (ui_config.js에서 주입)
+  ========================= */
+  --ui-col-gap: 24px;
+  --ui-stack-gap: 18px;
+
+  --ui-label-to-value-gap: 2px; /* ✅ 6 -> 2 초기값 */
+
+  /* daily (D1/D2) */
+  --ui-label-size: 12px;
+  --ui-value-size: 34px;
+  --ui-distance-value-size: 34px;
+
+  /* monthly (M1/M2) */
+  --ui-month-size: 14px;
+  --ui-month-to-distance-gap: 8px;
+  --ui-month-distance-size: 36px;
+
+  --ui-distance-to-stats-gap: 14px;
+  --ui-distance-to-row-gap: 14px;
+
+  --ui-m-label-size: 10px;
+  --ui-m-value-size: 24px;
+}
+
+body{
+  background:#fff;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+  padding-bottom: 110px;
+  min-height: 100vh;
+}
+body.no-scroll{ overflow: hidden; }
+
+.container{
+  width: min(360px, 100%);
+  margin: 0 auto;
+  position: relative;
+}
+
+#previewMonthly{ display:none; }
+#dataTabsMonthly{ display:none; }
+#monthBlock{ display:none; }
+
+/* Webfonts */
+@font-face{
+  font-family:'Inter';
+  src:url('./fonts/Inter.woff2') format('woff2');
+  font-weight:100 900;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Anton';
+  src:url('./fonts/Anton.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Bitcount Grid Single';
+  src:url('./fonts/Dots.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'DS-Digital';
+  src:url('./fonts/LCD.woff2') format('woff2');
+  font-weight:400 900;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Special Gothic Expanded One';
+  src:url('./fonts/Gothic.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Quantico';
+  src:url('./fonts/Speed.woff2') format('woff2');
+  font-weight:400 900;
+  font-style:normal;
+  font-display:swap;
+}
+
+/* Header */
+.header { margin-bottom: 22px; }
+.title{
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.9px;
+  line-height: 1.0;
+}
+.version{ font-size: 26px; font-weight: 900; }
+.author{ margin-top: 6px; font-size: 13px; color:#000; }
+
+.title-link{
+  display: inline-flex;
+  align-items: baseline;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.title-link:hover,
+.title-link:active,
+.title-link:visited,
+.title-link:focus{
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Sections */
+.section{ margin-bottom: 18px; }
+.section-label{
+  display:block;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+.section-label.inline{ margin-bottom: 8px; }
+
+/* Button groups */
+.button-group{
+  display:flex;
+  align-items:center;
+  gap: var(--gap);
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.button-group.wide .flex1,
+.button-group.two .flex1{
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Toggle buttons */
+.toggle-btn,
+.action-btn{
+  border: var(--stroke) solid #000;
+  border-radius: var(--radius);
+  background:#fff;
+  color:#000;
+  cursor:pointer;
+  font-family:'Inter', sans-serif;
+  font-weight: 900;
+  height: var(--btn-h);
+  padding: 0 var(--btn-pad-x);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: var(--btn-font);
+  line-height: 1;
+  white-space: nowrap;
+  min-width: 0;
+  transition: opacity .15s ease, background .15s ease, color .15s ease;
+}
+.toggle-btn:hover,
+.action-btn:hover{ opacity: .85; }
+.toggle-btn.active,
+.action-btn.active{ background:#000; color:#fff; }
+
+/* Font buttons */
+.font-group .font-btn{
+  flex: 1 1 0;
+  min-width: 0;
+  padding: clamp(7px, 1.7vw, 9px) clamp(8px, 1.8vw, 10px);
+  text-align:center;
+  height: var(--btn-h);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.font-anton{ font-family:'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
+.font-dots{ font-family:'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
+.font-lcd{ font-family:'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
+.font-gothic{ font-family:'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
+.font-speed{ font-family:'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
+
+/* Two columns */
+.two-col{ display:flex; gap: 18px; }
+.two-col .col{ flex:1 1 0; min-width:0; }
+
+/* DATA PANEL */
+.data-panel{
+  border: 1.5px solid #d9d9d9;
+  border-radius: 18px;
+  padding: 14px;
+  background:#fff;
+}
+.data-panel.monthly{ padding-top: 12px; }
+
+.data-panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 10px;
+}
+.data-panel-title{
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+body[data-record="monthly"] #dataPanelHead,
+body[data-record="monthly"] #dataTabsDaily,
+body[data-record="monthly"] #dataTabsMonthly,
+body[data-record="monthly"] #dataEmpty{ display:none !important; }
+body[data-record="monthly"] #contentGarmin,
+body[data-record="monthly"] #contentManual{ display:none !important; }
+body[data-record="monthly"] #contentNrc{ display:block !important; }
+
+/* Tabs */
+.data-tabs{ display:flex; gap: 10px; flex-wrap: nowrap; width:100%; }
+.data-tab{
+  flex: 1 1 0;
+  min-width:0;
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  height: var(--btn-h);
+  padding: 0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  color:#000;
+  font-weight: 900;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor:pointer;
+  transition: opacity .15s ease, background .15s ease;
+}
+.data-tab:hover{ opacity:.88; }
+.data-tab.active{ color:#000; }
+.data-tab.garmin.active{ background: var(--garmin); }
+.data-tab.strava.active{ background: var(--strava); }
+.data-tab.nrc.active{ background: var(--nrc); }
+.data-tab.manual.active{ background: var(--manual); }
+
+.data-empty{ height:0; display:block; }
+.data-content{ display:none; margin-top: 12px; }
+
+.sub-title{ font-size: 12px; font-weight: 900; margin: 0 0 10px 0; }
+
+/* Garmin card */
+.garmin-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border: var(--stroke) solid #000;
+  border-radius: 14px;
+  padding: 10px 10px 10px 12px;
+  background:#fff;
+  cursor:pointer;
+}
+.garmin-card-left{ display:flex; flex-direction:column; gap: 6px; min-width:0; }
+.garmin-date{ font-size: 12px; font-weight: 900; }
+.garmin-stats{ display:flex; gap: 14px; align-items: baseline; flex-wrap: nowrap; }
+.garmin-stat{ font-size: 14px; font-weight: 900; white-space: nowrap; }
+
+.garmin-list-btn{
+  width: 42px;
+  height: 34px;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.hamburger{ width: 18px; display:flex; flex-direction:column; gap:3px; }
+.hamburger span{ height:2px; background:#000; border-radius:2px; display:block; }
+
+/* NRC */
+.upload-btn{
+  width:100%;
+  border:none;
+  border-radius: 999px;
+  background:#000 !important;
+  color: var(--nrc) !important;
+  font-weight: 900;
+  height: var(--btn-h);
+  padding: 0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.ocr-status{ margin-top: 8px; font-size: 11px; color:#333; display:none; }
+.ocr-status.show{ display:block; }
+
+/* Manual */
+.manual-row{ display:flex; gap: 10px; flex-wrap: nowrap; width:100%; }
+.manual-chip{
+  flex: 1 1 0;
+  min-width:0;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 999px;
+  background:#fff;
+  padding: 10px 12px;
+  display:flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content:center;
+  cursor:pointer;
+  white-space: nowrap;
+}
+.chip-label{ font-size: 12px; font-weight: 900; }
+.chip-value{ font-size: 16px; font-weight: 900; }
+.chip-unit{ font-size: 12px; font-weight: 900; opacity:.9; }
+.manual-time-line{
+  margin-top: 10px;
+  display:flex;
+  justify-content:space-between;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* MONTH block */
+.month-block{ margin-top: 12px; }
+.month-label{ font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
+.month-btn{
+  width:100%;
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  height: var(--btn-h);
+  padding: 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  color:#000;
+  appearance:none;
+  -webkit-appearance:none;
+  font-weight: 900;
+  cursor:pointer;
+}
+
+/* PREVIEW */
+.preview{
+  border: 2px solid #000;
+  border-radius: 18px;
+  padding: 18px 18px 16px 18px;
+  width: min(240px, 100%);
+  background:#fff;
+  overflow: hidden;
+}
+.preview.bg-white{ background:#fff; color:#000; }
+.preview.bg-black{ background:#000; color:#fff; }
+
+.preview.type1 .preview-content{
+  display:flex;
+  flex-direction:column;
+  gap: var(--ui-stack-gap);
+}
+
+/* ✅ Type 2: Flex 적용으로 간격(gap) 동일 보장 */
+.preview:not(.monthly).type2{ width: 100%; }
+.preview:not(.monthly).type2 .preview-content{
+  display: flex; /* Grid -> Flex */
+  gap: var(--ui-col-gap);
+  align-items: flex-start;
+}
+
+/* Type2 Alignment */
+.preview.type2 .data-item,
+.result-wrap.type2 .result-item{ text-align: left; }
+.preview.type2 .data-value,
+.result-wrap.type2 .result-value{ justify-content: flex-start; }
+
+/* Monthly Type2 */
+.preview.monthly.type2 .preview-content{ display:block; }
+
+.data-item{ min-width:0; }
+.data-label, .data-value{ display:block; width:100%; min-width:0; }
+
+.data-label{
+  font-size: var(--ui-label-size);
+  opacity: .9;
+  margin-bottom: var(--ui-label-to-value-gap); /* 2px 적용됨 */
+  letter-spacing: var(--pv-label-ls);
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+}
+.data-value{
+  font-size: var(--ui-value-size);
+  letter-spacing: var(--pv-value-ls);
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  display:flex;
+  align-items:flex-end;
+}
+.preview.type1 .data-item:first-child .data-value{ font-size: var(--ui-distance-value-size); }
+.data-value > span{
+  display:inline-block;
+  width:auto;
+  transform-origin: left bottom;
+  padding-right: 0;
+}
+
+.preview.type1 .data-value > span,
+.preview.monthly.type1 .m1-distance-value > span,
+.preview.monthly.type1 .m-value > span,
+.result-wrap.type1 .result-value > span,
+.result-wrap.type1 .m1-distance-value > span,
+.result-wrap.type1 .m-value > span{ padding-right: .14em; }
+
+.data-value,
+.result-value,
+.workout-item .w-stats,
+.garmin-stat{ max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+/* MONTHLY preview blocks */
+.preview.monthly .monthly-type1{ display:none; }
+.preview.monthly .monthly-type2{ display:none; }
+.preview.monthly.type1 .monthly-type1{ display:block; }
+.preview.monthly.type2 .monthly-type2{ display:block; }
+
+.monthly-type1{ display:flex; flex-direction:column; }
+.m1-month{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  letter-spacing: .2px;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+  margin-bottom: var(--ui-month-to-distance-gap);
+}
+.m1-distance-value{
+  display:block;
+  font-weight: 1000;
+  font-size: var(--ui-month-distance-size);
+  line-height: 1.0;
+  white-space: nowrap;
+  margin-bottom: var(--ui-distance-to-stats-gap);
+}
+.m1-stack{ display:flex; flex-direction:column; gap: var(--ui-stack-gap); }
+.m-label{
+  font-size: var(--ui-m-label-size);
+  font-weight: 600;
+  opacity: .95;
+  margin-bottom: var(--ui-label-to-value-gap);
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+}
+.m-value{
+  font-size: var(--ui-m-value-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:flex;
+  align-items:flex-end;
+}
+.m1-distance-value > span > span > span{
+  display:inline-block;
+  width:auto;
+  transform-origin: left bottom;
+  padding-right: .14em;
+}
+
+.preview.monthly.type2{ width: 100%; }
+.monthly-type2{ display:flex; flex-direction:column; }
+.m2-month-line{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: .95;
+  font-family:'Inter', sans-serif;
+  margin-bottom: var(--ui-month-to-distance-gap);
+}
+.m2-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+  margin-bottom: var(--ui-distance-to-row-gap);
+}
+.m2-row{
+  display:grid; /* M2 하단은 3등분 grid 유지 (Monthly 특성) */
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: var(--ui-col-gap);
+  align-items:start;
+}
+
+/* Preview fonts */
+.preview.font-anton .data-value,
+.preview.font-anton .m1-distance-value,
+.preview.font-anton .m-value,
+.preview.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
+.preview.font-anton .data-label,
+.preview.font-anton .m1-month,
+.preview.font-anton .m-label,
+.preview.font-anton .m2-month-line{ font-family:'Inter', sans-serif; }
+
+.preview.font-dots .data-label,
+.preview.font-dots .data-value,
+.preview.font-dots .m1-month,
+.preview.font-dots .m1-distance-value,
+.preview.font-dots .m-label,
+.preview.font-dots .m-value,
+.preview.font-dots .m2-month-line,
+.preview.font-dots .m2-distance-value{ font-family:'Bitcount Grid Single', monospace; }
+
+.preview.font-lcd .data-label,
+.preview.font-lcd .data-value,
+.preview.font-lcd .m1-month,
+.preview.font-lcd .m1-distance-value,
+.preview.font-lcd .m-label,
+.preview.font-lcd .m-value,
+.preview.font-lcd .m2-month-line,
+.preview.font-lcd .m2-distance-value{ font-family:'DS-Digital', monospace; }
+
+.preview.font-gothic .data-label,
+.preview.font-gothic .data-value,
+.preview.font-gothic .m1-month,
+.preview.font-gothic .m1-distance-value,
+.preview.font-gothic .m-label,
+.preview.font-gothic .m-value,
+.preview.font-gothic .m2-month-line,
+.preview.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
+
+.preview.font-speed .data-label,
+.preview.font-speed .data-value,
+.preview.font-speed .m1-month,
+.preview.font-speed .m1-distance-value,
+.preview.font-speed .m-label,
+.preview.font-speed .m-value,
+.preview.font-speed .m2-month-line,
+.preview.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
+
+/* RUN button */
+.run-btn{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+  width: min(360px, calc(100% - 40px));
+  padding: 16px 16px;
+  background: #ff9000;
+  border:none;
+  border-radius: 999px;
+  font-size: 24px;
+  font-weight: 1000;
+  color:#000;
+  cursor:pointer;
+  z-index: 1000;
+}
+.run-btn:hover{ opacity: .92; }
+
+/* MODAL & OVERLAYS... (생략 없이 유지) */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+  z-index: 2400;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  width: min(420px, 100%);
+  background:#fff;
+  border-radius: 16px;
+  border: 2px solid #000;
+  overflow:hidden;
+}
+.modal-head{
+  padding: 12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom: 2px solid #000;
+}
+.modal-title{ font-weight:900; font-size:14px; }
+.modal-close{ border:none; background:transparent; font-size:22px; font-weight:900; cursor:pointer; }
+.modal-body{ padding: 12px 14px; max-height: 60vh; overflow:auto; }
+.manual-form{ display:none; }
+.field-label{ display:block; font-weight:900; font-size:12px; margin-bottom: 8px; }
+.field-input{
+  width:100%;
+  border: 2px solid #000;
+  border-radius: 12px;
+  padding: 12px 12px;
+  font-size: 16px;
+  font-weight: 900;
+  outline:none;
+}
+.field-save{
+  margin-top: 10px;
+  width:100%;
+  border:none;
+  border-radius: 999px;
+  padding: 12px 12px;
+  background:#000;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+.pace-grid{
+  display:grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items:center;
+}
+.colon{ font-weight:900; font-size:16px; text-align:center; }
+.screen-overlay{
+  position: fixed;
+  inset: 0;
+  display:none;
+  z-index: 3000;
+  background:#fff;
+  color:#000;
+}
+.screen-overlay.show{ display:block; }
+.screen-close{
+  position:absolute;
+  top: 16px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border:none;
+  background:transparent;
+  font-size: 36px;
+  font-weight: 300;
+  line-height:1;
+  cursor:pointer;
+  color:inherit;
+}
+.close-big{
+  top: 16px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  font-size: 36px;
+  font-weight: 300;
+  z-index: 5;
+}
+.garmin-login{ background: var(--garmin); color:#000; }
+.garmin-login-wrap{
+  width:100%;
+  height:100%;
+  position:relative;
+  padding: 42px 24px 24px 24px;
+}
+.wm-vertical{ display:none !important; }
+.garmin-login-title{ margin-top: 8px; }
+.gc-big{ font-size: 40px; font-weight: 1000; letter-spacing: -1px; line-height: .95; }
+.gc-sub{ margin-top: 10px; font-size: 34px; font-weight: 400; letter-spacing: -0.6px; }
+.garmin-login-form{ margin-top: 60px; width: min(520px, 100%); }
+.gc-label{ display:block; font-size: 12px; font-weight: 900; margin-bottom: 8px; }
+.gc-input{
+  width:100%;
+  border:none;
+  border-bottom: 2px solid #000;
+  padding: 10px 2px;
+  font-size: 16px;
+  font-weight: 700;
+  outline:none;
+  background:transparent;
+  margin-bottom: 26px;
+}
+.gc-note{ display:flex; gap: 10px; align-items:flex-start; margin-top: 4px; }
+.gc-smile{ font-size: 30px; line-height:1; font-weight: 900; }
+.gc-note-text{ font-size: 12px; font-weight: 800; max-width: 360px; }
+.gc-cta{
+  position:absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  height: 56px;
+  border-radius: 999px;
+  border:none;
+  background:#000;
+  color:#fff;
+  font-size: 20px;
+  font-weight: 900;
+  cursor:pointer;
+}
+#stravaLoginScreen.garmin-login{ background: var(--strava); color:#000; }
+.select-workout{ background:#fff; color:#000; }
+.select-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
+.select-title{
+  font-size: 40px;
+  font-weight: 1000;
+  letter-spacing: -1px;
+  line-height: .95;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+.select-list{ height: calc(100% - 120px); overflow:auto; padding-right: 4px; }
+.workout-item{
+  width:100%;
+  border: var(--stroke) solid #000;
+  border-radius: 18px;
+  padding: 12px 12px 12px 14px;
+  background:#fff;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 12px;
+  color:#000;
+  text-decoration:none;
+  -webkit-tap-highlight-color: transparent;
+}
+.workout-item .w-left{ display:flex; flex-direction:column; gap: 8px; min-width:0; align-items:flex-start; }
+.workout-item .w-date{ font-size: 12px; font-weight: 900; }
+.workout-item .w-stats{ display:flex; gap: 18px; font-size: 16px; font-weight: 900; white-space: nowrap; justify-content:flex-start; }
+.workout-item *{ color:inherit; }
+.workout-item:visited, .workout-item:active, .workout-item:focus, .workout-item:focus-visible{ color:#000; outline:none; }
+.w-arrow{ font-size: 26px; font-weight: 900; color:#000; }
+.month-picker{ background:#fff; color:#000; }
+.month-wrap{ width:100%; height:100%; padding: 28px 20px 20px 20px; }
+.month-head{ display:flex; align-items:center; justify-content:center; gap: 12px; margin-top: 12px; margin-bottom: 16px; }
+.month-year{ min-width: 96px; text-align:center; font-size: 32px; font-weight: 1000; letter-spacing: -0.8px; }
+.month-nav{
+  width: 44px;
+  height: var(--btn-h);
+  border: var(--stroke) solid #000;
+  border-radius: 999px;
+  background:#fff;
+  color:#000;
+  appearance:none;
+  -webkit-appearance:none;
+  font-size: 26px;
+  font-weight: 900;
+  cursor:pointer;
+}
+.month-grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 6px; }
+.month-cell{
+  color:#000;
+  appearance:none;
+  -webkit-appearance:none;
+  border: var(--stroke) solid #000;
+  border-radius: 16px;
+  padding: 14px 12px;
+  background:#fff;
+  font-weight: 900;
+  cursor:pointer;
+}
+.month-cell.active{ background:#000; color:#fff; }
+.result-screen.bg-white{ background:#fff; color:#000; }
+.result-screen.bg-black{ background:#000; color:#fff; }
+.result-wrap{
+  width:100%;
+  height:100%;
+  padding: 0 26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.result-block{ width:100%; min-width:0; }
+.result-wrap.type1 .result-block{
+  width: min(520px, 100%);
+  display:flex;
+  flex-direction:column;
+  gap: var(--ui-stack-gap);
+  align-items:flex-start;
+}
+
+/* ✅ Result Type 2: Flex 적용 */
+.result-wrap.type2 .result-block{
+  width: min(520px, 100%);
+  display: flex; /* Grid -> Flex */
+  gap: var(--ui-col-gap);
+  align-items: flex-start;
+  margin: 0 auto;
+}
+
+.result-item{ min-width:0; }
+.result-label, .result-value{ display:block; width:100%; min-width:0; white-space: nowrap; }
+.result-label{
+  font-size: var(--ui-label-size);
+  font-weight: 900;
+  opacity: .9;
+  margin-bottom: var(--ui-label-to-value-gap); /* 2px 적용됨 */
+  font-family:'Inter', sans-serif;
+}
+.result-value{
+  font-size: var(--ui-value-size);
+  font-weight: 900;
+  line-height: 1;
+  display:flex;
+  align-items:flex-end;
+}
+.result-wrap.type1 .result-item:first-child .result-value{ font-size: var(--ui-distance-value-size); }
+.result-value > span{ display:inline-block; width:auto; transform-origin: left bottom; padding-right: 0; }
+.result-wrap.type1 .m1-month{
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  line-height: 1.05;
+  margin-bottom: var(--ui-month-to-distance-gap);
+  font-family:'Inter', sans-serif;
+}
+.result-wrap.type1 .m1-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+  margin-bottom: var(--ui-distance-to-stats-gap);
+}
+.result-wrap.type1 .m1-stack{ display:flex; flex-direction:column; gap: var(--ui-stack-gap); }
+.result-wrap.type2 .m2-month{
+  grid-column: 1 / -1;
+  font-size: var(--ui-month-size);
+  font-weight: 600;
+  opacity: .95;
+  margin-bottom: var(--ui-month-to-distance-gap);
+  white-space: nowrap;
+  font-family:'Inter', sans-serif;
+}
+.result-wrap.type2 .m2-distance{ grid-column: 1 / -1; margin-bottom: var(--ui-distance-to-row-gap); }
+.result-wrap.type2 .m2-distance-value{
+  font-size: var(--ui-month-distance-size);
+  font-weight: 1000;
+  line-height: 1.0;
+  white-space: nowrap;
+  display:block;
+}
+.result-wrap.type2 .m2-row{
+  grid-column: 1 / -1;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  column-gap: var(--ui-col-gap);
+}
+.result-screen.font-anton .result-value,
+.result-screen.font-anton .m1-distance-value,
+.result-screen.font-anton .m2-distance-value{ font-family:'Anton', sans-serif; }
+.result-screen.font-anton .result-label,
+.result-screen.font-anton .m1-month,
+.result-screen.font-anton .m2-month{ font-family:'Inter', sans-serif; font-weight:600; }
+.result-screen.font-dots .result-label,
+.result-screen.font-dots .result-value,
+.result-screen.font-dots .m1-month,
+.result-screen.font-dots .m1-distance-value,
+.result-screen.font-dots .m2-month,
+.result-screen.font-dots .m2-distance-value{ font-family:'Bitcount Grid Single', monospace; }
+.result-screen.font-lcd .result-label,
+.result-screen.font-lcd .result-value,
+.result-screen.font-lcd .m1-month,
+.result-screen.font-lcd .m1-distance-value,
+.result-screen.font-lcd .m2-month,
+.result-screen.font-lcd .m2-distance-value{ font-family:'DS-Digital', monospace; }
+.result-screen.font-gothic .result-label,
+.result-screen.font-gothic .result-value,
+.result-screen.font-gothic .m1-month,
+.result-screen.font-gothic .m1-distance-value,
+.result-screen.font-gothic .m2-month,
+.result-screen.font-gothic .m2-distance-value{ font-family:'Special Gothic Expanded One', sans-serif; }
+.result-screen.font-speed .result-label,
+.result-screen.font-speed .result-value,
+.result-screen.font-speed .m1-month,
+.result-screen.font-speed .m1-distance-value,
+.result-screen.font-speed .m2-month,
+.result-screen.font-speed .m2-distance-value{ font-family:'Quantico', sans-serif; }
+@media (max-width: 340px){
+  body{ padding: 16px; padding-bottom: 110px; }
+  .two-col{ gap: 12px; }
+  .preview{ width: min(220px, 100%); }
+}
+.data-value{ display: flex; align-items: flex-end; width: 100%; overflow: hidden; }
+.data-value > span{ display: inline-block; transform-origin: left bottom; white-space: nowrap; max-width: 100%; }
+a.title-link, a.title-link:link, a.title-link:visited, a.title-link:hover, a.title-link:active, a.title-link:focus{
+  color: inherit !important;
+  text-decoration: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
