@@ -1,334 +1,222 @@
-// ocr.js — FAST & STABLE OCR (RUNIMATE v2.1 - Daily Optimized)
-// - ES Module
-// - ROI 멀티패스(거리) + ROI 핀포인트(페이스/시간) + 정규식 강화
-// - Daily 모드(001~013 케이스) 데이터 라인 정밀 타격
+/* ocr.js - v3.0 Improved Logic */
+import { createWorker } from 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js';
 
-let _tessReady = false;
-
-/* =========================
-   1) Tesseract 보장
-========================= */
-async function ensureTesseract() {
-  if (window.Tesseract) {
-    _tessReady = true;
-    return window.Tesseract;
-  }
-  await new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js';
-    s.async = true;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('Failed to load Tesseract.js v2'));
-    document.head.appendChild(s);
-  });
-  if (!window.Tesseract) throw new Error('Tesseract failed to initialize');
-  _tessReady = true;
-  return window.Tesseract;
-}
-
-/* =========================
-   2) Canvas / Image Utils
-========================= */
-function makeCanvas(w, h) {
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  return c;
-}
-
-async function toCanvas(imgDataURL) {
-  return new Promise((res, rej) => {
+// 1. 이미지 전처리 개선 (너무 강한 이진화 제거)
+// 흑백으로 바꾸되, 글자를 너무 깎아먹지 않도록 부드럽게 처리
+function preprocessImage(imageSource) {
+  return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => res({ img, w: img.width, h: img.height });
-    img.onerror = rej;
-    img.src = imgDataURL;
+    img.crossOrigin = 'Anonymous';
+    img.src = imageSource;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      ctx.drawImage(img, 0, 0);
+      
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      
+      // 그레이스케일 변환 및 대비 증가 (Thresholding 대신 Contrast 사용)
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // 밝기 계산 (가중치 적용)
+        let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        
+        // 대비를 높임 (글자는 더 진하게, 배경은 더 하얗게)
+        // 180보다 밝으면 255(흰색), 아니면 원래 색보다 조금 더 어둡게
+        if (gray > 180) {
+            gray = 255;
+        } else {
+            gray = Math.max(0, gray - 50); // 글자 강조
+        }
+
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+      }
+      
+      ctx.putImageData(imgData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
   });
 }
 
-function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
-
-function normalizeOCR(s) {
-  return (s || '')
-    .replace(/[\u2018\u2019\u2032\u2035´`]/g, "'") // 다양한 작은따옴표 정규화
-    .replace(/[\u201C\u201D\u2033]/g, '"')         // 다양한 큰따옴표 정규화
-    .replace(/[·•]/g, '.')
-    .replace(/O/g, '0') // 숫자 0을 알파벳 O로 오인하는 경우 보정
-    .replace(/o/g, '0')
-    .replace(/\u200B|\u00A0/g, ' ')
-    .replace(/[ ]{2,}/g, ' ')
-    .trim();
-}
-
-function zero2(n) { return String(n).padStart(2, '0'); }
-
-/* =========================
-   3) Preprocess (Binarize + Unsharp)
-========================= */
-async function preprocessImageToDataURL(imgDataURL, {
-  scale = 2.4,
-  threshold = 190,
-  invertAuto = true
-} = {}) {
-  const { img, w: W, h: H } = await toCanvas(imgDataURL);
-  const w = Math.round(W * scale), h = Math.round(H * scale);
-  const c = makeCanvas(w, h);
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(img, 0, 0, w, h);
-
-  const im = ctx.getImageData(0, 0, w, h);
-  const d = im.data;
-
-  // (A) 배경 밝기 감지
-  let bgDark = false;
-  if (invertAuto) {
-    const sample = [];
-    const pts = [
-      [Math.floor(w * 0.06), Math.floor(h * 0.06)],
-      [Math.floor(w * 0.94), Math.floor(h * 0.06)],
-      [Math.floor(w * 0.06), Math.floor(h * 0.94)],
-      [Math.floor(w * 0.94), Math.floor(h * 0.94)],
-    ];
-    for (const [x, y] of pts) {
-      const i = (y * w + x) * 4;
-      const g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-      sample.push(g);
+// 2. 시간/페이스 파싱 헬퍼 (유연성 강화)
+function parseToSeconds(textStr) {
+    if (!textStr) return 0;
+    
+    // 노이즈 제거 (알파벳, 공백 제거하고 숫자와 : ' " 만 남김)
+    // 예: "4' 55''" -> "4'55''"
+    const clean = textStr.replace(/[^\d:'"’]/g, '');
+    
+    // 패턴 1: 분'초" (페이스)
+    // 따옴표 종류가 다양해서( ' ’ " ) 모두 대응
+    let match = clean.match(/(\d+)['’](\d+)/);
+    if (match) {
+        return parseInt(match[1]) * 60 + parseInt(match[2]);
     }
-    const avg = sample.reduce((a, b) => a + b, 0) / sample.length;
-    bgDark = avg < 120;
-  }
-
-  // (B) 이진화
-  for (let i = 0; i < d.length; i += 4) {
-    const g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-    let v = g > threshold ? 255 : 0;
-    if (invertAuto && bgDark) v = 255 - v;
-    d[i] = d[i + 1] = d[i + 2] = v;
-  }
-  ctx.putImageData(im, 0, 0);
-  return c.toDataURL('image/png');
-}
-
-async function unsharp(srcDataURL, amount = 0.9) {
-  const { img, w, h } = await toCanvas(srcDataURL);
-  const c = makeCanvas(w, h);
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(img, 0, 0);
-
-  const im = ctx.getImageData(0, 0, w, h);
-  const d = im.data;
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 1; x < w; x++) {
-      const i = (y * w + x) * 4;
-      const j = (y * w + x - 1) * 4;
-      d[i] = clamp(d[i] + amount * (d[i] - d[j]), 0, 255);
-      d[i + 1] = clamp(d[i + 1] + amount * (d[i + 1] - d[j + 1]), 0, 255);
-      d[i + 2] = clamp(d[i + 2] + amount * (d[i + 2] - d[j + 2]), 0, 255);
+    
+    // 패턴 2: 시:분:초
+    match = clean.match(/(\d+):(\d+):(\d+)/);
+    if (match) {
+        return parseInt(match[1]) * 3600 + parseInt(match[2]) * 60 + parseInt(match[3]);
     }
-  }
-  ctx.putImageData(im, 0, 0);
-  return c.toDataURL('image/png');
-}
 
-/* =========================
-   4) ROI Crops (좌표 최적화)
-========================= */
-async function cropROI(imgDataURL, {
-  topPct, heightPct, sidePct = 0.05,
-  scale = 2.8
-} = {}) {
-  const { img, w, h } = await toCanvas(imgDataURL);
-  const x = Math.round(w * sidePct);
-  const y = Math.round(h * topPct);
-  const cw = Math.round(w * (1 - 2 * sidePct));
-  const ch = Math.round(h * heightPct);
-
-  const outW = Math.round(cw * scale);
-  const outH = Math.round(ch * scale);
-
-  const c = makeCanvas(outW, outH);
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(img, x, y, cw, ch, 0, 0, outW, outH);
-  return c.toDataURL('image/png');
-}
-
-// Distance: 상단 큰 숫자 영역 (변경 없음, 잘 작동함)
-async function cropDistanceROI(imgDataURL) {
-  return cropROI(imgDataURL, { topPct: 0.05, heightPct: 0.25, sidePct: 0.05, scale: 3.0 });
-}
-
-// Pace/Time: *핵심 변경*
-// 기존: 상단~중단을 넓게 잡음 -> 레이블(Avg Pace)까지 포함되어 오인식 가능성 있음
-// 변경: 숫자가 위치한 'Row'만 핀포인트로 잡음 (Top 22% ~ 38% 구간)
-async function cropPaceTimeROI(imgDataURL) {
-  return cropROI(imgDataURL, { topPct: 0.22, heightPct: 0.16, sidePct: 0.04, scale: 2.8 });
-}
-
-/* =========================
-   5) Parsers (정규식 강화)
-========================= */
-function numsFromText(s) {
-  const t = normalizeOCR(s || '');
-  const m = t.match(/\b\d{1,3}[.,]\d{1,2}\b/g) || [];
-  return m.map(x => ({
-    val: parseFloat(x.replace(',', '.')),
-    dec: (x.split(/[.,]/)[1] || '').length
-  }));
-}
-
-function groupKmCandidates(cands, preferDec = 2) {
-  const groups = new Map();
-  for (const c of cands) {
-    const val = c.val;
-    if (!isFinite(val) || val <= 0 || val > 999) continue;
-
-    const key = (Math.round(val * 100) / 100).toFixed(2);
-    if (!groups.has(key)) {
-      groups.set(key, { val: parseFloat(key), count: 0, roi: 0, decHits: 0, score: 0 });
+    // 패턴 3: 분:초
+    match = clean.match(/(\d+):(\d+)/);
+    if (match) {
+        return parseInt(match[1]) * 60 + parseInt(match[2]);
     }
-    const g = groups.get(key);
-    g.count++;
-    if (String(c.src || '').includes('roi')) g.roi += 1;
-    g.decHits += (c.dec === preferDec) ? 2 : 0.5;
-    g.score += (c.score || 0);
-  }
-  return [...groups.values()].sort((a, b) =>
-    (b.roi - a.roi) || (b.decHits - a.decHits) || (b.count - a.count) || (b.score - a.score)
-  );
+    
+    return 0;
 }
 
-function parseTimeFromText(textRaw) {
-  const text = normalizeOCR(textRaw);
+export async function extractAll(imageDatas, options = {}) {
+  // 1) 전처리 실행
+  const processedImg = await preprocessImage(imageDatas);
 
-  // 1) HH:MM:SS (예: 1:56:30 - 010.png 케이스)
-  let m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})\b/);
-  if (m) {
-    const h = +m[1], min = +m[2], s = +m[3];
-    return { timeH: h, timeM: min, timeS: s, timeRaw: `${zero2(h)}:${zero2(min)}:${zero2(s)}` };
-  }
-
-  // 2) MM:SS (예: 44:30) - Pace와 혼동 주의, 보통 Time은 Pace보다 큼(값 체크는 후처리에 위임)
-  m = text.match(/\b(\d{1,3})\s*:\s*(\d{2})\b/);
-  if (m) {
-    const min = +m[1], s = +m[2];
-    // 분이 60을 넘어가면 HH:MM으로 간주할 수도 있으나, NRC는 보통 MM:SS로 표시 (99:59까지)
-    return { timeH: null, timeM: min, timeS: s, timeRaw: `${zero2(min)}:${zero2(s)}` };
-  }
-
-  return { timeH: null, timeM: null, timeS: null, timeRaw: null };
-}
-
-function parsePaceFromText(textRaw) {
-  const text = normalizeOCR(textRaw);
-
-  // 1) 표준: 5'38" (따옴표 명확)
-  let m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\s*"?\b/);
-  if (m) return { paceMin: +m[1], paceSec: +m[2], paceRaw: `${m[1]}'${m[2]}"` };
-
-  // 2) OCR 오류 대응: 5'38 (큰따옴표 누락)
-  m = text.match(/\b(\d{1,2})\s*'\s*(\d{2})\b/);
-  if (m) return { paceMin: +m[1], paceSec: +m[2], paceRaw: `${m[1]}'${m[2]}"` };
-
-  // 3) OCR 오류 대응: 7:00" (작은따옴표를 콜론으로 오인했으나 뒤에 큰따옴표가 있는 경우)
-  m = text.match(/\b(\d{1,2})\s*:\s*(\d{2})\s*"\b/);
-  if (m) return { paceMin: +m[1], paceSec: +m[2], paceRaw: `${m[1]}'${m[2]}"` };
-
-  return { paceMin: null, paceSec: null, paceRaw: null };
-}
-
-/* =========================
-   6) Main Extraction Logic
-========================= */
-export async function extractAll(imgDataURL, { recordType = 'daily', debug = false } = {}) {
-  const debugBag = { kmTexts: [], ptTexts: [], roiPaceTime: null };
-  const T = await ensureTesseract();
-
-  // (1) Distance (KM) - Multi-pass
-  const roiDist = await cropDistanceROI(imgDataURL);
-  const roiDistSharp = await unsharp(roiDist, 1.0); // 샤프닝 강화
-  const roiDistBin = await preprocessImageToDataURL(roiDistSharp, { scale: 1.0, threshold: 190 });
-
-  const kmCands = [];
-  const kmOpts = {
-    tessedit_pageseg_mode: T.PSM.SINGLE_LINE,
-    tessedit_char_whitelist: '0123456789.,'
-  };
-
-  // Distance Pass 1 & 2
-  await Promise.all([
-    T.recognize(roiDistSharp, 'eng', kmOpts).then(r => {
-      numsFromText(r.data.text).forEach(o => kmCands.push({ ...o, src: 'roi-sharp', score: 10 }));
-    }),
-    T.recognize(roiDistBin, 'eng', kmOpts).then(r => {
-      numsFromText(r.data.text).forEach(o => kmCands.push({ ...o, src: 'roi-bin', score: 10 }));
-    })
-  ]);
-
-  const kmBest = groupKmCandidates(kmCands, 2)[0]?.val ?? null;
-
-  // (2) Pace & Time - ROI Pinpoint
-  // Daily 모드는 [Pace] [Time] [Cal] 한 줄에 있음. 이 줄만 핀포인트로 노림.
-  const roiPT = await cropPaceTimeROI(imgDataURL);
-  const roiPTSharp = await unsharp(roiPT, 0.8);
-  const roiPTBin = await preprocessImageToDataURL(roiPTSharp, { scale: 1.0, threshold: 180 }); // 임계값 미세조정
-
-  debugBag.roiPaceTime = { roiPT, roiPTSharp, roiPTBin };
-
-  // Pace/Time Pass (PSM 7: Single Line 취급하여 한 줄 읽기 유도)
-  // 레이블(Avg Pace 등)을 배제하고 숫자만 읽으므로 인식률 상승 기대
-  const ptOpts = {
-    tessedit_pageseg_mode: T.PSM.SINGLE_BLOCK, 
-    tessedit_char_whitelist: "0123456789:'\"hmsHMS .",
-  };
-
-  const [res1, res2] = await Promise.all([
-    T.recognize(roiPTSharp, 'eng', ptOpts),
-    T.recognize(roiPTBin, 'eng', ptOpts)
-  ]);
-
-  // 두 결과 텍스트를 합쳐서 파싱 (보완)
-  const combinedText = (res1.data.text + ' ' + res2.data.text);
-  debugBag.ptTexts.push({ tag: 'combined', text: combinedText });
-
-  const pRaw = parsePaceFromText(combinedText);
-  let tRaw = parseTimeFromText(combinedText);
-
-  // *Fallback Logic*: Time이 안 잡혔는데, Pace 파서가 1:56:30 같은 긴 시간을 Pace로 오인했을 리는 없지만,
-  // 텍스트 덩어리에서 H:MM:SS가 Pace 정규식에 안 걸리고 Time 정규식에만 걸리도록 처리함.
+  // 2) Tesseract 워커 생성
+  const worker = await createWorker('eng');
   
-  // 데이터 정제
-  const km = (kmBest != null) ? clamp(kmBest, 0.1, 200) : 0;
+  // 3) 설정 변경 (중요!)
+  // 이전에는 숫자만 읽게 해서 'Pace' 같은 단어를 못 읽음 -> 알파벳 대소문자 추가
+  await worker.setParameters({
+    tessedit_char_whitelist: '0123456789.:\'"’kmKM/ \nabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  });
+
+  // 4) 인식
+  const ret = await worker.recognize(processedImg);
+  let text = ret.data.text;
+  await worker.terminate();
+
+  // 디버깅용 로그 (브라우저 콘솔에서 확인 가능)
+  console.log('--- OCR RAW TEXT ---');
+  console.log(text);
+  console.log('--------------------');
+
+  // 5) 데이터 추출 로직 (키워드 기반 + 라인 매칭)
+  // 텍스트를 줄 단위로 나눕니다.
+  // NRC는 보통 [값] [줄바꿈] [라벨] 순서로 되어 있습니다.
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   
-  const out = {
+  let km = 0;
+  let paceSec = 0;
+  let timeSec = 0;
+
+  // --- A. 거리 (Distance) 찾기 ---
+  // 가장 큰 숫자 혹은 "Km", "Kilometers" 근처의 숫자
+  for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // "숫자.숫자" 패턴 찾기 (예: 7.77)
+      const distMatch = line.match(/(\d+\.\d{2})/);
+      
+      if (distMatch) {
+          // 바로 아래 줄이나 같은 줄에 'km', 'Kilometers'가 있는지 확인
+          const nextLine = lines[i+1] || "";
+          const combined = (line + " " + nextLine).toLowerCase();
+          
+          if (combined.includes('km') || combined.includes('kilometers') || combined.includes('miles')) {
+              km = parseFloat(distMatch[1]);
+              break; // 거리를 찾으면 루프 종료
+          }
+      }
+  }
+  // 만약 못 찾았으면, 그냥 텍스트 전체에서 가장 먼저 나오는 "소수점 두자리 숫자"를 거리로 간주 (fallback)
+  if (km === 0) {
+      const fallback = text.match(/(\d+\.\d{2})/);
+      if (fallback) km = parseFloat(fallback[1]);
+  }
+
+
+  // --- B. 페이스 (Pace) 찾기 ---
+  // "Pace" 또는 "Avg" 라는 단어가 있는 줄의 '윗 줄' 혹은 '같은 줄'을 찾음
+  for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].toLowerCase();
+      if (line.includes('pace') || line.includes('avg')) {
+          // 1. 같은 줄에서 숫자 찾기 (예: 4'55'' Avg. Pace)
+          let val = parseToSeconds(lines[i]);
+          
+          // 2. 없으면 윗 줄에서 찾기 (NRC 레이아웃은 보통 값이 위에 있음)
+          if (val === 0 && i > 0) {
+              val = parseToSeconds(lines[i-1]);
+          }
+          
+          if (val > 0) {
+              paceSec = val;
+              break;
+          }
+      }
+  }
+  // 키워드로 못 찾았으면 패턴(x'xx")으로 찾기
+  if (paceSec === 0) {
+      const paceMatch = text.match(/(\d+)['’](\d+)/);
+      if (paceMatch) {
+          paceSec = parseInt(paceMatch[1]) * 60 + parseInt(paceMatch[2]);
+      }
+  }
+
+
+  // --- C. 시간 (Time) 찾기 ---
+  // "Time" 이라는 단어가 있는 줄의 '윗 줄' 혹은 '같은 줄'
+  for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].toLowerCase();
+      // 'time' 단어가 있고, 'pace' 단어는 없는 줄 (페이스랑 헷갈림 방지)
+      if (line.includes('time') && !line.includes('pace')) {
+           // 1. 같은 줄 검사
+           let val = parseToSeconds(lines[i]);
+           
+           // 2. 윗 줄 검사
+           if (val === 0 && i > 0) {
+               val = parseToSeconds(lines[i-1]);
+           }
+
+           if (val > 0) {
+               timeSec = val;
+               break;
+           }
+      }
+  }
+  // 키워드로 못 찾았으면 패턴(h:mm:ss 또는 mm:ss)으로 찾기
+  if (timeSec === 0) {
+      // 페이스 패턴(')이 없고 콜론(:)이 있는 것
+      // 전체 텍스트에서 찾되, 페이스로 인식된 값과 다른 값을 찾아야 함
+      const potentialTimes = text.match(/(\d+):(\d{2})/g);
+      if (potentialTimes) {
+          for (let pt of potentialTimes) {
+              const s = parseToSeconds(pt);
+              // 페이스랑 값이 겹치지 않고, 너무 짧지 않은(예: 0:00) 값
+              if (s !== paceSec && s > 0) {
+                  // 만약 여러개라면 가장 큰 값(보통 총 시간이 페이스보다 긺)을 선택하거나 첫번째 선택
+                  timeSec = s;
+                  break; 
+              }
+          }
+      }
+  }
+  
+  // --- 보정 (Fallback Calculation) ---
+  // 하나가 누락되었는데 나머지 둘이 있다면 수학적으로 계산해서 채워넣음
+  if (timeSec === 0 && km > 0 && paceSec > 0) {
+      timeSec = Math.round(km * paceSec);
+  }
+  if (paceSec === 0 && km > 0 && timeSec > 0) {
+      paceSec = Math.round(timeSec / km);
+  }
+
+  return {
     km,
-    runs: null, // Daily 모드에선 안 씀
-    paceMin: pRaw.paceMin,
-    paceSec: pRaw.paceSec,
-    timeH: tRaw.timeH,
-    timeM: tRaw.timeM,
-    timeS: tRaw.timeS,
-    timeRaw: tRaw.timeRaw
+    paceMin: Math.floor(paceSec / 60),
+    paceSec: paceSec % 60,
+    timeH: Math.floor(timeSec / 3600),
+    timeM: Math.floor((timeSec % 3600) / 60),
+    timeS: timeSec % 60,
+    runs: 0 // Monthly는 필요 시 추가
   };
-
-  if (debug) out._debug = debugBag;
-  return out;
-}
-
-/* =========================
-   7) Formatters
-========================= */
-export function formatPace(paceMin, paceSec) {
-  if (paceMin == null || paceSec == null) return '';
-  return `${parseInt(paceMin)}' ${zero2(parseInt(paceSec))}"`;
-}
-
-export function formatTime(timeH, timeM, timeS) {
-  const h = timeH != null ? parseInt(timeH) : 0;
-  const m = timeM != null ? parseInt(timeM) : 0;
-  const s = timeS != null ? parseInt(timeS) : 0;
-  if (h > 0) return `${h}:${zero2(m)}:${zero2(s)}`;
-  return `${m}:${zero2(s)}`;
 }
