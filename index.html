@@ -1,3 +1,14 @@
+요청하신 대로 **"파란색 오리지널 디자인"**의 로그인 화면을 적용하고, **Railway 서버 연결 로직**을 최적화하여 수정한 최종 `index.html`입니다.
+
+**수정된 핵심 포인트:**
+
+1. **가민 로그인 화면:** 파란색 배경(#6ebaff)의 Garmin Connect 스타일로 디자인 변경.
+2. **서버 연결:** `fetchGarminData` 함수가 님의 Railway 서버 주소(`.../api/garmin`)로 요청을 보냄.
+3. **UI 제어:** 로그인 성공 시, 혹은 리스트 클릭 시 로그인 창이 사라지고 데이터 카드가 뜨도록 로직 연결.
+
+아래 코드를 복사해서 `index.html` 파일에 덮어쓰시면 됩니다.
+
+```html
 <!doctype html>
 <html lang="ko">
 
@@ -45,19 +56,41 @@
         <div class="data-empty" id="dataEmpty"></div>
 
         <div class="data-content" id="contentGarmin">
-          <div class="garmin-login-wrap" style="height: auto; padding: 24px 0; text-align: center;">
-            <div class="gc-big" style="font-size: 24px; margin-bottom: 16px;">GARMIN SYNC</div>
+          <div class="garmin-login-wrap" id="garminLoginPanel" 
+               style="background-color: #6ebaff; border-radius: 12px; padding: 30px 24px; text-align: left; color: #000; position: relative; overflow: hidden; font-family: sans-serif;">
             
-            <div class="garmin-form" style="display: flex; flex-direction: column; gap: 10px; max-width: 280px; margin: 0 auto;">
-              <input type="email" id="garminEmail" placeholder="Garmin Email" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
-              <input type="password" id="garminPassword" placeholder="Password" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
-              
-              <button class="gc-cta" id="btnGarminRealSync" type="button" 
-                style="margin-top: 10px; background: #000; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">
-                Sync Activities
+            <div style="font-weight: 900; font-size: 28px; line-height: 1.1; margin-bottom: 5px;">
+              GARMIN<br>CONNECT
+            </div>
+            <div style="font-weight: 300; font-size: 28px; margin-bottom: 40px;">
+              Sign-In
+            </div>
+
+            <div class="garmin-form" style="display: flex; flex-direction: column; gap: 20px;">
+              <div style="position: relative;">
+                <input type="email" id="garminEmail" placeholder="email@domain.com" 
+                  style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #000; padding: 8px 0; font-size: 16px; color: #000; outline: none; border-radius: 0;">
+              </div>
+
+              <div style="position: relative;">
+                <input type="password" id="garminPassword" placeholder="password" 
+                  style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #000; padding: 8px 0; font-size: 16px; color: #000; outline: none; border-radius: 0;">
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: flex-start; margin-top: 10px;">
+                <div style="font-weight: 900; font-size: 24px; line-height: 1;">:)</div>
+                <div style="font-size: 11px; line-height: 1.4; font-weight: 600;">
+                  Your Garmin account information is never saved or stored, so you can feel safe using it.
+                </div>
+              </div>
+
+              <button id="btnGarminRealSync" type="button" 
+                style="margin-top: 20px; background: #000; color: #fff; border: none; padding: 16px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%;">
+                Sign-In
               </button>
             </div>
-            <div id="garminStatus" style="margin-top: 15px; font-size: 13px; color: #666; min-height: 18px; line-height: 1.4;"></div>
+            
+            <div id="garminStatus" style="margin-top: 15px; font-size: 12px; color: #000; text-align: center; font-weight: bold;"></div>
           </div>
           
           <div class="garmin-card" id="garminCard" style="display:none; margin-top:20px;">
@@ -440,23 +473,23 @@
     // [추가] 가민 데이터 저장 변수
     let realGarminWorkouts = [];
 
-    // [추가] 가민 서버 통신 함수
+    // [수정] 가민 서버 통신 함수 (파란색 디자인 대응 + 결과 처리)
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
       const password = $('#garminPassword').value;
       const statusDiv = $('#garminStatus');
 
       if (!email || !password) {
-        alert('이메일과 비밀번호를 입력해주세요.');
+        statusDiv.textContent = "Please enter email and password.";
         return;
       }
 
-      statusDiv.textContent = "가민 서버에 로그인 중... (약 5~10초 소요)";
+      statusDiv.textContent = "Connecting to Garmin... (Please wait)";
       $('#btnGarminRealSync').disabled = true;
-      $('#btnGarminRealSync').style.opacity = '0.6';
+      $('#btnGarminRealSync').style.opacity = '0.7';
 
       try {
-        // [중요] 님의 Railway 서버 주소
+        // [중요] 님의 Railway 서버 주소 (뒤에 /api/garmin 필수)
         const SERVER_URL = "https://garmin-server-production.up.railway.app/api/garmin";
 
         const res = await fetch(SERVER_URL, {
@@ -464,11 +497,15 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password })
         });
+        
+        if (!res.ok) {
+            throw new Error(`Server Error: ${res.status}`);
+        }
 
         const result = await res.json();
 
         if (result.success) {
-          statusDiv.textContent = "성공! 데이터를 불러왔습니다.";
+          statusDiv.textContent = "Success!";
           realGarminWorkouts = result.data;
           
           if (realGarminWorkouts.length > 0) {
@@ -477,18 +514,20 @@
              applyDataType();
              updatePreview();
              
-             // 입력창 숨기고 리스트 보여주기
-             $('.garmin-login-wrap').style.display = 'none';
+             // [중요] 파란 로그인 패널 숨기고, 데이터 카드 보여주기
+             $('#garminLoginPanel').style.display = 'none';
              $('#garminCard').style.display = 'flex';
+          } else {
+             statusDiv.textContent = "Login success, but no activities found.";
           }
         } else {
-          statusDiv.textContent = "실패: " + (result.error || "알 수 없는 오류");
-          alert("로그인 실패: 아이디/비번을 확인하거나 나중에 다시 시도하세요.");
+          statusDiv.textContent = "Login Failed: Check your info.";
+          alert("가민 로그인 실패: 아이디와 비밀번호를 확인해주세요.");
         }
       } catch (err) {
         console.error(err);
-        statusDiv.textContent = "서버 접속 오류";
-        alert("서버와 연결할 수 없습니다. Railway 서버가 켜져 있는지 확인하세요.");
+        statusDiv.textContent = "Connection Error.";
+        alert(`서버 연결 실패!\nRailway 로그를 확인해주세요.\n(에러: ${err.message})`);
       } finally {
         $('#btnGarminRealSync').disabled = false;
         $('#btnGarminRealSync').style.opacity = '1';
@@ -889,9 +928,10 @@
           } else {
             state.garmin = { ...w };
             state.dataType = 'garmin';
-            // 가민 카드 보이게 처리
-            $('.garmin-login-wrap').style.display = 'none';
-            $('#garminCard').style.display = 'flex';
+            
+            // [중요] 파란 로그인 패널 숨기고, 데이터 카드 보여주기 (ID 사용)
+            if($('#garminLoginPanel')) $('#garminLoginPanel').style.display = 'none';
+            if($('#garminCard')) $('#garminCard').style.display = 'flex';
           }
           applyDataType();
           updatePreview();
@@ -908,7 +948,7 @@
       openScreen('garminSelectScreen');
     });
 
-    // [추가] 가민 로그인 버튼 이벤트 연결
+    // [추가] 가민 로그인 버튼 이벤트 연결 (ID 수정됨)
     if($('#btnGarminRealSync')) {
         $('#btnGarminRealSync').addEventListener('click', fetchGarminData);
     }
@@ -1273,9 +1313,9 @@
       applyDataType();
       // 가민 탭 인라인 요소 제어
       if(el.garminCard) el.garminCard.style.display = 'none';
-      // [수정] 클래스명이 바뀌었으므로 쿼리셀렉터로 다시 찾음
-      const intro = document.querySelector('#contentGarmin .garmin-login-wrap');
-      if(intro) intro.style.display = 'block';
+      
+      // [수정] 클래스명이 바뀌었으므로 ID로 타겟팅하여 보이게 함
+      if($('#garminLoginPanel')) $('#garminLoginPanel').style.display = 'block';
     });
     
     // 스트라바 탭 클릭 시 로직 수정 (토큰 확인 -> fetch 시도 -> 성공 시 오픈)
@@ -1334,3 +1374,5 @@
 </body>
 
 </html>
+
+```
