@@ -5,9 +5,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RUNIMATE v2.0</title>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="./styles.css" />
+  
   <style>
+    /* [긴급 수정] 화면 좌우 흔들림(가로 스크롤) 방지 */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+
     /* [가민 로그인 오버레이 (Blue Theme)] */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
@@ -38,7 +45,7 @@
     
     .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
     
-    /* [수정] 스마일 아이콘 스타일 보강 */
+    /* 스마일 아이콘 회전 스타일 */
     .g-smile {
       font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block;
       transform-origin: center; line-height: 1; margin-top: -4px; color: #000;
@@ -58,9 +65,6 @@
     }
     .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
     .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
-    
-    /* 데이터 미선택 시 안내 메시지 */
-    .data-placeholder { padding: 40px 0; text-align: center; color: #bbb; font-size: 13px; font-weight: 500; }
   </style>
 </head>
 
@@ -98,9 +102,7 @@
           <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
         </div>
 
-        <div class="data-empty" id="dataEmpty">
-            <div class="data-placeholder">Select Data Type</div>
-        </div>
+        <div class="data-empty" id="dataEmpty"></div>
 
         <div class="data-content" id="contentGarmin" style="display:none;">
           <div id="garminConnectBtnWrap" style="text-align: center; padding: 40px 0;">
@@ -321,7 +323,6 @@
   </div>
 
   <script type="module">
-    // ui_config.js가 없을 경우를 대비해 import 구문은 유지하되, try-catch 혹은 안전 장치는 유지
     import { applyUIConfigToRoot } from './ui_config.js';
 
     const $ = (s) => document.querySelector(s);
@@ -361,10 +362,10 @@
     // --- STATE ---
     const state = {
       recordType: 'daily',
-      dataType: null,     // 초기값 null (사용자 선택 유도)
-      font: 'anton',      // 초기값 ANTON
-      layout: 'type1',    // 초기값 Type 1
-      bg: 'white',        // 초기값 White
+      dataType: null,     // null: 선택 전 (Placeholders)
+      font: 'anton',      // Default
+      layout: 'type1',    // Default
+      bg: 'white',        // Default
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
       garmin: { date: '2025.12.12', km: 14.64, paceSec: 359, timeSec: 5252 },
@@ -396,10 +397,8 @@
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
       
-      // Select Workout List Container
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
       
-      // Manual Inputs
       chipDistance: $('#chipDistance'), chipPace: $('#chipPace'),
       manualDistanceText: $('#manualDistanceText'), manualPaceText: $('#manualPaceText'), manualTimeText: $('#manualTimeText'),
       modalOverlay: $('#modalOverlay'), modalClose: $('#modalClose'), modalTitle: $('#modalTitle'),
@@ -525,17 +524,16 @@
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [수정: 클릭 가능한 리스트 렌더링 함수]
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
-      listContainer.innerHTML = ''; // Reset
+      listContainer.innerHTML = ''; 
 
       const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : mockWorkouts);
 
       list.forEach((w) => {
         const btn = document.createElement('button');
         btn.className = 'workout-item';
-        // 강제 스타일 적용 (클릭 영역 및 스타일 보장)
+        // 강제 스타일 적용
         btn.style.width = '100%';
         btn.style.display = 'flex';
         btn.style.justifyContent = 'space-between';
@@ -559,7 +557,6 @@
           <div class="w-arrow" style="pointer-events: none;">→</div>
         `;
         
-        // onclick 이벤트 직접 할당
         btn.onclick = (e) => {
             e.stopPropagation();
             if (kind === 'strava') {
@@ -663,33 +660,10 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- [수정: RUN 버튼 기능 구현] ---
-    el.btnRun.addEventListener('click', async () => {
-        const previewEl = (state.recordType === 'daily') ? el.previewDaily : el.previewMonthly;
-        const originalText = el.btnRun.innerText;
-        el.btnRun.innerText = 'GENERATING...';
-
-        try {
-            if (typeof html2canvas === 'undefined') {
-                alert('Library Loading Error: Please refresh the page.');
-                return;
-            }
-
-            const canvas = await html2canvas(previewEl, {
-                backgroundColor: state.bg === 'white' ? '#ffffff' : '#000000',
-                scale: 2 
-            });
-
-            const link = document.createElement('a');
-            link.download = `runimate_${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        } catch(e) {
-            console.error(e);
-            alert('Image Generation Failed.');
-        } finally {
-            el.btnRun.innerText = originalText;
-        }
+    // --- RUN BUTTON: 결과 화면 오픈 (원래대로 복구) ---
+    el.btnRun.addEventListener('click', () => {
+       openScreen('resultScreen');
+       // 필요시 여기에 결과 화면 데이터 바인딩 로직 추가 가능
     });
 
     // --- INITIALIZE ---
