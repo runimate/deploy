@@ -8,14 +8,14 @@
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [긴급 수정] 화면 좌우 흔들림(가로 스크롤) 방지 */
+    /* [수정] 화면 좌우 흔들림 방지 */
     html, body {
       overflow-x: hidden;
       width: 100%;
       max-width: 100%;
     }
 
-    /* [가민 로그인 오버레이 (Blue Theme)] */
+    /* [가민 로그인 오버레이] */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
@@ -45,7 +45,7 @@
     
     .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
     
-    /* 스마일 아이콘 회전 스타일 */
+    /* 스마일 아이콘 회전 */
     .g-smile {
       font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block;
       transform-origin: center; line-height: 1; margin-top: -4px; color: #000;
@@ -524,6 +524,7 @@
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
+    // [수정] 인라인 스타일 제거하여 디자인(Stroke) 복구 및 클릭 이벤트 수정
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
@@ -532,32 +533,21 @@
 
       list.forEach((w) => {
         const btn = document.createElement('button');
-        btn.className = 'workout-item';
-        // 강제 스타일 적용
-        btn.style.width = '100%';
-        btn.style.display = 'flex';
-        btn.style.justifyContent = 'space-between';
-        btn.style.alignItems = 'center';
-        btn.style.padding = '15px 0';
-        btn.style.border = 'none';
-        btn.style.background = 'transparent';
-        btn.style.borderBottom = '1px solid #eee';
-        btn.style.cursor = 'pointer';
-        btn.style.textAlign = 'left';
-
+        btn.className = 'workout-item'; // CSS에 정의된 스타일 사용
+        
         btn.innerHTML = `
-          <div class="w-left" style="pointer-events: none;">
-            <div class="w-date" style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">${w.date}</div>
-            <div class="w-stats" style="font-size: 13px; color: #666;">
+          <div class="w-left">
+            <div class="w-date">${w.date}</div>
+            <div class="w-stats">
               <span>${fmtKmPreview(w.km)}</span>
               <span>${fmtPaceResult(w.paceSec)}</span>
               <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
           </div>
-          <div class="w-arrow" style="pointer-events: none;">→</div>
+          <div class="w-arrow">→</div>
         `;
         
-        btn.onclick = (e) => {
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (kind === 'strava') {
                 state.strava = { ...w };
@@ -571,7 +561,8 @@
             applyDataType();
             updatePreview();
             closeScreen('garminSelectScreen');
-        };
+        });
+        
         listContainer.appendChild(btn);
       });
     }
@@ -660,10 +651,9 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- RUN BUTTON: 결과 화면 오픈 (원래대로 복구) ---
+    // --- RUN BUTTON: 결과 화면 오픈 (복구) ---
     el.btnRun.addEventListener('click', () => {
        openScreen('resultScreen');
-       // 필요시 여기에 결과 화면 데이터 바인딩 로직 추가 가능
     });
 
     // --- INITIALIZE ---
