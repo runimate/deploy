@@ -8,14 +8,15 @@
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [수정] 화면 좌우 흔들림 방지 */
+    /* [화면 설정] 좌우 흔들림 방지 */
     html, body {
       overflow-x: hidden;
       width: 100%;
       max-width: 100%;
+      -webkit-tap-highlight-color: transparent; /* 모바일 탭 하이라이트 제거 */
     }
 
-    /* [가민 로그인 오버레이] */
+    /* [가민 로그인 오버레이 (Blue Theme)] */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
@@ -45,12 +46,10 @@
     
     .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
     
-    /* 스마일 아이콘 회전 */
     .g-smile {
       font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block;
       transform-origin: center; line-height: 1; margin-top: -4px; color: #000;
     }
-    
     .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
     
     .g-signin-btn {
@@ -58,13 +57,47 @@
       padding: 18px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: auto; margin-bottom: 20px;
     }
 
-    /* 스트라바 메시지 */
+    /* [스트라바 메시지] */
     #contentStrava {
       display: none; flex-direction: column; align-items: center; justify-content: center;
       padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
     }
     .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
     .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
+
+    /* [Select Workout 리스트 아이템 스타일 보강] 
+       기존 CSS가 있더라도 확실하게 터치 반전 효과를 주기 위해 추가함 */
+    .workout-item {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0; /* 패딩을 0으로 잡고 내부에서 처리하거나 box-sizing 이슈 방지 */
+        border: none;
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color 0.1s, color 0.1s;
+        /* 터치 영역 확보 */
+        padding-left: 10px;
+        padding-right: 10px;
+        margin: 0 -10px; /* 패딩만큼 음수 마진을 줘서 전체 너비 사용 */
+        width: calc(100% + 20px);
+        box-sizing: border-box;
+    }
+    /* 눌렀을 때 (Active) 반전 효과 */
+    .workout-item:active {
+        background-color: #000 !important;
+        color: #fff !important;
+        border-radius: 8px; /* 살짝 둥글게 */
+    }
+    .workout-item:active .w-stats {
+        color: #ccc !important; /* 하위 텍스트 색상 변경 */
+    }
+    .workout-item:active .w-arrow {
+        color: #fff !important;
+    }
   </style>
 </head>
 
@@ -362,7 +395,7 @@
     // --- STATE ---
     const state = {
       recordType: 'daily',
-      dataType: null,     // null: 선택 전 (Placeholders)
+      dataType: null,     // null: 선택 전
       font: 'anton',      // Default
       layout: 'type1',    // Default
       bg: 'white',        // Default
@@ -408,7 +441,7 @@
       btnGarminList: $('#btnGarminList'),
       garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       
-      btnRun: $('#btnRun')
+      btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock')
     };
 
     // --- Screen Control ---
@@ -524,7 +557,7 @@
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [수정] 인라인 스타일 제거하여 디자인(Stroke) 복구 및 클릭 이벤트 수정
+    // [수정된 Workout List 렌더링 - 이벤트 리스너 강화 및 CSS 클래스 활용]
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
@@ -533,22 +566,25 @@
 
       list.forEach((w) => {
         const btn = document.createElement('button');
-        btn.className = 'workout-item'; // CSS에 정의된 스타일 사용
+        btn.className = 'workout-item'; // CSS 스타일 적용
         
         btn.innerHTML = `
-          <div class="w-left">
-            <div class="w-date">${w.date}</div>
-            <div class="w-stats">
-              <span>${fmtKmPreview(w.km)}</span>
-              <span>${fmtPaceResult(w.paceSec)}</span>
-              <span>${fmtTimeResult(w.timeSec)}</span>
+          <div class="w-left" style="pointer-events: none;">
+            <div class="w-date" style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">${w.date}</div>
+            <div class="w-stats" style="font-size: 13px; color: #666;">
+              <span class="w-km">${fmtKmPreview(w.km)}</span>
+              <span class="w-pace">${fmtPaceResult(w.paceSec)}</span>
+              <span class="w-time">${fmtTimeResult(w.timeSec)}</span>
             </div>
           </div>
-          <div class="w-arrow">→</div>
+          <div class="w-arrow" style="pointer-events: none;">→</div>
         `;
         
-        btn.addEventListener('click', (e) => {
+        // onclick 이벤트 핸들러 (확실한 클릭 동작 보장)
+        btn.onclick = function(e) {
+            e.preventDefault();
             e.stopPropagation();
+            
             if (kind === 'strava') {
                 state.strava = { ...w };
                 state.dataType = 'strava';
@@ -561,7 +597,7 @@
             applyDataType();
             updatePreview();
             closeScreen('garminSelectScreen');
-        });
+        };
         
         listContainer.appendChild(btn);
       });
@@ -651,8 +687,25 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- RUN BUTTON: 결과 화면 오픈 (복구) ---
+    // --- [수정] RUN 버튼 클릭 시 결과 화면 채우기 및 오픈 ---
     el.btnRun.addEventListener('click', () => {
+       // 1. 결과 화면 비우기
+       el.resultBlock.innerHTML = '';
+       
+       // 2. 현재 활성화된 Preview 복사
+       let activePreview;
+       if(state.recordType === 'daily') activePreview = el.previewDaily;
+       else activePreview = el.previewMonthly;
+       
+       // 3. Clone 생성 및 ID 제거 (중복 방지)
+       const clone = activePreview.cloneNode(true);
+       clone.removeAttribute('id');
+       // 내부 요소 ID 제거 또는 변경이 필요하면 여기서 처리 (현재 구조상 단순 복사면 충분)
+       
+       // 4. 결과 화면에 붙이기
+       el.resultBlock.appendChild(clone);
+       
+       // 5. 결과 화면 열기
        openScreen('resultScreen');
     });
 
