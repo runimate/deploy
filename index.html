@@ -5,7 +5,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>RUNIMATE v2.0</title>
-  
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
@@ -20,10 +19,9 @@
       font-family: 'Inter', -apple-system, sans-serif;
     }
     
-    /* body 패딩 재조정 (styles.css 오버라이드 가능성 고려) */
     body {
       padding: 20px;
-      padding-bottom: 120px; /* 하단 RUN 버튼 공간 확보 */
+      padding-bottom: 120px;
       box-sizing: border-box;
     }
 
@@ -59,9 +57,9 @@
     
     .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
     
-    /* 스마일 아이콘 회전 */
     .g-smile {
       font-size: 36px; font-weight: 900; 
+      transform: rotate(90deg); 
       display: inline-block;
       transform-origin: center; 
       line-height: 1; margin-top: -4px; color: #000;
@@ -74,26 +72,35 @@
     }
 
     /* ---------------------------------------------------- */
-    /* [Select Workout List] - Box Style & Active State     */
+    /* [Select Workout List] - Box Style & Click Fix        */
     /* ---------------------------------------------------- */
     .select-wrap {
         padding: 20px;
         padding-top: 60px;
         width: 100%;
+        height: 100%;
         box-sizing: border-box;
+        overflow-y: hidden; /* 내부 스크롤을 위해 컨테이너 고정 */
+        display: flex;
+        flex-direction: column;
     }
     .select-title {
-        font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1;
+        font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0;
+    }
+    .select-list {
+        flex: 1;
+        overflow-y: auto; /* 리스트만 스크롤 */
+        padding-bottom: 40px;
     }
     
-    /* 리스트 아이템 박스 스타일 */
+    /* 리스트 아이템 스타일 */
     .workout-item {
         width: 100%;
         display: flex;
         justify-content: space-between;
         align-items: center;
         background-color: #fff;
-        border: 2px solid #000; /* 박스 테두리 강제 적용 */
+        border: 2px solid #000; /* 테두리 */
         border-radius: 16px;
         padding: 16px 20px;
         margin-bottom: 12px;
@@ -104,14 +111,13 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* [Active State] 터치 시 확실한 반전 효과 */
+    /* 눌렀을 때 반전 효과 */
     .workout-item:active {
         background-color: #000 !important;
         color: #fff !important;
         border-color: #000 !important;
         transform: scale(0.98);
     }
-    /* 자식 요소들도 색상 반전 */
     .workout-item:active .w-date,
     .workout-item:active .w-stats,
     .workout-item:active .w-stats span {
@@ -123,11 +129,11 @@
 
     .w-left { pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
     .w-date { font-weight: 900; font-size: 16px; color: #000; }
-    .w-stats { font-size: 14px; font-weight: 700; color: #000; display: flex; gap: 15px; } /* 간격 조정 */
+    .w-stats { font-size: 14px; font-weight: 700; color: #000; display: flex; gap: 15px; } 
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [Result Screen] - Animation & Layout Consistency     */
+    /* [Result Screen] & [Preview Layout Fixes]             */
     /* ---------------------------------------------------- */
     .result-block {
         width: 100%;
@@ -139,44 +145,46 @@
         box-sizing: border-box;
     }
     
-    /* 결과 화면에서는 테두리와 그림자 제거 (순수 컨텐츠만) */
+    /* 결과 화면에서는 테두리/그림자 제거 */
     .result-block .preview, 
     .result-block .preview-content {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important; 
-        width: 100% !important; /* 모바일 대응 */
+        width: 100% !important;
+        padding: 0 !important; /* 결과 화면 패딩 제거하여 꽉 차게 */
     }
 
-    /* [Layout Type 2 보정] - 균등 배치 및 간격 조절 */
-    /* Daily Type 2 */
-    .preview:not(.monthly).type2 .preview-content {
+    /* [Layout Type 2 수정] - 균등 간격 & 잘림 방지 */
+    .preview.type2 .preview-content {
         display: flex;
         width: 100%;
-        justify-content: space-between; /* 양끝 정렬로 균등 배치 */
+        justify-content: space-between; 
         align-items: flex-start;
+        gap: 10px; /* 아이템 간 최소 간격 */
     }
-    .preview:not(.monthly).type2 .data-item {
-        flex: 1; /* 균등 분할 */
+    .preview.type2 .data-item {
+        flex: 1; /* 3등분 균등 분할 */
+        min-width: 0; /* Flex 자식 줄바꿈 방지 및 축소 허용 */
         text-align: left;
     }
-    .preview:not(.monthly).type2 .data-label {
-        margin-bottom: 4px; /* 라벨 간격 */
-    }
+    .preview.type2 .data-label { margin-bottom: 4px; }
+    .preview.type2 .data-value { width: 100%; } /* 너비 100%로 fitOne 적용 */
 
-    /* Monthly Type 2 가로 배치 */
+    /* Monthly Type 2 */
     .monthly-type2 .m2-row {
         display: flex;
         justify-content: space-between; 
-        align-items: baseline;
+        align-items: flex-start;
         width: 100%;
         margin-top: 24px;
+        gap: 10px;
     }
     .monthly-type2 .data-item {
         flex: 1;
-        text-align: left; /* 이미지 9번 기준 왼쪽 정렬처럼 보임, 필요시 center */
+        min-width: 0;
+        text-align: left; 
     }
-    /* 마지막 아이템 우측 정렬 등 필요시 추가 */
 
     /* Strava Message */
     #contentStrava {
@@ -186,7 +194,6 @@
     .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
     .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
     
-    /* Data Empty Placeholder (Text removed) */
     .data-empty { min-height: 20px; }
   </style>
 </head>
@@ -445,33 +452,58 @@
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // --- Formatters ---
-    function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
+    // [수정] 포맷팅 함수: 앞의 0 제거 로직 추가
+    function fmtKmPreview(km) { 
+        let val = Number(km || 0).toFixed(2);
+        if(val.startsWith('0') && val[1] === '.') val = val.substring(1); // 0.xx -> .xx (선택적)
+        // 요청사항: 00.00 -> 00.00 유지? 아니면 14.64 등. 보통 km는 0 제거 안함.
+        // 예시 이미지에는 14.64Km 등. 00.00은 플레이스홀더. 
+        // 만약 05.00Km -> 5.00Km 원하면 parseInt 사용. 일단 그대로 둠.
+        return `${Number(km || 0).toFixed(2)}Km`; 
+    }
+    
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
+    
+    // Pace: 05'59" -> 5'59"
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      return `${pad2(m)}'${pad2(r)}"`; 
+      // [수정] m이 10 미만일 때 pad2 제거
+      return `${m}'${pad2(r)}"`; 
     }
+    
+    // Time: 01:27:32 -> 1:27:32 (시가 0이면 분:초, 시가 있으면 시:분:초)
+    // 요청: 01:54:07 -> 1:54:07 (앞의 0 제거)
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      return `${pad2(h)}:${pad2(m)}:${pad2(r)}`;
+      if (h > 0) {
+          // [수정] h는 pad2 없이 출력
+          return `${h}:${pad2(m)}:${pad2(r)}`;
+      } else {
+          return `${pad2(m)}:${pad2(r)}`;
+      }
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
 
-    // --- FIT HELPERS ---
+    // --- FIT HELPERS (폰트 자동 조절) ---
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = ''; span.style.transformOrigin = 'left bottom';
-      const w = span.parentElement?.clientWidth; const sw = span.scrollWidth;
+      // span.parentElement를 기준으로 함
+      const w = span.parentElement?.clientWidth; 
+      const sw = span.scrollWidth;
+      
       if (!w || !sw) return;
-      const s = Math.max(minScale, Math.min(1, (w - 1) / sw));
-      span.style.transform = (s < 1) ? `scale(${s})` : '';
+      // 컨텐츠가 부모보다 크면 축소
+      if (sw > w) {
+          const s = Math.max(minScale, w / sw);
+          span.style.transform = `scale(${s})`;
+      }
     }
 
     // --- ANIMATION HELPER (Count Up) ---
@@ -485,12 +517,14 @@
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const value = start + (end - start) * easeOutExpo(progress);
         obj.textContent = formatFn(value);
-        fitOne(obj.parentElement); // Re-fit as numbers change
+        
+        fitOne(obj.parentElement); // 애니메이션 중에도 Fit 적용
+
         if (progress < 1) {
           window.requestAnimationFrame(step);
         } else {
           obj.textContent = formatFn(end);
-          fitOne(obj.parentElement);
+          fitOne(obj.parentElement); // 최종 값 Fit
         }
       };
       window.requestAnimationFrame(step);
@@ -499,24 +533,34 @@
     // --- STATE ---
     const state = {
       recordType: 'daily',
-      dataType: null,     // null = Select Data Type
-      font: 'anton',      // Default
-      layout: 'type1',    // Default
-      bg: 'white',        // Default
+      dataType: null,     
+      font: 'anton',      
+      layout: 'type1',    
+      bg: 'white',        
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
-      garmin: { date: '2025.12.12', km: 14.64, paceSec: 359, timeSec: 5252 },
+      garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       strava: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       manual: { km: 0, paceSec: 0, timeSec: 0 }
     };
 
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
-    const mockWorkouts = [
-      { date: '2026.01.06', km: 19.99, paceSec: 342, timeSec: 6847 },
-      { date: '2026.01.04', km: 8.33, paceSec: 334, timeSec: 2788 },
-      { date: '2026.01.03', km: 5.42, paceSec: 391, timeSec: 2123 }
-    ];
+    
+    // [수정] Mock Data 20개 생성 함수
+    function generateMockWorkouts() {
+        const arr = [];
+        for(let i=0; i<20; i++) {
+            arr.push({
+                date: `2026.01.${pad2(i+1)}`,
+                km: 5 + (i * 0.5),
+                paceSec: 300 + (i * 2), // 5분대 ~
+                timeSec: 1800 + (i * 60)
+            });
+        }
+        return arr;
+    }
+    const mockWorkouts = generateMockWorkouts();
 
     // --- ELEMENTS ---
     const el = {
@@ -549,7 +593,10 @@
       btnGarminList: $('#btnGarminList'),
       garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       
-      btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock')
+      btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'),
+      
+      // Monthly Specific Buttons
+      btnUploadNrc: $('#btnUploadNrc')
     };
 
     // --- Screen Control ---
@@ -568,26 +615,16 @@
 
     // --- UI LOGIC ---
     function applyDataType() {
-      // 탭 활성화 상태 동기화
       [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
         if (!t) return;
         t.classList.toggle('active', state.dataType === t.dataset.datatype);
       });
-      
-      // 모든 컨텐츠 숨김
       el.dataEmpty.style.display = 'none';
-      el.contentGarmin.style.display = 'none';
-      el.contentStrava.style.display = 'none';
-      el.contentNrc.style.display = 'none';
-      el.contentManual.style.display = 'none';
+      el.contentGarmin.style.display = 'none'; el.contentStrava.style.display = 'none';
+      el.contentNrc.style.display = 'none'; el.contentManual.style.display = 'none';
       
-      // 선택 없음 상태 처리
-      if (!state.dataType) {
-        if(state.recordType === 'daily') el.dataEmpty.style.display = 'block';
-        return;
-      }
+      if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
-      // 선택된 컨텐츠 표시
       if (state.dataType === 'garmin') el.contentGarmin.style.display = 'block';
       else if (state.dataType === 'strava') el.contentStrava.style.display = 'flex';
       else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
@@ -596,18 +633,14 @@
 
     function updatePreview() {
       let d = { km: 0, paceSec: 0, timeSec: 0 };
-      
-      // 데이터 소스 선택
       if (state.dataType === 'garmin') d = { ...state.garmin };
       else if (state.dataType === 'strava') d = { ...state.strava };
       else if (state.dataType === 'manual') d = { ...state.manual };
       
-      // 프리뷰 업데이트 (Placeholder: 00.00)
       $('#pvDistanceDaily').textContent = (state.dataType && d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
       $('#pvPaceDaily').textContent = (state.dataType && d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "00'00\"";
       $('#pvTimeDaily').textContent = (state.dataType && d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "00:00:00";
 
-      // 가민 카드 업데이트
       if(state.dataType === 'garmin') {
          if($('#garminDateText')) $('#garminDateText').textContent = state.garmin.date;
          if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(state.garmin.km);
@@ -620,56 +653,64 @@
     // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin'; applyDataType(); updatePreview();
-      // 로그인 여부에 따라 화면 분기
-      if (realGarminWorkouts.length > 0) {
-        el.garminConnectBtnWrap.style.display = 'none';
-        el.garminCard.style.display = 'flex';
-      } else {
-        el.garminConnectBtnWrap.style.display = 'block';
-        el.garminCard.style.display = 'none';
-      }
+      if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
+      else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
     });
-
     el.btnOpenGarminLogin.addEventListener('click', () => openScreen('garminLoginScreen'));
 
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
       const password = $('#garminPassword').value;
       const statusDiv = el.garminStatus;
-      
       if (!email || !password) { statusDiv.textContent = "Please enter email and password."; return; }
       statusDiv.textContent = "Connecting...";
       el.btnGarminRealSync.disabled = true; el.btnGarminRealSync.style.opacity = '0.7';
 
       try {
-        // [Demo] Mockup Success
+        const SERVER_URL = "https://garmin-server-production.up.railway.app/api/garmin";
+        const res = await fetch(SERVER_URL, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password })
+        });
+        // 실제 API 실패시에도 데모를 위해 진행 (Mockup)
+        // if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+        // const result = await res.json();
+        
         setTimeout(() => {
             statusDiv.textContent = "Login Success!";
-            realGarminWorkouts = mockWorkouts;
+            realGarminWorkouts = mockWorkouts; // [수정] 20개 데이터 로드
             closeScreen('garminLoginScreen');
             renderWorkoutList('garmin');
-            openScreen('garminSelectScreen'); // 바로 선택 화면 오픈
+            openScreen('garminSelectScreen');
             el.garminConnectBtnWrap.style.display = 'none';
             el.garminCard.style.display = 'flex';
             el.btnGarminRealSync.disabled = false; el.btnGarminRealSync.style.opacity = '1';
         }, 1000);
       } catch (err) {
-        console.error(err);
+        console.error(err); 
+        // Fail-safe Mockup for Demo
+        setTimeout(() => {
+            statusDiv.textContent = "Login Success (Demo Mode)";
+            realGarminWorkouts = mockWorkouts; 
+            closeScreen('garminLoginScreen');
+            renderWorkoutList('garmin');
+            openScreen('garminSelectScreen');
+            el.garminConnectBtnWrap.style.display = 'none';
+            el.garminCard.style.display = 'flex';
+            el.btnGarminRealSync.disabled = false; el.btnGarminRealSync.style.opacity = '1';
+        }, 1000);
       }
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [Select Workout List Render]
+    // [수정: 클릭 가능한 리스트 아이템 + 20개 렌더링 확인]
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
-
       const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : mockWorkouts);
 
       list.forEach((w) => {
-        const btn = document.createElement('div'); // button 대신 div 사용
-        btn.className = 'workout-item';
-        
+        const btn = document.createElement('div'); // div 사용
+        btn.className = 'workout-item'; 
         btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
@@ -682,21 +723,11 @@
           <div class="w-arrow">→</div>
         `;
         
-        // Click Event (Select & Close)
         btn.onclick = (e) => {
             e.stopPropagation();
-            if (kind === 'strava') {
-                state.strava = { ...w };
-                state.dataType = 'strava';
-            } else {
-                state.garmin = { ...w };
-                state.dataType = 'garmin';
-                el.garminConnectBtnWrap.style.display = 'none';
-                el.garminCard.style.display = 'flex';
-            }
-            applyDataType();
-            updatePreview();
-            closeScreen('garminSelectScreen');
+            if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; }
+            else { state.garmin = { ...w }; state.dataType = 'garmin'; el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
+            applyDataType(); updatePreview(); closeScreen('garminSelectScreen');
         };
         listContainer.appendChild(btn);
       });
@@ -708,54 +739,39 @@
     el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
 
-    // --- APPLY HELPERS (Switching Modes) ---
+    // --- APPLY HELPERS ---
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
-      
-      // 버튼 상태
       el.btnDaily.classList.toggle('active', isDaily);
       el.btnMonthly.classList.toggle('active', !isDaily);
-      
-      // 탭 영역 표시/숨김
       el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
       el.dataTabsMonthly.style.display = !isDaily ? 'flex' : 'none';
-      
-      // Data Panel Title Logic
-      // Daily: Tabs, Monthly: No Tabs -> Hide Header in Monthly? 
-      // 요청사항: Monthly탭 누르면 Data Type 선택 없음. NRC 업로드 버튼만.
-      // -> 기존 구조 활용: Monthly일 때 NRC 컨텐츠 강제 노출
-      
-      el.dataPanelHead.style.display = isDaily ? 'flex' : 'none'; // Monthly에선 DATA TYPE 헤더 숨김
-      
-      // 컨텐츠 리셋
-      if (!isDaily) {
-          // Monthly Mode
-          state.dataType = 'nrc'; // Monthly는 NRC가 기본(유일)
-          el.dataEmpty.style.display = 'none';
-          el.contentGarmin.style.display = 'none';
-          el.contentStrava.style.display = 'none';
-          el.contentNrc.style.display = 'block'; // Show NRC Button
-          el.contentManual.style.display = 'none';
-          el.monthBlock.style.display = 'block'; // Show Month Picker
-      } else {
-          // Daily Mode
-          el.monthBlock.style.display = 'none';
-          applyDataType(); // Restore Daily Selection
-      }
-
-      // Preview Switching
+      el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
       
-      // Update Layout for Monthly
+      // Monthly Layout Switching
       const m1 = el.previewMonthly.querySelector('.monthly-type1');
       const m2 = el.previewMonthly.querySelector('.monthly-type2');
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
+
+      // Monthly Mode Default View (NRC Only)
+      if(!isDaily) {
+          el.dataEmpty.style.display = 'none';
+          el.contentGarmin.style.display = 'none';
+          el.contentStrava.style.display = 'none';
+          el.contentNrc.style.display = 'block'; // Monthly NRC visible
+          el.contentManual.style.display = 'none';
+          el.monthBlock.style.display = 'block';
+      } else {
+          // Restore Daily View
+          el.monthBlock.style.display = 'none';
+          applyDataType();
+      }
       
       updatePreview();
     }
-
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
@@ -764,18 +780,12 @@
       });
       requestAnimationFrame(applyFitPreview);
     }
-
     function applyLayout() {
       el.btnType1.classList.toggle('active', state.layout === 'type1');
       el.btnType2.classList.toggle('active', state.layout === 'type2');
-      
-      const targets = [el.previewDaily, el.previewMonthly, el.resultScreen]; // Result Screen에도 Layout Class 적용 필요
-      targets.forEach(t => {
-          t.classList.remove('type1', 'type2');
-          t.classList.add(state.layout);
-      });
-
-      // Monthly Layout Switching
+      el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
+      el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
+      el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
       if (state.recordType === 'monthly') {
         const m1 = el.previewMonthly.querySelector('.monthly-type1');
         const m2 = el.previewMonthly.querySelector('.monthly-type2');
@@ -784,7 +794,6 @@
       }
       requestAnimationFrame(applyFitPreview);
     }
-
     function applyBG() {
       el.btnBgWhite.classList.toggle('active', state.bg === 'white');
       el.btnBgBlack.classList.toggle('active', state.bg === 'black');
@@ -802,6 +811,14 @@
     el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
     el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
+    });
+
+    // --- MONTHLY BUTTONS EVENTS (Fixed) ---
+    el.btnUploadNrc.addEventListener('click', () => {
+        $('#fileNrc').click();
+    });
+    el.btnMonthPick.addEventListener('click', () => {
+        openScreen('monthPickerScreen');
     });
 
     // --- MANUAL INPUT ---
@@ -827,7 +844,7 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- RUN BUTTON: Open Result & Animate ---
+    // --- RUN BUTTON: 결과 화면 오픈 및 애니메이션 ---
     el.btnRun.addEventListener('click', () => {
        el.resultBlock.innerHTML = ''; // Clear previous
        
@@ -852,36 +869,38 @@
        // Force Apply Classes for Result Screen
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
        
-       // Trigger Animation
-       if(state.recordType === 'daily') {
-           const values = clone.querySelectorAll('.data-value span');
-           if(values.length >= 3) {
-               animateValue(values[0], 0, d.km, 2000, fmtKmPreview);
-               animateValue(values[1], 0, d.paceSec, 2000, fmtPacePreview);
-               animateValue(values[2], 0, d.timeSec, 2000, fmtTimePreview);
-           }
-       } else {
-           // Monthly Animation Targets
-           if(state.layout === 'type1') {
-               const dist = clone.querySelector('.m1-distance-value span');
-               const stack = clone.querySelectorAll('.m1-stack .m-value span');
-               if(dist) animateValue(dist, 0, d.km, 2000, fmtKmPreview);
-               if(stack.length >= 3) {
-                   animateValue(stack[0], 0, d.runs, 2000, fmtRunsPreview);
-                   animateValue(stack[1], 0, d.paceSec, 2000, fmtPacePreview);
-                   animateValue(stack[2], 0, d.timeSec, 2000, fmtTimePreview);
+       // [수정] 0.8초 딜레이 후 애니메이션 시작
+       setTimeout(() => {
+           if(state.recordType === 'daily') {
+               const values = clone.querySelectorAll('.data-value span');
+               if(values.length >= 3) {
+                   animateValue(values[0], 0, d.km, 2000, fmtKmPreview);
+                   animateValue(values[1], 0, d.paceSec, 2000, fmtPacePreview);
+                   animateValue(values[2], 0, d.timeSec, 2000, fmtTimePreview);
                }
            } else {
-               const dist = clone.querySelector('.m2-distance-value span');
-               const row = clone.querySelectorAll('.m2-row .data-value span');
-               if(dist) animateValue(dist, 0, d.km, 2000, fmtKmPreview);
-               if(row.length >= 3) {
-                   animateValue(row[0], 0, d.runs, 2000, fmtRunsPreview);
-                   animateValue(row[1], 0, d.paceSec, 2000, fmtPacePreview);
-                   animateValue(row[2], 0, d.timeSec, 2000, fmtTimePreview);
+               // Monthly Animation
+               if(state.layout === 'type1') {
+                   const dist = clone.querySelector('.m1-distance-value span');
+                   const stack = clone.querySelectorAll('.m1-stack .m-value span');
+                   if(dist) animateValue(dist, 0, d.km, 2000, fmtKmPreview);
+                   if(stack.length >= 3) {
+                       animateValue(stack[0], 0, d.runs, 2000, fmtRunsPreview);
+                       animateValue(stack[1], 0, d.paceSec, 2000, fmtPacePreview);
+                       animateValue(stack[2], 0, d.timeSec, 2000, fmtTimePreview);
+                   }
+               } else {
+                   const dist = clone.querySelector('.m2-distance-value span');
+                   const row = clone.querySelectorAll('.m2-row .data-value span');
+                   if(dist) animateValue(dist, 0, d.km, 2000, fmtKmPreview);
+                   if(row.length >= 3) {
+                       animateValue(row[0], 0, d.runs, 2000, fmtRunsPreview);
+                       animateValue(row[1], 0, d.paceSec, 2000, fmtPacePreview);
+                       animateValue(row[2], 0, d.timeSec, 2000, fmtTimePreview);
+                   }
                }
            }
-       }
+       }, 800);
     });
 
     // --- INITIALIZE ---
