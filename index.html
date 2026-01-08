@@ -5,147 +5,62 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RUNIMATE v2.0</title>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="./styles.css" />
   <style>
     /* [가민 로그인 오버레이 (Blue Theme)] */
     #garminLoginScreen {
-      background-color: #5EA0F6 !important; /* 가민 블루 */
+      background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
       display: none;
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
     }
-    #garminLoginScreen.show {
-      display: flex !important;
-    }
-    /* 닫기 버튼 커스텀 */
+    #garminLoginScreen.show { display: flex !important; }
+    
     #garminLoginScreen .screen-close {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      font-size: 40px;
-      color: #000;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-weight: 300;
-      line-height: 1;
-      padding: 0;
+      position: absolute; top: 30px; right: 30px; font-size: 40px; color: #000;
+      background: none; border: none; cursor: pointer; font-weight: 300; line-height: 1; padding: 0;
     }
-    /* 타이틀 영역 */
-    .g-title {
-      margin-top: 60px;
-      color: #000;
-      line-height: 1.1;
-      margin-bottom: 50px;
-      width: 100%;
-    }
-    .g-title h2 {
-      font-size: 42px;
-      font-weight: 900;
-      margin: 0;
-      font-family: 'Inter', -apple-system, sans-serif;
-    }
-    .g-title h3 {
-      font-size: 42px;
-      font-weight: 300;
-      margin: 5px 0 0 0;
-      font-family: 'Inter', -apple-system, sans-serif;
-    }
-    /* 인풋 영역 */
-    .g-inputs {
-      width: 100%;
-      margin-bottom: 30px;
-    }
+    
+    .g-title { margin-top: 60px; color: #000; line-height: 1.1; margin-bottom: 50px; width: 100%; }
+    .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; font-family: 'Inter', -apple-system, sans-serif; }
+    .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; font-family: 'Inter', -apple-system, sans-serif; }
+    
+    .g-inputs { width: 100%; margin-bottom: 30px; }
     .g-input {
-      width: 100%;
-      background: transparent !important;
-      border: none !important;
-      border-bottom: 2px solid #000 !important;
-      border-radius: 0 !important;
-      padding: 10px 0;
-      font-size: 16px;
-      color: #000;
-      outline: none;
-      margin-bottom: 25px;
-      font-weight: 500;
+      width: 100%; background: transparent !important; border: none !important;
+      border-bottom: 2px solid #000 !important; border-radius: 0 !important;
+      padding: 10px 0; font-size: 16px; color: #000; outline: none; margin-bottom: 25px; font-weight: 500;
     }
-    .g-input::placeholder {
-      color: #333;
-      opacity: 0.7;
-    }
-    /* 안내 문구 영역 */
-    .g-info {
-      display: flex;
-      gap: 15px;
-      align-items: flex-start;
-      margin-bottom: 40px;
-    }
+    .g-input::placeholder { color: #333; opacity: 0.7; }
+    
+    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
+    
     /* [수정] 스마일 아이콘 스타일 보강 */
     .g-smile {
-      font-size: 36px;
-      font-weight: 900;
-      transform: rotate(90deg); /* 90도 회전 */
-      display: inline-block;    /* 회전 적용을 위해 inline-block */
-      transform-origin: center; /* 중심축 회전 */
-      line-height: 1;
-      margin-top: -4px;
-      color: #000;
+      font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block;
+      transform-origin: center; line-height: 1; margin-top: -4px; color: #000;
     }
-    .g-desc {
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.4;
-      max-width: 240px;
-      color: #000;
-    }
-    /* 로그인 버튼 */
+    
+    .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
+    
     .g-signin-btn {
-      width: 100%;
-      background: #000 !important;
-      color: #fff !important;
-      border: none;
-      border-radius: 50px;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: auto;
-      margin-bottom: 20px;
+      width: 100%; background: #000 !important; color: #fff !important; border: none; border-radius: 50px;
+      padding: 18px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: auto; margin-bottom: 20px;
     }
+
     /* 스트라바 메시지 */
     #contentStrava {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      text-align: center;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      min-height: 200px;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
     }
-    .strava-msg-title {
-      font-size: 16px;
-      font-weight: 900;
-      margin-bottom: 8px;
-      color: #000;
-    }
-    .strava-msg-desc {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.4;
-      font-weight: 500;
-    }
+    .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
+    .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
+    
     /* 데이터 미선택 시 안내 메시지 */
-    .data-placeholder {
-        padding: 40px 0; 
-        text-align: center; 
-        color: #bbb; 
-        font-size: 13px; 
-        font-weight: 500;
-    }
+    .data-placeholder { padding: 40px 0; text-align: center; color: #bbb; font-size: 13px; font-weight: 500; }
   </style>
 </head>
 
@@ -355,19 +270,14 @@
 
   <div class="screen-overlay" id="garminLoginScreen" aria-hidden="true">
     <button class="screen-close" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <div class="g-title">
-        <h2>GARMIN<br>CONNECT</h2>
-        <h3>Sign-In</h3>
-    </div>
+    <div class="g-title"><h2>GARMIN<br>CONNECT</h2><h3>Sign-In</h3></div>
     <div class="g-inputs">
         <input type="email" id="garminEmail" class="g-input" placeholder="enter your @ email.com">
         <input type="password" id="garminPassword" class="g-input" placeholder="password">
     </div>
     <div class="g-info">
         <div class="g-smile">:)</div>
-        <div class="g-desc">
-          Your Garmin account information is never saved or stored, so you can feel safe using it.
-        </div>
+        <div class="g-desc">Your Garmin account information is never saved or stored, so you can feel safe using it.</div>
     </div>
     <button id="btnGarminRealSync" type="button" class="g-signin-btn">Sign-In</button>
     <div id="garminStatus" style="font-size: 13px; color: #000; text-align: center; font-weight: bold; width: 100%;"></div>
@@ -411,6 +321,7 @@
   </div>
 
   <script type="module">
+    // ui_config.js가 없을 경우를 대비해 import 구문은 유지하되, try-catch 혹은 안전 장치는 유지
     import { applyUIConfigToRoot } from './ui_config.js';
 
     const $ = (s) => document.querySelector(s);
@@ -423,14 +334,14 @@
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      return `${pad2(m)}'${pad2(r)}"`; // [수정] 00'00" 포맷
+      return `${pad2(m)}'${pad2(r)}"`; 
     }
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      return `${pad2(h)}:${pad2(m)}:${pad2(r)}`; // [수정] 00:00:00 포맷
+      return `${pad2(h)}:${pad2(m)}:${pad2(r)}`;
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
@@ -446,56 +357,14 @@
       const s = Math.max(minScale, Math.min(1, (w - 1) / sw));
       span.style.transform = (s < 1) ? `scale(${s})` : '';
     }
-    function fitGroup(spans, minScale = 0.35) {
-      const arr = (spans || []).filter(Boolean); if (!arr.length) return;
-      arr.forEach(sp => { sp.style.transform = ''; sp.style.transformOrigin = 'left bottom'; });
-      let need = 1;
-      arr.forEach(sp => {
-        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
-        if (w && sw > w) need = Math.min(need, (w - 1) / sw);
-      });
-      need = Math.max(minScale, Math.min(1, need));
-      arr.forEach(sp => { sp.style.transform = (need < 1) ? `scale(${need})` : ''; });
-    }
-    function computeScaleForSpan(span, minScale = 0.35) {
-      if (!span || !span.parentElement) return 1;
-      span.style.transform = ''; span.style.transformOrigin = 'left bottom';
-      const w = span.parentElement.clientWidth; const sw = span.scrollWidth;
-      return (!w || !sw) ? 1 : Math.max(minScale, Math.min(1, (w - 1) / sw));
-    }
-    function computeScaleForGroup(spans, minScale = 0.35) {
-      const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
-      arr.forEach(sp => { sp.style.transform = ''; sp.style.transformOrigin = 'left bottom'; });
-      let need = 1;
-      arr.forEach(sp => {
-        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
-        if (w && sw > w) need = Math.min(need, (w - 1) / sw);
-      });
-      return Math.max(minScale, Math.min(1, need));
-    }
-    function applyLockedScale(spans, scale) {
-      (spans || []).filter(Boolean).forEach(sp => {
-        sp.style.transformOrigin = 'left bottom';
-        sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
-      });
-    }
-
-    // --- OCR LOAD ---
-    let OCR = null;
-    async function loadOCR() {
-      if (OCR) return OCR;
-      try { OCR = await import('./js/ocr.js'); return OCR; } catch (_e) { }
-      try { OCR = await import('./ocr.js'); return OCR; } catch (_e) { }
-      return null;
-    }
 
     // --- STATE ---
     const state = {
       recordType: 'daily',
-      dataType: null,     // [수정] 초기값 null (사용자 선택 유도)
-      font: 'anton',      // [수정] 초기값 ANTON
-      layout: 'type1',    // [수정] 초기값 Type 1
-      bg: 'white',        // [수정] 초기값 White
+      dataType: null,     // 초기값 null (사용자 선택 유도)
+      font: 'anton',      // 초기값 ANTON
+      layout: 'type1',    // 초기값 Type 1
+      bg: 'white',        // 초기값 White
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
       garmin: { date: '2025.12.12', km: 14.64, paceSec: 359, timeSec: 5252 },
@@ -526,22 +395,21 @@
       btnBgWhite: $('#btnBgWhite'), btnBgBlack: $('#btnBgBlack'),
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
-      pvMonthType1: $('#pvMonthType1'), pvMonthType2: $('#pvMonthType2'),
-      pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
-      pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
-      btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
+      
+      // Select Workout List Container
+      workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
+      
+      // Manual Inputs
       chipDistance: $('#chipDistance'), chipPace: $('#chipPace'),
       manualDistanceText: $('#manualDistanceText'), manualPaceText: $('#manualPaceText'), manualTimeText: $('#manualTimeText'),
       modalOverlay: $('#modalOverlay'), modalClose: $('#modalClose'), modalTitle: $('#modalTitle'),
       formDistance: $('#formDistance'), formPace: $('#formPace'),
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
+      
       btnGarminList: $('#btnGarminList'),
       garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
-      workoutList: $('#workoutList'),
-      monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
-      btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultWrap: $('#resultWrap'), resultBlock: $('#resultBlock'),
-      btnStravaConnect: $('#btnStravaConnect'), btnGarminToStrava: $('#btnGarminToStrava'),
-      garminSelectScreen: $('#garminSelectScreen')
+      
+      btnRun: $('#btnRun')
     };
 
     // --- Screen Control ---
@@ -575,7 +443,7 @@
       el.contentManual.style.display = 'none';
       
       if (!state.dataType) {
-        el.dataEmpty.style.display = 'block'; // [수정] 선택 안됨 -> Empty 표시
+        el.dataEmpty.style.display = 'block'; 
         return;
       }
 
@@ -586,14 +454,12 @@
     }
 
     function updatePreview() {
-      // 초기화 상태(null)면 Placeholder 값 표시
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       
       if (state.dataType === 'garmin') d = { ...state.garmin };
       else if (state.dataType === 'strava') d = { ...state.strava };
       else if (state.dataType === 'manual') d = { ...state.manual };
       
-      // 값 업데이트 (데이터가 없거나 null이면 00.00 형식)
       $('#pvDistanceDaily').textContent = (state.dataType && d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
       $('#pvPaceDaily').textContent = (state.dataType && d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "00'00\"";
       $('#pvTimeDaily').textContent = (state.dataType && d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "00:00:00";
@@ -611,7 +477,7 @@
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin';
       applyDataType();
-      updatePreview(); // Preview 갱신
+      updatePreview();
       if (realGarminWorkouts.length > 0) {
         el.garminConnectBtnWrap.style.display = 'none';
         el.garminCard.style.display = 'flex';
@@ -621,9 +487,7 @@
       }
     });
 
-    el.btnOpenGarminLogin.addEventListener('click', () => {
-      openScreen('garminLoginScreen');
-    });
+    el.btnOpenGarminLogin.addEventListener('click', () => openScreen('garminLoginScreen'));
 
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
@@ -661,19 +525,57 @@
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
+    // [수정: 클릭 가능한 리스트 렌더링 함수]
     function renderWorkoutList(kind = 'garmin') {
-      el.workoutList.innerHTML = '';
+      const listContainer = el.workoutList;
+      listContainer.innerHTML = ''; // Reset
+
       const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : mockWorkouts);
+
       list.forEach((w) => {
         const btn = document.createElement('button');
         btn.className = 'workout-item';
-        btn.innerHTML = `<div class="w-left"><div class="w-date">${w.date}</div><div class="w-stats"><span>${fmtKmPreview(w.km)}</span><span>${fmtPaceResult(w.paceSec)}</span><span>${fmtTimeResult(w.timeSec)}</span></div></div><div class="w-arrow">→</div>`;
-        btn.addEventListener('click', () => {
-          if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; }
-          else { state.garmin = { ...w }; state.dataType = 'garmin'; el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
-          applyDataType(); updatePreview(); closeScreen('garminSelectScreen');
-        });
-        el.workoutList.appendChild(btn);
+        // 강제 스타일 적용 (클릭 영역 및 스타일 보장)
+        btn.style.width = '100%';
+        btn.style.display = 'flex';
+        btn.style.justifyContent = 'space-between';
+        btn.style.alignItems = 'center';
+        btn.style.padding = '15px 0';
+        btn.style.border = 'none';
+        btn.style.background = 'transparent';
+        btn.style.borderBottom = '1px solid #eee';
+        btn.style.cursor = 'pointer';
+        btn.style.textAlign = 'left';
+
+        btn.innerHTML = `
+          <div class="w-left" style="pointer-events: none;">
+            <div class="w-date" style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">${w.date}</div>
+            <div class="w-stats" style="font-size: 13px; color: #666;">
+              <span>${fmtKmPreview(w.km)}</span>
+              <span>${fmtPaceResult(w.paceSec)}</span>
+              <span>${fmtTimeResult(w.timeSec)}</span>
+            </div>
+          </div>
+          <div class="w-arrow" style="pointer-events: none;">→</div>
+        `;
+        
+        // onclick 이벤트 직접 할당
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if (kind === 'strava') {
+                state.strava = { ...w };
+                state.dataType = 'strava';
+            } else {
+                state.garmin = { ...w };
+                state.dataType = 'garmin';
+                el.garminConnectBtnWrap.style.display = 'none';
+                el.garminCard.style.display = 'flex';
+            }
+            applyDataType();
+            updatePreview();
+            closeScreen('garminSelectScreen');
+        };
+        listContainer.appendChild(btn);
       });
     }
     el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
@@ -693,8 +595,8 @@
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
-      if(!isDaily && !state.dataType) state.dataType = 'nrc'; // Monthly 기본값
-      else if(isDaily && state.dataType === 'nrc' && state.recordType === 'monthly') state.dataType = null; // 탭 전환시 리셋 필요하면 로직 추가
+      if(!isDaily && !state.dataType) state.dataType = 'nrc';
+      else if(isDaily && state.dataType === 'nrc' && state.recordType === 'monthly') state.dataType = null;
       applyDataType();
     }
     function applyFont() {
@@ -761,6 +663,35 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
+    // --- [수정: RUN 버튼 기능 구현] ---
+    el.btnRun.addEventListener('click', async () => {
+        const previewEl = (state.recordType === 'daily') ? el.previewDaily : el.previewMonthly;
+        const originalText = el.btnRun.innerText;
+        el.btnRun.innerText = 'GENERATING...';
+
+        try {
+            if (typeof html2canvas === 'undefined') {
+                alert('Library Loading Error: Please refresh the page.');
+                return;
+            }
+
+            const canvas = await html2canvas(previewEl, {
+                backgroundColor: state.bg === 'white' ? '#ffffff' : '#000000',
+                scale: 2 
+            });
+
+            const link = document.createElement('a');
+            link.download = `runimate_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch(e) {
+            console.error(e);
+            alert('Image Generation Failed.');
+        } finally {
+            el.btnRun.innerText = originalText;
+        }
+    });
+
     // --- INITIALIZE ---
     function initDefaults() {
        applyUIConfigToRoot?.(state);
@@ -768,8 +699,8 @@
        applyFont(); 
        applyLayout(); 
        applyBG(); 
-       applyDataType(); // 초기값이 null이므로 Empty 화면
-       updatePreview(); // 초기값이 null이므로 00.00Km
+       applyDataType();
+       updatePreview();
     }
     initDefaults();
   </script>
