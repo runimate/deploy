@@ -31,9 +31,10 @@
     /* ---------------------------------------------------- */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
-      padding: 40px 30px 150px 30px !important;
+      padding: 40px 30px 150px 30px !important; /* 하단 버튼 공간 확보 */
       display: none;
       
+      /* 화면 전체 덮기 및 클릭 활성화 */
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
@@ -80,7 +81,7 @@
     }
     .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
     
-    /* [가민 로그인 버튼 - 하단 고정] */
+    /* [수정] 가민 로그인 버튼 - 하단 고정 (RUN버튼 로직 적용) */
     .g-signin-btn {
       position: fixed !important;
       bottom: 30px !important;
@@ -94,7 +95,7 @@
       padding: 18px; font-size: 18px; font-weight: 700; 
       cursor: pointer; 
       
-      z-index: 100000 !important; 
+      z-index: 100000 !important; /* 오버레이보다 위 */
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
@@ -151,7 +152,7 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 하단 고정, 오렌지색 유지              */
+    /* [RUN BUTTON] - 하단 고정                             */
     /* ---------------------------------------------------- */
     .run-btn {
         position: fixed !important;
@@ -532,7 +533,6 @@
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
-    
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
@@ -621,7 +621,7 @@
       dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
       dataEmpty: $('#dataEmpty'),
       tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-      tabNrcMonthly: $('#tabNrcMonthly'), // [복구완료]
+      tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
       contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
       
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -871,8 +871,8 @@
     el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
     
-    // [중요] 복구된 안전한 리스너
-    if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+    // [중요] 버튼이 없어도 에러 안 나게 안전장치 추가 (?.)
+    el.tabNrcMonthly?.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
     // --- APPLY HELPERS ---
     function applyRecordType() {
