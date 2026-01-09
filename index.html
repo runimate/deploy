@@ -5,7 +5,90 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>RUNIMATE v2.0</title>
+  
   <link rel="stylesheet" href="./styles.css" />
+  
+  <style>
+    /* ==========================================================
+       [2] 기능 패치 (버튼 클릭 & 위치 고정용 필수 코드)
+       원본 styles.css 위에 덮어씌워져서 동작을 보장합니다.
+       ========================================================== */
+    
+    /* [RUN 버튼] - 화면 하단 고정 & 클릭 최우선 보장 */
+    .run-btn {
+        position: fixed !important;
+        bottom: 30px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 5000 !important; /* 다른 요소보다 무조건 위에 */
+        cursor: pointer !important;
+        /* 원래 오렌지색 유지 */
+        background: #ff9000 !important;
+        color: #000 !important;
+        width: min(360px, calc(100% - 40px)) !important;
+    }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+
+    /* [가민 로그인 화면] - 전체 덮기 & 스크롤 허용 */
+    #garminLoginScreen {
+      display: none;
+      position: fixed !important;
+      top: 0; left: 0; bottom: 0; right: 0;
+      width: 100%; height: 100%;
+      background-color: #5EA0F6 !important;
+      z-index: 99999 !important; /* 최상위 */
+      pointer-events: auto !important; /* 클릭 허용 */
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 40px 30px 150px 30px !important; /* 하단 버튼 공간 확보 */
+    }
+    #garminLoginScreen.show { display: flex !important; }
+
+    /* [가민 로그인 버튼] - 하단 고정 (키보드에 가리지 않게) */
+    .g-signin-btn {
+      position: fixed !important;
+      bottom: 30px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: min(360px, calc(100% - 60px)) !important;
+      z-index: 100000 !important; /* 로그인 화면보다 위 */
+      background: #000 !important;
+      color: #fff !important;
+      cursor: pointer !important;
+    }
+
+    /* [결과 화면] - 잘림 방지 & 레이아웃 보정 */
+    .result-screen {
+        z-index: 2147483647 !important;
+        position: fixed !important;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #fff;
+    }
+    /* 누락되었던 result-wrap 스타일 복구 */
+    .result-wrap {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        padding: 26px; box-sizing: border-box;
+    }
+    .result-block { width: 100%; }
+    
+    /* Type 2 레이아웃 (Grid/Flex 보정) */
+    .result-wrap.type2 .result-block {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 4px;
+        align-items: start;
+    }
+    .result-wrap.type2 .m2-row {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: var(--ui-col-gap, 24px);
+    }
+    
+    /* [기타] 숨김 처리 복구 */
+    .data-empty { min-height: 20px; }
+    .screen-close { cursor: pointer; z-index: 999999; } /* X 버튼 클릭 보장 */
+  </style>
 </head>
 
 <body>
@@ -260,7 +343,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // [내장] UI Config Logic
+        // [1] UI Config (외부 의존성 제거)
         const UI_CONFIG = {
           global: { colGap: 24, rowGap: 18, rowGapResult: 18 },
           fonts: {
@@ -299,6 +382,7 @@
         const pad2 = (n) => String(n).padStart(2, '0');
         const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+        // [포맷팅 함수]
         function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
         function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
         function fmtPacePreview(sec) {
@@ -321,6 +405,7 @@
         function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
         function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
+        // --- FIT HELPERS ---
         function fitOne(span, minScale = 0.35) {
           if (!span) return;
           span.style.transform = ''; span.style.transformOrigin = 'left bottom';
@@ -352,21 +437,7 @@
 
         function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
         
-        function animateValue(obj, start, end, duration, formatFn) {
-          if (!obj) return;
-          let startTimestamp = null;
-          const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const value = start + (end - start) * easeOutExpo(progress);
-            obj.textContent = formatFn(value);
-            fitOne(obj.parentElement);
-            if (progress < 1) window.requestAnimationFrame(step);
-            else { obj.textContent = formatFn(end); fitOne(obj.parentElement); }
-          };
-          window.requestAnimationFrame(step);
-        }
-
+        // --- STATE ---
         const state = {
           recordType: 'daily',
           dataType: null,     
@@ -383,26 +454,14 @@
         let realGarminWorkouts = [];
         let realStravaWorkouts = [];
         
-        function generateMockWorkouts() {
-            const arr = [];
-            for(let i=0; i<20; i++) {
-                arr.push({
-                    date: `2025.01.${String(20-i).padStart(2,'0')}`,
-                    km: (5 + (i * 0.7)).toFixed(2),
-                    paceSec: 300 + (i * 3), 
-                    timeSec: 1800 + (i * 100)
-                });
-            }
-            return arr;
-        }
-
+        // --- ELEMENTS ---
         const el = {
           btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
           dataPanel: $('#dataPanel'), dataPanelHead: $('#dataPanelHead'),
           dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
           dataEmpty: $('#dataEmpty'),
           tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-          tabNrcMonthly: $('#tabNrcMonthly'), 
+          tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
           contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
           
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -436,6 +495,7 @@
           pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2')
         };
 
+        // --- Screen Control ---
         function openScreen(id) {
           const node = document.getElementById(id);
           if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); }
@@ -449,6 +509,7 @@
           if (closeId) closeScreen(closeId);
         });
 
+        // --- UI LOGIC ---
         function applyDataType() {
           [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
             if (!t) return;
@@ -548,6 +609,7 @@
           }
         }
 
+        // --- GARMIN LOGIC ---
         if(el.tabGarmin) el.tabGarmin.addEventListener('click', () => {
           state.dataType = 'garmin'; applyDataType(); updatePreview();
           if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
@@ -646,11 +708,15 @@
         }
         if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
+        // --- OTHER TABS ---
         if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
         if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
         if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+        
+        // [중요] 안전장치 추가
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
+        // --- APPLY HELPERS ---
         function applyRecordType() {
           const isDaily = (state.recordType === 'daily');
           el.btnDaily.classList.toggle('active', isDaily);
@@ -691,17 +757,25 @@
         function applyLayout() {
           el.btnType1.classList.toggle('active', state.layout === 'type1');
           el.btnType2.classList.toggle('active', state.layout === 'type2');
+          
           resetPreviews();
+
           el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
           el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
-          el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
+          
+          el.resultWrap.classList.remove('type1', 'type2'); 
+          el.resultWrap.classList.add(state.layout);
+          
           if (state.recordType === 'monthly') {
             const m1 = el.previewMonthly.querySelector('.monthly-type1');
             const m2 = el.previewMonthly.querySelector('.monthly-type2');
             if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
             else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
           }
-          setTimeout(() => { updatePreview(); }, 0);
+          
+          setTimeout(() => {
+              updatePreview();
+          }, 0);
         }
         
         function applyBG() {
@@ -712,6 +786,7 @@
           });
         }
 
+        // --- EVENTS ---
         if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
         if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
         if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
@@ -722,6 +797,7 @@
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
 
+        // --- MONTHLY & MANUAL ---
         if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
         if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
             if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
@@ -796,6 +872,7 @@
           }
         });
 
+        // --- RUN BUTTON: Result & Animate ---
         function buildResultDOM() {
           el.resultWrap.className = `result-wrap ${state.layout}`;
           
@@ -808,6 +885,7 @@
             d = state.monthly;
           }
 
+          // HTML 구조 생성 (resultWrap 내부에 주입)
           if (state.recordType === 'daily') {
             el.resultBlock.innerHTML = `
               <div class="result-item">
@@ -928,6 +1006,7 @@
            openScreen('resultScreen');
            el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
            
+           // [중요] 렌더링 딜레이 (화면이 그려진 후 애니메이션 시작)
            requestAnimationFrame(() => {
                requestAnimationFrame(() => {
                    animateAll(targetData);
