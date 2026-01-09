@@ -20,12 +20,12 @@
         bottom: 30px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        z-index: 5000 !important; /* 다른 요소보다 무조건 위에 */
+        z-index: 5000 !important;
         cursor: pointer !important;
-        /* 원래 오렌지색 유지 */
         background: #ff9000 !important;
         color: #000 !important;
         width: min(360px, calc(100% - 40px)) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
 
@@ -35,26 +35,29 @@
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
-      background-color: #5EA0F6 !important;
-      z-index: 99999 !important; /* 최상위 */
-      pointer-events: auto !important; /* 클릭 허용 */
+      /* styles.css의 배경색 변수 사용 */
+      background-color: var(--garmin, #76B6FF) !important; 
+      z-index: 99999 !important;
+      pointer-events: auto !important;
       flex-direction: column;
       overflow-y: auto;
-      padding: 40px 30px 150px 30px !important; /* 하단 버튼 공간 확보 */
+      /* 하단 버튼 공간 확보 */
+      padding-bottom: 120px !important; 
     }
     #garminLoginScreen.show { display: flex !important; }
 
-    /* [가민 로그인 버튼] - 하단 고정 (키보드에 가리지 않게) */
-    .g-signin-btn {
+    /* [가민 로그인 버튼 (.gc-cta)] - 하단 고정 로직 이식 */
+    #btnGarminRealSync.gc-cta {
       position: fixed !important;
       bottom: 30px !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
       width: min(360px, calc(100% - 60px)) !important;
-      z-index: 100000 !important; /* 로그인 화면보다 위 */
+      z-index: 100000 !important;
       background: #000 !important;
       color: #fff !important;
       cursor: pointer !important;
+      margin: 0 !important; /* 기존 마진 제거 */
     }
 
     /* [결과 화면] - 잘림 방지 & 레이아웃 보정 */
@@ -64,7 +67,6 @@
         top: 0; left: 0; width: 100%; height: 100%;
         background: #fff;
     }
-    /* 누락되었던 result-wrap 스타일 복구 */
     .result-wrap {
         width: 100%; height: 100%;
         display: flex; align-items: center; justify-content: center;
@@ -72,7 +74,6 @@
     }
     .result-block { width: 100%; }
     
-    /* Type 2 레이아웃 (Grid/Flex 보정) */
     .result-wrap.type2 .result-block {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -87,7 +88,7 @@
     
     /* [기타] 숨김 처리 복구 */
     .data-empty { min-height: 20px; }
-    .screen-close { cursor: pointer; z-index: 999999; } /* X 버튼 클릭 보장 */
+    .screen-close { cursor: pointer; z-index: 999999; }
   </style>
 </head>
 
@@ -293,19 +294,29 @@
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
-  <div class="screen-overlay" id="garminLoginScreen" aria-hidden="true">
-    <button class="screen-close" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <div class="g-title"><h2>GARMIN<br>CONNECT</h2><h3>Sign-In</h3></div>
-    <div class="g-inputs">
-        <input type="email" id="garminEmail" class="g-input" placeholder="enter your @ email.com">
-        <input type="password" id="garminPassword" class="g-input" placeholder="password">
-        <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
+  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title">
+        <div class="gc-big">GARMIN<br>CONNECT</div>
+        <div class="gc-sub">Sign-In</div>
+      </div>
+      
+      <div class="garmin-login-form" style="margin-top: 40px; width: 100%;">
+          <input type="email" id="garminEmail" class="gc-input" placeholder="enter your @ email.com">
+          <input type="password" id="garminPassword" class="gc-input" placeholder="password">
+          <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
+      </div>
+
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+            Your Garmin account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+      
+      <button id="btnGarminRealSync" type="button" class="gc-cta">Sign-In</button>
     </div>
-    <div class="g-info">
-        <div class="g-smile">:)</div>
-        <div class="g-desc">Your Garmin account information is never saved or stored, so you can feel safe using it.</div>
-    </div>
-    <button id="btnGarminRealSync" type="button" class="g-signin-btn">Sign-In</button>
   </div>
 
   <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
@@ -343,7 +354,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // [1] UI Config (외부 의존성 제거)
+        // [내장] UI Config Logic
         const UI_CONFIG = {
           global: { colGap: 24, rowGap: 18, rowGapResult: 18 },
           fonts: {
@@ -610,13 +621,13 @@
         }
 
         // --- GARMIN LOGIC ---
-        if(el.tabGarmin) el.tabGarmin.addEventListener('click', () => {
+        el.tabGarmin.addEventListener('click', () => {
           state.dataType = 'garmin'; applyDataType(); updatePreview();
           if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
           else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
         });
         
-        if(el.btnOpenGarminLogin) el.btnOpenGarminLogin.addEventListener('click', () => {
+        el.btnOpenGarminLogin.addEventListener('click', () => {
             el.garminError.style.display = 'none';
             openScreen('garminLoginScreen');
         });
@@ -706,12 +717,12 @@
             listContainer.appendChild(btn);
           });
         }
-        if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+        el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
         // --- OTHER TABS ---
-        if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
-        if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-        if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+        el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
+        el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+        el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
         
         // [중요] 안전장치 추가
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
@@ -787,12 +798,12 @@
         }
 
         // --- EVENTS ---
-        if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-        if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-        if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-        if(el.btnType2) el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-        if(el.btnBgWhite) el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-        if(el.btnBgBlack) el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+        el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+        el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+        el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+        el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+        el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+        el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
         el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
@@ -832,17 +843,17 @@
           updatePreview();
         });
 
-        if(el.chipDistance) el.chipDistance.addEventListener('click', () => {
+        el.chipDistance.addEventListener('click', () => {
           $('#modalTitle').textContent = 'DISTANCE';
           el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
           el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
         });
-        if(el.chipPace) el.chipPace.addEventListener('click', () => {
+        el.chipPace.addEventListener('click', () => {
           $('#modalTitle').textContent = 'PACE';
           el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
           el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
         });
-        if(el.modalClose) el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
+        el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
         
         function recalcManualTime() {
             if(state.manual.km > 0 && state.manual.paceSec > 0) {
@@ -852,7 +863,7 @@
             }
         }
 
-        if(el.formDistance) el.formDistance.addEventListener('submit', (e) => {
+        el.formDistance.addEventListener('submit', (e) => {
           e.preventDefault(); const val = parseFloat(el.inputDistance.value);
           if (!isNaN(val)) { 
               state.manual.km = val; 
@@ -861,7 +872,7 @@
               closeScreen('modalOverlay'); 
           }
         });
-        if(el.formPace) el.formPace.addEventListener('submit', (e) => {
+        el.formPace.addEventListener('submit', (e) => {
           e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
           const total = m * 60 + s;
           if (total > 0) { 
@@ -885,7 +896,6 @@
             d = state.monthly;
           }
 
-          // HTML 구조 생성 (resultWrap 내부에 주입)
           if (state.recordType === 'daily') {
             el.resultBlock.innerHTML = `
               <div class="result-item">
@@ -1001,7 +1011,7 @@
           requestAnimationFrame(frame);
         }
 
-        if(el.btnRun) el.btnRun.addEventListener('click', () => {
+        el.btnRun.addEventListener('click', () => {
            const targetData = buildResultDOM();
            openScreen('resultScreen');
            el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
