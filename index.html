@@ -534,7 +534,7 @@
       }
     }
     
-    // [그룹 스케일링] Type 2 등에서 여러 텍스트 크기 통일
+    // Type 2용 그룹 스케일링
     function computeScaleForGroup(spans, minScale = 0.35) {
       const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
       let need = 1;
@@ -634,11 +634,9 @@
       
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
       
-      // Monthly Elements
       btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
       monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
       
-      // Layout Elements
       pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
       pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2')
     };
@@ -675,7 +673,6 @@
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
     }
 
-    // [수정] 포맷팅 및 디폴트 값 적용
     function updatePreview() {
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
@@ -719,7 +716,6 @@
       requestAnimationFrame(applyFitPreview);
     }
 
-    // [NEW] 리셋 함수: 레이아웃 변경 전 스타일 청소
     function resetPreviews() {
       const targets = [
         el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily,
@@ -735,7 +731,6 @@
       });
     }
 
-    // [수정] 폰트 사이즈 조절 (Type 2 그룹화)
     function applyFitPreview() {
       if (state.recordType === 'daily') {
         if (state.layout === 'type2') {
@@ -806,7 +801,6 @@
 
       } catch (err) {
         console.error(err);
-        // 에러 표시 및 더미 로드 방지
         el.garminError.textContent = "로그인 실패: 아이디와 비밀번호를 확인해주세요.";
         el.garminError.style.display = 'block';
         btn.innerText = "Sign-In";
@@ -825,7 +819,6 @@
         btn.disabled = false; btn.style.opacity = '1';
     }
 
-    // Select Workout Click Fix
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
@@ -893,7 +886,6 @@
       }
       updatePreview();
     }
-    
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
@@ -902,14 +894,13 @@
       });
       requestAnimationFrame(applyFitPreview);
     }
-
-    // [수정] 레이아웃 변경 시 resetPreviews 및 setTimeout 적용
+    
+    // [수정] 레이아웃 변경 - resetPreviews 호출
     function applyLayout() {
       el.btnType1.classList.toggle('active', state.layout === 'type1');
       el.btnType2.classList.toggle('active', state.layout === 'type2');
       
-      // 1. 스타일 초기화
-      resetPreviews();
+      resetPreviews(); // 중요
 
       el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
       el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
@@ -924,7 +915,6 @@
         else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
       }
       
-      // 2. 렌더링 틱 지연
       setTimeout(() => {
           updatePreview();
       }, 0);
@@ -996,17 +986,37 @@
     });
     el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
     
+    // [수정] Manual 입력 후 자동 시간 계산
+    function recalcManualTime() {
+        if(state.manual.km > 0 && state.manual.paceSec > 0) {
+            state.manual.timeSec = state.manual.km * state.manual.paceSec;
+            // 입력창 하단 텍스트 업데이트
+            if($('#manualTimeText')) $('#manualTimeText').textContent = fmtTimePreview(state.manual.timeSec);
+            updatePreview();
+        }
+    }
+
     el.formDistance.addEventListener('submit', (e) => {
       e.preventDefault(); const val = parseFloat(el.inputDistance.value);
-      if (!isNaN(val)) { state.manual.km = val; el.manualDistanceText.textContent = val.toFixed(2); updatePreview(); closeScreen('modalOverlay'); }
+      if (!isNaN(val)) { 
+          state.manual.km = val; 
+          el.manualDistanceText.textContent = val.toFixed(2); 
+          recalcManualTime(); // 자동 계산
+          closeScreen('modalOverlay'); 
+      }
     });
     el.formPace.addEventListener('submit', (e) => {
       e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
       const total = m * 60 + s;
-      if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
+      if (total > 0) { 
+          state.manual.paceSec = total; 
+          el.manualPaceText.textContent = fmtPacePreview(total); 
+          recalcManualTime(); // 자동 계산
+          closeScreen('modalOverlay'); 
+      }
     });
 
-    // --- RUN BUTTON: DOM Creation & Animation ---
+    // --- RUN BUTTON: Result & Animate ---
     function buildResultDOM() {
       el.resultWrap.className = `result-wrap ${state.layout}`;
       
@@ -1014,7 +1024,7 @@
       if (state.recordType === 'daily') {
         if(state.dataType === 'garmin') d = state.garmin;
         else if(state.dataType === 'strava') d = state.strava;
-        else d = state.daily;
+        else d = state.manual;
       } else {
         d = state.monthly;
       }
@@ -1101,7 +1111,7 @@
       const locker = lockFitResultTransforms(target);
       locker.resetToStart();
       
-      const hold = 800; 
+      const hold = 500; 
       const dur = 2000;
       const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
