@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [CORE RESET] 화면 흔들림 방지 및 터치 최적화 */
+    /* [CORE RESET] 화면 흔들림 방지 */
     html, body {
       overflow-x: hidden;
       width: 100%;
@@ -21,12 +21,12 @@
     
     body {
       padding: 20px;
-      padding-bottom: 120px;
+      padding-bottom: 120px; /* RUN 버튼 공간 */
       box-sizing: border-box;
     }
 
     /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay] - Blue Theme, Rotated Smile   */
+    /* [Garmin Login Overlay]                               */
     /* ---------------------------------------------------- */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
@@ -47,7 +47,7 @@
     .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; }
     .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; }
     
-    .g-inputs { width: 100%; margin-bottom: 30px; }
+    .g-inputs { width: 100%; margin-bottom: 20px; }
     .g-input {
       width: 100%; background: transparent !important; border: none !important;
       border-bottom: 2px solid #000 !important; border-radius: 0 !important;
@@ -55,8 +55,12 @@
     }
     .g-input::placeholder { color: #333; opacity: 0.7; }
     
-    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
+    /* 에러 메시지 */
+    .g-error-msg {
+        color: #ff0000; font-size: 13px; font-weight: 700; margin-bottom: 20px; display: none;
+    }
     
+    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
     .g-smile {
       font-size: 36px; font-weight: 900; 
       transform: rotate(90deg); 
@@ -72,7 +76,7 @@
     }
 
     /* ---------------------------------------------------- */
-    /* [Select Workout List] - Box Style & Click Fix        */
+    /* [Select Workout List]                                */
     /* ---------------------------------------------------- */
     .select-wrap {
         padding: 20px;
@@ -80,7 +84,7 @@
         width: 100%;
         height: 100%;
         box-sizing: border-box;
-        overflow-y: hidden; /* 내부 스크롤을 위해 컨테이너 고정 */
+        overflow: hidden;
         display: flex;
         flex-direction: column;
     }
@@ -89,18 +93,17 @@
     }
     .select-list {
         flex: 1;
-        overflow-y: auto; /* 리스트만 스크롤 */
+        overflow-y: auto;
         padding-bottom: 40px;
     }
     
-    /* 리스트 아이템 스타일 */
     .workout-item {
         width: 100%;
         display: flex;
         justify-content: space-between;
         align-items: center;
         background-color: #fff;
-        border: 2px solid #000; /* 테두리 */
+        border: 2px solid #000; 
         border-radius: 16px;
         padding: 16px 20px;
         margin-bottom: 12px;
@@ -118,14 +121,7 @@
         border-color: #000 !important;
         transform: scale(0.98);
     }
-    .workout-item:active .w-date,
-    .workout-item:active .w-stats,
-    .workout-item:active .w-stats span {
-        color: #fff !important;
-    }
-    .workout-item:active .w-arrow {
-        color: #fff !important;
-    }
+    .workout-item:active * { color: #fff !important; }
 
     .w-left { pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
     .w-date { font-weight: 900; font-size: 16px; color: #000; }
@@ -133,45 +129,40 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [Result Screen] & [Preview Layout Fixes]             */
+    /* [Preview & Result - Layout Fixes]                    */
     /* ---------------------------------------------------- */
-    .result-block {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    
-    /* 결과 화면에서는 테두리/그림자 제거 */
-    .result-block .preview, 
-    .result-block .preview-content {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important; 
-        width: 100% !important;
-        padding: 0 !important; /* 결과 화면 패딩 제거하여 꽉 차게 */
+    /* 폰트 잘림 방지를 위해 line-height 및 패딩 조정 */
+    .data-value, .m1-distance-value, .m2-distance-value, .m-value {
+        line-height: 1.2 !important; 
+        padding-bottom: 4px;
+        overflow: visible !important; /* 잘림 방지 */
     }
 
-    /* [Layout Type 2 수정] - 균등 간격 & 잘림 방지 */
-    .preview.type2 .preview-content {
+    .preview {
+        border: 2px solid #000;
+        border-radius: 18px;
+        padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    /* [Type 2 Layout - Daily] 균등 분할 */
+    .preview:not(.monthly).type2 .preview-content {
         display: flex;
         width: 100%;
         justify-content: space-between; 
         align-items: flex-start;
-        gap: 10px; /* 아이템 간 최소 간격 */
+        gap: 10px; 
     }
-    .preview.type2 .data-item {
-        flex: 1; /* 3등분 균등 분할 */
-        min-width: 0; /* Flex 자식 줄바꿈 방지 및 축소 허용 */
+    .preview:not(.monthly).type2 .data-item {
+        flex: 1; 
+        min-width: 0;
         text-align: left;
     }
-    .preview.type2 .data-label { margin-bottom: 4px; }
-    .preview.type2 .data-value { width: 100%; } /* 너비 100%로 fitOne 적용 */
-
-    /* Monthly Type 2 */
+    
+    /* [Type 2 Layout - Monthly] 균등 분할 */
     .monthly-type2 .m2-row {
         display: flex;
         justify-content: space-between; 
@@ -186,7 +177,24 @@
         text-align: left; 
     }
 
-    /* Strava Message */
+    /* 결과 화면 스타일 (프리뷰와 동일하되 테두리 없음) */
+    .result-block {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    .result-block .preview {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important; 
+        padding: 0 !important;
+    }
+
+    /* Strava */
     #contentStrava {
       display: none; flex-direction: column; align-items: center; justify-content: center;
       padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
@@ -228,8 +236,7 @@
           <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
         </div>
 
-        <div class="data-tabs" id="dataTabsMonthly" style="display:none;">
-          </div>
+        <div class="data-tabs" id="dataTabsMonthly" style="display:none;"></div>
 
         <div class="data-empty" id="dataEmpty"></div>
 
@@ -405,13 +412,13 @@
     <div class="g-inputs">
         <input type="email" id="garminEmail" class="g-input" placeholder="enter your @ email.com">
         <input type="password" id="garminPassword" class="g-input" placeholder="password">
+        <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
     </div>
     <div class="g-info">
         <div class="g-smile">:)</div>
         <div class="g-desc">Your Garmin account information is never saved or stored, so you can feel safe using it.</div>
     </div>
     <button id="btnGarminRealSync" type="button" class="g-signin-btn">Sign-In</button>
-    <div id="garminStatus" style="font-size: 13px; color: #000; text-align: center; font-weight: bold; width: 100%;"></div>
   </div>
 
   <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
@@ -454,59 +461,46 @@
 
     // [수정] 포맷팅 함수: 앞의 0 제거 로직 추가
     function fmtKmPreview(km) { 
-        let val = Number(km || 0).toFixed(2);
-        if(val.startsWith('0') && val[1] === '.') val = val.substring(1); // 0.xx -> .xx (선택적)
-        // 요청사항: 00.00 -> 00.00 유지? 아니면 14.64 등. 보통 km는 0 제거 안함.
-        // 예시 이미지에는 14.64Km 등. 00.00은 플레이스홀더. 
-        // 만약 05.00Km -> 5.00Km 원하면 parseInt 사용. 일단 그대로 둠.
         return `${Number(km || 0).toFixed(2)}Km`; 
     }
     
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     
-    // Pace: 05'59" -> 5'59"
+    // Pace: 05'59" -> 5'59" (앞자리 0이면 제거)
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      // [수정] m이 10 미만일 때 pad2 제거
       return `${m}'${pad2(r)}"`; 
     }
     
-    // Time: 01:27:32 -> 1:27:32 (시가 0이면 분:초, 시가 있으면 시:분:초)
-    // 요청: 01:54:07 -> 1:54:07 (앞의 0 제거)
+    // Time: 01:27:32 -> 1:27:32 (시가 0이면 제거하지 않고 00으로? 보통 1시간 넘으면 1:xx)
+    // 요청: 01:xx -> 1:xx 로 0 제거
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      if (h > 0) {
-          // [수정] h는 pad2 없이 출력
-          return `${h}:${pad2(m)}:${pad2(r)}`;
-      } else {
-          return `${pad2(m)}:${pad2(r)}`;
-      }
+      // 시가 있을 때만 앞자리 0 체크 (10 미만이면 한자리)
+      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
+      else return `${pad2(m)}:${pad2(r)}`;
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
 
-    // --- FIT HELPERS (폰트 자동 조절) ---
+    // --- FIT HELPERS ---
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = ''; span.style.transformOrigin = 'left bottom';
-      // span.parentElement를 기준으로 함
-      const w = span.parentElement?.clientWidth; 
-      const sw = span.scrollWidth;
-      
+      const w = span.parentElement?.clientWidth; const sw = span.scrollWidth;
       if (!w || !sw) return;
-      // 컨텐츠가 부모보다 크면 축소
       if (sw > w) {
           const s = Math.max(minScale, w / sw);
           span.style.transform = `scale(${s})`;
       }
     }
 
-    // --- ANIMATION HELPER (Count Up) ---
+    // --- ANIMATION HELPER ---
     function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
     
     function animateValue(obj, start, end, duration, formatFn) {
@@ -517,15 +511,9 @@
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const value = start + (end - start) * easeOutExpo(progress);
         obj.textContent = formatFn(value);
-        
-        fitOne(obj.parentElement); // 애니메이션 중에도 Fit 적용
-
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        } else {
-          obj.textContent = formatFn(end);
-          fitOne(obj.parentElement); // 최종 값 Fit
-        }
+        fitOne(obj.parentElement);
+        if (progress < 1) window.requestAnimationFrame(step);
+        else { obj.textContent = formatFn(end); fitOne(obj.parentElement); }
       };
       window.requestAnimationFrame(step);
     }
@@ -547,20 +535,19 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
-    // [수정] Mock Data 20개 생성 함수
+    // [수정] Mock Data 20개 생성 (스크롤 테스트용)
     function generateMockWorkouts() {
         const arr = [];
         for(let i=0; i<20; i++) {
             arr.push({
-                date: `2026.01.${pad2(i+1)}`,
-                km: 5 + (i * 0.5),
-                paceSec: 300 + (i * 2), // 5분대 ~
-                timeSec: 1800 + (i * 60)
+                date: `2026.01.${String(20-i).padStart(2,'0')}`,
+                km: (5 + (i * 0.7)).toFixed(2),
+                paceSec: 300 + (i * 3), 
+                timeSec: 1800 + (i * 100)
             });
         }
         return arr;
     }
-    const mockWorkouts = generateMockWorkouts();
 
     // --- ELEMENTS ---
     const el = {
@@ -573,7 +560,7 @@
       
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
       garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
-      btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'),
+      btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
       
       monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
       fontGroup: $('#fontGroup'),
@@ -594,9 +581,7 @@
       garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'),
-      
-      // Monthly Specific Buttons
-      btnUploadNrc: $('#btnUploadNrc')
+      btnUploadNrc: $('#btnUploadNrc') // Monthly Upload Button
     };
 
     // --- Screen Control ---
@@ -656,60 +641,48 @@
       if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
       else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
     });
-    el.btnOpenGarminLogin.addEventListener('click', () => openScreen('garminLoginScreen'));
+    el.btnOpenGarminLogin.addEventListener('click', () => {
+        el.garminError.style.display = 'none'; // 초기화
+        openScreen('garminLoginScreen');
+    });
 
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
       const password = $('#garminPassword').value;
-      const statusDiv = el.garminStatus;
-      if (!email || !password) { statusDiv.textContent = "Please enter email and password."; return; }
-      statusDiv.textContent = "Connecting...";
-      el.btnGarminRealSync.disabled = true; el.btnGarminRealSync.style.opacity = '0.7';
-
-      try {
-        const SERVER_URL = "https://garmin-server-production.up.railway.app/api/garmin";
-        const res = await fetch(SERVER_URL, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password })
-        });
-        // 실제 API 실패시에도 데모를 위해 진행 (Mockup)
-        // if (!res.ok) throw new Error(`Server Error: ${res.status}`);
-        // const result = await res.json();
-        
-        setTimeout(() => {
-            statusDiv.textContent = "Login Success!";
-            realGarminWorkouts = mockWorkouts; // [수정] 20개 데이터 로드
-            closeScreen('garminLoginScreen');
-            renderWorkoutList('garmin');
-            openScreen('garminSelectScreen');
-            el.garminConnectBtnWrap.style.display = 'none';
-            el.garminCard.style.display = 'flex';
-            el.btnGarminRealSync.disabled = false; el.btnGarminRealSync.style.opacity = '1';
-        }, 1000);
-      } catch (err) {
-        console.error(err); 
-        // Fail-safe Mockup for Demo
-        setTimeout(() => {
-            statusDiv.textContent = "Login Success (Demo Mode)";
-            realGarminWorkouts = mockWorkouts; 
-            closeScreen('garminLoginScreen');
-            renderWorkoutList('garmin');
-            openScreen('garminSelectScreen');
-            el.garminConnectBtnWrap.style.display = 'none';
-            el.garminCard.style.display = 'flex';
-            el.btnGarminRealSync.disabled = false; el.btnGarminRealSync.style.opacity = '1';
-        }, 1000);
+      const btn = el.btnGarminRealSync;
+      
+      // [수정] 로그인 유효성 검사 시뮬레이션
+      if (!email.includes('@') || password.length < 4) {
+          el.garminError.style.display = 'block'; // 에러 메시지 표시
+          return; 
       }
+      el.garminError.style.display = 'none'; // 성공 시 에러 숨김
+
+      btn.innerText = "Connecting...";
+      btn.disabled = true; btn.style.opacity = '0.7';
+
+      // Mock Login Delay
+      setTimeout(() => {
+          btn.innerText = "Sign-In";
+          realGarminWorkouts = generateMockWorkouts(); // 20개 생성
+          closeScreen('garminLoginScreen');
+          renderWorkoutList('garmin');
+          openScreen('garminSelectScreen');
+          el.garminConnectBtnWrap.style.display = 'none';
+          el.garminCard.style.display = 'flex';
+          btn.disabled = false; btn.style.opacity = '1';
+      }, 1000);
     }
     el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [수정: 클릭 가능한 리스트 아이템 + 20개 렌더링 확인]
+    // [수정: 리스트 클릭 이벤트 & 20개 데이터]
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
-      const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : mockWorkouts);
+      const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : []);
 
       list.forEach((w) => {
-        const btn = document.createElement('div'); // div 사용
+        const btn = document.createElement('div'); 
         btn.className = 'workout-item'; 
         btn.innerHTML = `
           <div class="w-left">
@@ -723,6 +696,7 @@
           <div class="w-arrow">→</div>
         `;
         
+        // [중요] 선택 시 창 닫힘 및 데이터 반영
         btn.onclick = (e) => {
             e.stopPropagation();
             if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; }
@@ -750,26 +724,21 @@
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
       
-      // Monthly Layout Switching
       const m1 = el.previewMonthly.querySelector('.monthly-type1');
       const m2 = el.previewMonthly.querySelector('.monthly-type2');
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      // Monthly Mode Default View (NRC Only)
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
-          el.contentGarmin.style.display = 'none';
-          el.contentStrava.style.display = 'none';
-          el.contentNrc.style.display = 'block'; // Monthly NRC visible
+          el.contentGarmin.style.display = 'none'; el.contentStrava.style.display = 'none';
+          el.contentNrc.style.display = 'block'; // [Fix] Monthly NRC Button
           el.contentManual.style.display = 'none';
           el.monthBlock.style.display = 'block';
       } else {
-          // Restore Daily View
           el.monthBlock.style.display = 'none';
           applyDataType();
       }
-      
       updatePreview();
     }
     function applyFont() {
@@ -813,15 +782,12 @@
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
 
-    // --- MONTHLY BUTTONS EVENTS (Fixed) ---
-    el.btnUploadNrc.addEventListener('click', () => {
-        $('#fileNrc').click();
-    });
-    el.btnMonthPick.addEventListener('click', () => {
-        openScreen('monthPickerScreen');
-    });
+    // --- MONTHLY & MANUAL ---
+    // [Fix] Monthly Buttons
+    el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
+    el.btnMonthPick.addEventListener('click', () => openScreen('monthPickerScreen'));
 
-    // --- MANUAL INPUT ---
+    // Manual Logic
     el.chipDistance.addEventListener('click', () => {
       $('#modalTitle').textContent = 'DISTANCE';
       el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
@@ -844,9 +810,9 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- RUN BUTTON: 결과 화면 오픈 및 애니메이션 ---
+    // --- RUN BUTTON: Open Result & Animate (0.5s Delay) ---
     el.btnRun.addEventListener('click', () => {
-       el.resultBlock.innerHTML = ''; // Clear previous
+       el.resultBlock.innerHTML = ''; 
        
        let activePreview;
        let d = { km: 0, paceSec: 0, timeSec: 0, runs: 0 };
@@ -866,10 +832,10 @@
        clone.removeAttribute('id');
        el.resultBlock.appendChild(clone);
        
-       // Force Apply Classes for Result Screen
+       // Force Apply Classes for Result Screen (배경, 폰트, 레이아웃)
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
        
-       // [수정] 0.8초 딜레이 후 애니메이션 시작
+       // [수정] 0.5초 딜레이 후 애니메이션 시작
        setTimeout(() => {
            if(state.recordType === 'daily') {
                const values = clone.querySelectorAll('.data-value span');
@@ -879,7 +845,6 @@
                    animateValue(values[2], 0, d.timeSec, 2000, fmtTimePreview);
                }
            } else {
-               // Monthly Animation
                if(state.layout === 'type1') {
                    const dist = clone.querySelector('.m1-distance-value span');
                    const stack = clone.querySelectorAll('.m1-stack .m-value span');
@@ -900,7 +865,7 @@
                    }
                }
            }
-       }, 800);
+       }, 500); // 500ms Delay
     });
 
     // --- INITIALIZE ---
