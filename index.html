@@ -88,14 +88,6 @@
     }
     .toggle-btn.active { background: #000; color: #fff; }
 
-    /* Font buttons */
-    .font-group .font-btn{ flex: 1 1 0; min-width: 0; padding: clamp(7px, 1.7vw, 9px) clamp(8px, 1.8vw, 10px); text-align:center; height: var(--btn-h); display:flex; align-items:center; justify-content:center; }
-    .font-anton{ font-family:'Anton', sans-serif; font-size: clamp(14px, 3.4vw, 18px); }
-    .font-dots{ font-family:'Bitcount Grid Single', monospace; font-size: clamp(13px, 3.2vw, 18px); }
-    .font-lcd{ font-family:'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
-    .font-gothic{ font-family:'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
-    .font-speed{ font-family:'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
-
     /* Data Panel */
     .data-panel { border: 1.5px solid #d9d9d9; border-radius: 18px; padding: 14px; background: #fff; }
     .data-panel-head { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
@@ -492,7 +484,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // [내장] UI Config Logic
         const UI_CONFIG = {
           global: { colGap: 24, rowGap: 18, rowGapResult: 18 },
           fonts: {
@@ -531,7 +522,6 @@
         const pad2 = (n) => String(n).padStart(2, '0');
         const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-        // [포맷팅 함수]
         function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
         function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
         function fmtPacePreview(sec) {
@@ -554,7 +544,6 @@
         function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
         function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
-        // --- FIT HELPERS ---
         function fitOne(span, minScale = 0.35) {
           if (!span) return;
           span.style.transform = ''; span.style.transformOrigin = 'left bottom';
@@ -601,7 +590,6 @@
           window.requestAnimationFrame(step);
         }
 
-        // --- STATE ---
         const state = {
           recordType: 'daily',
           dataType: null,     
@@ -618,7 +606,19 @@
         let realGarminWorkouts = [];
         let realStravaWorkouts = [];
         
-        // --- ELEMENTS ---
+        function generateMockWorkouts() {
+            const arr = [];
+            for(let i=0; i<20; i++) {
+                arr.push({
+                    date: `2025.01.${String(20-i).padStart(2,'0')}`,
+                    km: (5 + (i * 0.7)).toFixed(2),
+                    paceSec: 300 + (i * 3), 
+                    timeSec: 1800 + (i * 100)
+                });
+            }
+            return arr;
+        }
+
         const el = {
           btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
           dataPanel: $('#dataPanel'), dataPanelHead: $('#dataPanelHead'),
@@ -659,7 +659,6 @@
           pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2')
         };
 
-        // --- Screen Control ---
         function openScreen(id) {
           const node = document.getElementById(id);
           if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); }
@@ -673,7 +672,6 @@
           if (closeId) closeScreen(closeId);
         });
 
-        // --- UI LOGIC ---
         function applyDataType() {
           [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
             if (!t) return;
@@ -773,14 +771,13 @@
           }
         }
 
-        // --- GARMIN LOGIC ---
-        el.tabGarmin.addEventListener('click', () => {
+        if(el.tabGarmin) el.tabGarmin.addEventListener('click', () => {
           state.dataType = 'garmin'; applyDataType(); updatePreview();
           if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
           else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
         });
         
-        el.btnOpenGarminLogin.addEventListener('click', () => {
+        if(el.btnOpenGarminLogin) el.btnOpenGarminLogin.addEventListener('click', () => {
             el.garminError.style.display = 'none';
             openScreen('garminLoginScreen');
         });
@@ -872,14 +869,11 @@
         }
         if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
-        // --- OTHER TABS ---
         if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
         if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
         if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
-        
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
-        // --- APPLY HELPERS ---
         function applyRecordType() {
           const isDaily = (state.recordType === 'daily');
           el.btnDaily.classList.toggle('active', isDaily);
@@ -920,25 +914,17 @@
         function applyLayout() {
           el.btnType1.classList.toggle('active', state.layout === 'type1');
           el.btnType2.classList.toggle('active', state.layout === 'type2');
-          
           resetPreviews();
-
           el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
           el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
-          
-          el.resultWrap.classList.remove('type1', 'type2'); 
-          el.resultWrap.classList.add(state.layout);
-          
+          el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
           if (state.recordType === 'monthly') {
             const m1 = el.previewMonthly.querySelector('.monthly-type1');
             const m2 = el.previewMonthly.querySelector('.monthly-type2');
             if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
             else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
           }
-          
-          setTimeout(() => {
-              updatePreview();
-          }, 0);
+          setTimeout(() => { updatePreview(); }, 0);
         }
         
         function applyBG() {
@@ -949,7 +935,6 @@
           });
         }
 
-        // --- EVENTS ---
         if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
         if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
         if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
@@ -960,7 +945,6 @@
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
 
-        // --- MONTHLY & MANUAL ---
         if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
         if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
             if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
