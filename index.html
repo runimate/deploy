@@ -37,8 +37,8 @@
       /* 화면 전체 덮기 및 클릭 활성화 */
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
-      width: 100%; height: 100%;
-      z-index: 99999 !important; /* 가장 위에 배치 */
+      width: 100vw; height: 100vh;
+      z-index: 2147483647 !important; /* 최상위 값 */
       pointer-events: auto !important; /* 클릭 허용 */
       
       flex-direction: column;
@@ -139,19 +139,24 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 스타일 복구 (오렌지색 유지)           */
+    /* [RUN BUTTON] - 오렌지색 복구 및 위치 고정            */
     /* ---------------------------------------------------- */
     .run-btn {
-        /* 위치 고정 및 레이어 순서만 설정 (클릭 가능하게) */
         position: fixed !important;
         bottom: 30px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        z-index: 5000 !important; /* 다른 요소보다 위에 배치 */
+        width: min(360px, calc(100% - 40px)) !important;
         
-        /* 색상/크기 변경 코드 삭제됨 -> styles.css의 원래 디자인 사용 */
+        background: #ff9000 !important; /* 오렌지색 복구 */
+        color: #000 !important;
+        border: none; border-radius: 50px;
+        padding: 16px 16px; font-size: 24px; font-weight: 1000;
         cursor: pointer;
+        z-index: 5000 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
 
     /* ---------------------------------------------------- */
     /* [Preview & Result - Layout Fixes]                    */
@@ -586,7 +591,6 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
-    // [Mock Data 20개]
     function generateMockWorkouts() {
         const arr = [];
         for(let i=0; i<20; i++) {
@@ -1084,10 +1088,13 @@
       const lockWidth = (el) => {
         if(!el) return;
         const w = el.getBoundingClientRect().width; 
-        el.style.width = w + 'px';
-        el.style.display = 'inline-block';
-        el.style.whiteSpace = 'nowrap';
-        el.style.textAlign = 'left';
+        // 0이면 잠그지 않음 (렌더링 전)
+        if(w > 0) {
+            el.style.width = w + 'px';
+            el.style.display = 'inline-block';
+            el.style.whiteSpace = 'nowrap';
+            el.style.textAlign = 'left';
+        }
       };
 
       lockWidth(rvDistance);
@@ -1106,7 +1113,10 @@
     }
 
     function animateAll(target) {
+      // 1. 먼저 렌더링된 상태에서 너비를 고정
       const locker = lockFitResultTransforms(target);
+      
+      // 2. 0으로 리셋
       locker.resetToStart();
       
       const hold = 500; 
@@ -1140,11 +1150,18 @@
       requestAnimationFrame(frame);
     }
 
+    // [수정] RUN 버튼: 렌더링 대기 후 애니메이션 시작
     el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM();
        openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
-       animateAll(targetData);
+       
+       // 이중 rAF로 브라우저 페인팅 보장
+       requestAnimationFrame(() => {
+           requestAnimationFrame(() => {
+               animateAll(targetData);
+           });
+       });
     });
 
     // --- INITIALIZE ---
