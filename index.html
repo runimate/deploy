@@ -485,14 +485,14 @@
     <div class="result-block" id="resultBlock"></div>
   </div>
 
-  <script type="module">
+<script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
     const $ = (s) => document.querySelector(s);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [수정] 포맷팅 함수 (앞자리 0 제거)
+    // [수정] 포맷팅: 앞자리 0 제거 (5'59")
     function fmtKmPreview(km) { 
         return `${Number(km || 0).toFixed(2)}Km`; 
     }
@@ -503,7 +503,7 @@
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      // 분이 1자리 수일 때 0 제거 (05' -> 5')
+      // 05' -> 5' (pad2 제거)
       return `${m}'${pad2(r)}"`; 
     }
     
@@ -512,16 +512,17 @@
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const r = s % 60;
-      // 시간이 1자리 수일 때 0 제거 (01:23 -> 1:23)
+      // 01:23 -> 1:23 (시가 있을 때 h는 pad2 제거, 시가 없으면 m은 pad2 제거)
       if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
-      else return `${pad2(m)}:${pad2(r)}`;
+      else return `${m}:${pad2(r)}`;
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
+    
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
-    // --- FIT HELPERS (폰트 자동 조절) ---
+    // --- FIT HELPERS ---
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = ''; span.style.transformOrigin = 'left bottom';
@@ -533,7 +534,7 @@
       }
     }
     
-    // [추가] fitGroup: 여러 요소의 스케일을 통일 (가장 긴 텍스트 기준)
+    // Type 2용 그룹 스케일링 (가장 긴 텍스트 기준 통일)
     function computeScaleForGroup(spans, minScale = 0.35) {
       const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
       let need = 1;
@@ -563,16 +564,9 @@
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const value = start + (end - start) * easeOutExpo(progress);
         obj.textContent = formatFn(value);
-        
-        // 애니메이션 중에는 개별 fit 적용 (텍스트 길이가 변하므로)
         fitOne(obj.parentElement);
-
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        } else {
-          obj.textContent = formatFn(end);
-          fitOne(obj.parentElement);
-        }
+        if (progress < 1) window.requestAnimationFrame(step);
+        else { obj.textContent = formatFn(end); fitOne(obj.parentElement); }
       };
       window.requestAnimationFrame(step);
     }
@@ -594,20 +588,6 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
-    // [Mock Data 20개]
-    function generateMockWorkouts() {
-        const arr = [];
-        for(let i=0; i<20; i++) {
-            arr.push({
-                date: `2025.01.${String(20-i).padStart(2,'0')}`,
-                km: (5 + (i * 0.7)).toFixed(2),
-                paceSec: 300 + (i * 3), 
-                timeSec: 1800 + (i * 100)
-            });
-        }
-        return arr;
-    }
-
     // --- ELEMENTS ---
     const el = {
       btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
@@ -628,6 +608,7 @@
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
       
+      // Select Workout List Elements
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
       
       chipDistance: $('#chipDistance'), chipPace: $('#chipPace'),
@@ -640,7 +621,14 @@
       garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
-      btnUploadNrc: $('#btnUploadNrc')
+      
+      // Monthly
+      btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
+      monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
+      
+      // Layout Elements for Monthly
+      pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
+      pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2')
     };
 
     // --- Screen Control ---
@@ -675,27 +663,36 @@
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
     }
 
-    // [수정] 포맷팅 및 디폴트 값 적용 (00.00Km 등)
     function updatePreview() {
       let d = { km: 0, paceSec: 0, timeSec: 0 };
-      
-      // 데이터가 있으면 덮어씌움
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
       else if (state.dataType === 'strava' && state.strava) d = state.strava;
       else if (state.dataType === 'manual') d = state.manual;
       
-      // 값이 0이거나 없을 때 디폴트 포맷 적용
-      const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "0.00Km";
+      const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
       const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
-      // 시간: 시(H)가 있으면 H:MM:SS, 없으면 MM:SS (디폴트는 00:00:00 요청 반영)
       const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
 
-      // Daily Preview 업데이트
       $('#pvDistanceDaily').textContent = kmText;
       $('#pvPaceDaily').textContent = paceText;
       $('#pvTimeDaily').textContent = timeText;
 
-      // 가민/스트라바 카드 업데이트 (선택된 데이터가 있을 때만)
+      // Monthly Preview
+      const m = state.monthly;
+      if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
+      if(el.pvMonthType1) el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
+      if(el.pvMonthType2) el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
+      
+      if(el.pvDistanceMonthlyT1) el.pvDistanceMonthlyT1.textContent = fmtKmPreview(m.km);
+      if(el.pvRunsMonthlyT1) el.pvRunsMonthlyT1.textContent = fmtRunsPreview(m.runs);
+      if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvTimeMonthlyT1) el.pvTimeMonthlyT1.textContent = fmtTimePreview(m.timeSec);
+
+      if(el.pvDistanceMonthlyT2) el.pvDistanceMonthlyT2.textContent = fmtKmPreview(m.km);
+      if(el.pvRunsMonthlyT2) el.pvRunsMonthlyT2.textContent = fmtRunsPreview(m.runs);
+      if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
+
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
          if(cardSrc && cardSrc.date !== '-') {
@@ -709,16 +706,15 @@
       requestAnimationFrame(applyFitPreview);
     }
 
-    // [수정] 폰트 사이즈 조절 (Type 2는 그룹으로 묶어서 동일 크기 적용)
+    // [수정] 폰트 사이즈 조절 (Type 2, Type 1 구분)
     function applyFitPreview() {
-      // Daily Mode
       if (state.recordType === 'daily') {
         if (state.layout === 'type2') {
-          // 3개를 그룹으로 묶어서 가장 긴 텍스트에 맞춰 다같이 줄어듬 (크기 통일)
+          // Type 2: 3개 균등 크기
           const scale = computeScaleForGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
           applyLockedScale([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], scale);
         } else {
-          // Type 1은 개별 조절
+          // Type 1: 개별 크기
           fitOne(el.pvDistanceDaily, 0.30);
           fitOne(el.pvPaceDaily, 0.30);
           fitOne(el.pvTimeDaily, 0.30);
@@ -728,7 +724,6 @@
       
       // Monthly Mode
       if (state.layout === 'type2') {
-          // Monthly Type 2 하단 3개 그룹화
           const scale = computeScaleForGroup([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], 0.30);
           applyLockedScale([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], scale);
           fitOne(el.pvDistanceMonthlyT2, 0.26);
@@ -740,12 +735,13 @@
       }
     }
 
-    // --- GARMIN LOGIC ---
+    // --- GARMIN LOGIN LOGIC (Mockup 제거) ---
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin'; applyDataType(); updatePreview();
       if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
       else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
     });
+    
     el.btnOpenGarminLogin.addEventListener('click', () => {
         el.garminError.style.display = 'none';
         openScreen('garminLoginScreen');
@@ -756,7 +752,9 @@
       const password = $('#garminPassword').value;
       const btn = el.btnGarminRealSync;
       
+      // 1. 유효성 검사 (실패 시 에러 메시지 & 중단)
       if (!email.includes('@') || password.length < 4) {
+          el.garminError.textContent = "아이디 또는 비밀번호를 확인해주세요.";
           el.garminError.style.display = 'block'; 
           return; 
       }
@@ -774,7 +772,8 @@
         if (res.ok) {
             const result = await res.json();
             if(result.success) {
-                realGarminWorkouts = result.data; // Real Data
+                // 로그인 성공 시에만 데이터 로드
+                realGarminWorkouts = result.data; 
                 completeLogin();
                 return;
             }
@@ -782,11 +781,12 @@
         throw new Error("Auth Failed");
 
       } catch (err) {
-        console.warn("Real Server Failed, falling back to mock for demo");
-        setTimeout(() => {
-            realGarminWorkouts = generateMockWorkouts(); 
-            completeLogin();
-        }, 1000);
+        console.error(err);
+        // [중요] 실패 시 더미 데이터 로드 로직 제거함. 에러 메시지 표시.
+        el.garminError.textContent = "로그인 실패: 아이디와 비밀번호를 확인해주세요.";
+        el.garminError.style.display = 'block';
+        btn.innerText = "Sign-In";
+        btn.disabled = false; btn.style.opacity = '1';
       }
     }
     
@@ -800,12 +800,12 @@
         el.garminCard.style.display = 'flex';
         btn.disabled = false; btn.style.opacity = '1';
     }
-    el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
+    // [수정] Select Workout 리스트 (클릭 이벤트 Fix)
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
-      const list = (kind === 'strava') ? realStravaWorkouts : (realGarminWorkouts.length ? realGarminWorkouts : []);
+      const list = (kind === 'strava') ? realStravaWorkouts : realGarminWorkouts; // 실패시 빈 배열
 
       list.forEach((w) => {
         const btn = document.createElement('div'); 
@@ -822,6 +822,7 @@
           <div class="w-arrow">→</div>
         `;
         
+        // 클릭 이벤트 핸들러
         btn.onclick = (e) => {
             e.stopPropagation();
             if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; }
@@ -829,7 +830,7 @@
             
             applyDataType(); 
             updatePreview(); 
-            closeScreen('garminSelectScreen'); 
+            closeScreen('garminSelectScreen'); // 즉시 닫기
         };
         listContainer.appendChild(btn);
       });
@@ -915,7 +916,42 @@
 
     // --- MONTHLY & MANUAL ---
     if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
-    if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => openScreen('monthPickerScreen'));
+    if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
+        // 년도 텍스트 초기화
+        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
+        buildMonthGrid(); // 그리드 생성
+        openScreen('monthPickerScreen');
+    });
+
+    function buildMonthGrid() {
+      el.monthGrid.innerHTML = '';
+      for (let i = 1; i <= 12; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'month-cell';
+        b.textContent = monthNameCap(i);
+        // 기존 active 클래스 유지
+        if(i === state.monthly.month) b.classList.add('active');
+        
+        b.addEventListener('click', () => {
+          state.monthly.month = i;
+          updatePreview();
+          closeScreen('monthPickerScreen');
+        });
+        el.monthGrid.appendChild(b);
+      }
+    }
+    // 년도 이동 버튼 이벤트
+    if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => {
+      state.monthly.year -= 1;
+      el.monthYearText.textContent = state.monthly.year;
+      updatePreview();
+    });
+    if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => {
+      state.monthly.year += 1;
+      el.monthYearText.textContent = state.monthly.year;
+      updatePreview();
+    });
 
     el.chipDistance.addEventListener('click', () => {
       $('#modalTitle').textContent = 'DISTANCE';
@@ -939,12 +975,11 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- RUN BUTTON: [Fix] Build Result DOM + 0.5s Delay ---
+    // --- RUN BUTTON: Result & 0.8s Delay Animation ---
     function buildResultDOM() {
       // 1. Layout State 반영
       el.resultWrap.className = `result-wrap ${state.layout}`;
       
-      // 2. Data Source Logic
       let d = { km: 0, runs: 0, paceSec: 0, timeSec: 0 };
       if (state.recordType === 'daily') {
         if(state.dataType === 'garmin') d = state.garmin;
@@ -954,7 +989,6 @@
         d = state.monthly;
       }
 
-      // 3. HTML Construction based on Layout
       if (state.recordType === 'daily') {
         el.resultBlock.innerHTML = `
           <div class="result-item">
@@ -1004,13 +1038,12 @@
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      // 1. 최종 값 세팅
       if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
       if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
       if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
       if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
 
-      // 3. 너비 고정 (Lock)
+      // Lock Width
       const lockWidth = (el) => {
         if(!el) return;
         const w = el.getBoundingClientRect().width; 
@@ -1025,7 +1058,6 @@
       lockWidth(rvTime);
       lockWidth(rvRuns);
 
-      // 4. 리셋 함수 반환
       return {
         resetToStart() {
           if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
@@ -1037,15 +1069,10 @@
     }
 
     function animateAll(target) {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-      
       const locker = lockFitResultTransforms(target);
       locker.resetToStart();
       
-      const hold = 500; // 0.5s Delay
+      const hold = 800; // 0.8s Delay
       const dur = 2000;
       const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
@@ -1061,6 +1088,11 @@
         const time = target.timeSec * k;
         const runs = (target.runs == null) ? null : Math.round(target.runs * k);
         
+        const rvDistance = $('#rvDistance');
+        const rvPace = $('#rvPace');
+        const rvTime = $('#rvTime');
+        const rvRuns = $('#rvRuns');
+
         if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
         if (rvPace) rvPace.textContent = fmtPaceResult(pace);
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
@@ -1071,18 +1103,10 @@
       requestAnimationFrame(frame);
     }
 
-    // [수정] RUN 버튼 클릭 핸들러 (결과 화면 생성 및 애니메이션)
     el.btnRun.addEventListener('click', () => {
-       // 1. 결과 데이터 생성 (DOM 재생성 방식 사용)
        const targetData = buildResultDOM();
-       
-       // 2. 결과 화면 열기
        openScreen('resultScreen');
-       
-       // 3. 폰트/배경 적용
-       el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show`;
-       
-       // 4. 애니메이션 실행 (Type 2일 경우 그룹 스케일링 적용됨)
+       el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
        animateAll(targetData);
     });
 
