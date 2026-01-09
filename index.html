@@ -28,6 +28,7 @@
     /* ---------------------------------------------------- */
     /* [Garmin Login Overlay]                               */
     /* ---------------------------------------------------- */
+/* [Garmin Login Overlay] 수정됨 */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
@@ -35,6 +36,10 @@
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
+      
+      /* [핵심 수정] 화면 최상단 강제 배치 및 클릭 활성화 */
+      z-index: 9999 !important;
+      pointer-events: auto !important;
     }
     #garminLoginScreen.show { display: flex !important; }
     
