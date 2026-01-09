@@ -7,7 +7,44 @@
   <title>RUNIMATE v2.0</title>
   
   <style>
-    /* [CORE RESET] */
+    /* ========================================= */
+    /* [1] CORE VARIABLES & RESET (스타일 복구)   */
+    /* ========================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gap: clamp(6px, 1.8vw, 10px);
+      --btn-pad-y: clamp(7px, 1.9vw, 10px);
+      --btn-pad-x: clamp(10px, 2.8vw, 18px);
+      --btn-font: clamp(12px, 2.8vw, 14px);
+      --radius: 999px;
+      --stroke: 2px;
+      --btn-h: 42px;
+
+      --garmin: #76B6FF;
+      --strava: #FC4C02;
+      --nrc: #5CE45C;
+      --manual: #9B7CFF;
+
+      --pv-value-ls: 0px;
+      --pv-label-ls: 0px;
+
+      /* UI Config Defaults (깨짐 방지용 초기값) */
+      --ui-col-gap: 24px;
+      --ui-stack-gap: 18px;
+      --ui-label-to-value-gap: 2px;
+      --ui-label-size: 12px;
+      --ui-value-size: 34px;
+      --ui-distance-value-size: 34px;
+      --ui-month-size: 14px;
+      --ui-month-to-distance-gap: 8px;
+      --ui-month-distance-size: 36px;
+      --ui-distance-to-stats-gap: 14px;
+      --ui-distance-to-row-gap: 14px;
+      --ui-m-label-size: 10px;
+      --ui-m-value-size: 24px;
+    }
+
     html, body {
       overflow-x: hidden;
       width: 100%;
@@ -16,6 +53,7 @@
       padding: 0;
       -webkit-tap-highlight-color: transparent;
       font-family: 'Inter', -apple-system, sans-serif;
+      background: #fff;
     }
     
     body {
@@ -25,161 +63,100 @@
       position: relative;
     }
 
-    /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay]                               */
-    /* ---------------------------------------------------- */
-    #garminLoginScreen {
-      background-color: #5EA0F6 !important;
-      padding: 40px 30px 150px 30px !important;
-      display: none;
-      
-      position: fixed !important;
-      top: 0; left: 0; bottom: 0; right: 0;
-      width: 100%; height: 100%;
-      z-index: 99999 !important; 
-      pointer-events: auto !important; 
-      
-      flex-direction: column;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-      overflow-y: auto;
-    }
-    #garminLoginScreen.show { display: flex !important; }
-    
-    #garminLoginScreen .screen-close {
-      position: absolute; top: 30px; right: 30px; font-size: 40px; color: #000;
-      background: none; border: none; cursor: pointer; font-weight: 300; line-height: 1; padding: 0;
-    }
-    
-    .g-title { margin-top: 60px; color: #000; line-height: 1.1; margin-bottom: 50px; width: 100%; }
-    .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; }
-    .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; }
-    
-    .g-inputs { width: 100%; margin-bottom: 20px; }
-    .g-input {
-      width: 100%; background: transparent !important; border: none !important;
-      border-bottom: 2px solid #000 !important; border-radius: 0 !important;
-      padding: 10px 0; font-size: 16px; color: #000; outline: none; margin-bottom: 25px; font-weight: 500;
-    }
-    .g-input::placeholder { color: #333; opacity: 0.7; }
-    
-    .g-error-msg {
-        color: #000; font-size: 14px; font-weight: 700; margin-bottom: 20px; 
-        background: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 8px;
-        display: none;
-    }
-    
-    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
-    .g-smile {
-      font-size: 36px; font-weight: 900; 
-      transform: rotate(90deg); 
-      display: inline-block;
-      transform-origin: center; 
-      line-height: 1; margin-top: -4px; color: #000;
-    }
-    .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
-    
-    /* [가민 로그인 버튼 - 하단 고정] */
-    .g-signin-btn {
-      position: fixed !important;
-      bottom: 30px !important;
-      left: 50% !important;
-      transform: translateX(-50%) !important;
-      width: min(360px, calc(100% - 60px)) !important;
-      
-      background: #000 !important; 
-      color: #fff !important; 
-      border: none; border-radius: 50px;
-      padding: 18px; font-size: 18px; font-weight: 700; 
-      cursor: pointer; 
-      
-      z-index: 100000 !important; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
+    /* ========================================= */
+    /* [2] LAYOUT & COMPONENTS                   */
+    /* ========================================= */
+    .container { width: min(360px, 100%); margin: 0 auto; position: relative; }
 
-    /* ---------------------------------------------------- */
-    /* [Select Workout List]                                */
-    /* ---------------------------------------------------- */
-    .select-wrap {
-        padding: 20px;
-        padding-top: 60px;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+    /* Header */
+    .header { margin-bottom: 22px; }
+    .title { font-size: 44px; font-weight: 900; letter-spacing: -0.9px; line-height: 1.0; color: #000; text-decoration: none; }
+    .version { font-size: 26px; font-weight: 900; }
+    .author { margin-top: 6px; font-size: 13px; color: #000; }
+    .title-link { color: inherit; text-decoration: none; cursor: pointer; }
+
+    /* Sections */
+    .section { margin-bottom: 18px; }
+    .section-label { display: block; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+    .section-label.inline { margin-bottom: 8px; }
+
+    /* Buttons Group */
+    .button-group { display: flex; align-items: center; gap: var(--gap); flex-wrap: nowrap; width: 100%; }
+    .button-group.wide .flex1, .button-group.two .flex1 { flex: 1 1 0; min-width: 0; }
+
+    /* Toggle Buttons */
+    .toggle-btn {
+      border: var(--stroke) solid #000;
+      border-radius: var(--radius);
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      height: var(--btn-h);
+      padding: 0 var(--btn-pad-x);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--btn-font);
+      line-height: 1; white-space: nowrap; min-width: 0;
+      transition: opacity .15s ease, background .15s ease, color .15s ease;
     }
-    .select-title {
-        font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0;
+    .toggle-btn.active { background: #000; color: #fff; }
+
+    /* Data Panel */
+    .data-panel { border: 1.5px solid #d9d9d9; border-radius: 18px; padding: 14px; background: #fff; }
+    .data-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .data-panel-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* Tabs */
+    .data-tabs { display: flex; gap: 10px; flex-wrap: nowrap; width: 100%; }
+    .data-tab {
+      flex: 1 1 0; min-width: 0;
+      border: var(--stroke) solid #000; border-radius: 999px;
+      height: var(--btn-h); padding: 0 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff; color: #000; font-weight: 900; font-size: 13px;
+      white-space: nowrap; cursor: pointer;
+      transition: opacity .15s ease, background .15s ease;
     }
-    .select-list {
-        flex: 1;
-        overflow-y: auto;
-        padding-bottom: 40px;
+    .data-tab.garmin.active { background: var(--garmin); }
+    .data-tab.strava.active { background: var(--strava); }
+    .data-tab.nrc.active { background: var(--nrc); }
+    .data-tab.manual.active { background: var(--manual); }
+
+    .data-content { display: none; margin-top: 12px; }
+    .data-empty { height: 0; display: block; }
+
+    /* Cards */
+    .garmin-card {
+      display: flex; align-items: center; justify-content: space-between;
+      border: var(--stroke) solid #000; border-radius: 14px;
+      padding: 10px 10px 10px 12px; background: #fff; cursor: pointer;
     }
+    .garmin-card-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .garmin-date { font-size: 12px; font-weight: 900; }
+    .garmin-stats { display: flex; gap: 14px; align-items: baseline; }
+    .garmin-stat { font-size: 14px; font-weight: 900; white-space: nowrap; }
+    .garmin-list-btn { width: 42px; height: 34px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .hamburger { width: 18px; display: flex; flex-direction: column; gap: 3px; }
+    .hamburger span { height: 2px; background: #000; border-radius: 2px; display: block; }
+
+    /* Manual & Month */
+    .manual-row { display: flex; gap: 10px; width: 100%; }
+    .manual-chip {
+      flex: 1 1 0; border: 1.5px solid #d9d9d9; border-radius: 999px;
+      background: #fff; padding: 10px 12px; display: flex; gap: 8px; align-items: baseline; justify-content: center; cursor: pointer;
+    }
+    .chip-label { font-size: 12px; font-weight: 900; }
+    .chip-value { font-size: 16px; font-weight: 900; }
+    .manual-time-line { margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; }
     
-    .workout-item {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #fff;
-        border: 2px solid #000; 
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
-        cursor: pointer;
-        text-align: left;
-        box-sizing: border-box;
-        transition: transform 0.1s, background-color 0.1s;
-        -webkit-tap-highlight-color: transparent;
-    }
+    .month-block { margin-top: 12px; }
+    .month-label { font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
+    .month-btn { width: 100%; border: var(--stroke) solid #000; border-radius: 999px; height: var(--btn-h); display: flex; align-items: center; justify-content: center; background: #fff; font-weight: 900; cursor: pointer; }
 
-    .workout-item:active {
-        background-color: #000 !important;
-        color: #fff !important;
-        border-color: #000 !important;
-        transform: scale(0.98);
-    }
-    .workout-item:active * { color: #fff !important; }
-
-    .w-left { pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
-    .w-date { font-weight: 900; font-size: 16px; color: #000; }
-    .w-stats { font-size: 14px; font-weight: 700; color: #000; display: flex; gap: 15px; } 
-    .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
-
-    /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 하단 고정                             */
-    /* ---------------------------------------------------- */
-    .run-btn {
-        position: fixed !important;
-        bottom: 30px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: min(360px, calc(100% - 40px)) !important;
-        
-        background: #ff9000 !important; 
-        color: #000 !important;
-        border: none; border-radius: 50px;
-        padding: 16px 16px; font-size: 24px; font-weight: 1000;
-        cursor: pointer;
-        
-        z-index: 5000 !important; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
-
-    /* ---------------------------------------------------- */
-    /* [Preview & Result]                                   */
-    /* ---------------------------------------------------- */
-    .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
-        line-height: 1.2 !important; 
-        padding-bottom: 4px;
-        overflow: visible !important;
-        white-space: nowrap;
-    }
-
+    /* ========================================= */
+    /* [3] PREVIEW & RESULT (핵심 UI)            */
+    /* ========================================= */
     .preview {
         border: 2px solid #000;
         border-radius: 18px;
@@ -188,6 +165,11 @@
         box-sizing: border-box;
         background: #fff;
         overflow: hidden;
+    }
+    .preview.bg-black { background: #000; color: #fff; }
+
+    .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
+        line-height: 1.2 !important; padding-bottom: 4px; overflow: visible !important; white-space: nowrap;
     }
 
     /* Type 2 Layout Fixes */
@@ -212,72 +194,139 @@
         flex-direction: column;
     }
 
-    .preview.type2 .data-label, 
-    .result-wrap.type2 .result-label {
-        margin-bottom: 4px;
-        white-space: nowrap;
+    .preview.type2 .data-label, .result-wrap.type2 .result-label { margin-bottom: 4px; white-space: nowrap; }
+    .preview.type2 .data-value, .result-wrap.type2 .result-value {
+        justify-content: flex-start !important; text-align: left !important; width: 100%; white-space: nowrap;
     }
-
-    .preview.type2 .data-value,
-    .result-wrap.type2 .result-value {
-        justify-content: flex-start !important;
-        text-align: left !important;
-        width: 100%;
-        white-space: nowrap;
-    }
-    
     .result-wrap.type2 .result-block { margin: 0 !important; }
 
-    /* [Result Wrapper] - 결과 화면 레이아웃 컨테이너 */
+    /* Result Wrapper */
     .result-wrap {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 26px;
-        box-sizing: border-box;
+        width: 100%; height: 100%; padding: 0 26px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
     }
+    .result-block { width: 100%; min-width: 0; }
     
-    .result-block {
-        width: 100%;
-        min-width: 0;
-    }
-    
-    /* Type 1 specific result block style */
     .result-wrap.type1 .result-block {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ui-stack-gap);
-        align-items: flex-start;
-        width: min(520px, 100%);
+        display: flex; flex-direction: column; gap: var(--ui-stack-gap); align-items: flex-start; width: min(520px, 100%);
     }
-
-    /* Type 2 specific result block style */
     .result-wrap.type2 .result-block {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 4px;
-        width: min(520px, 100%);
-        align-items: start;
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: min(520px, 100%); align-items: start;
     }
 
-    #contentStrava {
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
+    .result-item { min-width: 0; }
+    .result-label, .result-value { display: block; width: 100%; min-width: 0; white-space: nowrap; }
+    .result-label { font-size: var(--ui-label-size); font-weight: 900; opacity: .9; margin-bottom: var(--ui-label-to-value-gap); }
+    .result-value { font-size: var(--ui-value-size); font-weight: 900; line-height: 1; display: flex; align-items: flex-end; }
+    .result-value > span { display: inline-block; width: auto; transform-origin: left bottom; }
+
+    /* ========================================= */
+    /* [4] OVERLAYS & BUTTONS (하단 고정 로직)    */
+    /* ========================================= */
+    
+    /* [RUN BUTTON] - 하단 고정, 오렌지색 */
+    .run-btn {
+        position: fixed !important;
+        bottom: 30px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: min(360px, calc(100% - 40px)) !important;
+        background: #ff9000 !important; 
+        color: #000 !important;
+        border: none; border-radius: 50px;
+        padding: 16px 16px; font-size: 24px; font-weight: 1000;
+        cursor: pointer;
+        z-index: 5000 !important; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
-    .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+
+    /* [Garmin Login Overlay] */
+    #garminLoginScreen {
+      background-color: #5EA0F6 !important;
+      padding: 40px 30px 150px 30px !important;
+      display: none;
+      position: fixed !important;
+      top: 0; left: 0; bottom: 0; right: 0;
+      width: 100%; height: 100%;
+      z-index: 99999 !important; 
+      pointer-events: auto !important; 
+      flex-direction: column;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+      overflow-y: auto;
+    }
+    #garminLoginScreen.show { display: flex !important; }
     
-    .data-empty { min-height: 20px; }
+    #garminLoginScreen .screen-close {
+      position: absolute; top: 30px; right: 30px; font-size: 40px; color: #000;
+      background: none; border: none; cursor: pointer; font-weight: 300; line-height: 1; padding: 0;
+    }
     
-    /* [Result Screen] - 최상위 레이어 */
+    .g-title { margin-top: 60px; color: #000; line-height: 1.1; margin-bottom: 50px; width: 100%; }
+    .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; }
+    .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; }
+    
+    .g-inputs { width: 100%; margin-bottom: 20px; }
+    .g-input {
+      width: 100%; background: transparent !important; border: none !important;
+      border-bottom: 2px solid #000 !important; border-radius: 0 !important;
+      padding: 10px 0; font-size: 16px; color: #000; outline: none; margin-bottom: 25px; font-weight: 500;
+    }
+    .g-error-msg { color: #000; font-size: 14px; font-weight: 700; margin-bottom: 20px; background: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 8px; display: none; }
+    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
+    .g-smile { font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block; line-height: 1; margin-top: -4px; color: #000; }
+    .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
+    
+    /* [가민 로그인 버튼 - 하단 고정] */
+    .g-signin-btn {
+      position: fixed !important;
+      bottom: 30px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: min(360px, calc(100% - 60px)) !important;
+      background: #000 !important; 
+      color: #fff !important; 
+      border: none; border-radius: 50px;
+      padding: 18px; font-size: 18px; font-weight: 700; 
+      cursor: pointer; 
+      z-index: 100000 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Result Screen - 최상위 레이어 */
     .result-screen {
         z-index: 2147483647 !important;
         position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
         background: #fff; display: none; flex-direction: column;
     }
     .result-screen.show { display: flex !important; }
+    
+    /* Overlays */
+    .screen-overlay { position: fixed; inset: 0; display: none; z-index: 3000; background: #fff; color: #000; }
+    .screen-overlay.show { display: block; }
+    .select-wrap { padding: 20px; padding-top: 60px; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
+    .select-title { font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0; }
+    .select-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+    .workout-item { width: 100%; display: flex; justify-content: space-between; align-items: center; background-color: #fff; border: 2px solid #000; border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; cursor: pointer; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 2400; }
+    .modal-overlay.show { display: flex; }
+    .modal { width: min(420px, 100%); background: #fff; border-radius: 16px; border: 2px solid #000; overflow: hidden; }
+    .modal-head { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; }
+    .modal-title { font-weight: 900; font-size: 14px; }
+    .modal-close { border: none; background: transparent; font-size: 22px; font-weight: 900; cursor: pointer; }
+    .modal-body { padding: 12px 14px; max-height: 60vh; overflow: auto; }
+    .manual-form { display: none; }
+    .field-label { display: block; font-weight: 900; font-size: 12px; margin-bottom: 8px; }
+    .field-input { width: 100%; border: 2px solid #000; border-radius: 12px; padding: 12px 12px; font-size: 16px; font-weight: 900; outline: none; }
+    .field-save { margin-top: 10px; width: 100%; border: none; border-radius: 999px; padding: 12px 12px; background: #000; color: #fff; font-weight: 900; cursor: pointer; }
+    .pace-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+    .colon { font-weight: 900; font-size: 16px; text-align: center; }
+    
+    /* NRC */
+    .upload-btn { width: 100%; border: none; border-radius: 999px; background: #000 !important; color: var(--nrc) !important; font-weight: 900; height: var(--btn-h); padding: 0 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .ocr-status { margin-top: 8px; font-size: 11px; color: #333; display: none; }
+    .ocr-status.show { display: block; }
   </style>
 </head>
 
@@ -666,7 +715,7 @@
           dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
           dataEmpty: $('#dataEmpty'),
           tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-          tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
+          tabNrcMonthly: $('#tabNrcMonthly'), 
           contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
           
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -911,14 +960,13 @@
             listContainer.appendChild(btn);
           });
         }
-        el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+        if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
         // --- OTHER TABS ---
-        el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
-        el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-        el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+        if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
+        if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+        if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
         
-        // [중요] 안전장치 추가
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
         // --- APPLY HELPERS ---
@@ -992,12 +1040,12 @@
         }
 
         // --- EVENTS ---
-        el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-        el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-        el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-        el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-        el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-        el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+        if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+        if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+        if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+        if(el.btnType2) el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+        if(el.btnBgWhite) el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+        if(el.btnBgBlack) el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
         el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
@@ -1037,17 +1085,17 @@
           updatePreview();
         });
 
-        el.chipDistance.addEventListener('click', () => {
+        if(el.chipDistance) el.chipDistance.addEventListener('click', () => {
           $('#modalTitle').textContent = 'DISTANCE';
           el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
           el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
         });
-        el.chipPace.addEventListener('click', () => {
+        if(el.chipPace) el.chipPace.addEventListener('click', () => {
           $('#modalTitle').textContent = 'PACE';
           el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
           el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
         });
-        el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
+        if(el.modalClose) el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
         
         function recalcManualTime() {
             if(state.manual.km > 0 && state.manual.paceSec > 0) {
@@ -1057,7 +1105,7 @@
             }
         }
 
-        el.formDistance.addEventListener('submit', (e) => {
+        if(el.formDistance) el.formDistance.addEventListener('submit', (e) => {
           e.preventDefault(); const val = parseFloat(el.inputDistance.value);
           if (!isNaN(val)) { 
               state.manual.km = val; 
@@ -1066,7 +1114,7 @@
               closeScreen('modalOverlay'); 
           }
         });
-        el.formPace.addEventListener('submit', (e) => {
+        if(el.formPace) el.formPace.addEventListener('submit', (e) => {
           e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
           const total = m * 60 + s;
           if (total > 0) { 
@@ -1077,7 +1125,6 @@
           }
         });
 
-        // --- RUN BUTTON: Result & Animate ---
         function buildResultDOM() {
           el.resultWrap.className = `result-wrap ${state.layout}`;
           
@@ -1090,7 +1137,6 @@
             d = state.monthly;
           }
 
-          // HTML 구조 생성 (resultWrap 내부에 주입)
           if (state.recordType === 'daily') {
             el.resultBlock.innerHTML = `
               <div class="result-item">
@@ -1211,7 +1257,6 @@
            openScreen('resultScreen');
            el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
            
-           // [중요] 렌더링 딜레이 (화면이 그려진 후 애니메이션 시작)
            requestAnimationFrame(() => {
                requestAnimationFrame(() => {
                    animateAll(targetData);
