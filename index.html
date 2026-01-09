@@ -7,9 +7,9 @@
   <title>RUNIMATE v2.0</title>
   
   <style>
-    /* ========================================= */
-    /* [1] CORE VARIABLES & RESET (스타일 복구)   */
-    /* ========================================= */
+    /* ==========================================================================
+       [1] ORIGINAL STYLES (styles.css 내용 100% 복구)
+       ========================================================================== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -29,7 +29,7 @@
       --pv-value-ls: 0px;
       --pv-label-ls: 0px;
 
-      /* UI Config Defaults (깨짐 방지용 초기값) */
+      /* UI CONFIG Defaults */
       --ui-col-gap: 24px;
       --ui-stack-gap: 18px;
       --ui-label-to-value-gap: 2px;
@@ -45,288 +45,190 @@
       --ui-m-value-size: 24px;
     }
 
-    html, body {
-      overflow-x: hidden;
-      width: 100%;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: #fff;
-    }
-    
     body {
+      background: #fff;
+      font-family: 'Inter', -apple-system, sans-serif;
       padding: 20px;
-      padding-bottom: 120px;
-      box-sizing: border-box;
+      padding-bottom: 120px; /* 하단 버튼 공간 */
+      min-height: 100vh;
+      overflow-x: hidden;
       position: relative;
     }
 
-    /* ========================================= */
-    /* [2] LAYOUT & COMPONENTS                   */
-    /* ========================================= */
     .container { width: min(360px, 100%); margin: 0 auto; position: relative; }
 
-    /* Header */
+    /* Webfonts */
+    @font-face{ font-family:'Inter'; src:url('./fonts/Inter.woff2') format('woff2'); font-weight:100 900; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Anton'; src:url('./fonts/Anton.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Bitcount Grid Single'; src:url('./fonts/Dots.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'DS-Digital'; src:url('./fonts/LCD.woff2') format('woff2'); font-weight:400 900; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Special Gothic Expanded One'; src:url('./fonts/Gothic.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Quantico'; src:url('./fonts/Speed.woff2') format('woff2'); font-weight:400 900; font-style:normal; font-display:swap; }
+
+    /* Header & Section */
     .header { margin-bottom: 22px; }
-    .title { font-size: 44px; font-weight: 900; letter-spacing: -0.9px; line-height: 1.0; color: #000; text-decoration: none; }
+    .title { font-size: 44px; font-weight: 900; letter-spacing: -0.9px; line-height: 1.0; text-decoration: none; color: #000; }
     .version { font-size: 26px; font-weight: 900; }
     .author { margin-top: 6px; font-size: 13px; color: #000; }
     .title-link { color: inherit; text-decoration: none; cursor: pointer; }
 
-    /* Sections */
     .section { margin-bottom: 18px; }
     .section-label { display: block; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
     .section-label.inline { margin-bottom: 8px; }
 
-    /* Buttons Group */
-    .button-group { display: flex; align-items: center; gap: var(--gap); flex-wrap: nowrap; width: 100%; }
+    /* Buttons */
+    .button-group { display: flex; align-items: center; gap: var(--gap); width: 100%; }
     .button-group.wide .flex1, .button-group.two .flex1 { flex: 1 1 0; min-width: 0; }
-
-    /* Toggle Buttons */
+    
     .toggle-btn {
-      border: var(--stroke) solid #000;
-      border-radius: var(--radius);
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      height: var(--btn-h);
-      padding: 0 var(--btn-pad-x);
-      display: flex; align-items: center; justify-content: center;
-      font-size: var(--btn-font);
-      line-height: 1; white-space: nowrap; min-width: 0;
-      transition: opacity .15s ease, background .15s ease, color .15s ease;
+      border: var(--stroke) solid #000; border-radius: var(--radius); background: #fff; color: #000;
+      cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 900; height: var(--btn-h);
+      padding: 0 var(--btn-pad-x); display: flex; align-items: center; justify-content: center;
+      font-size: var(--btn-font); line-height: 1; white-space: nowrap; transition: 0.15s;
     }
     .toggle-btn.active { background: #000; color: #fff; }
 
     /* Data Panel */
     .data-panel { border: 1.5px solid #d9d9d9; border-radius: 18px; padding: 14px; background: #fff; }
-    .data-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .data-panel-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.4px; }
-
-    /* Tabs */
-    .data-tabs { display: flex; gap: 10px; flex-wrap: nowrap; width: 100%; }
+    .data-panel-head { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+    .data-panel-title { font-size: 12px; font-weight: 900; }
+    
+    .data-tabs { display: flex; gap: 10px; width: 100%; }
     .data-tab {
-      flex: 1 1 0; min-width: 0;
-      border: var(--stroke) solid #000; border-radius: 999px;
-      height: var(--btn-h); padding: 0 10px;
-      display: flex; align-items: center; justify-content: center;
-      background: #fff; color: #000; font-weight: 900; font-size: 13px;
-      white-space: nowrap; cursor: pointer;
-      transition: opacity .15s ease, background .15s ease;
+      flex: 1; border: var(--stroke) solid #000; border-radius: 999px; height: var(--btn-h);
+      display: flex; align-items: center; justify-content: center; background: #fff; color: #000;
+      font-weight: 900; font-size: 13px; cursor: pointer; transition: 0.15s;
     }
     .data-tab.garmin.active { background: var(--garmin); }
     .data-tab.strava.active { background: var(--strava); }
     .data-tab.nrc.active { background: var(--nrc); }
     .data-tab.manual.active { background: var(--manual); }
 
-    .data-content { display: none; margin-top: 12px; }
     .data-empty { height: 0; display: block; }
+    .data-content { display: none; margin-top: 12px; }
 
     /* Cards */
-    .garmin-card {
-      display: flex; align-items: center; justify-content: space-between;
-      border: var(--stroke) solid #000; border-radius: 14px;
-      padding: 10px 10px 10px 12px; background: #fff; cursor: pointer;
-    }
-    .garmin-card-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .garmin-card { display: flex; justify-content: space-between; border: var(--stroke) solid #000; border-radius: 14px; padding: 10px 12px; background: #fff; cursor: pointer; align-items: center; }
+    .garmin-card-left { display: flex; flex-direction: column; gap: 6px; }
     .garmin-date { font-size: 12px; font-weight: 900; }
-    .garmin-stats { display: flex; gap: 14px; align-items: baseline; }
-    .garmin-stat { font-size: 14px; font-weight: 900; white-space: nowrap; }
+    .garmin-stats { display: flex; gap: 14px; }
+    .garmin-stat { font-size: 14px; font-weight: 900; }
     .garmin-list-btn { width: 42px; height: 34px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .hamburger { width: 18px; display: flex; flex-direction: column; gap: 3px; }
-    .hamburger span { height: 2px; background: #000; border-radius: 2px; display: block; }
+    .hamburger span { height: 2px; background: #000; border-radius: 2px; }
 
     /* Manual & Month */
     .manual-row { display: flex; gap: 10px; width: 100%; }
-    .manual-chip {
-      flex: 1 1 0; border: 1.5px solid #d9d9d9; border-radius: 999px;
-      background: #fff; padding: 10px 12px; display: flex; gap: 8px; align-items: baseline; justify-content: center; cursor: pointer;
-    }
+    .manual-chip { flex: 1; border: 1.5px solid #d9d9d9; border-radius: 999px; background: #fff; padding: 10px; display: flex; gap: 8px; justify-content: center; cursor: pointer; align-items: baseline; }
     .chip-label { font-size: 12px; font-weight: 900; }
     .chip-value { font-size: 16px; font-weight: 900; }
     .manual-time-line { margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; }
     
     .month-block { margin-top: 12px; }
-    .month-label { font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
+    .month-label { font-size: 12px; font-weight: 900; margin-bottom: 8px; display: block; }
     .month-btn { width: 100%; border: var(--stroke) solid #000; border-radius: 999px; height: var(--btn-h); display: flex; align-items: center; justify-content: center; background: #fff; font-weight: 900; cursor: pointer; }
 
-    /* ========================================= */
-    /* [3] PREVIEW & RESULT (핵심 UI)            */
-    /* ========================================= */
-    .preview {
-        border: 2px solid #000;
-        border-radius: 18px;
-        padding: 20px;
-        width: 100%;
-        box-sizing: border-box;
-        background: #fff;
-        overflow: hidden;
-    }
+    /* Preview & Result Layouts */
+    .preview { border: 2px solid #000; border-radius: 18px; padding: 20px; width: 100%; background: #fff; overflow: hidden; }
     .preview.bg-black { background: #000; color: #fff; }
-
-    .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
-        line-height: 1.2 !important; padding-bottom: 4px; overflow: visible !important; white-space: nowrap;
-    }
-
-    /* Type 2 Layout Fixes */
-    .preview:not(.monthly).type2 .preview-content,
-    .result-wrap.type2 .result-block,
-    .monthly-type2 .m2-row {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
-        gap: 4px !important;
-        width: 100% !important;
-        align-items: start !important;
-        margin-top: 0 !important;
-    }
-
-    .preview.type2 .data-item,
-    .result-wrap.type2 .result-item,
-    .monthly-type2 .data-item {
-        text-align: left !important;
-        min-width: 0 !important;
-        overflow: visible !important;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .preview.type2 .data-label, .result-wrap.type2 .result-label { margin-bottom: 4px; white-space: nowrap; }
-    .preview.type2 .data-value, .result-wrap.type2 .result-value {
-        justify-content: flex-start !important; text-align: left !important; width: 100%; white-space: nowrap;
-    }
-    .result-wrap.type2 .result-block { margin: 0 !important; }
-
-    /* Result Wrapper */
-    .result-wrap {
-        width: 100%; height: 100%; padding: 0 26px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
-    }
-    .result-block { width: 100%; min-width: 0; }
     
-    .result-wrap.type1 .result-block {
-        display: flex; flex-direction: column; gap: var(--ui-stack-gap); align-items: flex-start; width: min(520px, 100%);
-    }
-    .result-wrap.type2 .result-block {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: min(520px, 100%); align-items: start;
-    }
+    .data-value, .result-value { line-height: 1.2; padding-bottom: 4px; overflow: visible; white-space: nowrap; display: flex; align-items: flex-end; }
+    .data-value > span, .result-value > span { display: inline-block; transform-origin: left bottom; }
 
-    .result-item { min-width: 0; }
-    .result-label, .result-value { display: block; width: 100%; min-width: 0; white-space: nowrap; }
-    .result-label { font-size: var(--ui-label-size); font-weight: 900; opacity: .9; margin-bottom: var(--ui-label-to-value-gap); }
-    .result-value { font-size: var(--ui-value-size); font-weight: 900; line-height: 1; display: flex; align-items: flex-end; }
-    .result-value > span { display: inline-block; width: auto; transform-origin: left bottom; }
+    /* Type 2 Grid/Flex Fix */
+    .preview.type2 .preview-content, .result-wrap.type2 .result-block, .monthly-type2 .m2-row {
+        display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: 100%; align-items: start;
+    }
+    .preview.type2 .data-item, .result-wrap.type2 .result-item { text-align: left; }
+    .preview.type2 .data-value, .result-wrap.type2 .result-value { justify-content: flex-start; }
 
-    /* ========================================= */
-    /* [4] OVERLAYS & BUTTONS (하단 고정 로직)    */
-    /* ========================================= */
+    /* Overlays (Common) */
+    .screen-overlay { position: fixed; inset: 0; display: none; z-index: 3000; background: #fff; color: #000; }
+    .screen-overlay.show { display: block; }
     
-    /* [RUN BUTTON] - 하단 고정, 오렌지색 */
-    .run-btn {
-        position: fixed !important;
-        bottom: 30px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: min(360px, calc(100% - 40px)) !important;
-        background: #ff9000 !important; 
-        color: #000 !important;
-        border: none; border-radius: 50px;
-        padding: 16px 16px; font-size: 24px; font-weight: 1000;
-        cursor: pointer;
-        z-index: 5000 !important; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+    /* [복구된 X 버튼 스타일] */
+    .screen-close { position: absolute; top: 16px; right: 16px; width: 56px; height: 56px; border: none; background: transparent; font-size: 36px; font-weight: 300; cursor: pointer; z-index: 10; }
 
-    /* [Garmin Login Overlay] */
+    .select-wrap { padding: 60px 20px 20px 20px; height: 100%; display: flex; flex-direction: column; }
+    .select-title { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
+    .select-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+    .workout-item { width: 100%; display: flex; justify-content: space-between; align-items: center; background: #fff; border: 2px solid #000; border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; cursor: pointer; }
+    .w-left { display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+    .w-date { font-weight: 900; font-size: 16px; }
+    .w-stats { font-size: 14px; font-weight: 700; display: flex; gap: 15px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 2400; }
+    .modal-overlay.show { display: flex; }
+    .modal { width: min(420px, 100%); background: #fff; border-radius: 16px; border: 2px solid #000; overflow: hidden; }
+    .modal-head { padding: 12px 14px; display: flex; justify-content: space-between; border-bottom: 2px solid #000; align-items: center; }
+    .modal-title { font-weight: 900; font-size: 14px; }
+    .modal-close { border: none; background: transparent; font-size: 22px; font-weight: 900; cursor: pointer; }
+    .modal-body { padding: 12px 14px; }
+    .manual-form { display: none; }
+    .field-input { width: 100%; border: 2px solid #000; border-radius: 12px; padding: 12px; font-size: 16px; font-weight: 900; }
+    .field-save { margin-top: 10px; width: 100%; border: none; border-radius: 999px; padding: 12px; background: #000; color: #fff; font-weight: 900; cursor: pointer; }
+
+    /* ==========================================================================
+       [2] FIXES & OVERRIDES (위치 고정 및 클릭 오류 해결)
+       ========================================================================== */
+    
+    /* [Garmin Login Overlay] - 최상위 고정 */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px 150px 30px !important;
       display: none;
-      position: fixed !important;
-      top: 0; left: 0; bottom: 0; right: 0;
-      width: 100%; height: 100%;
-      z-index: 99999 !important; 
-      pointer-events: auto !important; 
-      flex-direction: column;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-      overflow-y: auto;
+      position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 99999 !important; pointer-events: auto !important; 
+      flex-direction: column; overflow-y: auto;
     }
     #garminLoginScreen.show { display: flex !important; }
     
-    #garminLoginScreen .screen-close {
-      position: absolute; top: 30px; right: 30px; font-size: 40px; color: #000;
-      background: none; border: none; cursor: pointer; font-weight: 300; line-height: 1; padding: 0;
-    }
-    
-    .g-title { margin-top: 60px; color: #000; line-height: 1.1; margin-bottom: 50px; width: 100%; }
+    /* Login Screen Elements */
+    .g-title { margin-top: 60px; margin-bottom: 50px; }
     .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; }
     .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; }
-    
     .g-inputs { width: 100%; margin-bottom: 20px; }
-    .g-input {
-      width: 100%; background: transparent !important; border: none !important;
-      border-bottom: 2px solid #000 !important; border-radius: 0 !important;
-      padding: 10px 0; font-size: 16px; color: #000; outline: none; margin-bottom: 25px; font-weight: 500;
-    }
-    .g-error-msg { color: #000; font-size: 14px; font-weight: 700; margin-bottom: 20px; background: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 8px; display: none; }
-    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
-    .g-smile { font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block; line-height: 1; margin-top: -4px; color: #000; }
-    .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
-    
+    .g-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #000; padding: 10px 0; font-size: 16px; outline: none; margin-bottom: 25px; font-weight: 700; }
+    .g-info { display: flex; gap: 15px; margin-bottom: 40px; }
+    .g-smile { font-size: 36px; font-weight: 900; transform: rotate(90deg); display: inline-block; }
+    .g-desc { font-size: 13px; font-weight: 700; max-width: 240px; }
+
     /* [가민 로그인 버튼 - 하단 고정] */
     .g-signin-btn {
-      position: fixed !important;
-      bottom: 30px !important;
-      left: 50% !important;
-      transform: translateX(-50%) !important;
+      position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important;
       width: min(360px, calc(100% - 60px)) !important;
-      background: #000 !important; 
-      color: #fff !important; 
-      border: none; border-radius: 50px;
-      padding: 18px; font-size: 18px; font-weight: 700; 
-      cursor: pointer; 
-      z-index: 100000 !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background: #000 !important; color: #fff !important; border: none; border-radius: 50px;
+      padding: 18px; font-size: 18px; font-weight: 700; cursor: pointer; 
+      z-index: 100000 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    /* Result Screen - 최상위 레이어 */
+    /* [RUN BUTTON] - 하단 고정, 오렌지색 */
+    .run-btn {
+        position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important;
+        width: min(360px, calc(100% - 40px)) !important;
+        background: #ff9000 !important; color: #000 !important;
+        border: none; border-radius: 50px; padding: 16px 16px; font-size: 24px; font-weight: 1000;
+        cursor: pointer; z-index: 5000 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+
+    /* [Result Screen] - 최상위 레이어 */
     .result-screen {
-        z-index: 2147483647 !important;
-        position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
         background: #fff; display: none; flex-direction: column;
     }
     .result-screen.show { display: flex !important; }
+    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; }
+    .result-block { width: 100%; }
+    .result-wrap.type1 .result-block { display: flex; flex-direction: column; gap: var(--ui-stack-gap); }
     
-    /* Overlays */
-    .screen-overlay { position: fixed; inset: 0; display: none; z-index: 3000; background: #fff; color: #000; }
-    .screen-overlay.show { display: block; }
-    .select-wrap { padding: 20px; padding-top: 60px; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
-    .select-title { font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0; }
-    .select-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
-    .workout-item { width: 100%; display: flex; justify-content: space-between; align-items: center; background-color: #fff; border: 2px solid #000; border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; cursor: pointer; }
-    
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 2400; }
-    .modal-overlay.show { display: flex; }
-    .modal { width: min(420px, 100%); background: #fff; border-radius: 16px; border: 2px solid #000; overflow: hidden; }
-    .modal-head { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; }
-    .modal-title { font-weight: 900; font-size: 14px; }
-    .modal-close { border: none; background: transparent; font-size: 22px; font-weight: 900; cursor: pointer; }
-    .modal-body { padding: 12px 14px; max-height: 60vh; overflow: auto; }
-    .manual-form { display: none; }
-    .field-label { display: block; font-weight: 900; font-size: 12px; margin-bottom: 8px; }
-    .field-input { width: 100%; border: 2px solid #000; border-radius: 12px; padding: 12px 12px; font-size: 16px; font-weight: 900; outline: none; }
-    .field-save { margin-top: 10px; width: 100%; border: none; border-radius: 999px; padding: 12px 12px; background: #000; color: #fff; font-weight: 900; cursor: pointer; }
-    .pace-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
-    .colon { font-weight: 900; font-size: 16px; text-align: center; }
-    
-    /* NRC */
-    .upload-btn { width: 100%; border: none; border-radius: 999px; background: #000 !important; color: var(--nrc) !important; font-weight: 900; height: var(--btn-h); padding: 0 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .ocr-status { margin-top: 8px; font-size: 11px; color: #333; display: none; }
-    .ocr-status.show { display: block; }
+    /* Result Fonts */
+    .result-screen.font-anton .result-value { font-family: 'Anton', sans-serif; }
+    .result-screen.font-dots .result-value { font-family: 'Bitcount Grid Single', monospace; }
+    .result-screen.font-lcd .result-value { font-family: 'DS-Digital', monospace; }
+    .result-screen.font-gothic .result-value { font-family: 'Special Gothic Expanded One', sans-serif; }
+    .result-screen.font-speed .result-value { font-family: 'Quantico', sans-serif; }
   </style>
 </head>
 
@@ -582,7 +484,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // [내장] UI Config Logic
         const UI_CONFIG = {
           global: { colGap: 24, rowGap: 18, rowGapResult: 18 },
           fonts: {
@@ -621,7 +522,6 @@
         const pad2 = (n) => String(n).padStart(2, '0');
         const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-        // [포맷팅 함수]
         function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
         function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
         function fmtPacePreview(sec) {
@@ -644,7 +544,6 @@
         function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
         function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
-        // --- FIT HELPERS ---
         function fitOne(span, minScale = 0.35) {
           if (!span) return;
           span.style.transform = ''; span.style.transformOrigin = 'left bottom';
@@ -691,7 +590,6 @@
           window.requestAnimationFrame(step);
         }
 
-        // --- STATE ---
         const state = {
           recordType: 'daily',
           dataType: null,     
@@ -708,7 +606,19 @@
         let realGarminWorkouts = [];
         let realStravaWorkouts = [];
         
-        // --- ELEMENTS ---
+        function generateMockWorkouts() {
+            const arr = [];
+            for(let i=0; i<20; i++) {
+                arr.push({
+                    date: `2025.01.${String(20-i).padStart(2,'0')}`,
+                    km: (5 + (i * 0.7)).toFixed(2),
+                    paceSec: 300 + (i * 3), 
+                    timeSec: 1800 + (i * 100)
+                });
+            }
+            return arr;
+        }
+
         const el = {
           btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
           dataPanel: $('#dataPanel'), dataPanelHead: $('#dataPanelHead'),
@@ -749,7 +659,6 @@
           pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2')
         };
 
-        // --- Screen Control ---
         function openScreen(id) {
           const node = document.getElementById(id);
           if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); }
@@ -763,7 +672,6 @@
           if (closeId) closeScreen(closeId);
         });
 
-        // --- UI LOGIC ---
         function applyDataType() {
           [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
             if (!t) return;
@@ -863,14 +771,13 @@
           }
         }
 
-        // --- GARMIN LOGIC ---
-        el.tabGarmin.addEventListener('click', () => {
+        if(el.tabGarmin) el.tabGarmin.addEventListener('click', () => {
           state.dataType = 'garmin'; applyDataType(); updatePreview();
           if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
           else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
         });
         
-        el.btnOpenGarminLogin.addEventListener('click', () => {
+        if(el.btnOpenGarminLogin) el.btnOpenGarminLogin.addEventListener('click', () => {
             el.garminError.style.display = 'none';
             openScreen('garminLoginScreen');
         });
@@ -962,14 +869,11 @@
         }
         if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
-        // --- OTHER TABS ---
         if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
         if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
         if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
-        
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
-        // --- APPLY HELPERS ---
         function applyRecordType() {
           const isDaily = (state.recordType === 'daily');
           el.btnDaily.classList.toggle('active', isDaily);
@@ -1010,25 +914,17 @@
         function applyLayout() {
           el.btnType1.classList.toggle('active', state.layout === 'type1');
           el.btnType2.classList.toggle('active', state.layout === 'type2');
-          
           resetPreviews();
-
           el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
           el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
-          
-          el.resultWrap.classList.remove('type1', 'type2'); 
-          el.resultWrap.classList.add(state.layout);
-          
+          el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
           if (state.recordType === 'monthly') {
             const m1 = el.previewMonthly.querySelector('.monthly-type1');
             const m2 = el.previewMonthly.querySelector('.monthly-type2');
             if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
             else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
           }
-          
-          setTimeout(() => {
-              updatePreview();
-          }, 0);
+          setTimeout(() => { updatePreview(); }, 0);
         }
         
         function applyBG() {
@@ -1039,7 +935,6 @@
           });
         }
 
-        // --- EVENTS ---
         if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
         if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
         if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
@@ -1050,7 +945,6 @@
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
 
-        // --- MONTHLY & MANUAL ---
         if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
         if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
             if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
