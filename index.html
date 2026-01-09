@@ -27,25 +27,24 @@
     }
 
     /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay]                               */
+    /* [Garmin Login Overlay] - 최상위 고정                 */
     /* ---------------------------------------------------- */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
-      /* 버튼이 가리지 않도록 하단 패딩 넉넉히 */
-      padding: 40px 30px 120px 30px !important;
+      padding: 40px 30px 150px 30px !important; /* 하단 버튼 공간 확보 */
       display: none;
       
       /* 화면 전체 덮기 및 클릭 활성화 */
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
-      z-index: 99999 !important; /* 최상위 */
-      pointer-events: auto !important; /* 클릭 허용 */
+      z-index: 99999 !important; 
+      pointer-events: auto !important; 
       
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
-      overflow-y: auto; /* 내용 길면 스크롤 */
+      overflow-y: auto;
     }
     #garminLoginScreen.show { display: flex !important; }
     
@@ -82,13 +81,13 @@
     }
     .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
     
-    /* [수정] Garmin Login 버튼 -> RUN 버튼과 동일한 '하단 고정' 로직 적용 */
+    /* [수정] 가민 로그인 버튼 - 하단 고정 (RUN버튼과 동일 로직) */
     .g-signin-btn {
       position: fixed !important;
       bottom: 30px !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
-      width: min(360px, calc(100% - 60px)) !important; /* 패딩 고려 */
+      width: min(360px, calc(100% - 60px)) !important;
       
       background: #000 !important; 
       color: #fff !important; 
@@ -96,8 +95,7 @@
       padding: 18px; font-size: 18px; font-weight: 700; 
       cursor: pointer; 
       
-      /* 오버레이보다 더 위에 배치하여 클릭 보장 */
-      z-index: 100000 !important; 
+      z-index: 100000 !important; /* 오버레이보다 위 */
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
@@ -154,7 +152,7 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 하단 고정 로직 유지                   */
+    /* [RUN BUTTON] - 하단 고정, 오렌지색 유지              */
     /* ---------------------------------------------------- */
     .run-btn {
         position: fixed !important;
@@ -163,13 +161,12 @@
         transform: translateX(-50%) !important;
         width: min(360px, calc(100% - 40px)) !important;
         
-        background: #ff9000 !important; /* 오렌지색 복구 */
+        background: #ff9000 !important; /* 오렌지색 */
         color: #000 !important;
         border: none; border-radius: 50px;
         padding: 16px 16px; font-size: 24px; font-weight: 1000;
         cursor: pointer;
         
-        /* 최상위 레이어 (가민 로그인보다는 아래여야 함) */
         z-index: 5000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
@@ -292,7 +289,9 @@
           <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
         </div>
 
-        <div class="data-tabs" id="dataTabsMonthly" style="display:none;"></div>
+        <div class="data-tabs" id="dataTabsMonthly" style="display:none;">
+          <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
+        </div>
 
         <div class="data-empty" id="dataEmpty"></div>
 
@@ -515,7 +514,7 @@
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [포맷팅 함수]
+    // [포맷팅 함수 수정] 앞자리 0 제거
     function fmtKmPreview(km) { 
         return `${Number(km || 0).toFixed(2)}Km`; 
     }
@@ -539,7 +538,6 @@
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
-    
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
@@ -555,6 +553,7 @@
       }
     }
     
+    // Type 2용 그룹 스케일링
     function computeScaleForGroup(spans, minScale = 0.35) {
       const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
       let need = 1;
@@ -628,6 +627,7 @@
       dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
       dataEmpty: $('#dataEmpty'),
       tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
+      tabNrcMonthly: $('#tabNrcMonthly'), // [중요] 복구됨
       contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
       
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -876,6 +876,9 @@
     el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
     el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
     el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+    
+    // [중요] 복구된 안전한 이벤트 리스너 연결
+    if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
     // --- APPLY HELPERS ---
     function applyRecordType() {
@@ -905,6 +908,7 @@
       }
       updatePreview();
     }
+    
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
