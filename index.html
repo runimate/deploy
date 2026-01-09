@@ -685,10 +685,10 @@
       else if (state.dataType === 'manual') d = state.manual;
       
       // 값이 0이거나 없을 때 디폴트 포맷 적용
-      const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
-      const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "00'00\"";
+      const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "0.00Km";
+      const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
       // 시간: 시(H)가 있으면 H:MM:SS, 없으면 MM:SS (디폴트는 00:00:00 요청 반영)
-      const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "00:00:00";
+      const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
 
       // Daily Preview 업데이트
       $('#pvDistanceDaily').textContent = kmText;
