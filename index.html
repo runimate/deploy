@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [CORE RESET] 화면 흔들림 방지 */
+    /* [CORE RESET] */
     html, body {
       overflow-x: hidden;
       width: 100%;
@@ -22,26 +22,21 @@
     
     body {
       padding: 20px;
-      padding-bottom: 120px; /* RUN 버튼 공간 확보 */
+      padding-bottom: 120px;
       box-sizing: border-box;
       position: relative;
     }
 
-    /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay] - 최상위 고정                 */
-    /* ---------------------------------------------------- */
+    /* [Garmin Login Overlay] */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
-      padding: 40px 30px 150px 30px !important; /* 하단 버튼 공간 확보 */
+      padding: 40px 30px 150px 30px !important;
       display: none;
-      
-      /* 화면 전체 덮기 및 클릭 활성화 */
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
       z-index: 99999 !important; 
       pointer-events: auto !important; 
-      
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
@@ -89,163 +84,90 @@
       left: 50% !important;
       transform: translateX(-50%) !important;
       width: min(360px, calc(100% - 60px)) !important;
-      
       background: #000 !important; 
       color: #fff !important; 
       border: none; border-radius: 50px;
       padding: 18px; font-size: 18px; font-weight: 700; 
       cursor: pointer; 
-      
-      z-index: 100000 !important; /* 오버레이보다 위 */
+      z-index: 100000 !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    /* ---------------------------------------------------- */
-    /* [Select Workout List]                                */
-    /* ---------------------------------------------------- */
+    /* [Select Workout List] */
     .select-wrap {
-        padding: 20px;
-        padding-top: 60px;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        padding: 20px; padding-top: 60px; width: 100%; height: 100%;
+        box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
     }
-    .select-title {
-        font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0;
-    }
-    .select-list {
-        flex: 1;
-        overflow-y: auto;
-        padding-bottom: 40px;
-    }
+    .select-title { font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0; }
+    .select-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
     
     .workout-item {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #fff;
-        border: 2px solid #000; 
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
-        cursor: pointer;
-        text-align: left;
-        box-sizing: border-box;
-        transition: transform 0.1s, background-color 0.1s;
+        width: 100%; display: flex; justify-content: space-between; align-items: center;
+        background-color: #fff; border: 2px solid #000; border-radius: 16px;
+        padding: 16px 20px; margin-bottom: 12px; cursor: pointer; text-align: left;
+        box-sizing: border-box; transition: transform 0.1s, background-color 0.1s;
         -webkit-tap-highlight-color: transparent;
     }
-
-    .workout-item:active {
-        background-color: #000 !important;
-        color: #fff !important;
-        border-color: #000 !important;
-        transform: scale(0.98);
-    }
+    .workout-item:active { background-color: #000 !important; color: #fff !important; border-color: #000 !important; transform: scale(0.98); }
     .workout-item:active * { color: #fff !important; }
-
     .w-left { pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
     .w-date { font-weight: 900; font-size: 16px; color: #000; }
     .w-stats { font-size: 14px; font-weight: 700; color: #000; display: flex; gap: 15px; } 
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
-    /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 하단 고정, 오렌지색 유지              */
-    /* ---------------------------------------------------- */
+    /* [RUN BUTTON] - 하단 고정, 오렌지색 */
     .run-btn {
         position: fixed !important;
         bottom: 30px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         width: min(360px, calc(100% - 40px)) !important;
-        
         background: #ff9000 !important; 
         color: #000 !important;
         border: none; border-radius: 50px;
         padding: 16px 16px; font-size: 24px; font-weight: 1000;
         cursor: pointer;
-        
         z-index: 5000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
 
-    /* ---------------------------------------------------- */
-    /* [Preview & Result]                                   */
-    /* ---------------------------------------------------- */
+    /* [Preview & Result] */
     .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
-        line-height: 1.2 !important; 
-        padding-bottom: 4px;
-        overflow: visible !important;
-        white-space: nowrap;
+        line-height: 1.2 !important; padding-bottom: 4px; overflow: visible !important; white-space: nowrap;
     }
-
     .preview {
-        border: 2px solid #000;
-        border-radius: 18px;
-        padding: 20px;
-        width: 100%;
-        box-sizing: border-box;
-        background: #fff;
-        overflow: hidden;
+        border: 2px solid #000; border-radius: 18px; padding: 20px;
+        width: 100%; box-sizing: border-box; background: #fff; overflow: hidden;
     }
-
-    /* Type 2 Layout Fixes */
+    /* Type 2 Layout */
     .preview:not(.monthly).type2 .preview-content,
     .result-wrap.type2 .result-block,
     .monthly-type2 .m2-row {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
-        gap: 4px !important;
-        width: 100% !important;
-        align-items: start !important;
-        margin-top: 0 !important;
+        display: grid !important; grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 4px !important; width: 100% !important; align-items: start !important; margin-top: 0 !important;
     }
-
-    .preview.type2 .data-item,
-    .result-wrap.type2 .result-item,
-    .monthly-type2 .data-item {
-        text-align: left !important;
-        min-width: 0 !important;
-        overflow: visible !important;
-        display: flex;
-        flex-direction: column;
+    .preview.type2 .data-item, .result-wrap.type2 .result-item, .monthly-type2 .data-item {
+        text-align: left !important; min-width: 0 !important; overflow: visible !important; display: flex; flex-direction: column;
     }
-
-    .preview.type2 .data-label, 
-    .result-wrap.type2 .result-label {
-        margin-bottom: 4px;
-        white-space: nowrap;
+    .preview.type2 .data-label, .result-wrap.type2 .result-label { margin-bottom: 4px; white-space: nowrap; }
+    .preview.type2 .data-value, .result-wrap.type2 .result-value {
+        justify-content: flex-start !important; text-align: left !important; width: 100%; white-space: nowrap;
     }
-
-    .preview.type2 .data-value,
-    .result-wrap.type2 .result-value {
-        justify-content: flex-start !important;
-        text-align: left !important;
-        width: 100%;
-        white-space: nowrap;
-    }
-    
     .result-wrap.type2 .result-block { margin: 0 !important; }
 
+    /* Result Screen - 최상위 레이어 확보 */
+    .result-screen {
+        z-index: 2147483647 !important; /* 가민 로그인창보다 높게 */
+        position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
+        background: #fff; display: none; flex-direction: column;
+    }
+    .result-screen.show { display: flex !important; }
+    
     .result-block {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        box-sizing: border-box;
+        width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
     }
-    .result-block .preview {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important; 
-        padding: 0 !important;
-    }
+    .result-block .preview { border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; }
 
     #contentStrava {
       display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -253,7 +175,6 @@
     }
     .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
     .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
-    
     .data-empty { min-height: 20px; }
   </style>
 </head>
@@ -508,7 +429,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // [내장] ui_config.js 로직 통합 (외부 파일 의존성 제거)
+        // [내장] UI Config Logic
         const UI_CONFIG = {
           global: { colGap: 24, rowGap: 18, rowGapResult: 18 },
           fonts: {
@@ -641,7 +562,7 @@
           dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
           dataEmpty: $('#dataEmpty'),
           tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-          tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
+          tabNrcMonthly: $('#tabNrcMonthly'), 
           contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
           
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -893,7 +814,7 @@
         el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
         el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
         
-        // [중요] 안전장치 추가
+        // [안전장치] 버튼 존재 여부 확인 후 이벤트 연결
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
         // --- APPLY HELPERS ---
