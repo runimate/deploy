@@ -8,21 +8,32 @@
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [CORE RESET] */
-    html, body {
-      overflow-x: hidden;
+/* [CORE RESET] 화면 흔들림(가로 스크롤) 원천 차단 */
+    html {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden; /* html 레벨에서 가로 스크롤 숨김 */
+    }
+
+    body {
       width: 100%;
       min-height: 100vh;
       margin: 0;
-      padding: 0;
+      padding: 20px;          /* 좌우 여백 */
+      padding-bottom: 120px;  /* 하단 RUN 버튼 공간 */
+      box-sizing: border-box; /* 패딩을 너비에 포함시킴 (중요) */
+      overflow-x: hidden;     /* body 레벨에서도 한번 더 차단 */
       -webkit-tap-highlight-color: transparent;
       font-family: 'Inter', -apple-system, sans-serif;
+      position: relative;
     }
-    
-    body {
-      padding: 20px;
-      padding-bottom: 120px;
-      box-sizing: border-box;
+
+    /* 컨테이너도 화면을 넘지 않도록 안전장치 추가 */
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
 
     /* ---------------------------------------------------- */
