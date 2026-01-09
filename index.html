@@ -7,7 +7,7 @@
   <title>RUNIMATE v2.0</title>
   <link rel="stylesheet" href="./styles.css" />
   
-  <style>
+ <style>
     /* [CORE RESET] 화면 흔들림 방지 */
     html, body {
       overflow-x: hidden;
@@ -21,25 +21,32 @@
     
     body {
       padding: 20px;
-      padding-bottom: 120px; /* RUN 버튼 공간 */
+      padding-bottom: 120px; /* RUN 버튼 공간 확보 */
       box-sizing: border-box;
+      position: relative; /* RUN 버튼 위치 기준점 */
     }
 
     /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay]                               */
+    /* [Garmin Login Overlay] - 핵심 수정: Position 고정    */
     /* ---------------------------------------------------- */
-/* [Garmin Login Overlay] 수정됨 */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
       display: none;
+      
+      /* [수정] 화면 전체를 덮도록 고정 */
+      position: fixed !important; 
+      top: 0; left: 0; bottom: 0; right: 0;
+      width: 100%; height: 100%;
+      
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
       
-      /* [핵심 수정] 화면 최상단 강제 배치 및 클릭 활성화 */
+      /* 최상위 레이어 & 클릭 활성화 */
       z-index: 9999 !important;
       pointer-events: auto !important;
+      overflow-y: auto; /* 내용 길어지면 스크롤 */
     }
     #garminLoginScreen.show { display: flex !important; }
     
@@ -134,12 +141,27 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [Preview & Result - Layout Unification]              */
+    /* [RUN BUTTON] - 핵심 수정: 화면 하단 고정             */
     /* ---------------------------------------------------- */
-    /* 결과 화면(Result)의 스타일을 프리뷰(Preview)에도 적용하기 위해 클래스 공유 */
-    
-    .data-value, .result-value, 
-    .m1-distance-value, .m2-distance-value, .m-value {
+    .run-btn {
+        position: fixed !important;
+        bottom: 30px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: calc(100% - 40px) !important;
+        max-width: 500px;
+        z-index: 500 !important; /* 다른 요소보다 위에 배치 */
+        /* 아래는 기존 스타일과 매칭되도록 유지 */
+        background: #000; color: #fff;
+        border: none; border-radius: 50px;
+        padding: 18px; font-size: 20px; font-weight: 900;
+        cursor: pointer;
+    }
+
+    /* ---------------------------------------------------- */
+    /* [Preview & Result - Layout Fixes]                    */
+    /* ---------------------------------------------------- */
+    .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
         line-height: 1.2 !important; 
         padding-bottom: 4px;
         overflow: visible !important;
@@ -156,37 +178,34 @@
         overflow: hidden;
     }
 
-/* [수정된 Layout Type 2] Grid 적용으로 3등분 균등 배치 & 왼쪽 정렬 고정 */
+    /* [Type 2 Grid Layout] */
     .preview:not(.monthly).type2 .preview-content,
     .result-wrap.type2 .result-block,
     .monthly-type2 .m2-row {
         display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important; /* 정확히 3등분 */
-        gap: 4px !important; /* 사이 간격 */
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 4px !important;
         width: 100% !important;
         align-items: start !important;
         margin-top: 0 !important;
     }
 
-    /* 아이템 내부 왼쪽 정렬 & 넘침 방지 */
     .preview.type2 .data-item,
     .result-wrap.type2 .result-item,
     .monthly-type2 .data-item {
         text-align: left !important;
-        min-width: 0 !important; /* Grid 내부에서 텍스트 줄바꿈/잘림 방지 필수 속성 */
+        min-width: 0 !important;
         overflow: visible !important;
         display: flex;
         flex-direction: column;
     }
 
-    /* 라벨과 데이터 간격 */
     .preview.type2 .data-label, 
     .result-wrap.type2 .result-label {
         margin-bottom: 4px;
         white-space: nowrap;
     }
 
-    /* 데이터 값 왼쪽 정렬 */
     .preview.type2 .data-value,
     .result-wrap.type2 .result-value {
         justify-content: flex-start !important;
@@ -195,27 +214,9 @@
         white-space: nowrap;
     }
     
-    /* Result 화면에서 불필요한 마진 제거 */
     .result-wrap.type2 .result-block { margin: 0 !important; }
 
-    /* [Monthly Type 2] */
-    .monthly-type2 .m2-row, 
-    .result-wrap.type2 .m2-row {
-        display: flex;
-        justify-content: space-between; 
-        align-items: flex-start;
-        width: 100%;
-        margin-top: 24px;
-        gap: var(--ui-col-gap) !important;
-    }
-    .monthly-type2 .data-item, 
-    .result-wrap.type2 .result-item {
-        flex: 1;
-        min-width: 0;
-        text-align: left; 
-    }
-
-    /* Result Screen Specific (No Border) */
+    /* Result Screen Specific */
     .result-block {
         width: 100%;
         height: 100%;
@@ -232,7 +233,7 @@
         padding: 0 !important;
     }
 
-    /* Strava */
+    /* Strava Message */
     #contentStrava {
       display: none; flex-direction: column; align-items: center; justify-content: center;
       padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
