@@ -7,7 +7,7 @@
   <title>RUNIMATE v2.0</title>
   <link rel="stylesheet" href="./styles.css" />
   
- <style>
+  <style>
     /* [CORE RESET] 화면 흔들림 방지 */
     html, body {
       overflow-x: hidden;
@@ -23,30 +23,28 @@
       padding: 20px;
       padding-bottom: 120px; /* RUN 버튼 공간 확보 */
       box-sizing: border-box;
-      position: relative; /* RUN 버튼 위치 기준점 */
+      position: relative;
     }
 
     /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay] - 핵심 수정: Position 고정    */
+    /* [Garmin Login Overlay] - 최상위 레이어 설정          */
     /* ---------------------------------------------------- */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px !important;
       display: none;
       
-      /* [수정] 화면 전체를 덮도록 고정 */
-      position: fixed !important; 
+      /* 화면 전체 덮기 및 클릭 활성화 */
+      position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
+      z-index: 99999 !important; /* 가장 위에 배치 */
+      pointer-events: auto !important; /* 클릭 허용 */
       
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
-      
-      /* 최상위 레이어 & 클릭 활성화 */
-      z-index: 9999 !important;
-      pointer-events: auto !important;
-      overflow-y: auto; /* 내용 길어지면 스크롤 */
+      overflow-y: auto;
     }
     #garminLoginScreen.show { display: flex !important; }
     
@@ -141,20 +139,17 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 핵심 수정: 화면 하단 고정             */
+    /* [RUN BUTTON] - 스타일 복구 (오렌지색 유지)           */
     /* ---------------------------------------------------- */
     .run-btn {
+        /* 위치 고정 및 레이어 순서만 설정 (클릭 가능하게) */
         position: fixed !important;
         bottom: 30px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        width: calc(100% - 40px) !important;
-        max-width: 500px;
-        z-index: 500 !important; /* 다른 요소보다 위에 배치 */
-        /* 아래는 기존 스타일과 매칭되도록 유지 */
-        background: #000; color: #fff;
-        border: none; border-radius: 50px;
-        padding: 18px; font-size: 20px; font-weight: 900;
+        z-index: 5000 !important; /* 다른 요소보다 위에 배치 */
+        
+        /* 색상/크기 변경 코드 삭제됨 -> styles.css의 원래 디자인 사용 */
         cursor: pointer;
     }
 
@@ -178,7 +173,7 @@
         overflow: hidden;
     }
 
-    /* [Type 2 Grid Layout] */
+    /* Type 2 Layout Fixes */
     .preview:not(.monthly).type2 .preview-content,
     .result-wrap.type2 .result-block,
     .monthly-type2 .m2-row {
@@ -491,24 +486,27 @@
     <div class="result-block" id="resultBlock"></div>
   </div>
 
-<script type="module">
+  <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
     const $ = (s) => document.querySelector(s);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [포맷팅 함수]
+    // [포맷팅 함수 수정] 앞자리 0 제거
     function fmtKmPreview(km) { 
         return `${Number(km || 0).toFixed(2)}Km`; 
     }
+    
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
+    
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
       return `${m}'${pad2(r)}"`; 
     }
+    
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(s / 3600);
@@ -519,7 +517,6 @@
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
-    
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
@@ -589,6 +586,7 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
+    // [Mock Data 20개]
     function generateMockWorkouts() {
         const arr = [];
         for(let i=0; i<20; i++) {
@@ -688,7 +686,6 @@
       $('#pvPaceDaily').textContent = paceText;
       $('#pvTimeDaily').textContent = timeText;
 
-      // Monthly Preview
       const m = state.monthly;
       if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
       if(el.pvMonthType1) el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
@@ -887,6 +884,7 @@
       }
       updatePreview();
     }
+    
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
@@ -895,13 +893,12 @@
       });
       requestAnimationFrame(applyFitPreview);
     }
-    
-    // [수정] 레이아웃 변경 - resetPreviews 호출
+
     function applyLayout() {
       el.btnType1.classList.toggle('active', state.layout === 'type1');
       el.btnType2.classList.toggle('active', state.layout === 'type2');
       
-      resetPreviews(); // 중요
+      resetPreviews();
 
       el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
       el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
