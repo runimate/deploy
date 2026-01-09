@@ -27,16 +27,18 @@
       position: relative;
     }
 
-    /* [Garmin Login Overlay] */
+    /* [Garmin Login Overlay] - 최상위 고정 */
     #garminLoginScreen {
       background-color: #5EA0F6 !important;
       padding: 40px 30px 150px 30px !important;
       display: none;
+      
       position: fixed !important;
       top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%;
       z-index: 99999 !important; 
       pointer-events: auto !important; 
+      
       flex-direction: column;
       align-items: flex-start !important;
       justify-content: flex-start !important;
@@ -84,12 +86,14 @@
       left: 50% !important;
       transform: translateX(-50%) !important;
       width: min(360px, calc(100% - 60px)) !important;
+      
       background: #000 !important; 
       color: #fff !important; 
       border: none; border-radius: 50px;
       padding: 18px; font-size: 18px; font-weight: 700; 
       cursor: pointer; 
-      z-index: 100000 !important;
+      
+      z-index: 100000 !important; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
@@ -562,7 +566,7 @@
           dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
           dataEmpty: $('#dataEmpty'),
           tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-          tabNrcMonthly: $('#tabNrcMonthly'), 
+          tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
           contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
           
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -711,13 +715,13 @@
         }
 
         // --- GARMIN LOGIC ---
-        el.tabGarmin.addEventListener('click', () => {
+        if(el.tabGarmin) el.tabGarmin.addEventListener('click', () => {
           state.dataType = 'garmin'; applyDataType(); updatePreview();
           if (realGarminWorkouts.length > 0) { el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
           else { el.garminConnectBtnWrap.style.display = 'block'; el.garminCard.style.display = 'none'; }
         });
         
-        el.btnOpenGarminLogin.addEventListener('click', () => {
+        if(el.btnOpenGarminLogin) el.btnOpenGarminLogin.addEventListener('click', () => {
             el.garminError.style.display = 'none';
             openScreen('garminLoginScreen');
         });
@@ -807,14 +811,14 @@
             listContainer.appendChild(btn);
           });
         }
-        el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+        if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
         // --- OTHER TABS ---
-        el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
-        el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-        el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+        if(el.tabStrava) el.tabStrava.addEventListener('click', () => { state.dataType = 'strava'; applyDataType(); updatePreview(); });
+        if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+        if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
         
-        // [안전장치] 버튼 존재 여부 확인 후 이벤트 연결
+        // [중요] 안전장치 추가 (버튼이 없어도 에러 안 남)
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
         // --- APPLY HELPERS ---
@@ -888,12 +892,12 @@
         }
 
         // --- EVENTS ---
-        el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-        el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-        el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-        el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-        el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-        el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+        if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+        if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+        if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+        if(el.btnType2) el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+        if(el.btnBgWhite) el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+        if(el.btnBgBlack) el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
         el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
            b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
         });
@@ -933,17 +937,17 @@
           updatePreview();
         });
 
-        el.chipDistance.addEventListener('click', () => {
+        if(el.chipDistance) el.chipDistance.addEventListener('click', () => {
           $('#modalTitle').textContent = 'DISTANCE';
           el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
           el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
         });
-        el.chipPace.addEventListener('click', () => {
+        if(el.chipPace) el.chipPace.addEventListener('click', () => {
           $('#modalTitle').textContent = 'PACE';
           el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
           el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
         });
-        el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
+        if(el.modalClose) el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
         
         function recalcManualTime() {
             if(state.manual.km > 0 && state.manual.paceSec > 0) {
@@ -953,7 +957,7 @@
             }
         }
 
-        el.formDistance.addEventListener('submit', (e) => {
+        if(el.formDistance) el.formDistance.addEventListener('submit', (e) => {
           e.preventDefault(); const val = parseFloat(el.inputDistance.value);
           if (!isNaN(val)) { 
               state.manual.km = val; 
@@ -962,7 +966,7 @@
               closeScreen('modalOverlay'); 
           }
         });
-        el.formPace.addEventListener('submit', (e) => {
+        if(el.formPace) el.formPace.addEventListener('submit', (e) => {
           e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
           const total = m * 60 + s;
           if (total > 0) { 
@@ -1100,7 +1104,7 @@
           requestAnimationFrame(frame);
         }
 
-        el.btnRun.addEventListener('click', () => {
+        if(el.btnRun) el.btnRun.addEventListener('click', () => {
            const targetData = buildResultDOM();
            openScreen('resultScreen');
            el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
@@ -1114,7 +1118,6 @@
 
         // --- INITIALIZE ---
         function initDefaults() {
-           // 내부 함수 직접 호출로 변경
            applyUIConfigToRoot(state);
            applyRecordType(); 
            applyFont(); 
