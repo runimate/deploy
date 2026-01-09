@@ -55,7 +55,6 @@
     }
     .g-input::placeholder { color: #333; opacity: 0.7; }
     
-    /* 에러 메시지 */
     .g-error-msg {
         color: #000; font-size: 14px; font-weight: 700; margin-bottom: 20px; 
         background: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 8px;
@@ -116,7 +115,6 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* 눌렀을 때 반전 효과 */
     .workout-item:active {
         background-color: #000 !important;
         color: #fff !important;
@@ -131,13 +129,14 @@
     .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
 
     /* ---------------------------------------------------- */
-    /* [Preview & Result - Layout Restoration]              */
+    /* [Preview & Result - Layout Unification]              */
     /* ---------------------------------------------------- */
-    /* 어제 버전의 CSS 로직 복원 */
+    /* 결과 화면(Result)의 스타일을 프리뷰(Preview)에도 적용하기 위해 클래스 공유 */
     
-    .data-value, .m1-distance-value, .m2-distance-value, .m-value {
-        /* 데이터 잘림 방지 */
-        line-height: 1.1 !important; 
+    .data-value, .result-value, 
+    .m1-distance-value, .m2-distance-value, .m-value {
+        line-height: 1.2 !important; 
+        padding-bottom: 4px;
         overflow: visible !important;
         white-space: nowrap;
     }
@@ -145,58 +144,64 @@
     .preview {
         border: 2px solid #000;
         border-radius: 18px;
-        padding: 18px 18px 16px 18px;
-        width: min(240px, 100%); /* 어제 버전 기준 */
+        padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
         background: #fff;
         overflow: hidden;
     }
-    
-    /* Type 2 복원 */
-    .preview.type2{ width: 100%; }
-    .preview.type2 .preview-content {
+
+    /* [Type 2 Layout] - Preview와 Result 모두 동일한 Gap 사용 */
+    .preview:not(.monthly).type2 .preview-content,
+    .result-wrap.type2 .result-block {
         display: flex;
-        gap: var(--ui-col-gap);
+        width: 100%;
+        justify-content: space-between; 
         align-items: flex-start;
+        gap: var(--ui-col-gap) !important; /* ui_config.js 값 사용 */
     }
-    .preview.type2 .data-item, 
-    .result-wrap.type2 .result-item { 
+    
+    .preview:not(.monthly).type2 .result-item, 
+    .result-wrap.type2 .result-item {
+        flex: 1; 
+        min-width: 0;
+        text-align: left;
+    }
+    
+    .preview.type2 .result-label, .result-wrap.type2 .result-label { margin-bottom: 4px; }
+
+    /* [Monthly Type 2] */
+    .monthly-type2 .m2-row, 
+    .result-wrap.type2 .m2-row {
+        display: flex;
+        justify-content: space-between; 
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 24px;
+        gap: var(--ui-col-gap) !important;
+    }
+    .monthly-type2 .data-item, 
+    .result-wrap.type2 .result-item {
+        flex: 1;
+        min-width: 0;
         text-align: left; 
-        flex: 1; /* 균등 분할 */
     }
 
-    /* Monthly Type 2 복원 */
-    .monthly-type2 .m2-row {
-        display: flex;
-        gap: var(--ui-col-gap);
-        align-items: flex-start;
-        width: 100%;
-    }
-    
-    /* Result Screen Logic (From index(1).html) */
-    .result-wrap {
+    /* Result Screen Specific (No Border) */
+    .result-block {
         width: 100%;
         height: 100%;
-        padding: 0 26px;
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
     }
-    .result-block { width: 100%; min-width: 0; }
-    
-    .result-wrap.type1 .result-block {
-        width: min(520px, 100%);
-        display: flex;
-        flex-direction: column;
-        gap: var(--ui-stack-gap);
-        align-items: flex-start;
-    }
-    
-    .result-wrap.type2 .result-block {
-        width: min(520px, 100%);
-        display: flex;
-        gap: var(--ui-col-gap);
-        align-items: flex-start;
-        margin: 0 auto;
+    .result-block .preview {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important; 
+        padding: 0 !important;
     }
 
     /* Strava */
@@ -346,17 +351,17 @@
 
       <div class="preview type1 bg-white font-anton" id="previewDaily">
         <div class="preview-content">
-          <div class="data-item">
-            <span class="data-label">DISTANCE</span>
-            <span class="data-value"><span id="pvDistanceDaily">00.00Km</span></span>
+          <div class="result-item">
+            <span class="result-label">DISTANCE</span>
+            <span class="result-value"><span id="pvDistanceDaily">00.00Km</span></span>
           </div>
-          <div class="data-item">
-            <span class="data-label">PACE</span>
-            <span class="data-value"><span id="pvPaceDaily">00'00"</span></span>
+          <div class="result-item">
+            <span class="result-label">PACE</span>
+            <span class="result-value"><span id="pvPaceDaily">00'00"</span></span>
           </div>
-          <div class="data-item">
-            <span class="data-label">TIME</span>
-            <span class="data-value"><span id="pvTimeDaily">00:00:00</span></span>
+          <div class="result-item">
+            <span class="result-label">TIME</span>
+            <span class="result-value"><span id="pvTimeDaily">00:00:00</span></span>
           </div>
         </div>
       </div>
@@ -454,7 +459,7 @@
 
   <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
-    <div class="result-wrap type1" id="resultWrap"><div class="result-block" id="resultBlock"></div></div>
+    <div class="result-block" id="resultBlock"></div>
   </div>
 
   <script type="module">
@@ -464,7 +469,7 @@
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [포맷팅 함수 수정] 앞자리 0 제거
+    // [수정] 포맷팅 함수 (앞자리 0 제거)
     function fmtKmPreview(km) { 
         return `${Number(km || 0).toFixed(2)}Km`; 
     }
@@ -491,7 +496,7 @@
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
-    // --- FIT HELPERS (폰트 자동 조절) ---
+    // --- FIT HELPERS ---
     function fitOne(span, minScale = 0.35) {
       if (!span) return;
       span.style.transform = ''; span.style.transformOrigin = 'left bottom';
@@ -501,24 +506,6 @@
           const s = Math.max(minScale, w / sw);
           span.style.transform = `scale(${s})`;
       }
-    }
-    
-    // [추가] fitGroup: 여러 요소의 스케일을 통일 (어제 버전 로직 복구)
-    function computeScaleForGroup(spans, minScale = 0.35) {
-      const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
-      let need = 1;
-      arr.forEach(sp => {
-        sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
-        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
-        if (w && sw > w) need = Math.min(need, w / sw);
-      });
-      return Math.max(minScale, Math.min(1, need));
-    }
-    function applyLockedScale(spans, scale) {
-      (spans || []).filter(Boolean).forEach(sp => {
-        sp.style.transformOrigin = 'left bottom';
-        sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
-      });
     }
 
     // --- ANIMATION HELPER ---
@@ -532,16 +519,9 @@
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const value = start + (end - start) * easeOutExpo(progress);
         obj.textContent = formatFn(value);
-        
-        // 애니메이션 중에는 개별 fit 적용
-        fitOne(obj.parentElement);
-
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        } else {
-          obj.textContent = formatFn(end);
-          fitOne(obj.parentElement);
-        }
+        fitOne(obj.parentElement); 
+        if (progress < 1) window.requestAnimationFrame(step);
+        else { obj.textContent = formatFn(end); fitOne(obj.parentElement); }
       };
       window.requestAnimationFrame(step);
     }
@@ -563,7 +543,6 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
-    // [수정] 20개 데이터 생성 (2025년 기준)
     function generateMockWorkouts() {
         const arr = [];
         for(let i=0; i<20; i++) {
@@ -706,7 +685,6 @@
 
       } catch (err) {
         console.warn("Real Server Failed, falling back to mock for demo");
-        // [데모용] 실제 실패시에도 Mockup 로드 (요청시 삭제 가능)
         setTimeout(() => {
             realGarminWorkouts = generateMockWorkouts(); 
             completeLogin();
@@ -863,7 +841,7 @@
       if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); updatePreview(); closeScreen('modalOverlay'); }
     });
 
-    // --- [복구됨] buildResultDOM (Result Screen HTML 생성) ---
+    // --- RUN BUTTON: [Fix] Build Result DOM + 0.5s Delay ---
     function buildResultDOM() {
       // 1. Layout State 반영
       el.resultWrap.className = `result-wrap ${state.layout}`;
@@ -880,7 +858,6 @@
 
       // 3. HTML Construction based on Layout
       if (state.recordType === 'daily') {
-        // Daily Type 1 & 2 share structure, style by CSS
         el.resultBlock.innerHTML = `
           <div class="result-item">
             <span class="result-label">DISTANCE</span>
@@ -897,7 +874,6 @@
         `;
         return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
       } else {
-        // Monthly
         const monthLine = `${monthName(d.month)} ${d.year}`;
         if (state.layout === 'type1') {
           el.resultBlock.innerHTML = `
@@ -924,7 +900,6 @@
       }
     }
 
-    // --- [복구됨] lockFitResultTransforms (애니메이션 꿀렁임 방지) ---
     function lockFitResultTransforms(target) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
@@ -937,52 +912,22 @@
       if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
       if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
 
-      // 2. Scale 계산 (최종값 기준)
-      let distScale = 1;
-      let groupScale = 1;
-
-      if(state.recordType === 'daily') {
-          if(state.layout === 'type2') {
-              // Type2: 그룹 스케일링
-              groupScale = computeScaleForGroup([rvDistance, rvPace, rvTime], 0.30);
-              applyLockedScale([rvDistance, rvPace, rvTime], groupScale);
-          } else {
-              // Type1: 개별 스케일링
-              fitOne(rvDistance, 0.30);
-              fitOne(rvPace, 0.30);
-              fitOne(rvTime, 0.30);
-          }
-      } else {
-          // Monthly
-          fitOne(rvDistance, 0.26); // 메인 거리
-          if(state.layout === 'type2') {
-              groupScale = computeScaleForGroup([rvRuns, rvPace, rvTime], 0.30);
-              applyLockedScale([rvRuns, rvPace, rvTime], groupScale);
-          } else {
-              fitOne(rvRuns, 0.30);
-              fitOne(rvPace, 0.30);
-              fitOne(rvTime, 0.30);
-          }
-      }
-
       // 3. 너비 고정 (Lock)
       const lockWidth = (el) => {
         if(!el) return;
-        const w = el.getBoundingClientRect().width; // 정확한 렌더링 너비
+        const w = el.getBoundingClientRect().width; 
         el.style.width = w + 'px';
         el.style.display = 'inline-block';
         el.style.whiteSpace = 'nowrap';
-        el.style.textAlign = 'left'; // 숫자 흔들림 방지
+        el.style.textAlign = 'left';
       };
 
-      lockWidth(rvDistance?.parentElement); // span의 부모(value container)를 고정해야 함? 
-      // span 자체를 고정.
       lockWidth(rvDistance);
       lockWidth(rvPace);
       lockWidth(rvTime);
       lockWidth(rvRuns);
 
-      // 4. 리셋 함수 반환 (0부터 시작하기 위해)
+      // 4. 리셋 함수 반환
       return {
         resetToStart() {
           if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
@@ -999,7 +944,6 @@
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
       
-      // 레이아웃 고정 및 0 리셋
       const locker = lockFitResultTransforms(target);
       locker.resetToStart();
       
@@ -1029,7 +973,6 @@
       requestAnimationFrame(frame);
     }
 
-    // --- RUN BUTTON ---
     el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM();
        openScreen('resultScreen');
