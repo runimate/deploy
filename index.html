@@ -5,234 +5,90 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>RUNIMATE v2.0</title>
+  
   <link rel="stylesheet" href="./styles.css" />
   
   <style>
-    /* [CORE RESET] 화면 흔들림 방지 */
-    html, body {
-      overflow-x: hidden;
-      width: 100%;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      font-family: 'Inter', -apple-system, sans-serif;
-    }
+    /* ==========================================================
+       [2] 기능 패치 (버튼 클릭 & 위치 고정용 필수 코드)
+       원본 styles.css 위에 덮어씌워져서 동작을 보장합니다.
+       ========================================================== */
     
-    body {
-      padding: 20px;
-      padding-bottom: 120px; /* RUN 버튼 공간 확보 */
-      box-sizing: border-box;
-      position: relative;
-    }
-
-    /* ---------------------------------------------------- */
-    /* [Garmin Login Overlay] - 최상위 레이어 설정          */
-    /* ---------------------------------------------------- */
-    #garminLoginScreen {
-      background-color: #5EA0F6 !important;
-      padding: 40px 30px !important;
-      display: none;
-      
-      position: fixed !important;
-      top: 0; left: 0; bottom: 0; right: 0;
-      width: 100%; height: 100%;
-      z-index: 99999 !important;
-      pointer-events: auto !important;
-      
-      flex-direction: column;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-      overflow-y: auto;
-    }
-    #garminLoginScreen.show { display: flex !important; }
-    
-    #garminLoginScreen .screen-close {
-      position: absolute; top: 30px; right: 30px; font-size: 40px; color: #000;
-      background: none; border: none; cursor: pointer; font-weight: 300; line-height: 1; padding: 0;
-    }
-    
-    .g-title { margin-top: 60px; color: #000; line-height: 1.1; margin-bottom: 50px; width: 100%; }
-    .g-title h2 { font-size: 42px; font-weight: 900; margin: 0; }
-    .g-title h3 { font-size: 42px; font-weight: 300; margin: 5px 0 0 0; }
-    
-    .g-inputs { width: 100%; margin-bottom: 20px; }
-    .g-input {
-      width: 100%; background: transparent !important; border: none !important;
-      border-bottom: 2px solid #000 !important; border-radius: 0 !important;
-      padding: 10px 0; font-size: 16px; color: #000; outline: none; margin-bottom: 25px; font-weight: 500;
-    }
-    .g-input::placeholder { color: #333; opacity: 0.7; }
-    
-    .g-error-msg {
-        color: #000; font-size: 14px; font-weight: 700; margin-bottom: 20px; 
-        background: rgba(255, 255, 255, 0.4); padding: 12px; border-radius: 8px;
-        display: none;
-    }
-    
-    .g-info { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 40px; }
-    .g-smile {
-      font-size: 36px; font-weight: 900; 
-      transform: rotate(90deg); 
-      display: inline-block;
-      transform-origin: center; 
-      line-height: 1; margin-top: -4px; color: #000;
-    }
-    .g-desc { font-size: 13px; font-weight: 700; line-height: 1.4; max-width: 240px; color: #000; }
-    
-    .g-signin-btn {
-      width: 100%; background: #000 !important; color: #fff !important; border: none; border-radius: 50px;
-      padding: 18px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: auto; margin-bottom: 20px;
-    }
-
-    /* ---------------------------------------------------- */
-    /* [Select Workout List]                                */
-    /* ---------------------------------------------------- */
-    .select-wrap {
-        padding: 20px;
-        padding-top: 60px;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-    .select-title {
-        font-size: 32px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; flex-shrink: 0;
-    }
-    .select-list {
-        flex: 1;
-        overflow-y: auto;
-        padding-bottom: 40px;
-    }
-    
-    .workout-item {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #fff;
-        border: 2px solid #000; 
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
-        cursor: pointer;
-        text-align: left;
-        box-sizing: border-box;
-        transition: transform 0.1s, background-color 0.1s;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .workout-item:active {
-        background-color: #000 !important;
-        color: #fff !important;
-        border-color: #000 !important;
-        transform: scale(0.98);
-    }
-    .workout-item:active * { color: #fff !important; }
-
-    .w-left { pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
-    .w-date { font-weight: 900; font-size: 16px; color: #000; }
-    .w-stats { font-size: 14px; font-weight: 700; color: #000; display: flex; gap: 15px; } 
-    .w-arrow { font-size: 24px; font-weight: 900; color: #000; pointer-events: none; }
-
-    /* ---------------------------------------------------- */
-    /* [RUN BUTTON] - 스타일 복구 (오렌지색 유지)           */
-    /* ---------------------------------------------------- */
+    /* [RUN 버튼] - 화면 하단 고정 & 클릭 최우선 보장 */
     .run-btn {
         position: fixed !important;
         bottom: 30px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        z-index: 5000 !important; 
-        cursor: pointer;
+        z-index: 5000 !important;
+        cursor: pointer !important;
+        background: #ff9000 !important;
+        color: #000 !important;
+        width: min(360px, calc(100% - 40px)) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+
+    /* [가민 로그인 화면] - 전체 덮기 & 스크롤 허용 */
+    #garminLoginScreen {
+      display: none;
+      position: fixed !important;
+      top: 0; left: 0; bottom: 0; right: 0;
+      width: 100%; height: 100%;
+      /* styles.css의 배경색 변수 사용 */
+      background-color: var(--garmin, #76B6FF) !important; 
+      z-index: 99999 !important;
+      pointer-events: auto !important;
+      flex-direction: column;
+      overflow-y: auto;
+      /* 하단 버튼 공간 확보 */
+      padding-bottom: 120px !important; 
+    }
+    #garminLoginScreen.show { display: flex !important; }
+
+    /* [가민 로그인 버튼 (.gc-cta)] - 하단 고정 로직 이식 */
+    #btnGarminRealSync.gc-cta {
+      position: fixed !important;
+      bottom: 30px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: min(360px, calc(100% - 60px)) !important;
+      z-index: 100000 !important;
+      background: #000 !important;
+      color: #fff !important;
+      cursor: pointer !important;
+      margin: 0 !important; /* 기존 마진 제거 */
     }
 
-    /* ---------------------------------------------------- */
-    /* [Preview & Result - Layout Fixes]                    */
-    /* ---------------------------------------------------- */
-    .data-value, .result-value, .m1-distance-value, .m2-distance-value, .m-value {
-        line-height: 1.2 !important; 
-        padding-bottom: 4px;
-        overflow: visible !important;
-        white-space: nowrap;
-    }
-
-    .preview {
-        border: 2px solid #000;
-        border-radius: 18px;
-        padding: 20px;
-        width: 100%;
-        box-sizing: border-box;
+    /* [결과 화면] - 잘림 방지 & 레이아웃 보정 */
+    .result-screen {
+        z-index: 2147483647 !important;
+        position: fixed !important;
+        top: 0; left: 0; width: 100%; height: 100%;
         background: #fff;
-        overflow: hidden;
     }
-
-    /* Type 2 Layout Fixes */
-    .preview:not(.monthly).type2 .preview-content,
-    .result-wrap.type2 .result-block,
-    .monthly-type2 .m2-row {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
-        gap: 4px !important;
-        width: 100% !important;
-        align-items: start !important;
-        margin-top: 0 !important;
+    .result-wrap {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        padding: 26px; box-sizing: border-box;
     }
-
-    .preview.type2 .data-item,
-    .result-wrap.type2 .result-item,
-    .monthly-type2 .data-item {
-        text-align: left !important;
-        min-width: 0 !important;
-        overflow: visible !important;
+    .result-block { width: 100%; }
+    
+    .result-wrap.type2 .result-block {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 4px;
+        align-items: start;
+    }
+    .result-wrap.type2 .m2-row {
+        grid-column: 1 / -1;
         display: flex;
-        flex-direction: column;
-    }
-
-    .preview.type2 .data-label, 
-    .result-wrap.type2 .result-label {
-        margin-bottom: 4px;
-        white-space: nowrap;
-    }
-
-    .preview.type2 .data-value,
-    .result-wrap.type2 .result-value {
-        justify-content: flex-start !important;
-        text-align: left !important;
-        width: 100%;
-        white-space: nowrap;
+        gap: var(--ui-col-gap, 24px);
     }
     
-    .result-wrap.type2 .result-block { margin: 0 !important; }
-
-    /* Result Screen Specific */
-    .result-block {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    .result-block .preview {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important; 
-        padding: 0 !important;
-    }
-
-    /* Strava Message */
-    #contentStrava {
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      padding: 60px 20px; text-align: center; border: 1px solid #ddd; border-radius: 12px; min-height: 200px;
-    }
-    .strava-msg-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; color: #000; }
-    .strava-msg-desc { font-size: 14px; color: #666; line-height: 1.4; font-weight: 500; }
-    
+    /* [기타] 숨김 처리 복구 */
     .data-empty { min-height: 20px; }
+    .screen-close { cursor: pointer; z-index: 999999; }
   </style>
 </head>
 
@@ -266,7 +122,9 @@
           <button class="data-tab manual" id="tabManual" data-datatype="manual">MANUAL</button>
         </div>
 
-        <div class="data-tabs" id="dataTabsMonthly" style="display:none;"></div>
+        <div class="data-tabs" id="dataTabsMonthly" style="display:none;">
+          <button class="data-tab nrc" id="tabNrcMonthly" data-datatype="nrc">NRC</button>
+        </div>
 
         <div class="data-empty" id="dataEmpty"></div>
 
@@ -298,8 +156,30 @@
         </div>
 
         <div class="data-content" id="contentStrava" style="display:none;">
-            <div class="strava-msg-title">Coming soon.</div>
-            <div class="strava-msg-desc">Strava integration is currently<br>under development.</div>
+          <div id="stravaConnectBtnWrap" style="text-align: center; padding: 40px 0;">
+             <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
+               Connect to load your activities
+             </div>
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
+               Connect with Strava
+             </button>
+          </div>
+
+          <div class="garmin-card" id="stravaCard" style="display:none; margin-top:20px;">
+            <div class="garmin-card-left">
+              <div class="garmin-date" id="stravaDateText">0000.00.00</div>
+              <div class="garmin-stats">
+                <div class="garmin-stat" id="stravaDistanceText">00.00Km</div>
+                <div class="garmin-stat" id="stravaPaceText">0'00"</div>
+                <div class="garmin-stat" id="stravaTimeText">0:00</div>
+              </div>
+            </div>
+            <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
+              <div class="hamburger" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </button>
+          </div>
         </div>
 
         <div class="data-content" id="contentNrc" style="display:none;">
@@ -567,21 +447,6 @@
 
     function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
     
-    function animateValue(obj, start, end, duration, formatFn) {
-      if (!obj) return;
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const value = start + (end - start) * easeOutExpo(progress);
-        obj.textContent = formatFn(value);
-        fitOne(obj.parentElement);
-        if (progress < 1) window.requestAnimationFrame(step);
-        else { obj.textContent = formatFn(end); fitOne(obj.parentElement); }
-      };
-      window.requestAnimationFrame(step);
-    }
-
     // --- STATE ---
     const state = {
       recordType: 'daily',
@@ -627,7 +492,8 @@
       btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
       
       // Strava Elements
-      btnStravaConnect: $('#btnStravaConnect'), stravaLoginScreen: $('#stravaLoginScreen'),
+      stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), btnStravaLogin: $('#btnStravaLogin'), stravaCard: $('#stravaCard'), btnStravaList: $('#btnStravaList'),
+      stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
       
       monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
       fontGroup: $('#fontGroup'),
@@ -720,10 +586,17 @@
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
          if(cardSrc && cardSrc.date !== '-') {
-             if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
-             if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
-             if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-             if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+             if(state.dataType === 'garmin') {
+                 if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
+                 if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+             } else {
+                 if($('#stravaDateText')) $('#stravaDateText').textContent = cardSrc.date;
+                 if($('#stravaDistanceText')) $('#stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#stravaPaceText')) $('#stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#stravaTimeText')) $('#stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+             }
          }
       }
       
@@ -773,7 +646,6 @@
     // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin'; applyDataType(); updatePreview();
-      // Garmin은 데이터가 있으면 card, 없으면 loginPanel
       if (realGarminWorkouts.length > 0) { 
           if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
           if(el.garminCard) el.garminCard.style.display = 'flex';
@@ -784,28 +656,29 @@
     });
     
     el.btnOpenGarminLogin.addEventListener('click', () => {
-        if(el.garminError) el.garminError.style.display = 'none';
+        el.garminError.style.display = 'none';
         openScreen('garminLoginScreen');
     });
 
-    // [수정] 가민 서버 통신 함수 (주소 변경)
+    // [수정] 가민 서버 통신 함수 (주소 변경 완료)
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
       const password = $('#garminPassword').value;
-      const btn = $('#btnGarminRealSync');
-      const errorMsg = $('#garminError');
+      const statusDiv = $('#garminStatus');
 
       if (!email || !password) {
-        errorMsg.textContent = "Please enter email and password.";
-        errorMsg.style.display = 'block';
+        statusDiv.textContent = "Please enter email and password.";
         return;
       }
-      errorMsg.style.display = 'none';
 
-      btn.innerText = "Connecting...";
-      btn.disabled = true; btn.style.opacity = '0.7';
+      statusDiv.textContent = "Connecting to Garmin... (Please wait)";
+      if($('#btnGarminRealSync')) {
+          $('#btnGarminRealSync').disabled = true;
+          $('#btnGarminRealSync').style.opacity = '0.7';
+      }
 
       try {
+        // [중요] 변경된 Railway 서버 주소 적용
         const SERVER_URL = "https://runimate-production.up.railway.app/api/garmin";
 
         const res = await fetch(SERVER_URL, {
@@ -821,47 +694,47 @@
         const result = await res.json();
 
         if (result.success) {
+          statusDiv.textContent = "Success!";
           realGarminWorkouts = result.data;
           
           if (realGarminWorkouts.length > 0) {
              state.garmin = realGarminWorkouts[0];
              state.dataType = 'garmin';
              
+             // UI 업데이트
              applyDataType();
              updatePreview();
              
              // 로그인 패널 숨기고 카드 보여주기
-             if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
-             if(el.garminCard) el.garminCard.style.display = 'flex';
+             if($('#garminConnectBtnWrap')) $('#garminConnectBtnWrap').style.display = 'none';
+             if($('#garminCard')) $('#garminCard').style.display = 'flex';
              
+             // 오버레이 닫기
              closeScreen('garminLoginScreen');
              
+             // 리스트 팝업 띄우기 (선택 유도)
              renderWorkoutList('garmin');
              openScreen('garminSelectScreen');
              
           } else {
-             errorMsg.textContent = "Login success, but no activities found.";
-             errorMsg.style.display = 'block';
+             statusDiv.textContent = "Login success, but no activities found.";
           }
         } else {
-          errorMsg.textContent = "Login Failed: Check your info.";
-          errorMsg.style.display = 'block';
+          statusDiv.textContent = "Login Failed: Check your info.";
+          alert("가민 로그인 실패: 아이디와 비밀번호를 확인해주세요.");
         }
       } catch (err) {
         console.error(err);
-        errorMsg.textContent = "Connection Error.";
-        errorMsg.style.display = 'block';
+        statusDiv.textContent = "Connection Error.";
         alert(`서버 연결 실패!\n(에러: ${err.message})`);
       } finally {
-        if(btn) {
-            btn.innerText = "Sign-In";
-            btn.disabled = false;
-            btn.style.opacity = '1';
+        if($('#btnGarminRealSync')) {
+            $('#btnGarminRealSync').disabled = false;
+            $('#btnGarminRealSync').style.opacity = '1';
         }
       }
     }
     
-    // [중요] ID가 btnGarminRealSync인 버튼에 이벤트 리스너 추가
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
     function renderWorkoutList(kind = 'garmin') {
@@ -886,16 +759,8 @@
         
         btn.onclick = (e) => {
             e.stopPropagation();
-            if (kind === 'strava') { 
-                state.strava = { ...w }; 
-                state.dataType = 'strava'; 
-                // 스트라바 데이터 로드 시 UI 처리 (만약 필요하다면)
-            } else { 
-                state.garmin = { ...w }; 
-                state.dataType = 'garmin'; 
-                if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
-                if(el.garminCard) el.garminCard.style.display = 'flex';
-            }
+            if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; el.stravaConnectBtnWrap.style.display = 'none'; el.stravaCard.style.display = 'flex'; }
+            else { state.garmin = { ...w }; state.dataType = 'garmin'; el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
             
             applyDataType(); 
             updatePreview(); 
@@ -904,46 +769,30 @@
         listContainer.appendChild(btn);
       });
     }
-    if(el.btnGarminList) el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
     // --- OTHER TABS ---
-    if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
+    el.tabStrava.addEventListener('click', () => { 
         state.dataType = 'strava'; 
         applyDataType(); 
         updatePreview(); 
         
-        // [수정] 탭 클릭 시 토큰 없으면 로그인 화면, 있으면 리스트
-        const token = localStorage.getItem('strava_token'); // URL params에서 저장한 key와 맞춰야 함 (아래 checkStravaToken 참고)
-        // 아래 로직에서 strava_token 키를 사용하므로 여기서도 맞춤
-        
-        // 하지만 초기에는 strava_token이 localStorage에 없을 수 있으므로 체크
-        // 일단 strava 컨텐츠 영역을 보여줌
-        if(el.contentStrava) el.contentStrava.style.display = 'flex';
-    });
-    
-    // 스트라바 컨텐츠 영역 내의 버튼 로직
-    // HTML 구조상 contentStrava 안에 메시지와 버튼이 있어야 함.
-    // 현재 HTML에는 contentStrava 안에 "Coming soon" 텍스트만 있음.
-    // 따라서, 스트라바 탭을 눌렀을 때 자동으로 로그인 화면을 띄우거나,
-    // "Connect Strava" 버튼이 있는 Overlay를 띄워야 함.
-    
-    // [수정] 탭 클릭 시 바로 로그인 Overlay(stravaLoginScreen) 띄우기
-    el.tabStrava.addEventListener('click', () => {
-        state.dataType = 'strava';
-        applyDataType();
-        
-        // 이미 데이터가 있으면 리스트/카드 보여주기 (생략 - 간단히 로그인 유도)
-        if(realStravaWorkouts.length > 0) {
-             renderWorkoutList('strava');
-             openScreen('garminSelectScreen');
+        // 스트라바 데이터 체크
+        const token = localStorage.getItem('strava_token');
+        if (realStravaWorkouts.length > 0) {
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
+             if(el.stravaCard) el.stravaCard.style.display = 'flex';
+        } else if (token) {
+             fetchStravaData(token);
         } else {
-             openScreen('stravaLoginScreen');
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'block';
+             if(el.stravaCard) el.stravaCard.style.display = 'none';
         }
     });
 
-    if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-    if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
-    if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+    el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+    el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
+    el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
     // --- APPLY HELPERS ---
     function applyRecordType() {
@@ -1016,12 +865,12 @@
     }
 
     // --- EVENTS ---
-    if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-    if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    if(el.btnType2) el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    if(el.btnBgWhite) el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-    if(el.btnBgBlack) el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
     el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
@@ -1061,17 +910,17 @@
       updatePreview();
     });
 
-    if(el.chipDistance) el.chipDistance.addEventListener('click', () => {
+    el.chipDistance.addEventListener('click', () => {
       $('#modalTitle').textContent = 'DISTANCE';
       el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
       el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
     });
-    if(el.chipPace) el.chipPace.addEventListener('click', () => {
+    el.chipPace.addEventListener('click', () => {
       $('#modalTitle').textContent = 'PACE';
       el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
       el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
     });
-    if(el.modalClose) el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
+    el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
     
     function recalcManualTime() {
         if(state.manual.km > 0 && state.manual.paceSec > 0) {
@@ -1081,7 +930,7 @@
         }
     }
 
-    if(el.formDistance) el.formDistance.addEventListener('submit', (e) => {
+    el.formDistance.addEventListener('submit', (e) => {
       e.preventDefault(); const val = parseFloat(el.inputDistance.value);
       if (!isNaN(val)) { 
           state.manual.km = val; 
@@ -1090,7 +939,7 @@
           closeScreen('modalOverlay'); 
       }
     });
-    if(el.formPace) el.formPace.addEventListener('submit', (e) => {
+    el.formPace.addEventListener('submit', (e) => {
       e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
       const total = m * 60 + s;
       if (total > 0) { 
@@ -1229,7 +1078,7 @@
       requestAnimationFrame(frame);
     }
 
-    if(el.btnRun) el.btnRun.addEventListener('click', () => {
+    el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM();
        openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
@@ -1245,43 +1094,34 @@
     // [STRAVA LOGIC - FIXED VERSION]
     // -----------------------------------------------------------
     
-    // [중요] 수정된 Railway 서버 주소
+    // [중요] Railway 서버 주소
     const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app"; 
 
-    // 1. 로그인 버튼 클릭 (서버로 이동 -> 스트라바 로그인창)
-    if(el.btnStravaConnect) {
-        el.btnStravaConnect.addEventListener('click', () => {
+    // 1. 로그인 버튼 클릭
+    if(el.btnStravaLogin) {
+        el.btnStravaLogin.addEventListener('click', () => {
             window.location.href = `${RAILWAY_SERVER_URL}/api/strava/login`;
         });
     }
 
-    // 2. 토큰 확인 & 실제 데이터 가져오기 (로그인 후 복귀 시 실행)
+    // 2. 토큰 확인 & 실제 데이터 가져오기
     function checkStravaToken() {
         const params = new URLSearchParams(window.location.search);
         const token = params.get('strava_token');
 
         if (token) {
-            // 로컬 스토리지에 토큰 저장 (추후 재사용 가능)
-            localStorage.setItem('strava_token', token);
-
-            // 주소창 깔끔하게 (토큰 숨기기)
             window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // 데이터 가져오기 시작
             fetchStravaData(token);
         }
     }
     
     async function fetchStravaData(token) {
-         // 로딩 표시 (버튼 텍스트 변경)
-         const btn = document.getElementById('btnStravaConnect');
-         if(btn) {
-             btn.innerText = "Loading activities...";
-             btn.style.opacity = "0.7";
+         if(el.btnStravaLogin) {
+             el.btnStravaLogin.innerText = "Loading activities...";
+             el.btnStravaLogin.style.opacity = "0.7";
          }
          
          try {
-             // [핵심] 수정된 주소로 POST 요청
              const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava/activities`, {
                  method: "POST",
                  headers: { "Content-Type": "application/json" },
@@ -1291,26 +1131,22 @@
              const json = await res.json();
              
              if(json.success) {
-                 realStravaWorkouts = json.data; // 데이터 저장
+                 realStravaWorkouts = json.data;
                  
                  if(realStravaWorkouts.length > 0) {
-                     // 가장 최근 기록을 기본값으로 설정
                      state.strava = realStravaWorkouts[0];
                      state.dataType = 'strava';
                      
-                     // 로그인 오버레이 닫고, 리스트 오버레이 열기
-                     closeScreen('stravaLoginScreen');
-                     renderWorkoutList('strava');
-                     openScreen('garminSelectScreen');
+                     if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
+                     if(el.stravaCard) el.stravaCard.style.display = 'flex';
                      
-                     // 화면 업데이트
                      applyDataType();
                      updatePreview();
                  } else {
                      alert("최근 러닝 기록이 없습니다.");
-                     if(btn) {
-                        btn.innerText = "Connect Strava";
-                        btn.style.opacity = "1";
+                     if(el.btnStravaLogin) {
+                        el.btnStravaLogin.innerText = "Connect with Strava";
+                        el.btnStravaLogin.style.opacity = "1";
                      }
                  }
              } else {
@@ -1319,15 +1155,23 @@
          } catch(err) {
              console.error(err);
              alert("데이터 불러오기 실패: " + err.message);
-             if(btn) {
-                 btn.innerText = "Connect Strava";
-                 btn.style.opacity = "1";
+             if(el.btnStravaLogin) {
+                 el.btnStravaLogin.innerText = "Connect with Strava";
+                 el.btnStravaLogin.style.opacity = "1";
              }
          }
     }
     
-    // 페이지 로드 시 실행 (토큰 체크)
     checkStravaToken();
+
+    // 3. 리스트 버튼 클릭
+    if(el.btnStravaList) {
+        el.btnStravaList.addEventListener('click', (e) => {
+             e.stopPropagation(); 
+             renderWorkoutList('strava'); 
+             openScreen('garminSelectScreen'); 
+        });
+    }
 
     // --- INITIALIZE ---
     function initDefaults() {
