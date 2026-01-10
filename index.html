@@ -155,7 +155,7 @@
           </div>
         </div>
 
-<div class="data-content" id="contentStrava" style="display:none;">
+        <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap" style="text-align: center; padding: 40px 0;">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
                Connect to load your activities
@@ -473,10 +473,10 @@
         // --- STATE ---
         const state = {
           recordType: 'daily',
-          dataType: null,     
-          font: 'anton',      
-          layout: 'type1',    
-          bg: 'white',        
+          dataType: null,      
+          font: 'anton',       
+          layout: 'type1',     
+          bg: 'white',         
           daily: { km: 0, paceSec: 0, timeSec: 0 },
           monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
           garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
@@ -494,20 +494,22 @@
           dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
           dataEmpty: $('#dataEmpty'),
           tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-          tabNrcMonthly: $('#tabNrcMonthly'), // [복구 완료]
+          tabNrcMonthly: $('#tabNrcMonthly'),
           contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
           
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
           garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
           btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
 
-          // const el = { ... 안에 아래 내용 추가/확인 }
-stravaConnectBtnWrap: $('#stravaConnectBtnWrap'),
-btnStravaLogin: $('#btnStravaLogin'),
-stravaCard: $('#stravaCard'),
-btnStravaList: $('#btnStravaList'),
-stravaDateText: $('#stravaDateText'),
-// ... 기존 가민 요소들 ...
+          // [완성된 스트라바 요소들]
+          stravaConnectBtnWrap: $('#stravaConnectBtnWrap'),
+          btnStravaLogin: $('#btnStravaLogin'),
+          stravaCard: $('#stravaCard'),
+          btnStravaList: $('#btnStravaList'),
+          stravaDateText: $('#stravaDateText'),
+          stravaDistanceText: $('#stravaDistanceText'), // 추가됨
+          stravaPaceText: $('#stravaPaceText'),         // 추가됨
+          stravaTimeText: $('#stravaTimeText'),         // 추가됨
           
           monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
           fontGroup: $('#fontGroup'),
@@ -597,13 +599,22 @@ stravaDateText: $('#stravaDateText'),
           if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
           if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
 
+          // [완성된 데이터 카드 업데이트 로직]
           if(state.dataType === 'garmin' || state.dataType === 'strava') {
              const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
+             
              if(cardSrc && cardSrc.date !== '-') {
-                 if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
-                 if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-                 if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 if(state.dataType === 'garmin') {
+                     if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
+                     if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                     if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                     if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 } else {
+                     if($('#stravaDateText')) $('#stravaDateText').textContent = cardSrc.date;
+                     if($('#stravaDistanceText')) $('#stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                     if($('#stravaPaceText')) $('#stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                     if($('#stravaTimeText')) $('#stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 }
              }
           }
           
@@ -737,7 +748,7 @@ stravaDateText: $('#stravaDateText'),
             
             btn.onclick = (e) => {
                 e.stopPropagation();
-                if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; }
+                if (kind === 'strava') { state.strava = { ...w }; state.dataType = 'strava'; el.stravaConnectBtnWrap.style.display = 'none'; el.stravaCard.style.display = 'flex'; }
                 else { state.garmin = { ...w }; state.dataType = 'garmin'; el.garminConnectBtnWrap.style.display = 'none'; el.garminCard.style.display = 'flex'; }
                 
                 applyDataType(); 
@@ -754,7 +765,6 @@ stravaDateText: $('#stravaDateText'),
         el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
         el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
         
-        // [중요] 안전장치 추가
         if(el.tabNrcMonthly) el.tabNrcMonthly.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
 
         // --- APPLY HELPERS ---
@@ -1053,51 +1063,53 @@ stravaDateText: $('#stravaDateText'),
                });
            });
         });
-// -----------------------------------------------------------
-    // [STRAVA LOGIC]
-    // -----------------------------------------------------------
-    
-    // 1. 로그인 버튼 클릭 시 -> 서버 인증 페이지로 이동
-    if(el.btnStravaLogin) {
-        el.btnStravaLogin.addEventListener('click', () => {
-            window.location.href = '/api/strava/login';
-        });
-    }
 
-    // 2. 페이지 로드 시 URL에 토큰이 있는지 확인 (로그인 성공 후 복귀했을 때)
-    function checkStravaToken() {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('strava_token');
-
-        if (token) {
-            // 토큰이 있으면 스트라바 탭 활성화 & UI 변경
-            state.dataType = 'strava';
-            
-            // (중요) URL 창에서 토큰 지우기 (깔끔하게)
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // UI 업데이트
-            applyDataType();
-            el.stravaConnectBtnWrap.style.display = 'none';
-            el.stravaCard.style.display = 'flex';
-            
-            // TODO: 여기서 실제로 토큰을 이용해 운동 데이터를 불러오는 API 호출 필요
-            // 일단은 UI가 바뀌는지 확인하기 위해 임시 데이터 표시
-            alert("스트라바 연결 성공! 토큰: " + token.substring(0, 10) + "...");
+        // -----------------------------------------------------------
+        // [STRAVA LOGIC]
+        // -----------------------------------------------------------
+        
+        // 1. 로그인 버튼 클릭 시 -> 서버 인증 페이지로 이동
+        if(el.btnStravaLogin) {
+            el.btnStravaLogin.addEventListener('click', () => {
+                window.location.href = '/api/strava/login';
+            });
         }
-    }
-    
-    // 페이지 로드 시 즉시 실행
-    checkStravaToken();
 
-    // 리스트 버튼 (가민과 동일 로직 사용 예정)
-    if(el.btnStravaList) {
-        el.btnStravaList.addEventListener('click', (e) => {
-             e.stopPropagation(); 
-             renderWorkoutList('strava'); // renderWorkoutList 함수가 'strava'도 처리하도록 되어있음
-             openScreen('garminSelectScreen'); 
-        });
-    }
+        // 2. 페이지 로드 시 URL에 토큰이 있는지 확인 (로그인 성공 후 복귀했을 때)
+        function checkStravaToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('strava_token');
+
+            if (token) {
+                // 토큰이 있으면 스트라바 탭 활성화 & UI 변경
+                state.dataType = 'strava';
+                
+                // (중요) URL 창에서 토큰 지우기 (깔끔하게)
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // UI 업데이트
+                applyDataType();
+                el.stravaConnectBtnWrap.style.display = 'none';
+                el.stravaCard.style.display = 'flex';
+                
+                // TODO: 여기서 실제로 토큰을 이용해 운동 데이터를 불러오는 API 호출 필요
+                // 일단은 UI가 바뀌는지 확인하기 위해 임시 데이터 표시
+                alert("스트라바 연결 성공! 토큰: " + token.substring(0, 10) + "...");
+            }
+        }
+        
+        // 페이지 로드 시 즉시 실행
+        checkStravaToken();
+
+        // 리스트 버튼 (가민과 동일 로직 사용 예정)
+        if(el.btnStravaList) {
+            el.btnStravaList.addEventListener('click', (e) => {
+                 e.stopPropagation(); 
+                 renderWorkoutList('strava'); 
+                 openScreen('garminSelectScreen'); 
+            });
+        }
+
         // --- INITIALIZE ---
         function initDefaults() {
            applyUIConfigToRoot(state);
