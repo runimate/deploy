@@ -90,16 +90,16 @@
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
 
-    /* [수정 1] 스트라바/가민 카드 디자인 통일 (꽉 차게) */
+    /* [수정 1] 카드 디자인 통일 (왼쪽 영역 꽉 채우기) */
     .w-left, .garmin-card-left { 
-        gap: 4px !important; 
-        flex: 1; /* 남은 공간 차지 */
+        gap: 6px !important; 
+        flex: 1 !important; /* 남은 공간 모두 차지 */
     }
     
     /* 날짜 스타일 */
     .w-date, .garmin-date { 
-        font-size: 14px !important; 
-        font-weight: 800 !important; 
+        font-size: 12px !important; 
+        font-weight: 900 !important; 
         color: #000;
     }
     
@@ -107,18 +107,17 @@
     .w-stats, .garmin-stats { 
         display: flex; 
         align-items: baseline; 
-        gap: 12px !important; 
+        gap: 14px !important; 
     }
     
-    /* [수정 3] 거리(Km) 숫자 크기 롤백 (원래 사이즈로) */
-    /* .stat-km 클래스 제거 또는 기본값 사용 */
+    /* [수정 3] 거리 숫자 크기 롤백 (원래대로 14px) */
     .w-stats span, .garmin-stat {
-        font-size: 14px !important; /* 원래 크기로 복구 */
+        font-size: 14px !important; 
         font-weight: 900 !important;
+        line-height: 1;
     }
     
-    /* [수정 2] 리스트 아이콘 -> 화살표 복구 */
-    .list-icon { display: none !important; } /* 햄버거 숨김 */
+    /* [수정 2] 아이콘 구분 (화살표 vs 햄버거) */
     .w-arrow { 
         display: block !important; 
         font-size: 24px !important; 
@@ -126,11 +125,18 @@
         color: #000 !important; 
     }
     
+    /* 햄버거 메뉴 (메인 카드용) */
+    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
+    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
+
     /* 카드 오른쪽 버튼 영역 수정 */
     .garmin-list-btn {
         width: auto !important;
         height: auto !important;
-        padding: 0 0 0 10px !important;
+        padding: 0 0 0 14px !important;
+        border: none;
+        background: transparent;
+        cursor: pointer;
     }
   </style>
 </head>
@@ -191,7 +197,7 @@
               </div>
             </div>
             <button class="garmin-list-btn" id="btnGarminList" aria-label="Open workout list">
-              <div class="w-arrow">→</div>
+              <div class="hamburger"><span></span><span></span><span></span></div>
             </button>
           </div>
         </div>
@@ -216,7 +222,7 @@
               </div>
             </div>
             <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
-               <div class="w-arrow">→</div>
+               <div class="hamburger"><span></span><span></span><span></span></div>
             </button>
           </div>
         </div>
@@ -783,7 +789,7 @@
     
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [수정] renderWorkoutList - 화살표 복구 (햄버거 아이콘 -> 화살표 텍스트)
+    // [수정] renderWorkoutList - [Select Workout] 목록에는 화살표(→) 표시
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
@@ -1228,7 +1234,7 @@
     
     checkStravaToken();
 
-    // 3. 리스트 버튼 클릭
+    // 3. 리스트 버튼 클릭 (목록 보기)
     if(el.btnStravaList) {
         el.btnStravaList.addEventListener('click', (e) => {
              e.stopPropagation(); 
