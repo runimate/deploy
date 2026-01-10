@@ -10,10 +10,75 @@
   
   <style>
     /* ==========================================================
-       [2] 기능 패치 & UI 수정 (사용자 요청 반영)
+       [UI FIXES] 사용자 요청 완벽 반영 패치
        ========================================================== */
     
-    /* [RUN 버튼] */
+    /* [1] 카드 디자인 강제 통일 (폭 100% + 왼쪽 꽉 채우기) */
+    .garmin-card, .workout-item {
+        width: 100% !important; /* 폭 꽉 채우기 */
+        box-sizing: border-box !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    .w-left, .garmin-card-left { 
+        flex: 1 !important; /* 남은 공간 모두 차지 */
+        min-width: 0 !important; /* 텍스트 말줄임 보장 */
+        gap: 6px !important;
+    }
+    
+    /* [2] 폰트 사이즈 롤백 (거리 숫자 크기 원상복구) */
+    .w-stats span, .garmin-stat {
+        font-size: 14px !important; 
+        font-weight: 900 !important;
+        line-height: 1.2 !important;
+    }
+
+    /* [3] 아이콘 시스템 정리 */
+    /* 메인 카드용 햄버거 */
+    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
+    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
+    
+    /* 목록용 화살표 */
+    .w-arrow { 
+        display: block !important; 
+        font-size: 24px !important; 
+        font-weight: 900 !important; 
+        color: #000 !important; 
+        line-height: 1 !important;
+    }
+
+    /* 카드/리스트 오른쪽 버튼 영역 */
+    .garmin-list-btn, .w-arrow-wrap {
+        width: auto !important;
+        height: auto !important;
+        padding: 0 0 0 14px !important;
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important; /* 줄어들지 않음 */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* [4] 로그인 버튼 중앙 정렬 강제 */
+    #garminConnectBtnWrap, #stravaConnectBtnWrap {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        padding: 40px 0 !important;
+    }
+
+    /* ---------------------------------------------------- */
+    /* [기본 필수 스타일]                                   */
+    /* ---------------------------------------------------- */
+    
+    /* RUN 버튼 고정 */
     .run-btn {
         position: fixed !important;
         bottom: 30px !important;
@@ -28,7 +93,7 @@
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
 
-    /* [가민 로그인 화면] */
+    /* 가민 로그인 화면 */
     #garminLoginScreen {
       display: none;
       position: fixed !important;
@@ -43,11 +108,11 @@
     }
     #garminLoginScreen.show { display: flex !important; }
 
-    /* [가민 로그인 입력창] */
+    /* 입력창 스타일 */
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
 
-    /* [가민/스트라바 로그인 버튼] */
+    /* 하단 고정 로그인 버튼 */
     .gc-cta {
       position: fixed !important;
       bottom: 30px !important;
@@ -61,7 +126,7 @@
       margin: 0 !important;
     }
 
-    /* [결과 화면] */
+    /* 결과 화면 */
     .result-screen {
         z-index: 2147483647 !important;
         position: fixed !important;
@@ -89,55 +154,19 @@
     
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
-
-    /* [수정 1] 카드 디자인 통일 (왼쪽 영역 꽉 채우기) */
-    .w-left, .garmin-card-left { 
-        flex: 1 !important; /* 남은 공간 모두 차지 */
-        min-width: 0 !important; /* 텍스트 말줄임 보장 */
-        gap: 6px !important;
-    }
     
-    /* 날짜 스타일 */
+    /* 날짜 스타일 통일 */
     .w-date, .garmin-date { 
         font-size: 12px !important; 
         font-weight: 900 !important; 
         color: #000;
     }
     
-    /* 스탯 줄 스타일 */
+    /* 스탯 줄 스타일 통일 */
     .w-stats, .garmin-stats { 
         display: flex; 
         align-items: baseline; 
         gap: 14px !important; 
-    }
-    
-    /* [수정 3] 거리 숫자 크기 롤백 (원래대로 14px) */
-    .w-stats span, .garmin-stat {
-        font-size: 14px !important; 
-        font-weight: 900 !important;
-        line-height: 1;
-    }
-    
-    /* [수정 2] 아이콘 구분 (화살표 vs 햄버거) */
-    .w-arrow { 
-        display: block !important; 
-        font-size: 24px !important; 
-        font-weight: 900 !important; 
-        color: #000 !important; 
-    }
-    
-    /* 햄버거 메뉴 (메인 카드용) */
-    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
-    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
-
-    /* 카드 오른쪽 버튼 영역 수정 */
-    .garmin-list-btn {
-        width: auto !important;
-        height: auto !important;
-        padding: 0 0 0 14px !important;
-        border: none;
-        background: transparent;
-        cursor: pointer;
     }
   </style>
 </head>
@@ -179,11 +208,11 @@
         <div class="data-empty" id="dataEmpty"></div>
 
         <div class="data-content" id="contentGarmin" style="display:none;">
-          <div id="garminConnectBtnWrap" style="text-align: center; padding: 40px 0;">
+          <div id="garminConnectBtnWrap">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
                Connect to load your activities
              </div>
-             <button id="btnOpenGarminLogin" style="background: #000; color: #75b7ff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
+             <button id="btnOpenGarminLogin" style="background: #000; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
                Login to Garmin
              </button>
           </div>
@@ -192,7 +221,7 @@
             <div class="garmin-card-left">
               <div class="garmin-date" id="garminDateText">0000.00.00</div>
               <div class="garmin-stats">
-                <span class="garmin-stat" id="garminDistanceText">0.00Km</span>
+                <span class="garmin-stat" id="garminDistanceText">00.00Km</span>
                 <span class="garmin-stat" id="garminPaceText">0'00"</span>
                 <span class="garmin-stat" id="garminTimeText">0:00</span>
               </div>
@@ -204,11 +233,11 @@
         </div>
 
         <div class="data-content" id="contentStrava" style="display:none;">
-          <div id="stravaConnectBtnWrap" style="text-align: center; padding: 40px 0;">
+          <div id="stravaConnectBtnWrap">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
                Connect to load your activities
              </div>
-             <button id="btnStravaLogin" style="background: #000; color: #fb4c02; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
                Connect with Strava
              </button>
           </div>
@@ -217,7 +246,7 @@
             <div class="garmin-card-left">
               <div class="garmin-date" id="stravaDateText">0000.00.00</div>
               <div class="garmin-stats">
-                <span class="garmin-stat" id="stravaDistanceText">0.00Km</span>
+                <span class="garmin-stat" id="stravaDistanceText">00.00Km</span>
                 <span class="garmin-stat" id="stravaPaceText">0'00"</span>
                 <span class="garmin-stat" id="stravaTimeText">0:00</span>
               </div>
@@ -698,7 +727,7 @@
           if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
           if(el.garminCard) el.garminCard.style.display = 'flex';
       } else { 
-          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'block';
+          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
           if(el.garminCard) el.garminCard.style.display = 'none';
       }
     });
@@ -802,7 +831,8 @@
       list.forEach((w) => {
         const btn = document.createElement('div'); 
         btn.className = 'workout-item'; 
-        // [UI 수정] 숫자 크기 롤백 & 화살표 복구
+        
+        // [UI] 목록용 화살표 아이콘 사용
         btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
@@ -812,7 +842,9 @@
               <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
           </div>
-          <div class="w-arrow">→</div>
+          <div class="w-arrow-wrap">
+             <div class="w-arrow">→</div>
+          </div>
         `;
         
         btn.onclick = (e) => {
@@ -844,13 +876,12 @@
         applyDataType(); 
         updatePreview(); 
         
-        // 스트라바 데이터 체크 (없으면 버튼, 있으면 카드)
+        // 스트라바 데이터 체크
         if (realStravaWorkouts.length > 0) {
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
              if(el.stravaCard) el.stravaCard.style.display = 'flex';
         } else {
-             // 토큰이 있어도 데이터를 못 가져온 경우 등
-             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'block';
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'flex';
              if(el.stravaCard) el.stravaCard.style.display = 'none';
         }
     });
@@ -975,17 +1006,17 @@
       updatePreview();
     });
 
-    if(el.chipDistance) el.chipDistance.addEventListener('click', () => {
+    el.chipDistance.addEventListener('click', () => {
       $('#modalTitle').textContent = 'DISTANCE';
       el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
       el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
     });
-    if(el.chipPace) el.chipPace.addEventListener('click', () => {
+    el.chipPace.addEventListener('click', () => {
       $('#modalTitle').textContent = 'PACE';
       el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
       el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
     });
-    if(el.modalClose) el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
+    el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
     
     function recalcManualTime() {
         if(state.manual.km > 0 && state.manual.paceSec > 0) {
@@ -995,7 +1026,7 @@
         }
     }
 
-    if(el.formDistance) el.formDistance.addEventListener('submit', (e) => {
+    el.formDistance.addEventListener('submit', (e) => {
       e.preventDefault(); const val = parseFloat(el.inputDistance.value);
       if (!isNaN(val)) { 
           state.manual.km = val; 
@@ -1004,7 +1035,7 @@
           closeScreen('modalOverlay'); 
       }
     });
-    if(el.formPace) el.formPace.addEventListener('submit', (e) => {
+    el.formPace.addEventListener('submit', (e) => {
       e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
       const total = m * 60 + s;
       if (total > 0) { 
@@ -1235,7 +1266,7 @@
     
     checkStravaToken();
 
-    // 3. 리스트 버튼 클릭 (목록 보기)
+    // 3. 리스트 버튼 클릭
     if(el.btnStravaList) {
         el.btnStravaList.addEventListener('click', (e) => {
              e.stopPropagation(); 
