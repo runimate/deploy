@@ -155,9 +155,31 @@
           </div>
         </div>
 
-        <div class="data-content" id="contentStrava" style="display:none;">
-            <div class="strava-msg-title">Coming soon.</div>
-            <div class="strava-msg-desc">Strava integration is currently<br>under development.</div>
+<div class="data-content" id="contentStrava" style="display:none;">
+          <div id="stravaConnectBtnWrap" style="text-align: center; padding: 40px 0;">
+             <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
+               Connect to load your activities
+             </div>
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
+               Connect with Strava
+             </button>
+          </div>
+
+          <div class="garmin-card" id="stravaCard" style="display:none; margin-top:20px;">
+            <div class="garmin-card-left">
+              <div class="garmin-date" id="stravaDateText">0000.00.00</div>
+              <div class="garmin-stats">
+                <div class="garmin-stat" id="stravaDistanceText">00.00Km</div>
+                <div class="garmin-stat" id="stravaPaceText">0'00"</div>
+                <div class="garmin-stat" id="stravaTimeText">0:00</div>
+              </div>
+            </div>
+            <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
+              <div class="hamburger" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </button>
+          </div>
         </div>
 
         <div class="data-content" id="contentNrc" style="display:none;">
@@ -478,6 +500,14 @@
           garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
           garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
           btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
+
+          // const el = { ... 안에 아래 내용 추가/확인 }
+stravaConnectBtnWrap: $('#stravaConnectBtnWrap'),
+btnStravaLogin: $('#btnStravaLogin'),
+stravaCard: $('#stravaCard'),
+btnStravaList: $('#btnStravaList'),
+stravaDateText: $('#stravaDateText'),
+// ... 기존 가민 요소들 ...
           
           monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
           fontGroup: $('#fontGroup'),
@@ -1023,7 +1053,51 @@
                });
            });
         });
+// -----------------------------------------------------------
+    // [STRAVA LOGIC]
+    // -----------------------------------------------------------
+    
+    // 1. 로그인 버튼 클릭 시 -> 서버 인증 페이지로 이동
+    if(el.btnStravaLogin) {
+        el.btnStravaLogin.addEventListener('click', () => {
+            window.location.href = '/api/strava/login';
+        });
+    }
 
+    // 2. 페이지 로드 시 URL에 토큰이 있는지 확인 (로그인 성공 후 복귀했을 때)
+    function checkStravaToken() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('strava_token');
+
+        if (token) {
+            // 토큰이 있으면 스트라바 탭 활성화 & UI 변경
+            state.dataType = 'strava';
+            
+            // (중요) URL 창에서 토큰 지우기 (깔끔하게)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // UI 업데이트
+            applyDataType();
+            el.stravaConnectBtnWrap.style.display = 'none';
+            el.stravaCard.style.display = 'flex';
+            
+            // TODO: 여기서 실제로 토큰을 이용해 운동 데이터를 불러오는 API 호출 필요
+            // 일단은 UI가 바뀌는지 확인하기 위해 임시 데이터 표시
+            alert("스트라바 연결 성공! 토큰: " + token.substring(0, 10) + "...");
+        }
+    }
+    
+    // 페이지 로드 시 즉시 실행
+    checkStravaToken();
+
+    // 리스트 버튼 (가민과 동일 로직 사용 예정)
+    if(el.btnStravaList) {
+        el.btnStravaList.addEventListener('click', (e) => {
+             e.stopPropagation(); 
+             renderWorkoutList('strava'); // renderWorkoutList 함수가 'strava'도 처리하도록 되어있음
+             openScreen('garminSelectScreen'); 
+        });
+    }
         // --- INITIALIZE ---
         function initDefaults() {
            applyUIConfigToRoot(state);
