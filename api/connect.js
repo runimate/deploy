@@ -1,4 +1,4 @@
-// [파일 경로: api/connect.js] 여기에 덮어씌우세요!
+// [파일: api/connect.js]
 
 import express from 'express';
 import path from 'path';
@@ -10,16 +10,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// [1] 정적 파일 연결
 app.use(express.static(path.join(__dirname, '../')));
 
-// [2] 스트라바 로그인 (인증 페이지로 이동)
+// 1. 로그인 요청
 app.get('/api/strava/login', (req, res) => {
   const clientId = process.env.STRAVA_CLIENT_ID;
-  // ★ 중요: 환경변수 redirect_uri는 반드시 ".../api/strava/callback"으로 끝나야 함
-  const redirectUri = process.env.STRAVA_REDIRECT_URI; 
+  const redirectUri = process.env.STRAVA_REDIRECT_URI; // Railway 주소여야 함
 
-  if (!clientId || !redirectUri) return res.status(500).send("환경변수(ID, URI) 설정이 필요합니다.");
+  if (!clientId || !redirectUri) return res.status(500).send("환경변수 설정 필요");
 
   const scope = "read,activity:read_all"; 
   const url = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=${scope}`;
@@ -27,12 +25,11 @@ app.get('/api/strava/login', (req, res) => {
   res.redirect(url);
 });
 
-// [3] ★ [신규 추가] 콜백 핸들러 (스트라바에서 돌아올 때 토큰 교환)
+// 2. 콜백 처리 (스트라바 -> Railway)
 app.get('/api/strava/callback', (req, res) => {
     const code = req.query.code;
     if (!code) return res.status(400).send("인증 코드가 없습니다.");
 
-    // 토큰 교환 요청
     const postData = JSON.stringify({
         client_id: process.env.STRAVA_CLIENT_ID,
         client_secret: process.env.STRAVA_CLIENT_SECRET,
@@ -54,10 +51,13 @@ app.get('/api/strava/callback', (req, res) => {
             try {
                 const result = JSON.parse(data);
                 if (result.access_token) {
-                    // 성공! 토큰을 들고 메인 화면으로 복귀
-                    res.redirect(`/?strava_token=${result.access_token}`);
+                    // ★★★ [여기가 수정됨] ★★★
+                    // 인증 성공! 토큰을 들고 "Vercel 화면"으로 복귀시킴
+                    // Vercel 주소를 정확히 적어주세요. (끝에 슬래시 주의)
+                    const vercelUrl = "https://runimate.vercel.app"; 
+                    res.redirect(`${vercelUrl}/?strava_token=${result.access_token}`);
                 } else {
-                    res.status(500).send("토큰 발급 실패: " + JSON.stringify(result));
+                    res.status(500).send("토큰 발급 실패");
                 }
             } catch (e) { res.status(500).send("서버 에러"); }
         });
@@ -66,7 +66,7 @@ app.get('/api/strava/callback', (req, res) => {
     tokenReq.end();
 });
 
-// [4] 운동 기록 조회 API
+// 3. 데이터 조회
 app.get('/api/strava/activities', (req, res) => {
     const token = req.query.token;
     if (!token) return res.status(400).json({ success: false, msg: "토큰 없음" });
@@ -84,7 +84,6 @@ app.get('/api/strava/activities', (req, res) => {
         stravaRes.on('end', () => {
             try {
                 const activities = JSON.parse(data);
-                // 러닝 데이터만 필터링 & 포맷팅
                 const formatted = activities
                     .filter(a => a.type === 'Run')
                     .map(a => ({
@@ -94,7 +93,7 @@ app.get('/api/strava/activities', (req, res) => {
                         paceSec: (a.distance > 0) ? (a.moving_time / (a.distance / 1000)) : 0
                     }));
                 res.json({ success: true, data: formatted });
-            } catch (e) { res.status(500).json({ success: false, msg: "데이터 파싱 에러" }); }
+            } catch (e) { res.status(500).json({ success: false, msg: "파싱 에러" }); }
         });
     });
     stravaReq.end();
