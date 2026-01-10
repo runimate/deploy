@@ -92,8 +92,9 @@
 
     /* [수정 1] 카드 디자인 통일 (왼쪽 영역 꽉 채우기) */
     .w-left, .garmin-card-left { 
-        gap: 6px !important; 
         flex: 1 !important; /* 남은 공간 모두 차지 */
+        min-width: 0 !important; /* 텍스트 말줄임 보장 */
+        gap: 6px !important;
     }
     
     /* 날짜 스타일 */
