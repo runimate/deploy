@@ -623,8 +623,9 @@
       
       if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
+      // [수정] strava 컨텐츠도 block으로 변경하여 width:100% 정상 작동 유도
       if (state.dataType === 'garmin') el.contentGarmin.style.display = 'block';
-      else if (state.dataType === 'strava') el.contentStrava.style.display = 'flex';
+      else if (state.dataType === 'strava') el.contentStrava.style.display = 'block';
       else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
     }
@@ -961,12 +962,12 @@
     }
 
     // --- EVENTS ---
-    if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-    if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    if(el.btnType1) el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    if(el.btnType2) el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    if(el.btnBgWhite) el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-    if(el.btnBgBlack) el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
     el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
