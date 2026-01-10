@@ -10,65 +10,10 @@
   
   <style>
     /* ==========================================================
-       [UI FIXES] 사용자 요청 완벽 반영 패치
+       [2] 기능 패치 & UI 수정 (사용자 요청 반영)
        ========================================================== */
     
-    /* [1] 카드 디자인 강제 통일 (폭 100% + 왼쪽 꽉 채우기) */
-    .garmin-card, .workout-item {
-        width: 100% !important; /* 폭 꽉 채우기 */
-        box-sizing: border-box !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-    }
-
-    .w-left, .garmin-card-left { 
-        flex: 1 !important; /* 남은 공간 모두 차지 */
-        min-width: 0 !important; /* 텍스트 말줄임 보장 */
-        gap: 6px !important;
-    }
-    
-    /* [2] 폰트 사이즈 롤백 (거리 숫자 크기 원상복구) */
-    .w-stats span, .garmin-stat {
-        font-size: 14px !important; 
-        font-weight: 900 !important;
-        line-height: 1.2 !important;
-    }
-    .stat-km { font-size: 14px !important; } /* 혹시 모를 잔재 제거 */
-
-    /* [3] 아이콘 시스템 정리 */
-    /* 메인 카드용 햄버거 */
-    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
-    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
-    
-    /* 목록용 화살표 */
-    .w-arrow { 
-        display: block !important; 
-        font-size: 24px !important; 
-        font-weight: 900 !important; 
-        color: #000 !important; 
-        line-height: 1 !important;
-    }
-
-    /* 카드/리스트 오른쪽 버튼 영역 */
-    .garmin-list-btn, .w-arrow-wrap {
-        width: auto !important;
-        height: auto !important;
-        padding: 0 0 0 14px !important;
-        background: transparent !important;
-        border: none !important;
-        cursor: pointer !important;
-        flex-shrink: 0 !important; /* 줄어들지 않음 */
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* ---------------------------------------------------- */
-    /* [기본 필수 스타일]                                   */
-    /* ---------------------------------------------------- */
-    
-    /* RUN 버튼 고정 */
+    /* [RUN 버튼] */
     .run-btn {
         position: fixed !important;
         bottom: 30px !important;
@@ -83,7 +28,7 @@
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
 
-    /* 가민 로그인 화면 */
+    /* [가민 로그인 화면] */
     #garminLoginScreen {
       display: none;
       position: fixed !important;
@@ -98,11 +43,11 @@
     }
     #garminLoginScreen.show { display: flex !important; }
 
-    /* 입력창 스타일 */
+    /* [가민 로그인 입력창] */
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
 
-    /* 하단 고정 로그인 버튼 */
+    /* [가민/스트라바 로그인 버튼] */
     .gc-cta {
       position: fixed !important;
       bottom: 30px !important;
@@ -116,7 +61,7 @@
       margin: 0 !important;
     }
 
-    /* 결과 화면 */
+    /* [결과 화면] */
     .result-screen {
         z-index: 2147483647 !important;
         position: fixed !important;
@@ -144,19 +89,54 @@
     
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
+
+    /* [수정 1] 카드 디자인 통일 (왼쪽 영역 꽉 채우기) */
+    .w-left, .garmin-card-left { 
+        gap: 6px !important; 
+        flex: 1 !important; /* 남은 공간 모두 차지 */
+    }
     
-    /* 날짜 스타일 통일 */
+    /* 날짜 스타일 */
     .w-date, .garmin-date { 
         font-size: 12px !important; 
         font-weight: 900 !important; 
         color: #000;
     }
     
-    /* 스탯 줄 스타일 통일 */
+    /* 스탯 줄 스타일 */
     .w-stats, .garmin-stats { 
         display: flex; 
         align-items: baseline; 
         gap: 14px !important; 
+    }
+    
+    /* [수정 3] 거리 숫자 크기 롤백 (원래대로 14px) */
+    .w-stats span, .garmin-stat {
+        font-size: 14px !important; 
+        font-weight: 900 !important;
+        line-height: 1;
+    }
+    
+    /* [수정 2] 아이콘 구분 (화살표 vs 햄버거) */
+    .w-arrow { 
+        display: block !important; 
+        font-size: 24px !important; 
+        font-weight: 900 !important; 
+        color: #000 !important; 
+    }
+    
+    /* 햄버거 메뉴 (메인 카드용) */
+    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
+    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
+
+    /* 카드 오른쪽 버튼 영역 수정 */
+    .garmin-list-btn {
+        width: auto !important;
+        height: auto !important;
+        padding: 0 0 0 14px !important;
+        border: none;
+        background: transparent;
+        cursor: pointer;
     }
   </style>
 </head>
@@ -821,8 +801,7 @@
       list.forEach((w) => {
         const btn = document.createElement('div'); 
         btn.className = 'workout-item'; 
-        
-        // [UI] 목록용 화살표 아이콘 사용
+        // [UI 수정] 숫자 크기 롤백 & 화살표 복구
         btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
@@ -832,9 +811,7 @@
               <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
           </div>
-          <div class="w-arrow-wrap">
-             <div class="w-arrow">→</div>
-          </div>
+          <div class="w-arrow">→</div>
         `;
         
         btn.onclick = (e) => {
@@ -866,11 +843,12 @@
         applyDataType(); 
         updatePreview(); 
         
-        // 스트라바 데이터 체크
+        // 스트라바 데이터 체크 (없으면 버튼, 있으면 카드)
         if (realStravaWorkouts.length > 0) {
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
              if(el.stravaCard) el.stravaCard.style.display = 'flex';
         } else {
+             // 토큰이 있어도 데이터를 못 가져온 경우 등
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'block';
              if(el.stravaCard) el.stravaCard.style.display = 'none';
         }
