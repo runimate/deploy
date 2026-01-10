@@ -1071,7 +1071,8 @@
         // 1. 로그인 버튼 클릭
         if(el.btnStravaLogin) {
             el.btnStravaLogin.addEventListener('click', () => {
-                window.location.href = '/api/strava/login';
+                const RAILWAY_DOMAIN = "https:/runimate-production.up.railway.app"; 
+                window.location.href = `runimate-production.up.railway.app/api/strava/login`;
             });
         }
 
