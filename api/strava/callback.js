@@ -1,141 +1,81 @@
-import crypto from "crypto";
+// /api/strava/callback.js
+import https from 'https'; // Node.js 내장 모듈 사용 (라이브러리 불필요)
 
-export default async function handler(req, res) {
-  const { code, state } = req.query || {};
+export default function handler(req, res) {
+  // 1. URL에서 code와 state 파싱
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const code = url.searchParams.get('code');
+  const returnedState = url.searchParams.get('state');
 
-  const clientId = process.env.STRAVA_CLIENT_ID;
-  const clientSecret = process.env.STRAVA_CLIENT_SECRET;
-  const redirectUri = process.env.STRAVA_REDIRECT_URI;
-  const sessionSecret = process.env.SESSION_SECRET;
+  // 2. 쿠키에서 내가 보낸 state 가져오기 (CSRF 검증)
+  const cookies = parseCookies(req.headers.cookie);
+  const savedState = cookies.strava_oauth_state;
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    return res.status(500).send("Missing STRAVA env vars");
-  }
-  if (!sessionSecret) {
-    return res.status(500).send("Missing SESSION_SECRET");
-  }
-  if (!code) {
-    return res.status(400).send("Missing code");
+  if (!code || !savedState || returnedState !== savedState) {
+    return res.status(400).send("Invalid state or missing code");
   }
 
-  // state 검증
-  const cookieState = getCookie(req, "strava_oauth_state");
-  if (!cookieState || !state || cookieState !== state) {
-    return res.status(400).send("Invalid state");
-  }
-
-  // code -> token 교환
-  const tokenRes = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: String(clientId),
-      client_secret: String(clientSecret),
-      code: String(code),
-      grant_type: "authorization_code",
-    }),
+  // 3. 토큰 교환 요청 (POST to Strava)
+  const postData = JSON.stringify({
+    client_id: process.env.STRAVA_CLIENT_ID,
+    client_secret: process.env.STRAVA_CLIENT_SECRET,
+    code: code,
+    grant_type: 'authorization_code'
   });
 
-  if (!tokenRes.ok) {
-    const txt = await tokenRes.text();
-    return res.status(500).send(`Token exchange failed: ${txt}`);
-  }
-
-  const tokenJson = await tokenRes.json();
-  const payload = {
-    access_token: tokenJson.access_token,
-    refresh_token: tokenJson.refresh_token,
-    expires_at: tokenJson.expires_at,
+  const options = {
+    hostname: 'www.strava.com',
+    path: '/oauth/token',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': postData.length
+    }
   };
 
-  // 암호화
-  const enc = encryptJSON(payload, sessionSecret);
+  const tokenReq = https.request(options, (tokenRes) => {
+    let data = '';
+    tokenRes.on('data', (chunk) => { data += chunk; });
+    tokenRes.on('end', () => {
+      try {
+        const result = JSON.parse(data);
+        if (result.errors) throw new Error(JSON.stringify(result.errors));
 
-  // 1. 세션 쿠키 저장 (로그인 성공)
-  setCookie(res, "strava_session", enc, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60, // 30일
+        // 4. (중요) 토큰을 브라우저에 전달하며 메인으로 복귀
+        // 여기서는 간단히 URL 뒤에 토큰을 붙여서 홈으로 보냅니다.
+        // 실제 운영 시에는 세션 쿠키에 굽거나 DB에 저장해야 합니다.
+        res.statusCode = 302;
+        res.setHeader('Location', `/?strava_token=${result.access_token}`);
+        res.end();
+
+      } catch (err) {
+        console.error('Token Exchange Error:', err);
+        res.statusCode = 500;
+        res.end("Token exchange failed");
+      }
+    });
   });
 
-  // 2. 임시 state 쿠키 삭제 (중요: setCookie가 덮어쓰지 않도록 수정됨)
-  setCookie(res, "strava_oauth_state", "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-    path: "/",
-    maxAge: 0,
+  tokenReq.on('error', (e) => {
+    console.error(e);
+    res.statusCode = 500;
+    res.end("Network error");
   });
 
-  // 메인 페이지로 돌아가기
-  res.statusCode = 302;
-  res.setHeader("Location", "/?strava=connected");
-  res.end();
+  tokenReq.write(postData);
+  tokenReq.end();
 }
 
-// --- Helpers ---
-
-function getCookie(req, name) {
-  const raw = req.headers.cookie || "";
-  const parts = raw.split(";").map((s) => s.trim());
-  for (const p of parts) {
-    const idx = p.indexOf("=");
-    if (idx < 0) continue;
-    const k = p.slice(0, idx);
-    const v = p.slice(idx + 1);
-    if (k === name) return decodeURIComponent(v);
-  }
-  return null;
-}
-
-// ✅ [수정됨] 기존 헤더를 덮어쓰지 않고 추가하는 방식
-function setCookie(res, name, value, opt = {}) {
-  const parts = [`${name}=${encodeURIComponent(value)}`];
-  if (opt.maxAge != null) parts.push(`Max-Age=${opt.maxAge}`);
-  if (opt.path) parts.push(`Path=${opt.path}`);
-  if (opt.httpOnly) parts.push("HttpOnly");
-  if (opt.secure) parts.push("Secure");
-  if (opt.sameSite) parts.push(`SameSite=${opt.sameSite}`);
-  
-  const cookieString = parts.join("; ");
-  
-  // 기존 Set-Cookie 헤더가 있는지 확인
-  const prev = res.getHeader("Set-Cookie");
-  
-  if (prev) {
-    if (Array.isArray(prev)) {
-      // 배열이면 추가
-      res.setHeader("Set-Cookie", [...prev, cookieString]);
-    } else {
-      // 문자열이면 배열로 변환해서 추가
-      res.setHeader("Set-Cookie", [prev, cookieString]);
-    }
-  } else {
-    // 없으면 그냥 설정
-    res.setHeader("Set-Cookie", cookieString);
-  }
-}
-
-function encryptJSON(obj, secret) {
-  const iv = crypto.randomBytes(12);
-  const key = crypto.createHash("sha256").update(String(secret)).digest();
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  const plaintext = Buffer.from(JSON.stringify(obj), "utf8");
-  const enc = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  return Buffer.concat([iv, tag, enc]).toString("base64");
-}
-
-export function decryptJSON(b64, secret) {
-  const buf = Buffer.from(String(b64), "base64");
-  const iv = buf.subarray(0, 12);
-  const tag = buf.subarray(12, 28);
-  const data = buf.subarray(28);
-  const key = crypto.createHash("sha256").update(String(secret)).digest();
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-  decipher.setAuthTag(tag);
-  const out = Buffer.concat([decipher.update(data), decipher.final()]);
-  return JSON.parse(out.toString("utf8"));
+function parseCookies(cookieHeader) {
+  const list = {};
+  if (!cookieHeader) return list;
+  cookieHeader.split(`;`).forEach(function(cookie) {
+    let [name, ...rest] = cookie.split(`=`);
+    name = name?.trim();
+    if (!name) return;
+    const value = rest.join(`=`).trim();
+    if (!value) return;
+    list[name] = decodeURIComponent(value);
+  });
+  return list;
 }
