@@ -10,10 +10,10 @@
   
   <style>
     /* ==========================================================
-       [기능 패치 & UI 수정]
+       [2] 기능 패치 & UI 수정 (사용자 요청 반영)
        ========================================================== */
     
-    /* [RUN 버튼] - 고정 */
+    /* [RUN 버튼] */
     .run-btn {
         position: fixed !important;
         bottom: 30px !important;
@@ -43,11 +43,12 @@
     }
     #garminLoginScreen.show { display: flex !important; }
 
-    /* [3. 수정됨] 가민 로그인 입력창 Placeholder 색상 변경 (Gray -> Black) */
+    /* [가민 로그인 입력창] */
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
 
-    #btnGarminRealSync.gc-cta {
+    /* [가민/스트라바 로그인 버튼] */
+    .gc-cta {
       position: fixed !important;
       bottom: 30px !important;
       left: 50% !important;
@@ -60,6 +61,7 @@
       margin: 0 !important;
     }
 
+    /* [결과 화면] */
     .result-screen {
         z-index: 2147483647 !important;
         position: fixed !important;
@@ -88,8 +90,11 @@
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
 
-    /* [2. 수정됨] 데이터 카드 UI (Image 2 스타일 적용) */
-    .w-left, .garmin-card-left { gap: 4px !important; }
+    /* [수정 1] 스트라바/가민 카드 디자인 통일 (꽉 차게) */
+    .w-left, .garmin-card-left { 
+        gap: 4px !important; 
+        flex: 1; /* 남은 공간 차지 */
+    }
     
     /* 날짜 스타일 */
     .w-date, .garmin-date { 
@@ -105,27 +110,27 @@
         gap: 12px !important; 
     }
     
-    /* 거리(Km) 강조 스타일 */
-    .stat-km {
-        font-size: 24px !important;
+    /* [수정 3] 거리(Km) 숫자 크기 롤백 (원래 사이즈로) */
+    /* .stat-km 클래스 제거 또는 기본값 사용 */
+    .w-stats span, .garmin-stat {
+        font-size: 14px !important; /* 원래 크기로 복구 */
         font-weight: 900 !important;
-        line-height: 1;
-        letter-spacing: -0.5px;
     }
     
-    /* 페이스 & 시간 스타일 */
-    .stat-sub {
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        line-height: 1;
+    /* [수정 2] 리스트 아이콘 -> 화살표 복구 */
+    .list-icon { display: none !important; } /* 햄버거 숨김 */
+    .w-arrow { 
+        display: block !important; 
+        font-size: 24px !important; 
+        font-weight: 900 !important; 
+        color: #000 !important; 
     }
-
-    /* 햄버거 메뉴 아이콘 */
-    .list-icon {
-        display: flex; flex-direction: column; gap: 4px; padding: 5px;
-    }
-    .list-icon span {
-        display: block; width: 18px; height: 2.5px; background: #000; border-radius: 2px;
+    
+    /* 카드 오른쪽 버튼 영역 수정 */
+    .garmin-list-btn {
+        width: auto !important;
+        height: auto !important;
+        padding: 0 0 0 10px !important;
     }
   </style>
 </head>
@@ -180,13 +185,13 @@
             <div class="garmin-card-left">
               <div class="garmin-date" id="garminDateText">0000.00.00</div>
               <div class="garmin-stats">
-                <span class="stat-km" id="garminDistanceText">00.00Km</span>
-                <span class="stat-sub" id="garminPaceText">0'00"</span>
-                <span class="stat-sub" id="garminTimeText">0:00</span>
+                <span class="garmin-stat" id="garminDistanceText">00.00Km</span>
+                <span class="garmin-stat" id="garminPaceText">0'00"</span>
+                <span class="garmin-stat" id="garminTimeText">0:00</span>
               </div>
             </div>
             <button class="garmin-list-btn" id="btnGarminList" aria-label="Open workout list">
-              <div class="list-icon"><span></span><span></span><span></span></div>
+              <div class="w-arrow">→</div>
             </button>
           </div>
         </div>
@@ -205,13 +210,13 @@
             <div class="garmin-card-left">
               <div class="garmin-date" id="stravaDateText">0000.00.00</div>
               <div class="garmin-stats">
-                <span class="stat-km" id="stravaDistanceText">00.00Km</span>
-                <span class="stat-sub" id="stravaPaceText">0'00"</span>
-                <span class="stat-sub" id="stravaTimeText">0:00</span>
+                <span class="garmin-stat" id="stravaDistanceText">00.00Km</span>
+                <span class="garmin-stat" id="stravaPaceText">0'00"</span>
+                <span class="garmin-stat" id="stravaTimeText">0:00</span>
               </div>
             </div>
             <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
-              <div class="list-icon"><span></span><span></span><span></span></div>
+               <div class="w-arrow">→</div>
             </button>
           </div>
         </div>
@@ -350,28 +355,22 @@
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
-  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
+  <div class="screen-overlay" id="garminLoginScreen" aria-hidden="true">
     <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
     <div class="garmin-login-wrap">
-      <div class="garmin-login-title">
-        <div class="gc-big">GARMIN<br>CONNECT</div>
-        <div class="gc-sub">Sign-In</div>
-      </div>
-      
+      <div class="garmin-login-title"><div class="gc-big">GARMIN<br />CONNECT</div></div>
       <div class="garmin-login-form" style="margin-top: 40px; width: 100%;">
           <input type="email" id="garminEmail" class="gc-input" placeholder="enter your @ email.com">
           <input type="password" id="garminPassword" class="gc-input" placeholder="password">
           <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
       </div>
-
       <div class="gc-note">
         <div class="gc-smile">:)</div>
         <div class="gc-note-text">
             Your Garmin account information is never saved or stored, so you can feel safe using it.
         </div>
       </div>
-      
-      <button id="btnGarminRealSync" type="button" class="gc-cta">Sign-In</button>
+      <button class="gc-cta" id="btnGarminRealSync" type="button">Sign-In</button>
     </div>
   </div>
 
@@ -623,8 +622,10 @@
       if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
       if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
 
+      // [데이터 카드 업데이트 로직]
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
+         
          if(cardSrc && cardSrc.date !== '-') {
              if(state.dataType === 'garmin') {
                  if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
@@ -686,7 +687,6 @@
     // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin'; applyDataType(); updatePreview();
-      // 가민 데이터가 있으면 카드, 없으면 로그인 버튼
       if (realGarminWorkouts.length > 0) { 
           if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
           if(el.garminCard) el.garminCard.style.display = 'flex';
@@ -701,7 +701,6 @@
         openScreen('garminLoginScreen');
     });
 
-    // [수정] 가민 서버 통신 함수
     async function fetchGarminData() {
       const email = $('#garminEmail').value;
       const password = $('#garminPassword').value;
@@ -784,7 +783,7 @@
     
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
-    // [수정] renderWorkoutList - UI (Image 2 스타일) + 화살표를 햄버거 아이콘으로 변경
+    // [수정] renderWorkoutList - 화살표 복구 (햄버거 아이콘 -> 화살표 텍스트)
     function renderWorkoutList(kind = 'garmin') {
       const listContainer = el.workoutList;
       listContainer.innerHTML = ''; 
@@ -796,17 +795,17 @@
       list.forEach((w) => {
         const btn = document.createElement('div'); 
         btn.className = 'workout-item'; 
-        // [UI 수정] Image 2 스타일 구조
+        // [UI 수정] 숫자 크기 롤백 & 화살표 복구
         btn.innerHTML = `
           <div class="w-left">
             <div class="w-date">${w.date}</div>
             <div class="w-stats">
-              <span class="stat-km">${fmtKmPreview(w.km)}</span>
-              <span class="stat-sub">${fmtPaceResult(w.paceSec)}</span>
-              <span class="stat-sub">${fmtTimeResult(w.timeSec)}</span>
+              <span>${fmtKmPreview(w.km)}</span>
+              <span>${fmtPaceResult(w.paceSec)}</span>
+              <span>${fmtTimeResult(w.timeSec)}</span>
             </div>
           </div>
-          <div class="list-icon"><span></span><span></span><span></span></div>
+          <div class="w-arrow">→</div>
         `;
         
         btn.onclick = (e) => {
@@ -1079,10 +1078,12 @@
       const lockWidth = (el) => {
         if(!el) return;
         const w = el.getBoundingClientRect().width; 
-        el.style.width = w + 'px';
-        el.style.display = 'inline-block';
-        el.style.whiteSpace = 'nowrap';
-        el.style.textAlign = 'left';
+        if(w > 0) {
+            el.style.width = w + 'px';
+            el.style.display = 'inline-block';
+            el.style.whiteSpace = 'nowrap';
+            el.style.textAlign = 'left';
+        }
       };
 
       lockWidth(rvDistance);
@@ -1135,7 +1136,7 @@
       requestAnimationFrame(frame);
     }
 
-    if(el.btnRun) el.btnRun.addEventListener('click', () => {
+    el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM();
        openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
@@ -1191,18 +1192,18 @@
                  realStravaWorkouts = json.data;
                  
                  if(realStravaWorkouts.length > 0) {
-                     // [1. 수정] 자동 선택 제거 -> state만 갱신
-                     // state.strava = realStravaWorkouts[0]; (X)
+                     state.strava = realStravaWorkouts[0];
                      state.dataType = 'strava';
                      
-                     // 로그인 오버레이 닫고, 리스트 팝업 열기
-                     closeScreen('stravaLoginScreen');
+                     // UI 전환 (버튼 숨김 -> 카드 보임)
+                     if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
+                     if(el.stravaCard) el.stravaCard.style.display = 'flex';
                      
-                     // [1. 핵심] 리스트 렌더링 후 선택 화면 띄우기
+                     // [중요] 로그인 화면 닫고, 리스트 화면 띄우기
+                     closeScreen('stravaLoginScreen');
                      renderWorkoutList('strava');
                      openScreen('garminSelectScreen');
                      
-                     // 미리보기는 업데이트하지만 아직 선택된 것은 아님
                      applyDataType();
                      updatePreview();
                  } else {
