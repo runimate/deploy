@@ -1064,15 +1064,18 @@
            });
         });
 
-        // -----------------------------------------------------------
-        // [STRAVA LOGIC - FINAL VERSION]
+       // -----------------------------------------------------------
+        // [STRAVA LOGIC - FIXED VERSION]
         // -----------------------------------------------------------
         
+        // [중요] Railway 서버 주소 (가민과 동일하게 통일)
+        const RAILWAY_SERVER_URL = "https://garmin-server-production.up.railway.app"; 
+
         // 1. 로그인 버튼 클릭
         if(el.btnStravaLogin) {
             el.btnStravaLogin.addEventListener('click', () => {
-                const RAILWAY_DOMAIN = "https:/runimate-production.up.railway.app"; 
-                window.location.href = 'https://runimate-production.up.railway.app/api/strava/login';
+                // 서버의 로그인 주소로 이동
+                window.location.href = `${RAILWAY_SERVER_URL}/api/strava/login`;
             });
         }
 
@@ -1082,7 +1085,7 @@
             const token = params.get('strava_token');
 
             if (token) {
-                // 주소창 깔끔하게
+                // 주소창 깔끔하게 (토큰 숨기기)
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
                 // 데이터 가져오기 시작
@@ -1092,11 +1095,19 @@
         
         async function fetchStravaData(token) {
              // 로딩 표시
-             el.btnStravaLogin.innerText = "Loading activities...";
-             el.btnStravaLogin.style.opacity = "0.7";
+             if(el.btnStravaLogin) {
+                 el.btnStravaLogin.innerText = "Loading activities...";
+                 el.btnStravaLogin.style.opacity = "0.7";
+             }
              
              try {
-                 const res = await fetch(`/api/strava/activities?token=${token}`);
+                 // [수정 핵심] 1. Railway 전체 주소 사용  2. POST 방식 사용  3. JSON 본문 전송
+                 const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava/activities`, {
+                     method: "POST",
+                     headers: { "Content-Type": "application/json" },
+                     body: JSON.stringify({ token: token }) 
+                 });
+                 
                  const json = await res.json();
                  
                  if(json.success) {
@@ -1108,8 +1119,8 @@
                          state.dataType = 'strava';
                          
                          // UI 전환 (버튼 숨김 -> 카드 보임)
-                         el.stravaConnectBtnWrap.style.display = 'none';
-                         el.stravaCard.style.display = 'flex';
+                         if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
+                         if(el.stravaCard) el.stravaCard.style.display = 'flex';
                          
                          // 화면 업데이트
                          applyDataType();
@@ -1120,13 +1131,15 @@
                          el.btnStravaLogin.style.opacity = "1";
                      }
                  } else {
-                     throw new Error(json.msg);
+                     throw new Error(json.message || "Server Error");
                  }
              } catch(err) {
                  console.error(err);
                  alert("데이터 불러오기 실패: " + err.message);
-                 el.btnStravaLogin.innerText = "Connect with Strava";
-                 el.btnStravaLogin.style.opacity = "1";
+                 if(el.btnStravaLogin) {
+                     el.btnStravaLogin.innerText = "Connect with Strava";
+                     el.btnStravaLogin.style.opacity = "1";
+                 }
              }
         }
         
@@ -1141,7 +1154,6 @@
                  openScreen('garminSelectScreen'); 
             });
         }
-
         // --- INITIALIZE ---
         function initDefaults() {
            applyUIConfigToRoot(state);
