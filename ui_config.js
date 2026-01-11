@@ -33,11 +33,11 @@ export const UI_CONFIG = {
       // Monthly Type 2 (상단 강조 + 하단 가로 나열)
       m2: {
         monthSize: 14,
-        distanceSize: 48,
+        distanceSize: 52,
         monthToDistGap: 0,
         distToStatsGap: 10,
         statsLabelSize: 12,
-        statsValueSize: 18,
+        statsValueSize: 10,
         statsLvGap: 4,
         statsColGap: 30       // 하단 스탯 아이템 간의 좌우 간격
       }
@@ -72,7 +72,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 28, labelToValueGap: 4, stackGap: 22 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 16, distanceSize: 42, monthToDistGap: 8, distToStatsGap: 10, statsLabelSize: 10, statsValueSize: 18, statsLvGap: 0, statsColGap: 24 }
+      m2: { monthSize: 16, distanceSize: 52, monthToDistGap: 8, distToStatsGap: -10, statsLabelSize: 10, statsValueSize: 18, statsLvGap: -5, statsColGap: 24 }
     }
   }
 };
