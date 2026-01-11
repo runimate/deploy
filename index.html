@@ -32,12 +32,19 @@
        ---------------------------------------------------- */
     /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
-        font-family: inherit !important;
+        font-family: inherit !important; /* 기본은 선택된 폰트 상속 */
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
+    
+    /* [수정 1] Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
+    .font-anton .result-label {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        font-weight: 900 !important;
+    }
+
     .result-value, .data-value {
         font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
