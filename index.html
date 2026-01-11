@@ -40,7 +40,7 @@
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     
-    /* Anton 폰트 선택 시, Daily 라벨은 무조건 Inter 900 적용 */
+    /* [수정 1] Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
     .font-anton .result-label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         font-weight: 900 !important;
@@ -49,10 +49,9 @@
     .result-value, .data-value {
         font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
-        line-height: 0.9;
+        line-height: 1; /* 잘림 방지용 높이 확보 */
         font-weight: 900;
-        /* [중요] 텍스트 잘림 방지 */
-        white-space: nowrap !important;
+        white-space: nowrap !important; /* 줄바꿈 방지 */
     }
     
     /* [D1] Daily Type 1 (세로 스택) */
@@ -83,9 +82,7 @@
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; flex-direction: column; 
-        align-items: flex-start !important; /* 좌측 정렬 */
-        width: 100%;
+        display: flex; flex-direction: column; align-items: flex-start !important; width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -95,7 +92,6 @@
     .m1-distance .m1-distance-value {
         font-size: var(--ui-distance-size) !important;
         font-weight: 900; line-height: 0.9;
-        white-space: nowrap !important;
     }
     .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     .m1-stack {
@@ -113,13 +109,10 @@
         font-size: var(--ui-label-size) !important; 
         margin-right: var(--ui-label-to-value-gap) !important; 
         margin-bottom: 0 !important; 
-        font-family: 'Inter', sans-serif !important;
-        font-weight: 900 !important;
     }
     .m1-item .m-value { 
         font-size: var(--ui-value-size) !important; 
         font-weight: 900; 
-        white-space: nowrap !important;
     }
 
     /* [M2] Monthly Type 2 (상단 + 하단 가로) */
@@ -134,11 +127,10 @@
     .m2-distance .m2-distance-value {
         font-size: var(--ui-distance-size) !important;
         font-weight: 900; line-height: 0.9;
-        white-space: nowrap !important;
     }
     .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     
-    /* [M2] Flex로 간격 제어 */
+    /* [M2 수정] Grid -> Flex (간격 제어) */
     .m2-row {
         display: flex !important; 
         flex-direction: row;
@@ -155,26 +147,24 @@
         font-size: var(--ui-label-size) !important; 
         margin-bottom: var(--ui-label-to-value-gap) !important;
     }
-    .m2-row .data-value { font-size: var(--ui-value-size) !important; white-space: nowrap !important; }
+    .m2-row .data-value { font-size: var(--ui-value-size) !important; }
 
     /* ----------------------------------------------------
-       [기존 필수 스타일 및 오버레이 수정]
+       [기존 필수 스타일]
        ---------------------------------------------------- */
-    /* [중요] 모든 오버레이 기본 숨김 처리 (버튼 클릭 방해 해결) */
+    /* [수정] 오버레이 기본 숨김 처리 (버튼 클릭 가능하게) */
     .screen-overlay, .modal-overlay, .result-screen {
         display: none;
         position: fixed !important; top: 0; left: 0; bottom: 0; right: 0;
         width: 100%; height: 100%;
-        z-index: 9999;
+        z-index: 99999;
     }
-    
-    /* .show 클래스가 붙으면 보이기 */
+    /* .show 클래스 추가 시 표시 */
     .screen-overlay.show, .modal-overlay.show, .result-screen.show {
         display: flex !important;
         align-items: center; justify-content: center;
     }
-
-    /* Result Screen 특수 스타일 */
+    /* 결과 화면 배경색 지정 */
     .result-screen {
         background: #fff;
         z-index: 2147483647 !important;
@@ -221,7 +211,6 @@
       background-color: var(--garmin, #76B6FF) !important; 
       flex-direction: column; overflow-y: auto; padding-bottom: 120px !important; 
     }
-    
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
     .gc-cta {
@@ -495,9 +484,7 @@
       </div>
       <div class="gc-note">
         <div class="gc-smile">:)</div>
-        <div class="gc-note-text">
-            Your Garmin account information is never saved or stored, so you can feel safe using it.
-        </div>
+        <div class="gc-note-text">Your Garmin account information is never saved or stored.</div>
       </div>
       <button class="gc-cta" id="btnGarminRealSync" type="button">Sign-In</button>
     </div>
@@ -506,26 +493,15 @@
   <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
     <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
     <div class="garmin-login-wrap">
-      <div class="garmin-login-title">
-        <div class="gc-big">STRAVA</div>
-        <div class="gc-sub">Connect</div>
-      </div>
-      <div class="gc-note">
-        <div class="gc-smile">:)</div>
-        <div class="gc-note-text">
-          Your Strava account information is never saved or stored, so you can feel safe using it.
-        </div>
-      </div>
+      <div class="garmin-login-title"><div class="gc-big">STRAVA</div><div class="gc-sub">Connect</div></div>
+      <div class="gc-note"><div class="gc-smile">:)</div><div class="gc-note-text">Your Strava account information is never saved or stored.</div></div>
       <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
     </div>
   </div>
 
   <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
     <button class="screen-close" data-close="garminSelectScreen" aria-label="Close">×</button>
-    <div class="select-wrap">
-      <div class="select-title">Select<br />Workout</div>
-      <div class="select-list" id="workoutList"></div>
-    </div>
+    <div class="select-wrap"><div class="select-title">Select<br />Workout</div><div class="select-list" id="workoutList"></div></div>
   </div>
 
   <div class="modal-overlay" id="modalOverlay">
@@ -652,7 +628,6 @@
       dataTabsDaily: $('#dataTabsDaily'),
       dataEmpty: $('#dataEmpty'),
       tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-      // Monthly 탭 컨테이너 제거됨
       contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
       
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
@@ -1141,24 +1116,24 @@
       }
     }
 
-    // [핵심] 결과 화면 너비 동기화 (프리뷰 기준)
+    // [중요 수정] Result 너비 동기화 (프리뷰 기준)
     function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      // Helper to copy width
+      // Helper to copy width + extra spacing
       const syncWidth = (rvEl, pvId) => {
           if (!rvEl) return;
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
-              const rect = pvEl.getBoundingClientRect();
-              const w = rect.width;
+              const w = pvEl.getBoundingClientRect().width; 
               if (w > 0) {
-                  // [중요] 너비를 고정하고, +10px 여유를 주어 'Km' 잘림 방지
-                  rvEl.style.width = (Math.ceil(w) + 10) + 'px';
-                  rvEl.style.minWidth = (Math.ceil(w) + 10) + 'px';
+                  // [수정 핵심] +10px 여유를 주어 간격 밀림 및 텍스트 잘림 방지
+                  const fixedWidth = Math.ceil(w) + 10;
+                  rvEl.style.width = fixedWidth + 'px';
+                  rvEl.style.minWidth = fixedWidth + 'px';
                   rvEl.style.display = 'inline-block';
                   rvEl.style.whiteSpace = 'nowrap';
                   rvEl.style.textAlign = 'left';
@@ -1192,7 +1167,8 @@
     }
 
     function animateAll(target) {
-      const locker = lockFitResultTransforms(target, state); // Pass state
+      // Pass state to lock function
+      const locker = lockFitResultTransforms(target, state);
       locker.resetToStart();
       
       const hold = 500; 
