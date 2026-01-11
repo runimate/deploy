@@ -7,10 +7,10 @@ export const UI_CONFIG = {
     anton: {
       // Daily Type 1 (세로 스택)
       d1: {
-        labelSize: 12,        
+        labelSize: 14,        
         valueSize: 34,        
         labelToValueGap: 6,   
-        stackGap: 18          
+        stackGap: 20          
       },
       // Daily Type 2 (가로 나열)
       d2: {
@@ -23,11 +23,11 @@ export const UI_CONFIG = {
       m1: {
         monthSize: 16,        
         distanceSize: 44,     
-        monthToDistGap: 4,    
+        monthToDistGap: 8,    
         distToStatsGap: 10,   
         statsLabelSize: 12,   
         statsValueSize: 24,   
-        statsLvGap: 8,        
+        statsLvGap: 20,        
         statsStackGap: 14     
       },
       // Monthly Type 2 (상단 강조 + 하단 가로 나열)
@@ -45,7 +45,7 @@ export const UI_CONFIG = {
 
     // 2. DOTS 폰트
     dots: {
-      d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
+      d1: { labelSize: 14, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 5, statsLabelSize: 16, statsValueSize: 24, statsLvGap: 4, statsColGap: 20 }
@@ -53,7 +53,7 @@ export const UI_CONFIG = {
 
     // 3. LCD 폰트
     lcd: {
-      d1: { labelSize: 12, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
+      d1: { labelSize: 15, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 30, statsLvGap: 2, statsColGap: 30 }
@@ -69,7 +69,7 @@ export const UI_CONFIG = {
 
     // 5. SPEED 폰트
     speed: {
-      d1: { labelSize: 12, valueSize: 28, labelToValueGap: 4, stackGap: 22 },
+      d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 22 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 10, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 8, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 28, statsLvGap: 4, statsColGap: 24 }
