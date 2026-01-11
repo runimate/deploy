@@ -9,7 +9,7 @@ export const UI_CONFIG = {
       d1: {
         labelSize: 12,        
         valueSize: 34,        
-        labelToValueGap: 0,   
+        labelToValueGap: 6,   
         stackGap: 18          
       },
       // Daily Type 2 (가로 나열)
@@ -17,27 +17,27 @@ export const UI_CONFIG = {
         labelSize: 12,
         valueSize: 28,
         labelToValueGap: 8,
-        colGap: 20            
+        colGap: 28           
       },
       // Monthly Type 1 (상단 강조 + 하단 세로 스택)
       m1: {
-        monthSize: 14,        
-        distanceSize: 48,     
-        monthToDistGap: 0,    
-        distToStatsGap: 20,   
+        monthSize: 16,        
+        distanceSize: 44,     
+        monthToDistGap: 4,    
+        distToStatsGap: 10,   
         statsLabelSize: 12,   
         statsValueSize: 24,   
-        statsLvGap: 4,        
+        statsLvGap: 8,        
         statsStackGap: 14     
       },
       // Monthly Type 2 (상단 강조 + 하단 가로 나열)
       m2: {
         monthSize: 14,
-        distanceSize: 52,
-        monthToDistGap: 0,
+        distanceSize: 48,
+        monthToDistGap: 4,
         distToStatsGap: 10,
         statsLabelSize: 12,
-        statsValueSize: 10,
+        statsValueSize: 22,
         statsLvGap: 4,
         statsColGap: 30       
       }
@@ -46,9 +46,9 @@ export const UI_CONFIG = {
     // 2. DOTS 폰트
     dots: {
       d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 24, labelToValueGap: 0, colGap: 18 },
+      d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 20, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 10, statsLabelSize: 10, statsValueSize: 16, statsLvGap: 0, statsColGap: 18 }
+      m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 5, statsLabelSize: 16, statsValueSize: 24, statsLvGap: 4, statsColGap: 20 }
     },
 
     // 3. LCD 폰트
@@ -56,23 +56,23 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 18, statsLvGap: -4, statsColGap: 30 }
+      m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 30, statsLvGap: 2, statsColGap: 30 }
     },
 
     // 4. GOTHIC 폰트
     gothic: {
-      d1: { labelSize: 12, valueSize: 24, labelToValueGap: 4, stackGap: 25 },
-      d2: { labelSize: 9, valueSize: 18, labelToValueGap: 0, colGap: 20 },
+      d1: { labelSize: 12, valueSize: 30, labelToValueGap: 4, stackGap: 25 },
+      d2: { labelSize: 12, valueSize: 18, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 2, statsValueSize: 5, statsLvGap: 0, statsColGap: 24 }
+      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 16, statsValueSize: 20, statsLvGap: 4, statsColGap: 24 }
     },
 
     // 5. SPEED 폰트
     speed: {
       d1: { labelSize: 12, valueSize: 28, labelToValueGap: 4, stackGap: 22 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
-      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 16, distanceSize: 52, monthToDistGap: 8, distToStatsGap: -10, statsLabelSize: 10, statsValueSize: 10, statsLvGap: -5, statsColGap: 24 }
+      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 10, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 8, statsStackGap: 14 },
+      m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 28, statsLvGap: 4, statsColGap: 24 }
     }
   }
 };
