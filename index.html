@@ -132,7 +132,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        align-items: flex-start; 
+        align-items: flex-start; /* 좌측 정렬 */
     }
     .m2-month-line {
         font-size: var(--ui-month-size) !important;
@@ -142,29 +142,28 @@
     .m2-distance .m2-distance-value {
         font-size: var(--ui-distance-size) !important;
         font-weight: 900;
-        line-height: 0.9;
+        line-height: 1;
     }
     .m2-distance {
         margin-bottom: var(--ui-dist-to-stats-gap) !important;
     }
+    
+    /* [수정] Grid(3등분) -> Flex(일정 간격)로 변경 */
     .m2-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important;
+        display: flex !important; 
+        flex-direction: row;
+        justify-content: flex-start; /* 왼쪽부터 나열 */
+        gap: var(--ui-col-gap) !important; /* ui_config.js에서 설정한 간격 적용 */
         width: 100%;
     }
     .m2-row .data-item {
         display: flex;
         flex-direction: column;
-        gap: 0 !important; /* [수정] gap 제거 */
+        gap: var(--ui-label-to-value-gap) !important;
+        flex: 0 0 auto; /* 내용물 크기만큼만 차지 */
     }
-    .m2-row .data-label { 
-        font-size: var(--ui-label-size) !important; 
-        margin-bottom: var(--ui-label-to-value-gap) !important;
-    }
-    .m2-row .data-value { 
-        font-size: var(--ui-value-size) !important; 
-    }
+    .m2-row .data-label { font-size: var(--ui-label-size) !important; }
+    .m2-row .data-value { font-size: var(--ui-value-size) !important; }
 
     /* ----------------------------------------------------
        [기존 필수 스타일]
