@@ -36,7 +36,6 @@
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
-        /* gap 대신 마진 사용 */
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     .result-value, .data-value {
@@ -76,7 +75,7 @@
     .monthly-type1 {
         display: flex; 
         flex-direction: column; 
-        /* [수정 2] center -> flex-start (날짜 포함 전체 좌측 정렬) */
+        /* [수정] 중앙 정렬 해제 -> 좌측 정렬 */
         align-items: flex-start !important; 
         width: 100%;
     }
@@ -90,13 +89,12 @@
         font-weight: 900; line-height: 0.9;
     }
     .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
+    
     .m1-stack {
         display: flex; flex-direction: column;
         gap: var(--ui-stack-gap) !important; width: 100%;
         align-items: flex-start !important;
     }
-    
-    /* [M1] 하단 아이템 (가로 배치) */
     .m1-item {
         display: flex; flex-direction: row; 
         justify-content: flex-start !important; 
@@ -128,18 +126,18 @@
     }
     .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     
-    /* [수정 1] Grid -> Flex 변경 (ui_config.js 간격 제어 정상화) */
+    /* [M2 수정] Grid -> Flex (간격 제어) */
     .m2-row {
         display: flex !important; 
         flex-direction: row;
-        justify-content: flex-start; /* 왼쪽 정렬 */
-        gap: var(--ui-col-gap) !important; /* 설정한 간격만큼만 떨어짐 */
+        justify-content: flex-start; 
+        gap: var(--ui-col-gap) !important; 
         width: 100%;
     }
     .m2-row .data-item {
         display: flex; flex-direction: column;
         gap: 0 !important; 
-        flex: 0 0 auto; /* 내용물 크기만큼만 차지 */
+        flex: 0 0 auto; 
     }
     .m2-row .data-label { 
         font-size: var(--ui-label-size) !important; 
@@ -216,28 +214,53 @@
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
 
-    /* 탭 스타일 */
+    /* 탭 스타일 수정: 3등분 + 간격 */
     .data-tabs { 
-        display: flex; width: 100%; gap: 10px !important;
+        display: flex; 
+        width: 100%; 
+        gap: 10px !important; /* 탭 사이 간격 */
     }
-    .data-tab { flex: 1; text-align: center; }
+    .data-tab { 
+        flex: 1; /* 균등 분할 */
+        text-align: center;
+    }
+    
+    /* Manual 탭 제어 */
     .data-tab.manual-hidden { display: none !important; }
     .data-tab.manual-show { display: block !important; }
+    
+    /* 버전 텍스트 */
     .version { cursor: pointer; user-select: none; }
 
     /* 월 선택 버튼 스타일 */
     .month-block {
-        width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
     }
     .month-label {
-        font-size: 12px; font-weight: 700; opacity: 0.6; margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0.6;
+        margin-bottom: 8px;
     }
     .month-btn {
-        background: #fff; border: 2px solid #000; border-radius: 30px;
-        font-size: 16px; font-weight: 700; color: #000; cursor: pointer;
-        padding: 10px 24px; transition: transform 0.1s;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #000;
+        cursor: pointer;
+        padding: 10px 24px;
+        transition: transform 0.1s;
     }
-    .month-btn:active { transform: scale(0.97); }
+    .month-btn:active {
+        transform: scale(0.97);
+    }
   </style>
 </head>
 
@@ -1182,9 +1205,9 @@
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
-              <div class="m1-item"><div class="result-label">RUNS</div><div class="result-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="result-label">PACE</div><div class="result-value"><span id="rvPace"></span></div></div>
-              <div class="m1-item"><div class="result-label">TIME</div><div class="result-value"><span id="rvTime"></span></div></div>
+              <div class="m1-item"><div class="m-label">RUNS</div><div class="m-value"><span id="rvRuns"></span></div></div>
+              <div class="m1-item"><div class="m-label">PACE</div><div class="m-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="m-label">TIME</div><div class="m-value"><span id="rvTime"></span></div></div>
             </div>
           `;
         } else {
