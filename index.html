@@ -68,6 +68,10 @@
         text-align: center !important; 
         display: block; /* Flex 제거 */
     }
+    /* 내부 버튼 인라인 블록 유지 */
+    #garminConnectBtnWrap button, #stravaConnectBtnWrap button {
+        display: inline-block;
+    }
 
     /* ---------------------------------------------------- */
     /* [기본 필수 스타일]                                   */
@@ -195,7 +199,7 @@
 
         <div class="data-empty" id="dataEmpty"></div>
 
-            <div class="data-content" id="contentGarmin" style="display:none;">
+        <div class="data-content" id="contentGarmin" style="display:none;">
           <div id="garminConnectBtnWrap">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
                Connect to load your activities
@@ -222,11 +226,12 @@
 
         <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap">
-             <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500;">
-               Connect to load your activities
+             <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500; line-height: 1.5;">
+               Strava integration — coming soon.<br>
+               Currently in discussion with Strava.
              </div>
-             <button id="btnStravaLogin" style="background: #000; color: #fb4c02; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
-               Connect with Strava
+             <button id="btnStravaLogin" disabled style="background: #E5E5E5; color: #999; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: not-allowed;">
+               coming soon.
              </button>
           </div>
 
@@ -611,7 +616,6 @@
       
       if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
-      // [수정] Strava도 block으로 통일 (정렬 문제 해결)
       if (state.dataType === 'garmin') el.contentGarmin.style.display = 'block';
       else if (state.dataType === 'strava') el.contentStrava.style.display = 'block';
       else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
@@ -865,11 +869,12 @@
         applyDataType(); 
         updatePreview(); 
         
-        // 스트라바 데이터 체크
+        // 스트라바 데이터 체크 (없으면 버튼, 있으면 카드)
         if (realStravaWorkouts.length > 0) {
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
              if(el.stravaCard) el.stravaCard.style.display = 'flex';
         } else {
+             // 토큰이 있어도 데이터를 못 가져온 경우 등
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'block';
              if(el.stravaCard) el.stravaCard.style.display = 'none';
         }
@@ -1105,12 +1110,10 @@
       const lockWidth = (el) => {
         if(!el) return;
         const w = el.getBoundingClientRect().width; 
-        if(w > 0) {
-            el.style.width = w + 'px';
-            el.style.display = 'inline-block';
-            el.style.whiteSpace = 'nowrap';
-            el.style.textAlign = 'left';
-        }
+        el.style.width = w + 'px';
+        el.style.display = 'inline-block';
+        el.style.whiteSpace = 'nowrap';
+        el.style.textAlign = 'left';
       };
 
       lockWidth(rvDistance);
@@ -1167,12 +1170,7 @@
        const targetData = buildResultDOM();
        openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
-       
-       requestAnimationFrame(() => {
-           requestAnimationFrame(() => {
-               animateAll(targetData);
-           });
-       });
+       animateAll(targetData);
     });
 
     // -----------------------------------------------------------
@@ -1185,7 +1183,7 @@
     // 1. 로그인 버튼 클릭
     if(el.btnStravaLogin) {
         el.btnStravaLogin.addEventListener('click', () => {
-            window.location.href = `${RAILWAY_SERVER_URL}/api/strava/login`;
+            // window.location.href = `${RAILWAY_SERVER_URL}/api/strava/login`;
         });
     }
 
