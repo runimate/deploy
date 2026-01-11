@@ -64,7 +64,7 @@ export const UI_CONFIG = {
       d1: { labelSize: 12, valueSize: 24, labelToValueGap: 4, stackGap: 25 },
       d2: { labelSize: 9, valueSize: 18, labelToValueGap: 0, colGap: 20 },
       m1: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 6, statsValueSize: 14, statsLvGap: 0, statsColGap: 24 }
+      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 2, statsValueSize: 5, statsLvGap: 0, statsColGap: 24 }
     },
 
     // 5. SPEED 폰트
