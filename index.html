@@ -51,6 +51,8 @@
         font-size: var(--ui-value-size) !important;
         line-height: 0.9;
         font-weight: 900;
+        /* [중요] 텍스트 잘림 방지 */
+        white-space: nowrap !important;
     }
     
     /* [D1] Daily Type 1 (세로 스택) */
@@ -81,7 +83,9 @@
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; flex-direction: column; align-items: flex-start !important; width: 100%;
+        display: flex; flex-direction: column; 
+        align-items: flex-start !important; /* 좌측 정렬 */
+        width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -308,7 +312,7 @@
         <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500; line-height: 1.5;">
-               Strava integration — coming soon.<br>
+               Strava integration<br>
                Currently in discussion with Strava.
              </div>
              <button id="btnStravaLogin" disabled style="background: #E5E5E5; color: #999; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: not-allowed;">
@@ -576,7 +580,7 @@
       let need = 1;
       arr.forEach(sp => {
         sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
-        const w = sp.parentElement?.clientWidth; const sw = span.scrollWidth;
+        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
         if (w && sw > w) need = Math.min(need, w / sw);
       });
       return Math.max(minScale, Math.min(1, need));
@@ -1061,93 +1065,9 @@
       });
     }
 
-    // --- EVENTS ---
-    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-       b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
-    });
-
-    // --- MONTHLY & MANUAL ---
-    if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
-    if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
-        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
-        buildMonthGrid(); 
-        openScreen('monthPickerScreen');
-    });
-
-    function buildMonthGrid() {
-      el.monthGrid.innerHTML = '';
-      for (let i = 1; i <= 12; i++) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'month-cell';
-        b.textContent = monthNameCap(i);
-        if(i === state.monthly.month) b.classList.add('active');
-        b.addEventListener('click', () => {
-          state.monthly.month = i;
-          updatePreview();
-          closeScreen('monthPickerScreen');
-        });
-        el.monthGrid.appendChild(b);
-      }
-    }
-    if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => {
-      state.monthly.year -= 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => {
-      state.monthly.year += 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-
-    el.chipDistance.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'DISTANCE';
-      el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
-      el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
-    });
-    el.chipPace.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'PACE';
-      el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
-      el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
-    });
-    el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
-    
-    function recalcManualTime() {
-        if(state.manual.km > 0 && state.manual.paceSec > 0) {
-            state.manual.timeSec = state.manual.km * state.manual.paceSec;
-            if($('#manualTimeText')) $('#manualTimeText').textContent = fmtTimePreview(state.manual.timeSec);
-            updatePreview();
-        }
-    }
-
-    el.formDistance.addEventListener('submit', (e) => {
-      e.preventDefault(); const val = parseFloat(el.inputDistance.value);
-      if (!isNaN(val)) { 
-          state.manual.km = val; 
-          el.manualDistanceText.textContent = val.toFixed(2); 
-          recalcManualTime(); 
-          closeScreen('modalOverlay'); 
-      }
-    });
-    el.formPace.addEventListener('submit', (e) => {
-      e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
-      const total = m * 60 + s;
-      if (total > 0) { 
-          state.manual.paceSec = total; 
-          el.manualPaceText.textContent = fmtPacePreview(total); 
-          recalcManualTime(); 
-          closeScreen('modalOverlay'); 
-      }
-    });
-
     // --- RUN BUTTON: Result & Animate ---
+    // [중요 로직] 애니메이션 실행 시 레이아웃 고정
+    
     function buildResultDOM() {
       el.resultWrap.className = `result-wrap ${state.layout}`;
       
@@ -1203,7 +1123,7 @@
       }
     }
 
-    // [중요 수정] Result 너비 동기화 (프리뷰 기준)
+    // [핵심 기능] 프리뷰의 너비를 결과 화면에 강제로 적용하여 레이아웃 고정
     function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
@@ -1215,11 +1135,16 @@
           if (!rvEl) return;
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
-              const w = pvEl.getBoundingClientRect().width; 
-              rvEl.style.width = w + 'px';
-              rvEl.style.display = 'inline-block';
-              rvEl.style.whiteSpace = 'nowrap';
-              rvEl.style.textAlign = 'left';
+              const rect = pvEl.getBoundingClientRect();
+              const w = rect.width;
+              if (w > 0) {
+                  // 너비 고정 (+5px 여유) - 글자 잘림 방지 및 간격 유지
+                  rvEl.style.width = (Math.ceil(w) + 5) + 'px';
+                  rvEl.style.minWidth = (Math.ceil(w) + 5) + 'px';
+                  rvEl.style.display = 'inline-block';
+                  rvEl.style.whiteSpace = 'nowrap';
+                  rvEl.style.textAlign = 'left';
+              }
           }
       };
 
