@@ -62,7 +62,7 @@ export const UI_CONFIG = {
     // 4. GOTHIC 폰트
     gothic: {
       d1: { labelSize: 12, valueSize: 28, labelToValueGap: 6, stackGap: 24 },
-      d2: { labelSize: 10, valueSize: 18, labelToValueGap: 4, colGap: 24 },
+      d2: { labelSize: 10, valueSize: 18, labelToValueGap: 4, colGap: 26 },
       m1: { monthSize: 14, distanceSize: 34, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 10, statsStackGap: 14 },
       m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 6, statsColGap: 32 }
     },
