@@ -14,10 +14,10 @@ export const UI_CONFIG = {
       },
       // Daily Type 2 (가로 나열)
       d2: {
-        labelSize: 10,
-        valueSize: 30,
+        labelSize: 12,
+        valueSize: 28,
         labelToValueGap: 10,
-        colGap: 36           
+        colGap: 30           
       },
       // Monthly Type 1 (상단 강조 + 하단 세로 스택)
       m1: {
