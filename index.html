@@ -593,6 +593,9 @@
     function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
     
     // --- STATE ---
+// --- STATE ---
+    const today = new Date(); // [추가] 현재 날짜 가져오기
+
     const state = {
       recordType: 'daily',
       dataType: null,     
@@ -600,7 +603,8 @@
       layout: 'type1',    
       bg: 'white',        
       daily: { km: 0, paceSec: 0, timeSec: 0 },
-      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: 12, year: 2025 },
+      // [수정] month와 year를 오늘 날짜 기준으로 설정 (월은 0부터 시작하므로 +1)
+      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
       garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       strava: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       manual: { km: 0, paceSec: 0, timeSec: 0 }
