@@ -9,8 +9,8 @@ export const UI_CONFIG = {
       d1: {
         labelSize: 12,        // 라벨(DISTANCE 등) 크기
         valueSize: 34,        // 데이터 숫자 크기
-        labelToValueGap: 10,   // 라벨과 숫자 사이 간격 (상하)
-        stackGap: 30          // 데이터 덩어리들 간의 간격 (상하)
+        labelToValueGap: 0,   // 라벨과 숫자 사이 간격 (상하)
+        stackGap: 18          // 데이터 덩어리들 간의 간격 (상하)
       },
       // Daily Type 2 (가로 나열)
       d2: {
