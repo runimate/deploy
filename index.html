@@ -30,6 +30,7 @@
     /* ----------------------------------------------------
        [PREVIEW & RESULT 레이아웃]
        ---------------------------------------------------- */
+
     /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
         font-family: inherit !important; /* 기본은 선택된 폰트 상속 */
@@ -42,14 +43,14 @@
     /* [수정 1] Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
     .font-anton .result-label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        font-weight: 800 !important;
+        font-weight: 900 !important;
     }
 
     .result-value, .data-value {
         font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
         line-height: 0.9;
-        font-weight: 800;
+        font-weight: 900;
     }
     
     /* [D1] Daily Type 1 (세로 스택) */
@@ -80,11 +81,7 @@
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; 
-        flex-direction: column; 
-        /* [수정] 중앙 정렬 해제 -> 좌측 정렬 */
-        align-items: flex-start !important; 
-        width: 100%;
+        display: flex; flex-direction: column; align-items: flex-start !important; width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -96,7 +93,6 @@
         font-weight: 900; line-height: 0.9;
     }
     .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
-    
     .m1-stack {
         display: flex; flex-direction: column;
         gap: var(--ui-stack-gap) !important; width: 100%;
@@ -221,53 +217,28 @@
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
 
-    /* 탭 스타일 수정: 3등분 + 간격 */
+    /* 탭 스타일 */
     .data-tabs { 
-        display: flex; 
-        width: 100%; 
-        gap: 10px !important; /* 탭 사이 간격 */
+        display: flex; width: 100%; gap: 10px !important;
     }
-    .data-tab { 
-        flex: 1; /* 균등 분할 */
-        text-align: center;
-    }
-    
-    /* Manual 탭 제어 */
+    .data-tab { flex: 1; text-align: center; }
     .data-tab.manual-hidden { display: none !important; }
     .data-tab.manual-show { display: block !important; }
-    
-    /* 버전 텍스트 */
     .version { cursor: pointer; user-select: none; }
 
     /* 월 선택 버튼 스타일 */
     .month-block {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 24px;
+        width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px;
     }
     .month-label {
-        font-size: 12px;
-        font-weight: 900;
-      text-align: left;
-        margin-bottom: 8px;
+        font-size: 12px; font-weight: 700; opacity: 0.6; margin-bottom: 8px;
     }
     .month-btn {
-        background: #fff;
-        border: 2px solid #000;
-        border-radius: 30px;
-        font-size: 16px;
-        font-weight: 700;
-        color: #000;
-        cursor: pointer;
-        padding: 10px 24px;
-        transition: transform 0.1s;
+        background: #fff; border: 2px solid #000; border-radius: 30px;
+        font-size: 16px; font-weight: 700; color: #000; cursor: pointer;
+        padding: 10px 24px; transition: transform 0.1s;
     }
-    .month-btn:active {
-        transform: scale(0.97);
-    }
+    .month-btn:active { transform: scale(0.97); }
   </style>
 </head>
 
@@ -337,7 +308,7 @@
         <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap">
              <div style="font-size: 14px; margin-bottom: 15px; color: #666; font-weight: 500; line-height: 1.5;">
-               Strava integration<br>
+               Strava integration — coming soon.<br>
                Currently in discussion with Strava.
              </div>
              <button id="btnStravaLogin" disabled style="background: #E5E5E5; color: #999; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: not-allowed;">
@@ -605,7 +576,7 @@
       let need = 1;
       arr.forEach(sp => {
         sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
-        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
+        const w = sp.parentElement?.clientWidth; const sw = span.scrollWidth;
         if (w && sw > w) need = Math.min(need, w / sw);
       });
       return Math.max(minScale, Math.min(1, need));
@@ -1232,31 +1203,41 @@
       }
     }
 
-    function lockFitResultTransforms(target) {
+    // [중요 수정] Result 너비 동기화 (프리뷰 기준)
+    function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
       const rvTime = $('#rvTime');
       const rvRuns = $('#rvRuns');
 
-      if (rvDistance) rvDistance.textContent = fmtKmPreview(target.km);
-      if (rvPace) rvPace.textContent = fmtPaceResult(target.paceSec);
-      if (rvTime) rvTime.textContent = fmtTimeResult(target.timeSec);
-      if (rvRuns) rvRuns.textContent = fmtRunsPreview(target.runs ?? 0);
-
-      const lockWidth = (el) => {
-        if(!el) return;
-        const w = el.getBoundingClientRect().width; 
-        el.style.width = w + 'px';
-        el.style.display = 'inline-block';
-        el.style.whiteSpace = 'nowrap';
-        el.style.textAlign = 'left';
+      // Helper to copy width
+      const syncWidth = (rvEl, pvId) => {
+          if (!rvEl) return;
+          const pvEl = document.getElementById(pvId);
+          if (pvEl) {
+              const w = pvEl.getBoundingClientRect().width; 
+              rvEl.style.width = w + 'px';
+              rvEl.style.display = 'inline-block';
+              rvEl.style.whiteSpace = 'nowrap';
+              rvEl.style.textAlign = 'left';
+          }
       };
 
-      lockWidth(rvDistance);
-      lockWidth(rvPace);
-      lockWidth(rvTime);
-      lockWidth(rvRuns);
+      // Determine which Preview IDs to use
+      if (state.recordType === 'daily') {
+          syncWidth(rvDistance, 'pvDistanceDaily');
+          syncWidth(rvPace, 'pvPaceDaily');
+          syncWidth(rvTime, 'pvTimeDaily');
+      } else {
+          // Monthly
+          const s = (state.layout === 'type1') ? 'T1' : 'T2';
+          syncWidth(rvDistance, `pvDistanceMonthly${s}`);
+          syncWidth(rvRuns, `pvRunsMonthly${s}`);
+          syncWidth(rvPace, `pvPaceMonthly${s}`);
+          syncWidth(rvTime, `pvTimeMonthly${s}`);
+      }
 
+      // Return reset function (for text only)
       return {
         resetToStart() {
           if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
@@ -1268,7 +1249,8 @@
     }
 
     function animateAll(target) {
-      const locker = lockFitResultTransforms(target);
+      // Pass state to lock function
+      const locker = lockFitResultTransforms(target, state);
       locker.resetToStart();
       
       const hold = 500; 
