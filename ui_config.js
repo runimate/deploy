@@ -7,28 +7,28 @@ export const UI_CONFIG = {
     anton: {
       // Daily Type 1 (세로 스택)
       d1: {
-        labelSize: 12,        // 라벨(DISTANCE 등) 크기
-        valueSize: 34,        // 데이터 숫자 크기
-        labelToValueGap: 0,   // 라벨과 숫자 사이 간격 (상하)
-        stackGap: 18          // 데이터 덩어리들 간의 간격 (상하)
+        labelSize: 12,        
+        valueSize: 34,        
+        labelToValueGap: 0,   
+        stackGap: 18          
       },
       // Daily Type 2 (가로 나열)
       d2: {
         labelSize: 12,
         valueSize: 28,
         labelToValueGap: 8,
-        colGap: 20            // 데이터 덩어리들 간의 간격 (좌우)
+        colGap: 20            
       },
       // Monthly Type 1 (상단 강조 + 하단 세로 스택)
       m1: {
-        monthSize: 14,        // 상단 월/년도 폰트 크기
-        distanceSize: 48,     // 메인 거리 데이터 크기
-        monthToDistGap: 0,    // 월/년도와 거리 사이 간격
-        distToStatsGap: 20,   // 거리와 하단 스탯 그룹 사이 간격
-        statsLabelSize: 12,   // 하단 스탯 라벨 크기
-        statsValueSize: 24,   // 하단 스탯 숫자 크기
-        statsLvGap: 4,        // 하단 스탯 라벨-숫자 상하 간격
-        statsStackGap: 14     // 하단 스탯 아이템 간의 상하 간격
+        monthSize: 14,        
+        distanceSize: 48,     
+        monthToDistGap: 0,    
+        distToStatsGap: 20,   
+        statsLabelSize: 12,   
+        statsValueSize: 24,   
+        statsLvGap: 4,        
+        statsStackGap: 14     
       },
       // Monthly Type 2 (상단 강조 + 하단 가로 나열)
       m2: {
@@ -39,7 +39,7 @@ export const UI_CONFIG = {
         statsLabelSize: 12,
         statsValueSize: 10,
         statsLvGap: 4,
-        statsColGap: 30       // 하단 스탯 아이템 간의 좌우 간격
+        statsColGap: 30       
       }
     },
 
@@ -96,26 +96,29 @@ export function applyUIConfigToRoot(state) {
   const root = document.documentElement;
   const set = (k, v) => root.style.setProperty(k, `${v}px`);
 
-  // [CSS 변수 매핑]
+  // [CSS 변수 매핑 - 중요: HTML의 CSS 변수명과 일치시켜야 함]
   if (recordType === 'daily') {
     // D1 & D2 공통
     set('--ui-label-size', config.labelSize);
     set('--ui-value-size', config.valueSize);
-    set('--ui-lv-gap', config.labelToValueGap);
+    set('--ui-label-to-value-gap', config.labelToValueGap);
     // 개별
     if (layout === 'type1') set('--ui-stack-gap', config.stackGap);
     else set('--ui-col-gap', config.colGap);
   } else {
-    // M1 & M2 공통
+    // Monthly 공통 (상단)
     set('--ui-month-size', config.monthSize);
-    set('--ui-dist-size', config.distanceSize);
-    set('--ui-md-gap', config.monthToDistGap);
-    set('--ui-ds-gap', config.distToStatsGap);
-    set('--ui-stats-label-size', config.statsLabelSize);
-    set('--ui-stats-value-size', config.statsValueSize);
-    set('--ui-stats-lv-gap', config.statsLvGap);
-    // 개별
-    if (layout === 'type1') set('--ui-stats-stack-gap', config.statsStackGap);
-    else set('--ui-stats-col-gap', config.statsColGap);
+    set('--ui-distance-size', config.distanceSize); // 변수명 일치시킴
+    set('--ui-month-to-dist-gap', config.monthToDistGap);
+    set('--ui-dist-to-stats-gap', config.distToStatsGap);
+
+    // Monthly 공통 (하단 스탯 - 기존 CSS 변수 재활용하여 적용)
+    set('--ui-label-size', config.statsLabelSize); // --ui-stats-label-size 대신 --ui-label-size 사용
+    set('--ui-value-size', config.statsValueSize);
+    set('--ui-label-to-value-gap', config.statsLvGap);
+
+    // 개별 (하단 레이아웃)
+    if (layout === 'type1') set('--ui-stack-gap', config.statsStackGap); // --ui-stats-stack-gap 대신 --ui-stack-gap 사용
+    else set('--ui-col-gap', config.statsColGap);
   }
 }
