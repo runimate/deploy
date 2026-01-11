@@ -7,9 +7,9 @@ export const UI_CONFIG = {
     anton: {
       // Daily Type 1 (세로 스택)
       d1: {
-        labelSize: 14,        
+        labelSize: 13,        
         valueSize: 34,        
-        labelToValueGap: 6,   
+        labelToValueGap: 8,   
         stackGap: 20          
       },
       // Daily Type 2 (가로 나열)
@@ -61,7 +61,7 @@ export const UI_CONFIG = {
 
     // 4. GOTHIC 폰트
     gothic: {
-      d1: { labelSize: 12, valueSize: 30, labelToValueGap: 4, stackGap: 25 },
+      d1: { labelSize: 12, valueSize: 28, labelToValueGap: 6, stackGap: 24 },
       d2: { labelSize: 12, valueSize: 18, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 34, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 10, statsStackGap: 14 },
       m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 6, statsColGap: 32 }
