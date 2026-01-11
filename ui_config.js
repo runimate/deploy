@@ -27,19 +27,19 @@ export const UI_CONFIG = {
         distToStatsGap: 10,   
         statsLabelSize: 12,   
         statsValueSize: 24,   
-        statsLvGap: 20,        
+        statsLvGap: 10,        
         statsStackGap: 14     
       },
       // Monthly Type 2 (상단 강조 + 하단 가로 나열)
       m2: {
-        monthSize: 14,
+        monthSize: 18,
         distanceSize: 48,
-        monthToDistGap: 4,
+        monthToDistGap: 6,
         distToStatsGap: 10,
-        statsLabelSize: 12,
-        statsValueSize: 22,
-        statsLvGap: 4,
-        statsColGap: 30       
+        statsLabelSize: 14,
+        statsValueSize: 24,
+        statsLvGap: 6,
+        statsColGap: 34       
       }
     },
 
@@ -47,32 +47,32 @@ export const UI_CONFIG = {
     dots: {
       d1: { labelSize: 14, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
-      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 5, statsLabelSize: 16, statsValueSize: 24, statsLvGap: 4, statsColGap: 20 }
+      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 14, statsValueSize: 22, statsLvGap: 10, statsStackGap: 14 },
+      m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 5, statsLabelSize: 16, statsValueSize: 24, statsLvGap: 4, statsColGap: 28 }
     },
 
     // 3. LCD 폰트
     lcd: {
       d1: { labelSize: 15, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
-      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 30, statsLvGap: 2, statsColGap: 30 }
+      m1: { monthSize: 14, distanceSize: 46, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 14, statsValueSize: 24, statsLvGap: 10, statsStackGap: 14 },
+      m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 30, statsLvGap: 2, statsColGap: 34 }
     },
 
     // 4. GOTHIC 폰트
     gothic: {
       d1: { labelSize: 12, valueSize: 30, labelToValueGap: 4, stackGap: 25 },
       d2: { labelSize: 12, valueSize: 18, labelToValueGap: 4, colGap: 24 },
-      m1: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 4, statsStackGap: 14 },
-      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 16, statsValueSize: 20, statsLvGap: 4, statsColGap: 24 }
+      m1: { monthSize: 14, distanceSize: 34, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 10, statsStackGap: 14 },
+      m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 6, statsLabelSize: 14, statsValueSize: 20, statsLvGap: 6, statsColGap: 28 }
     },
 
     // 5. SPEED 폰트
     speed: {
       d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 22 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
-      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 10, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 8, statsStackGap: 14 },
-      m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 28, statsLvGap: 4, statsColGap: 24 }
+      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 8, statsStackGap: 14 },
+      m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 4, distToStatsGap: 0, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 28 }
     }
   }
 };
