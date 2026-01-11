@@ -67,17 +67,22 @@
         align-items: flex-start;
     }
 
-    /* [D2] Daily Type 2 (가로 나열) */
+/* [D2] Daily Type 2 (가로 나열) - Grid에서 Flex로 변경하여 간격 고정 */
     .preview.type2 .preview-content,
     .result-wrap.type2 .result-block {
-        display: grid; grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; align-items: start;
+        display: flex !important;
+        flex-direction: row;
+        gap: var(--ui-col-gap) !important; /* 설정된 간격(20px 등) 유지 */
+        align-items: flex-start;
+        justify-content: flex-start; /* 왼쪽부터 차례대로 나열 */
     }
     .preview.type2 .result-item,
     .result-wrap.type2 .result-item {
-        display: flex; flex-direction: column;
+        display: flex; 
+        flex-direction: column;
         gap: 0 !important;
         align-items: flex-start;
+        flex: 0 0 auto; /* 내용물 크기만큼만 영역 차지 */
     }
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
