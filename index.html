@@ -27,63 +27,54 @@
       --ui-dist-to-stats-gap: 14px;
     }
 
-   /* ----------------------------------------------------
-       [PREVIEW & RESULT 레이아웃] - 변수 적용
+    /* ----------------------------------------------------
+       [PREVIEW & RESULT 레이아웃]
        ---------------------------------------------------- */
-    
     /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
         font-family: inherit !important;
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
-        /* [핵심 수정] gap 대신 마진 사용 (음수 사용 가능하도록) */
+        /* gap 대신 마진 사용 (음수 사용 가능하도록) */
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     .result-value, .data-value {
         font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
-        line-height: 0.9; /* [팁] 숫자는 1보다 조금 작게 주면 더 꽉 차 보입니다 */
+        line-height: 0.9;
         font-weight: 900;
     }
 
-    /* [D1] Daily Type 1 (세로 스택) */
+    /* [D1] Daily Type 1 */
     .preview.type1 .preview-content, 
     .result-wrap.type1 .result-block {
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
         gap: var(--ui-stack-gap) !important; 
     }
     .preview.type1 .result-item,
     .result-wrap.type1 .result-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0 !important; /* [수정] gap 제거 -> margin으로 제어 */
+        display: flex; flex-direction: column;
+        gap: 0 !important; 
         align-items: flex-start;
     }
 
-    /* [D2] Daily Type 2 (가로 나열) */
+    /* [D2] Daily Type 2 */
     .preview.type2 .preview-content,
     .result-wrap.type2 .result-block {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; 
-        align-items: start;
+        display: grid; grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--ui-col-gap) !important; align-items: start;
     }
     .preview.type2 .result-item,
     .result-wrap.type2 .result-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0 !important; /* [수정] gap 제거 */
+        display: flex; flex-direction: column;
+        gap: 0 !important;
         align-items: flex-start;
     }
 
-    /* [M1] Monthly Type 1 (상단 + 하단 스택) */
+    /* [M1] Monthly Type 1 */
     .monthly-type1 {
-        display: flex;
-        flex-direction: column;
-        align-items: center; 
-        width: 100%;
+        display: flex; flex-direction: column; align-items: center; width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -92,47 +83,30 @@
     }
     .m1-distance .m1-distance-value {
         font-size: var(--ui-distance-size) !important;
-        font-weight: 900;
-        line-height: 0.9;
+        font-weight: 900; line-height: 0.9;
     }
-    .m1-distance {
-        margin-bottom: var(--ui-dist-to-stats-gap) !important;
-    }
+    .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     .m1-stack {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ui-stack-gap) !important;
-        width: 100%;
+        display: flex; flex-direction: column;
+        gap: var(--ui-stack-gap) !important; width: 100%;
         align-items: flex-start !important;
     }
-    
-    /* [M1] 하단 아이템 (가로 배치) */
     .m1-item {
-        display: flex;
-        flex-direction: row; 
+        display: flex; flex-direction: row; 
         justify-content: flex-start !important; 
-        align-items: center;
-        width: 100%;
-        gap: 0 !important; /* [수정] gap 제거 */
+        align-items: center; width: 100%;
+        gap: 0 !important; 
     }
-    /* 가로 배치일 땐 마진을 오른쪽으로 줌 */
     .m1-item .m-label { 
         font-size: var(--ui-label-size) !important; 
-        margin-right: var(--ui-label-to-value-gap) !important; 
-        margin-bottom: 0 !important; /* 세로 마진 초기화 */
+        margin-right: var(--ui-label-to-value-gap) !important;
+        margin-bottom: 0 !important;
     }
-    .m1-item .m-value { 
-        font-size: var(--ui-value-size) !important; 
-        font-weight: 900; 
-    }
+    .m1-item .m-value { font-size: var(--ui-value-size) !important; font-weight: 900; }
 
-
-    /* [M2] Monthly Type 2 (상단 + 하단 가로) */
+    /* [M2] Monthly Type 2 */
     .monthly-type2 {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: flex-start; /* 좌측 정렬 */
+        display: flex; flex-direction: column; width: 100%; align-items: flex-start; 
     }
     .m2-month-line {
         font-size: var(--ui-month-size) !important;
@@ -141,28 +115,27 @@
     }
     .m2-distance .m2-distance-value {
         font-size: var(--ui-distance-size) !important;
-        font-weight: 900;
-        line-height: 1;
+        font-weight: 900; line-height: 0.9;
     }
-    .m2-distance {
-        margin-bottom: var(--ui-dist-to-stats-gap) !important;
-    }
+    .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     
-    /* [수정] Grid(3등분) -> Flex(일정 간격)로 변경 */
+    /* [수정 완료] Grid -> Flex로 변경하여 colGap이 정확히 먹히도록 수정 */
     .m2-row {
         display: flex !important; 
         flex-direction: row;
-        justify-content: flex-start; /* 왼쪽부터 나열 */
-        gap: var(--ui-col-gap) !important; /* ui_config.js에서 설정한 간격 적용 */
+        justify-content: flex-start; 
+        gap: var(--ui-col-gap) !important; /* 이제 JS 설정값이 정확히 반영됨 */
         width: 100%;
     }
     .m2-row .data-item {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important;
+        display: flex; flex-direction: column;
+        gap: 0 !important;
         flex: 0 0 auto; /* 내용물 크기만큼만 차지 */
     }
-    .m2-row .data-label { font-size: var(--ui-label-size) !important; }
+    .m2-row .data-label { 
+        font-size: var(--ui-label-size) !important;
+        margin-bottom: var(--ui-label-to-value-gap) !important;
+    }
     .m2-row .data-value { font-size: var(--ui-value-size) !important; }
 
     /* ----------------------------------------------------
@@ -238,21 +211,19 @@
     .data-tabs { 
         display: flex; 
         width: 100%; 
-        gap: 10px !important; /* 탭 사이 간격 */
+        gap: 10px !important; 
     }
     .data-tab { 
-        flex: 1; /* 균등 분할 */
+        flex: 1; 
         text-align: center;
     }
     
-    /* Manual 탭 제어 */
     .data-tab.manual-hidden { display: none !important; }
     .data-tab.manual-show { display: block !important; }
     
-    /* 버전 텍스트 */
     .version { cursor: pointer; user-select: none; }
 
-    /* [수정 2] 월 선택 버튼 스타일 (버튼처럼 보이게) */
+    /* 월 선택 버튼 스타일 */
     .month-block {
         width: 100%;
         display: flex;
@@ -667,16 +638,17 @@
     const el = {
       btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
       dataPanel: $('#dataPanel'), dataPanelHead: $('#dataPanelHead'),
-      dataTabsDaily: $('#dataTabsDaily'),
+      dataTabsDaily: $('#dataTabsDaily'), dataTabsMonthly: $('#dataTabsMonthly'),
       dataEmpty: $('#dataEmpty'),
       tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-      // Monthly 탭 컨테이너 제거됨
+      tabNrcMonthly: $('#tabNrcMonthly'), 
       contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
       
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
       garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
       btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
       
+      // Strava Elements
       stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), btnStravaLogin: $('#btnStravaLogin'), stravaCard: $('#stravaCard'), btnStravaList: $('#btnStravaList'),
       stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
       
@@ -1029,7 +1001,7 @@
       el.btnDaily.classList.toggle('active', isDaily);
       el.btnMonthly.classList.toggle('active', !isDaily);
       el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
-      // dataTabsMonthly 제거됨
+      el.dataTabsMonthly.style.display = !isDaily ? 'flex' : 'none';
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
@@ -1225,9 +1197,9 @@
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
-              <div class="m1-item"><div class="m-label">RUNS</div><div class="m-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="m-label">PACE</div><div class="m-value"><span id="rvPace"></span></div></div>
-              <div class="m1-item"><div class="m-label">TIME</div><div class="m-value"><span id="rvTime"></span></div></div>
+              <div class="m1-item"><div class="result-label">RUNS</div><div class="result-value"><span id="rvRuns"></span></div></div>
+              <div class="m1-item"><div class="result-label">PACE</div><div class="result-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="result-label">TIME</div><div class="result-value"><span id="rvTime"></span></div></div>
             </div>
           `;
         } else {
