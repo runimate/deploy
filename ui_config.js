@@ -47,7 +47,7 @@ export const UI_CONFIG = {
     dots: {
       d1: { labelSize: 14, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
-      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 14, statsValueSize: 22, statsLvGap: 10, statsStackGap: 14 },
+      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 14, statsValueSize: 24, statsLvGap: 10, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 5, statsLabelSize: 16, statsValueSize: 24, statsLvGap: 4, statsColGap: 28 }
     },
 
