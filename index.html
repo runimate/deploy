@@ -30,12 +30,15 @@
     /* ----------------------------------------------------
        [PREVIEW & RESULT 레이아웃]
        ---------------------------------------------------- */
+    /* [수정 1] 라벨과 값 폰트 상속 강제 (D1, D2 라벨도 선택 폰트 따라가도록) */
     .result-label, .data-label {
+        font-family: inherit !important; /* 부모 폰트 상속 */
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
     }
     .result-value, .data-value {
+        font-family: inherit !important; /* 부모 폰트 상속 */
         font-size: var(--ui-value-size) !important;
         line-height: 1;
         font-weight: 900;
@@ -189,7 +192,7 @@
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
 
-    /* [탭 스타일 수정: 3등분 + 간격] */
+    /* 탭 스타일 수정: 3등분 + 간격 */
     .data-tabs { 
         display: flex; 
         width: 100%; 
@@ -200,14 +203,14 @@
         text-align: center;
     }
     
-    /* Manual 탭은 기본적으로 숨김 (클래스로 제어) */
+    /* Manual 탭 제어 */
     .data-tab.manual-hidden { display: none !important; }
     .data-tab.manual-show { display: block !important; }
     
-    /* 버전 텍스트 클릭 가능하게 */
+    /* 버전 텍스트 */
     .version { cursor: pointer; user-select: none; }
 
-    /* 월 선택 영역 스타일 */
+    /* [수정 2] 월 선택 버튼 스타일 (버튼처럼 보이게) */
     .month-block {
         width: 100%;
         display: flex;
@@ -220,16 +223,21 @@
         font-size: 12px;
         font-weight: 700;
         opacity: 0.6;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     .month-btn {
-        background: transparent;
-        border: none;
-        font-size: 24px;
-        font-weight: 900;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 700;
         color: #000;
         cursor: pointer;
-        padding: 0;
+        padding: 10px 24px;
+        transition: transform 0.1s;
+    }
+    .month-btn:active {
+        transform: scale(0.97);
     }
   </style>
 </head>
