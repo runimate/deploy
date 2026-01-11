@@ -33,14 +33,14 @@
 
     /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
-        font-family: inherit !important;
+        font-family: inherit !important; /* 기본은 선택된 폰트 상속 */
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     
-    /* Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
+    /* Anton 폰트 선택 시, Daily 라벨은 무조건 Inter 900 적용 */
     .font-anton .result-label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         font-weight: 900 !important;
@@ -83,7 +83,9 @@
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; flex-direction: column; align-items: flex-start !important; width: 100%;
+        display: flex; flex-direction: column; 
+        align-items: flex-start !important; /* 좌측 정렬 */
+        width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -156,17 +158,26 @@
     .m2-row .data-value { font-size: var(--ui-value-size) !important; white-space: nowrap !important; }
 
     /* ----------------------------------------------------
-       [기존 필수 스타일]
+       [기존 필수 스타일 및 오버레이 수정]
        ---------------------------------------------------- */
-    /* [수정] 버튼 그룹 클릭 방해 요소 제거 및 z-index 상향 */
-    .button-group {
-        position: relative;
-        z-index: 10;
+    /* [중요] 모든 오버레이 기본 숨김 처리 (버튼 클릭 방해 해결) */
+    .screen-overlay, .modal-overlay, .result-screen {
+        display: none;
+        position: fixed !important; top: 0; left: 0; bottom: 0; right: 0;
+        width: 100%; height: 100%;
+        z-index: 9999;
     }
-    .toggle-btn {
-        position: relative;
-        z-index: 20;
-        cursor: pointer !important;
+    
+    /* .show 클래스가 붙으면 보이기 */
+    .screen-overlay.show, .modal-overlay.show, .result-screen.show {
+        display: flex !important;
+        align-items: center; justify-content: center;
+    }
+
+    /* Result Screen 특수 스타일 */
+    .result-screen {
+        background: #fff;
+        z-index: 2147483647 !important;
     }
 
     .garmin-card, .workout-item {
@@ -207,12 +218,10 @@
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
     
     #garminLoginScreen {
-      display: none; position: fixed !important; top: 0; left: 0; bottom: 0; right: 0;
-      width: 100%; height: 100%; background-color: var(--garmin, #76B6FF) !important; 
-      z-index: 99999 !important; pointer-events: auto !important;
+      background-color: var(--garmin, #76B6FF) !important; 
       flex-direction: column; overflow-y: auto; padding-bottom: 120px !important; 
     }
-    #garminLoginScreen.show { display: flex !important; }
+    
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
     .gc-cta {
@@ -222,10 +231,7 @@
       cursor: pointer !important; margin: 0 !important;
     }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
-    .result-screen {
-        z-index: 2147483647 !important; position: fixed !important;
-        top: 0; left: 0; width: 100%; height: 100%; background: #fff;
-    }
+    
     .result-wrap {
         width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
         padding: 26px; box-sizing: border-box;
@@ -594,7 +600,7 @@
       let need = 1;
       arr.forEach(sp => {
         sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
-        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
+        const w = sp.parentElement?.clientWidth; const sw = span.scrollWidth;
         if (w && sw > w) need = Math.min(need, w / sw);
       });
       return Math.max(minScale, Math.min(1, need));
@@ -1115,9 +1121,9 @@
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
-              <div class="m1-item"><div class="result-label">RUNS</div><div class="result-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="result-label">PACE</div><div class="result-value"><span id="rvPace"></span></div></div>
-              <div class="m1-item"><div class="result-label">TIME</div><div class="result-value"><span id="rvTime"></span></div></div>
+              <div class="m1-item"><div class="m-label">RUNS</div><div class="m-value"><span id="rvRuns"></span></div></div>
+              <div class="m1-item"><div class="m-label">PACE</div><div class="m-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="m-label">TIME</div><div class="m-value"><span id="rvTime"></span></div></div>
             </div>
           `;
         } else {
