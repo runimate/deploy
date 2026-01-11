@@ -53,7 +53,7 @@ export const UI_CONFIG = {
 
     // 3. LCD 폰트
     lcd: {
-      d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 18 },
+      d1: { labelSize: 12, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
       d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsStackGap: 14 },
       m2: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 4, statsColGap: 24 }
@@ -61,7 +61,7 @@ export const UI_CONFIG = {
 
     // 4. GOTHIC 폰트
     gothic: {
-      d1: { labelSize: 12, valueSize: 30, labelToValueGap: 4, stackGap: 18 },
+      d1: { labelSize: 12, valueSize: 24, labelToValueGap: 4, stackGap: 25 },
       d2: { labelSize: 12, valueSize: 30, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 4, statsStackGap: 14 },
       m2: { monthSize: 14, distanceSize: 36, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 10, statsValueSize: 20, statsLvGap: 4, statsColGap: 24 }
