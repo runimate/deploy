@@ -14,10 +14,10 @@ export const UI_CONFIG = {
       },
       // Daily Type 2 (가로 나열)
       d2: {
-        labelSize: 12,
-        valueSize: 28,
-        labelToValueGap: 8,
-        colGap: 28           
+        labelSize: 10,
+        valueSize: 30,
+        labelToValueGap: 10,
+        colGap: 36           
       },
       // Monthly Type 1 (상단 강조 + 하단 세로 스택)
       m1: {
@@ -54,7 +54,7 @@ export const UI_CONFIG = {
     // 3. LCD 폰트
     lcd: {
       d1: { labelSize: 15, valueSize: 38, labelToValueGap: 4, stackGap: 18 },
-      d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
+      d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 28 },
       m1: { monthSize: 14, distanceSize: 46, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 14, statsValueSize: 24, statsLvGap: 10, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 52, monthToDistGap: 6, distToStatsGap: 0, statsLabelSize: 16, statsValueSize: 30, statsLvGap: 2, statsColGap: 34 }
     },
@@ -70,7 +70,7 @@ export const UI_CONFIG = {
     // 5. SPEED 폰트
     speed: {
       d1: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 22 },
-      d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 18 },
+      d2: { labelSize: 12, valueSize: 24, labelToValueGap: 4, colGap: 24 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 0, statsLabelSize: 10, statsValueSize: 22, statsLvGap: 8, statsStackGap: 14 },
       m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 4, distToStatsGap: 0, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 28 }
     }
