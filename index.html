@@ -49,13 +49,13 @@
     .result-wrap.type1 .result-block {
         display: flex;
         flex-direction: column;
-        gap: var(--ui-stack-gap) !important; /* 항목 간 간격 */
+        gap: var(--ui-stack-gap) !important; 
     }
     .preview.type1 .result-item,
     .result-wrap.type1 .result-item {
         display: flex;
         flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important; /* 라벨-값 간격 */
+        gap: var(--ui-label-to-value-gap) !important; 
         align-items: flex-start;
     }
 
@@ -64,7 +64,7 @@
     .result-wrap.type2 .result-block {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; /* 컬럼 간격 */
+        gap: var(--ui-col-gap) !important; 
         align-items: start;
     }
     .preview.type2 .result-item,
@@ -79,7 +79,7 @@
     .monthly-type1 {
         display: flex;
         flex-direction: column;
-        align-items: center; /* 상단(날짜, 거리)은 중앙 정렬 유지 */
+        align-items: center; 
         width: 100%;
     }
     .m1-month {
@@ -100,20 +100,19 @@
         flex-direction: column;
         gap: var(--ui-stack-gap) !important;
         width: 100%;
-        align-items: flex-start !important; /* 스택 전체를 왼쪽으로 */
+        align-items: flex-start !important;
     }
     
-    /* [수정] M1 하단 아이템: 완전한 좌측 정렬 */
+    /* [M1] 하단 아이템 좌측 정렬 */
     .m1-item {
         display: flex;
         flex-direction: row; 
-        justify-content: flex-start !important; /* 왼쪽부터 차례대로 배치 */
+        justify-content: flex-start !important; 
         align-items: center;
         width: 100%;
-        gap: var(--ui-label-to-value-gap) !important; /* 라벨과 값 사이 간격 */
+        gap: var(--ui-label-to-value-gap) !important;
     }
 
-    /* M1 하단 스탯 폰트 */
     .m1-item .m-label { font-size: var(--ui-label-size) !important; }
     .m1-item .m-value { font-size: var(--ui-value-size) !important; font-weight: 900; }
 
@@ -123,7 +122,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        align-items: flex-start; /* 좌측 정렬 */
+        align-items: flex-start; 
     }
     .m2-month-line {
         font-size: var(--ui-month-size) !important;
@@ -352,8 +351,7 @@
             <span id="manualTimeText">00:00:00</span>
           </div>
         </div>
-        
-        </div>
+      </div>
     </section>
 
     <section class="section">
@@ -668,7 +666,6 @@
       if(node) { 
           node.classList.add('show'); 
           node.setAttribute('aria-hidden', 'false');
-          // 오버레이가 뜰 때 RUN 버튼 숨김
           if(el.btnRun) el.btnRun.style.display = 'none';
       }
     }
@@ -677,7 +674,6 @@
       if(node) { 
           node.classList.remove('show'); 
           node.setAttribute('aria-hidden', 'true');
-          // 오버레이가 닫힐 때 RUN 버튼 표시
           if(el.btnRun) el.btnRun.style.display = 'block';
       }
     }
@@ -958,7 +954,6 @@
     if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
     
     // --- APPLY HELPERS ---
-    // [중요] 상태 변경 시마다 UI Config 적용
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily);
@@ -974,33 +969,27 @@
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      // [수정] Monthly 모드: 데이터 탭 숨김, Upload Record 바로 노출
+      // [Monthly 모드 로직]
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
           
-          // Monthly 모드에서는 탭과 제목 숨김
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'none';
           if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'none';
-          if(el.dataTabsMonthly) el.dataTabsMonthly.style.display = 'none'; // 아예 숨김
+          if(el.dataTabsMonthly) el.dataTabsMonthly.style.display = 'none'; 
 
-          // Monthly 모드 컨텐츠 (Month Picker + Upload Record)
-          if(el.monthBlock) {
-             el.monthBlock.style.display = 'flex'; // 상단으로 이동됨
-          }
+          if(el.monthBlock) el.monthBlock.style.display = 'flex';
           
-          // Upload Record (NRC) 화면 강제 표시
           if(el.contentNrc) el.contentNrc.style.display = 'block';
           if(el.contentGarmin) el.contentGarmin.style.display = 'none';
           if(el.contentStrava) el.contentStrava.style.display = 'none';
           if(el.contentManual) el.contentManual.style.display = 'none';
 
       } else {
-          // Daily 모드: 원래대로 복구
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
           if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'flex';
           if(el.monthBlock) el.monthBlock.style.display = 'none';
           
-          applyDataType(); // 기존 선택된 탭 컨텐츠 표시
+          applyDataType(); 
       }
       
       applyUIConfigToRoot(state);
