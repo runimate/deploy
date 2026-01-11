@@ -27,52 +27,63 @@
       --ui-dist-to-stats-gap: 14px;
     }
 
-    /* ----------------------------------------------------
-       [PREVIEW & RESULT 레이아웃]
+   /* ----------------------------------------------------
+       [PREVIEW & RESULT 레이아웃] - 변수 적용
        ---------------------------------------------------- */
-    /* [수정 1] 라벨과 값 폰트 상속 강제 (D1, D2 라벨도 선택 폰트 따라가도록) */
+    
+    /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
-        font-family: inherit !important; /* 부모 폰트 상속 */
+        font-family: inherit !important;
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
+        /* [핵심 수정] gap 대신 마진 사용 (음수 사용 가능하도록) */
+        margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     .result-value, .data-value {
-        font-family: inherit !important; /* 부모 폰트 상속 */
+        font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
-        line-height: 1;
+        line-height: 0.9; /* [팁] 숫자는 1보다 조금 작게 주면 더 꽉 차 보입니다 */
         font-weight: 900;
     }
-    
-    /* [D1] Daily Type 1 */
+
+    /* [D1] Daily Type 1 (세로 스택) */
     .preview.type1 .preview-content, 
     .result-wrap.type1 .result-block {
-        display: flex; flex-direction: column;
+        display: flex;
+        flex-direction: column;
         gap: var(--ui-stack-gap) !important; 
     }
     .preview.type1 .result-item,
     .result-wrap.type1 .result-item {
-        display: flex; flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important; 
+        display: flex;
+        flex-direction: column;
+        gap: 0 !important; /* [수정] gap 제거 -> margin으로 제어 */
         align-items: flex-start;
     }
 
-    /* [D2] Daily Type 2 */
+    /* [D2] Daily Type 2 (가로 나열) */
     .preview.type2 .preview-content,
     .result-wrap.type2 .result-block {
-        display: grid; grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; align-items: start;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--ui-col-gap) !important; 
+        align-items: start;
     }
     .preview.type2 .result-item,
     .result-wrap.type2 .result-item {
-        display: flex; flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important;
+        display: flex;
+        flex-direction: column;
+        gap: 0 !important; /* [수정] gap 제거 */
         align-items: flex-start;
     }
 
-    /* [M1] Monthly Type 1 */
+    /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; flex-direction: column; align-items: center; width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -81,26 +92,47 @@
     }
     .m1-distance .m1-distance-value {
         font-size: var(--ui-distance-size) !important;
-        font-weight: 900; line-height: 1;
+        font-weight: 900;
+        line-height: 0.9;
     }
-    .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
+    .m1-distance {
+        margin-bottom: var(--ui-dist-to-stats-gap) !important;
+    }
     .m1-stack {
-        display: flex; flex-direction: column;
-        gap: var(--ui-stack-gap) !important; width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: var(--ui-stack-gap) !important;
+        width: 100%;
         align-items: flex-start !important;
     }
+    
+    /* [M1] 하단 아이템 (가로 배치) */
     .m1-item {
-        display: flex; flex-direction: row; 
+        display: flex;
+        flex-direction: row; 
         justify-content: flex-start !important; 
-        align-items: center; width: 100%;
-        gap: var(--ui-label-to-value-gap) !important;
+        align-items: center;
+        width: 100%;
+        gap: 0 !important; /* [수정] gap 제거 */
     }
-    .m1-item .m-label { font-size: var(--ui-label-size) !important; }
-    .m1-item .m-value { font-size: var(--ui-value-size) !important; font-weight: 900; }
+    /* 가로 배치일 땐 마진을 오른쪽으로 줌 */
+    .m1-item .m-label { 
+        font-size: var(--ui-label-size) !important; 
+        margin-right: var(--ui-label-to-value-gap) !important; 
+        margin-bottom: 0 !important; /* 세로 마진 초기화 */
+    }
+    .m1-item .m-value { 
+        font-size: var(--ui-value-size) !important; 
+        font-weight: 900; 
+    }
 
-    /* [M2] Monthly Type 2 */
+
+    /* [M2] Monthly Type 2 (상단 + 하단 가로) */
     .monthly-type2 {
-        display: flex; flex-direction: column; width: 100%; align-items: flex-start; 
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: flex-start; 
     }
     .m2-month-line {
         font-size: var(--ui-month-size) !important;
@@ -109,19 +141,30 @@
     }
     .m2-distance .m2-distance-value {
         font-size: var(--ui-distance-size) !important;
-        font-weight: 900; line-height: 1;
+        font-weight: 900;
+        line-height: 0.9;
     }
-    .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
+    .m2-distance {
+        margin-bottom: var(--ui-dist-to-stats-gap) !important;
+    }
     .m2-row {
-        display: grid; grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--ui-col-gap) !important;
+        width: 100%;
     }
     .m2-row .data-item {
-        display: flex; flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important;
+        display: flex;
+        flex-direction: column;
+        gap: 0 !important; /* [수정] gap 제거 */
     }
-    .m2-row .data-label { font-size: var(--ui-label-size) !important; }
-    .m2-row .data-value { font-size: var(--ui-value-size) !important; }
+    .m2-row .data-label { 
+        font-size: var(--ui-label-size) !important; 
+        margin-bottom: var(--ui-label-to-value-gap) !important;
+    }
+    .m2-row .data-value { 
+        font-size: var(--ui-value-size) !important; 
+    }
 
     /* ----------------------------------------------------
        [기존 필수 스타일]
