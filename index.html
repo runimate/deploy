@@ -150,6 +150,7 @@
         width: 100% !important; padding: 40px 0 !important; text-align: center !important; display: block;
     }
     #garminConnectBtnWrap button, #stravaConnectBtnWrap button { display: inline-block; margin: 0 auto; }
+    
     .run-btn {
         position: fixed !important; bottom: 30px !important; left: 50% !important;
         transform: translateX(-50%) !important; z-index: 5000 !important;
@@ -158,6 +159,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+    
     #garminLoginScreen {
       display: none; position: fixed !important; top: 0; left: 0; bottom: 0; right: 0;
       width: 100%; height: 100%; background-color: var(--garmin, #76B6FF) !important; 
@@ -187,20 +189,48 @@
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
 
-    /* [탭 스타일 수정: 3등분] */
-    .data-tabs { display: flex; width: 100%; gap: 0; }
+    /* [수정 1] 탭 간격 추가 및 3등분 */
+    .data-tabs { 
+        display: flex; 
+        width: 100%; 
+        gap: 10px !important; /* 탭 사이 간격 추가 */
+    }
     .data-tab { 
-        flex: 1; /* 균등 분할 */
+        flex: 1; /* 3등분 */
         text-align: center;
-        /* 기존 스타일 유지하면서 flex 비율만 조정 */
     }
     
-    /* Manual 탭은 기본적으로 숨김 (스크립트로 제어하거나 클래스로 제어) */
+    /* Manual 탭 제어 */
     .data-tab.manual-hidden { display: none !important; }
     .data-tab.manual-show { display: block !important; }
     
     /* 버전 텍스트 클릭 가능하게 */
     .version { cursor: pointer; user-select: none; }
+
+    /* [수정 2] 월 선택 영역 스타일 (확실히 보이게) */
+    .month-block {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px; /* 아래 컨텐츠와 간격 */
+    }
+    .month-label {
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0.6;
+        margin-bottom: 6px;
+    }
+    .month-btn {
+        background: transparent;
+        border: none;
+        font-size: 24px;
+        font-weight: 900;
+        color: #000;
+        cursor: pointer;
+        padding: 0;
+    }
   </style>
 </head>
 
@@ -211,7 +241,6 @@
         RUNIMATE 
       </a>
       <span class="version" id="btnHiddenManual">v.2.0</span>
-      
       <div class="author">by JS @runarchive.js</div>
     </header>
 
@@ -628,7 +657,6 @@
       pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
       pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
       
-      // [신규] 히든 매뉴얼 버튼
       btnHiddenManual: $('#btnHiddenManual')
     };
 
@@ -923,9 +951,15 @@
     });
 
     if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-    if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
     
-    // --- [신규] Manual Hidden Logic ---
+    // [수정] Manual 탭 클릭 시 로직
+    if(el.tabManual) el.tabManual.addEventListener('click', () => { 
+        state.dataType = 'manual'; 
+        applyDataType(); 
+        updatePreview(); 
+    });
+    
+    // --- [신규] Manual Hidden Logic (v2.0 5회 클릭 시 활성화) ---
     let hiddenClickCount = 0;
     if(el.btnHiddenManual) {
         el.btnHiddenManual.addEventListener('click', () => {
@@ -956,7 +990,6 @@
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      // [Monthly 모드 로직]
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
           
