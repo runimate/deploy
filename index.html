@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ko">
 
@@ -41,7 +40,7 @@
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     
-    /* [수정 1] Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
+    /* Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
     .font-anton .result-label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         font-weight: 900 !important;
@@ -50,8 +49,11 @@
     .result-value, .data-value {
         font-family: inherit !important;
         font-size: var(--ui-value-size) !important;
-        line-height: 1;
+        line-height: 1; /* [수정] 0.9 -> 1 (상단 잘림 방지) */
         font-weight: 900;
+        /* [수정] 텍스트 잘림 방지 */
+        white-space: nowrap !important;
+        overflow: visible !important; 
     }
     
     /* [D1] Daily Type 1 (세로 스택) */
@@ -82,7 +84,9 @@
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
     .monthly-type1 {
-        display: flex; flex-direction: column; align-items: flex-start !important; width: 100%;
+        display: flex; flex-direction: column; 
+        align-items: flex-start !important; /* [수정] 좌측 정렬 */
+        width: 100%;
     }
     .m1-month {
         font-size: var(--ui-month-size) !important;
@@ -92,6 +96,7 @@
     .m1-distance .m1-distance-value {
         font-size: var(--ui-distance-size) !important;
         font-weight: 900; line-height: 0.9;
+        white-space: nowrap !important;
     }
     .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     .m1-stack {
@@ -109,10 +114,13 @@
         font-size: var(--ui-label-size) !important; 
         margin-right: var(--ui-label-to-value-gap) !important; 
         margin-bottom: 0 !important; 
+        font-family: 'Inter', sans-serif !important; /* M1 하단 라벨 Inter 강제 */
+        font-weight: 900 !important;
     }
     .m1-item .m-value { 
         font-size: var(--ui-value-size) !important; 
         font-weight: 900; 
+        white-space: nowrap !important;
     }
 
     /* [M2] Monthly Type 2 (상단 + 하단 가로) */
@@ -127,6 +135,7 @@
     .m2-distance .m2-distance-value {
         font-size: var(--ui-distance-size) !important;
         font-weight: 900; line-height: 0.9;
+        white-space: nowrap !important;
     }
     .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     
@@ -147,7 +156,10 @@
         font-size: var(--ui-label-size) !important; 
         margin-bottom: var(--ui-label-to-value-gap) !important;
     }
-    .m2-row .data-value { font-size: var(--ui-value-size) !important; }
+    .m2-row .data-value { 
+        font-size: var(--ui-value-size) !important; 
+        white-space: nowrap !important;
+    }
 
     /* ----------------------------------------------------
        [기존 필수 스타일]
@@ -1062,92 +1074,6 @@
       });
     }
 
-    // --- EVENTS ---
-    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
-    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-       b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
-    });
-
-    // --- MONTHLY & MANUAL ---
-    if(el.btnUploadNrc) el.btnUploadNrc.addEventListener('click', () => $('#fileNrc').click());
-    if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
-        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
-        buildMonthGrid(); 
-        openScreen('monthPickerScreen');
-    });
-
-    function buildMonthGrid() {
-      el.monthGrid.innerHTML = '';
-      for (let i = 1; i <= 12; i++) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'month-cell';
-        b.textContent = monthNameCap(i);
-        if(i === state.monthly.month) b.classList.add('active');
-        b.addEventListener('click', () => {
-          state.monthly.month = i;
-          updatePreview();
-          closeScreen('monthPickerScreen');
-        });
-        el.monthGrid.appendChild(b);
-      }
-    }
-    if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => {
-      state.monthly.year -= 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-    if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => {
-      state.monthly.year += 1;
-      el.monthYearText.textContent = state.monthly.year;
-      updatePreview();
-    });
-
-    el.chipDistance.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'DISTANCE';
-      el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
-      el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
-    });
-    el.chipPace.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'PACE';
-      el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
-      el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
-    });
-    el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
-    
-    function recalcManualTime() {
-        if(state.manual.km > 0 && state.manual.paceSec > 0) {
-            state.manual.timeSec = state.manual.km * state.manual.paceSec;
-            if($('#manualTimeText')) $('#manualTimeText').textContent = fmtTimePreview(state.manual.timeSec);
-            updatePreview();
-        }
-    }
-
-    el.formDistance.addEventListener('submit', (e) => {
-      e.preventDefault(); const val = parseFloat(el.inputDistance.value);
-      if (!isNaN(val)) { 
-          state.manual.km = val; 
-          el.manualDistanceText.textContent = val.toFixed(2); 
-          recalcManualTime(); 
-          closeScreen('modalOverlay'); 
-      }
-    });
-    el.formPace.addEventListener('submit', (e) => {
-      e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
-      const total = m * 60 + s;
-      if (total > 0) { 
-          state.manual.paceSec = total; 
-          el.manualPaceText.textContent = fmtPacePreview(total); 
-          recalcManualTime(); 
-          closeScreen('modalOverlay'); 
-      }
-    });
-
     // --- RUN BUTTON: Result & Animate ---
     function buildResultDOM() {
       el.resultWrap.className = `result-wrap ${state.layout}`;
@@ -1204,7 +1130,7 @@
       }
     }
 
-    // [중요 수정] Result 너비 동기화 (프리뷰 기준)
+    // [핵심] 결과 화면 너비 동기화 (프리뷰 기준)
     function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
@@ -1216,11 +1142,16 @@
           if (!rvEl) return;
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
-              const w = pvEl.getBoundingClientRect().width; 
-              rvEl.style.width = w + 'px';
-              rvEl.style.display = 'inline-block';
-              rvEl.style.whiteSpace = 'nowrap';
-              rvEl.style.textAlign = 'left';
+              const rect = pvEl.getBoundingClientRect();
+              const w = rect.width;
+              if (w > 0) {
+                  // [중요] 너비를 고정하고, +10px 여유를 주어 'Km' 잘림 방지
+                  rvEl.style.width = (Math.ceil(w) + 10) + 'px';
+                  rvEl.style.minWidth = (Math.ceil(w) + 10) + 'px';
+                  rvEl.style.display = 'inline-block';
+                  rvEl.style.whiteSpace = 'nowrap';
+                  rvEl.style.textAlign = 'left';
+              }
           }
       };
 
@@ -1250,8 +1181,7 @@
     }
 
     function animateAll(target) {
-      // Pass state to lock function
-      const locker = lockFitResultTransforms(target, state);
+      const locker = lockFitResultTransforms(target, state); // Pass state
       locker.resetToStart();
       
       const hold = 500; 
