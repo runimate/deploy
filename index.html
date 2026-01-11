@@ -14,7 +14,7 @@
        ========================================================== */
     
     :root {
-      /* 기본값 */
+      /* 기본값 (JS가 로드되기 전 깨짐 방지) */
       --ui-label-size: 12px;
       --ui-value-size: 34px;
       --ui-label-to-value-gap: 8px;
@@ -49,13 +49,13 @@
     .result-wrap.type1 .result-block {
         display: flex;
         flex-direction: column;
-        gap: var(--ui-stack-gap) !important; 
+        gap: var(--ui-stack-gap) !important; /* 항목 간 간격 */
     }
     .preview.type1 .result-item,
     .result-wrap.type1 .result-item {
         display: flex;
         flex-direction: column;
-        gap: var(--ui-label-to-value-gap) !important; 
+        gap: var(--ui-label-to-value-gap) !important; /* 라벨-값 간격 */
         align-items: flex-start;
     }
 
@@ -64,7 +64,7 @@
     .result-wrap.type2 .result-block {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: var(--ui-col-gap) !important; 
+        gap: var(--ui-col-gap) !important; /* 컬럼 간격 */
         align-items: start;
     }
     .preview.type2 .result-item,
@@ -100,25 +100,18 @@
         flex-direction: column;
         gap: var(--ui-stack-gap) !important;
         width: 100%;
-        /* [수정] 하단 스택 전체는 왼쪽 정렬이 기본이 되도록 */
-        align-items: flex-start; 
+        align-items: flex-start !important; /* 스택 전체를 왼쪽으로 */
     }
     
-    /* [수정] M1 하단 아이템: 좌우 배치 (라벨 - 값) */
+    /* [수정] M1 하단 아이템: 완전한 좌측 정렬 */
     .m1-item {
         display: flex;
         flex-direction: row; 
-        justify-content: space-between;
+        justify-content: flex-start !important; /* 왼쪽부터 차례대로 배치 */
         align-items: center;
-        width: 100%; /* 가로 꽉 채워서 양끝 정렬 */
+        width: 100%;
+        gap: var(--ui-label-to-value-gap) !important; /* 라벨과 값 사이 간격 */
     }
-    
-    /* 만약 라벨과 값을 '좌측'에 몰아서 정렬하고 싶다면 아래 주석 해제 */
-    /* .m1-item {
-        justify-content: flex-start; 
-        gap: 12px; 
-    }
-    */
 
     /* M1 하단 스탯 폰트 */
     .m1-item .m-label { font-size: var(--ui-label-size) !important; }
@@ -130,7 +123,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        align-items: flex-start; 
+        align-items: flex-start; /* 좌측 정렬 */
     }
     .m2-month-line {
         font-size: var(--ui-month-size) !important;
@@ -196,7 +189,6 @@
         width: 100% !important; padding: 40px 0 !important; text-align: center !important; display: block;
     }
     #garminConnectBtnWrap button, #stravaConnectBtnWrap button { display: inline-block; margin: 0 auto; }
-    
     /* RUN 버튼 */
     .run-btn {
         position: fixed !important; bottom: 30px !important; left: 50% !important;
@@ -206,7 +198,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
-    
     /* 로그인 오버레이 */
     #garminLoginScreen {
       display: none; position: fixed !important; top: 0; left: 0; bottom: 0; right: 0;
@@ -223,13 +214,12 @@
       z-index: 100000 !important; background: #000 !important; color: #fff !important;
       cursor: pointer !important; margin: 0 !important;
     }
-    
     /* Select Workout 화면 */
     .select-workout {
         background-color: #fff !important; 
         z-index: 99999 !important;
     }
-    
+    /* 결과 화면 */
     .result-screen {
         z-index: 2147483647 !important; position: fixed !important;
         top: 0; left: 0; width: 100%; height: 100%; background: #fff;
