@@ -1,123 +1,133 @@
-// ============================================================
-// [UI CONFIGURATION] 스타일 정밀 제어 컨트롤러
-// ============================================================
+// ui_config.js
+
+/* [설정 가이드]
+  - D1 (Daily Type 1): 세로 스택형 (라벨/값/간격 제어)
+  - D2 (Daily Type 2): 가로 나열형 (컬럼 간격 제어 추가)
+  - M1 (Monthly Type 1): 월/거리 강조 + 하단 세로 스택
+  - M2 (Monthly Type 2): 월/거리 강조 + 하단 가로 나열
+  - 모든 값은 픽셀(px) 단위의 숫자입니다.
+*/
 
 export const UI_CONFIG = {
-    // 1. [공통 설정] D2와 M2가 공유하는 간격
-    global: {
-        sharedColGap: 24, // D2, M2 데이터 사이의 좌우 간격 (px)
+  // 전역 기본값 (폰트별 설정이 없을 경우 사용)
+  global: {
+    colGap: 24,       // D2, M2 가로 간격
+    rowGap: 18,       // D1 스택 간격
+    rowGapResult: 18  // 결과 화면 스택 간격
+  },
+
+  fonts: {
+    // 1. ANTON 폰트 설정
+    anton: {
+      d1: {
+        labelSize: 12,        // 라벨 폰트 크기
+        valueSize: 34,        // 숫자 폰트 크기
+        distanceValueSize: 34,// 거리 숫자(Km)는 더 크게 하려면 수정
+        labelToValueGap: 8,   // 라벨과 숫자 사이 간격
+        stackGap: 18          // 항목(Distance/Pace/Time) 간의 간격
+      },
+      d2: {
+        labelSize: 12,
+        valueSize: 34,
+        labelToValueGap: 8,
+        colGap: 24            // 좌우 컬럼 간격
+      },
+      m1: {
+        monthSize: 14,          // 상단 날짜 크기
+        monthToDistanceGap: 8,  // 날짜와 거리 사이
+        distanceSize: 36,       // 메인 거리 크기
+        distanceToStatsGap: 14, // 거리와 하단 스탯 사이
+        labelSize: 10,          // 하단 스탯 라벨
+        valueSize: 24,          // 하단 스탯 값
+        labelToValueGap: 8,
+        stackGap: 18
+      },
+      m2: {
+        monthSize: 14,
+        monthToDistanceGap: 8,
+        distanceSize: 36,
+        distanceToStatsGap: 14,
+        labelSize: 10,
+        valueSize: 24,
+        labelToValueGap: 8,
+        colGap: 24
+      }
     },
 
-    // 2. [폰트별 설정] (anton, dots, lcd, gothic, speed)
-    // 각 폰트마다 D1, D2, M1, M2 스타일을 따로 지정할 수 있습니다.
-    fonts: {
-        // --- ANTON 폰트 설정 ---
-        anton: {
-            // [D1] Daily Type 1 (수직)
-            d1: {
-                labelSize: 12,      // 라벨 크기
-                valueSize: 38,      // 숫자 크기
-                labelGap: 10,       // 라벨-숫자 사이 간격
-                stackGap: 16        // 줄 간격
-            },
-            // [D2] Daily Type 2 (가로 3단)
-            d2: {
-                labelSize: 12,
-                valueSize: 34,      // 숫자 크기 (D2, M2 하단 통일됨)
-                labelGap: 4         // 라벨이 숫자 위에 오므로 상하 간격
-            },
-            // [M1] Monthly Type 1 (세로형)
-            m1: {
-                monthSize: 14,      // "DECEMBER 2025" 크기
-                monthGap: 8,        // 월 - 거리 사이 간격
-                distSize: 50,       // 메인 거리 숫자 크기
-                distGap: 20,        // 거리 - 하단 스탯 사이 간격
-                
-                labelSize: 12,      // 하단 스탯 라벨
-                valueSize: 24,      // 하단 스탯 숫자
-                labelGap: 8,
-                stackGap: 10
-            },
-            // [M2] Monthly Type 2 (가로형)
-            m2: {
-                monthSize: 14,
-                monthGap: 8,
-                distSize: 42,
-                distGap: 24,        // 거리 - 하단 그리드 사이 간격
-                
-                labelSize: 12,
-                valueSize: 34,      // D2 숫자와 크기 동일하게 설정 추천
-                labelGap: 4
-            }
-        },
+    // 2. DOTS 폰트 설정 (예시)
+    dots: {
+      d1: { labelSize: 12, valueSize: 32, distanceValueSize: 32, labelToValueGap: 4, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, colGap: 24 }
+    },
 
-        // --- DOTS 폰트 설정 (예시) ---
-        dots: {
-            d1: { labelSize: 12, valueSize: 32, labelGap: 8, stackGap: 18 },
-            d2: { labelSize: 12, valueSize: 28, labelGap: 6 },
-            m1: { monthSize: 14, monthGap: 10, distSize: 40, distGap: 15, labelSize: 10, valueSize: 20, labelGap: 6, stackGap: 12 },
-            m2: { monthSize: 14, monthGap: 10, distSize: 36, distGap: 20, labelSize: 10, valueSize: 28, labelGap: 6 }
-        },
+    // 3. LCD 폰트 설정
+    lcd: {
+      d1: { labelSize: 12, valueSize: 32, distanceValueSize: 32, labelToValueGap: 4, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, colGap: 24 }
+    },
 
-        // 나머지 폰트들 (기본값으로 안톤 복사해서 쓰거나 조정 가능)
-        lcd: { /* ...anton과 동일 구조... */ },
-        gothic: { /* ... */ },
-        speed: { /* ... */ }
+    // 4. GOTHIC 폰트 설정
+    gothic: {
+      d1: { labelSize: 12, valueSize: 30, distanceValueSize: 30, labelToValueGap: 4, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 30, labelToValueGap: 4, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 32, distanceToStatsGap: 14, labelSize: 10, valueSize: 20, labelToValueGap: 4, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 32, distanceToStatsGap: 14, labelSize: 10, valueSize: 20, labelToValueGap: 4, colGap: 24 }
+    },
+
+    // 5. SPEED 폰트 설정
+    speed: {
+      d1: { labelSize: 12, valueSize: 32, distanceValueSize: 32, labelToValueGap: 4, stackGap: 18 },
+      d2: { labelSize: 12, valueSize: 32, labelToValueGap: 4, colGap: 24 },
+      m1: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, stackGap: 18 },
+      m2: { monthSize: 14, monthToDistanceGap: 8, distanceSize: 34, distanceToStatsGap: 14, labelSize: 10, valueSize: 22, labelToValueGap: 4, colGap: 24 }
     }
+  }
 };
 
-// [SYSTEM] 설정을 CSS 변수로 변환하여 주입하는 함수
-export function applyLayoutConfig(state) {
-    const root = document.documentElement;
-    const fontKey = state.font || 'anton';
-    
-    // 폰트 설정 가져오기 (없으면 anton 기본값)
-    const fontConfig = UI_CONFIG.fonts[fontKey] || UI_CONFIG.fonts.anton;
-    
-    // 현재 레이아웃 타입 감지 (D1, D2, M1, M2)
-    let typeKey = '';
-    if (state.recordType === 'daily') {
-        typeKey = (state.layout === 'type1') ? 'd1' : 'd2';
-    } else {
-        typeKey = (state.layout === 'type1') ? 'm1' : 'm2';
-    }
+// CSS 변수를 Root에 적용하는 함수
+export function applyUIConfigToRoot(state) {
+  const { font, recordType, layout } = state;
+  
+  // 1. 현재 폰트 설정 가져오기 (없으면 anton 기본)
+  const fontConfig = UI_CONFIG.fonts[font] || UI_CONFIG.fonts.anton;
+  
+  // 2. 현재 모드 결정 (D1, D2, M1, M2)
+  let modeKey = '';
+  if (recordType === 'daily') {
+    modeKey = (layout === 'type1') ? 'd1' : 'd2';
+  } else {
+    modeKey = (layout === 'type1') ? 'm1' : 'm2';
+  }
+  
+  const config = fontConfig[modeKey];
+  const root = document.documentElement;
 
-    const conf = fontConfig[typeKey] || fontConfig.d1; // 안전장치
+  // 3. CSS 변수 주입 (px 단위)
+  
+  // 공통: 라벨 크기
+  if (config.labelSize) root.style.setProperty('--ui-label-size', `${config.labelSize}px`);
+  
+  // 공통: 값(숫자) 크기
+  if (config.valueSize) root.style.setProperty('--ui-value-size', `${config.valueSize}px`);
+  
+  // 공통: 라벨과 값 사이 간격
+  if (config.labelToValueGap) root.style.setProperty('--ui-label-to-value-gap', `${config.labelToValueGap}px`);
+  
+  // D1, M1: 항목 간 세로 간격
+  if (config.stackGap) root.style.setProperty('--ui-stack-gap', `${config.stackGap}px`);
+  
+  // D2, M2: 항목 간 가로 간격
+  if (config.colGap) root.style.setProperty('--ui-col-gap', `${config.colGap}px`);
 
-    // 1. 공통 변수 적용 (D2, M2 간격 통일)
-    root.style.setProperty('--shared-col-gap', `${UI_CONFIG.global.sharedColGap}px`);
-
-    // 2. 타입별 변수 적용
-    if (typeKey === 'd1') {
-        root.style.setProperty('--sz-label', `${conf.labelSize}px`);
-        root.style.setProperty('--sz-value', `${conf.valueSize}px`);
-        root.style.setProperty('--d1-label-gap', `${conf.labelGap}px`);
-        root.style.setProperty('--d1-stack-gap', `${conf.stackGap}px`);
-    } 
-    else if (typeKey === 'd2') {
-        root.style.setProperty('--sz-label', `${conf.labelSize}px`);
-        root.style.setProperty('--sz-value', `${conf.valueSize}px`);
-        root.style.setProperty('--d2-label-gap', `${conf.labelGap}px`);
-    }
-    else if (typeKey === 'm1') {
-        root.style.setProperty('--sz-month', `${conf.monthSize}px`);
-        root.style.setProperty('--m1-month-gap', `${conf.monthGap}px`);
-        root.style.setProperty('--sz-dist', `${conf.distSize}px`);
-        root.style.setProperty('--m1-dist-gap', `${conf.distGap}px`);
-        
-        root.style.setProperty('--sz-label', `${conf.labelSize}px`);
-        root.style.setProperty('--sz-value', `${conf.valueSize}px`);
-        root.style.setProperty('--m1-label-gap', `${conf.labelGap}px`);
-        root.style.setProperty('--m1-stack-gap', `${conf.stackGap}px`);
-    }
-    else if (typeKey === 'm2') {
-        root.style.setProperty('--sz-month', `${conf.monthSize}px`);
-        root.style.setProperty('--m2-month-gap', `${conf.monthGap}px`);
-        root.style.setProperty('--sz-dist', `${conf.distSize}px`);
-        root.style.setProperty('--m2-dist-gap', `${conf.distGap}px`);
-        
-        root.style.setProperty('--sz-label', `${conf.labelSize}px`);
-        root.style.setProperty('--sz-value', `${conf.valueSize}px`);
-        root.style.setProperty('--m2-label-gap', `${conf.labelGap}px`);
-    }
+  // Monthly 전용 설정
+  if (modeKey.startsWith('m')) {
+    if (config.monthSize) root.style.setProperty('--ui-month-size', `${config.monthSize}px`);
+    if (config.distanceSize) root.style.setProperty('--ui-distance-size', `${config.distanceSize}px`);
+    if (config.monthToDistanceGap) root.style.setProperty('--ui-month-to-dist-gap', `${config.monthToDistanceGap}px`);
+    if (config.distanceToStatsGap) root.style.setProperty('--ui-dist-to-stats-gap', `${config.distanceToStatsGap}px`);
+  }
 }
