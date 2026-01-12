@@ -8,6 +8,10 @@
   <title>RUNIMATE v2.0</title>
   
   <link rel="stylesheet" href="./styles.css" />
+ 
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="./ocr.js"></script>
+  
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.json" />
@@ -1086,79 +1090,72 @@
     });
 
     // --- MONTHLY & MANUAL ---
-    // --- [PATCH] NRC OCR LOGIC (Loading -> DONE 복구) ---
+   // --- [PATCH] NRC OCR Logic (External ocr.js Version) ---
     if (el.btnUploadNrc && el.fileNrc) {
-        // 1. 업로드 버튼 클릭 시 파일 선택창 열기
+        // 버튼 클릭 시 파일 선택창 열기
         el.btnUploadNrc.addEventListener('click', () => {
-            el.fileNrc.value = ''; // 같은 파일 다시 선택해도 반응하도록 초기화
+            el.fileNrc.value = ''; // 초기화
             el.fileNrc.click();
         });
-
-        // 2. 파일이 선택되면 OCR 분석 시작
+        
+        // 파일 선택 시 동작
         el.fileNrc.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // [상태 표시] Loading...
+            // 1. Loading 표시
             if (el.ocrStatus) {
                 el.ocrStatus.style.display = 'block';
                 el.ocrStatus.textContent = 'Loading...';
                 el.ocrStatus.style.color = '#333';
             }
 
-            try {
-                // ocr.js 동적 로드 (파일이 같은 폴더에 있어야 함)
-                const ocrMod = await import('./ocr.js');
-                
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const imageData = event.target.result;
-                        // ocr.js의 extractAll 함수 실행
-                        const result = await ocrMod.extractAll(imageData);
-                        
-                        // 결과값 변환
-                        const km = result.km || 0;
-                        const pace = (result.paceMin * 60) + result.paceSec;
-                        const time = (result.timeH * 3600) + (result.timeM * 60) + result.timeS;
-                        
-                        // 현재 모드(Daily/Monthly)에 맞춰 데이터 저장
-                        if (state.recordType === 'daily') {
-                            state.daily.km = km;
-                            state.daily.paceSec = pace;
-                            state.daily.timeSec = time;
-                        } else {
-                            state.monthly.km = km;
-                            state.monthly.paceSec = pace;
-                            state.monthly.timeSec = time;
-                            if (result.runs) state.monthly.runs = result.runs;
-                        }
-                        
-                        // 화면 갱신 및 탭 전환
-                        state.dataType = 'nrc';
-                        applyDataType(); 
-                        updatePreview();
-                        
-                        // [상태 표시] DONE!
-                        if (el.ocrStatus) {
-                            el.ocrStatus.textContent = 'DONE!';
-                            el.ocrStatus.style.color = '#00C800'; // 성공 시 녹색
-                        }
-                    } catch (innerErr) {
-                        console.error(innerErr);
-                        if (el.ocrStatus) {
-                            el.ocrStatus.textContent = 'Error parsing image';
-                            el.ocrStatus.style.color = 'red';
-                        }
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    // 2. ocr.js에 있는 extractAll 함수 호출
+                    // (window.extractAll로 명시해서 확실하게 호출)
+                    if (typeof window.extractAll !== 'function') {
+                        throw new Error('ocr.js가 로드되지 않았습니다.');
                     }
-                };
-                reader.readAsDataURL(file);
 
-            } catch (err) {
-                console.error(err);
-                if (el.ocrStatus) el.ocrStatus.textContent = 'ocr.js load failed';
-                alert("ocr.js 파일을 찾을 수 없습니다. (index.html과 같은 폴더에 있어야 합니다)");
-            }
+                    const result = await window.extractAll(event.target.result);
+                    
+                    // 3. 결과 데이터 반영
+                    const km = result.km || 0;
+                    const pace = (result.paceMin * 60) + result.paceSec;
+                    const time = (result.timeH * 3600) + (result.timeM * 60) + result.timeS;
+                    
+                    if (state.recordType === 'daily') {
+                        state.daily.km = km;
+                        state.daily.paceSec = pace;
+                        state.daily.timeSec = time;
+                    } else {
+                        state.monthly.km = km;
+                        state.monthly.paceSec = pace;
+                        state.monthly.timeSec = time;
+                        if (result.runs) state.monthly.runs = result.runs;
+                    }
+                    
+                    // 4. 화면 갱신 (탭 이동 및 값 표시)
+                    state.dataType = 'nrc';
+                    applyDataType(); 
+                    updatePreview();
+                    
+                    // 5. 완료 메시지
+                    if (el.ocrStatus) {
+                        el.ocrStatus.textContent = 'DONE!';
+                        el.ocrStatus.style.color = '#00C800'; 
+                    }
+                } catch (err) {
+                    console.error(err);
+                    if (el.ocrStatus) {
+                        el.ocrStatus.textContent = 'Error: ' + err.message;
+                        el.ocrStatus.style.color = 'red';
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
         });
     }
     if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
