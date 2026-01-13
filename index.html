@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ko">
 
@@ -41,14 +40,13 @@
 
     /* [D1 & D2 공통] 라벨과 값의 스타일 */
     .result-label, .data-label {
-        font-family: inherit !important; /* 기본은 선택된 폰트 상속 */
+        font-family: inherit !important;
         font-size: var(--ui-label-size) !important;
         line-height: 1;
         opacity: 0.8;
         margin-bottom: var(--ui-label-to-value-gap) !important; 
     }
     
-    /* [수정 1] Anton 폰트 선택 시, Daily(D1, D2) 라벨은 무조건 Inter 900 적용 */
     .font-anton .result-label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         font-weight: 900 !important;
@@ -74,14 +72,14 @@
         align-items: flex-start;
     }
 
-/* [D2] Daily Type 2 (가로 나열) - Grid에서 Flex로 변경하여 간격 고정 */
+    /* [D2] Daily Type 2 (가로 나열) */
     .preview.type2 .preview-content,
     .result-wrap.type2 .result-block {
         display: flex !important;
         flex-direction: row;
-        gap: var(--ui-col-gap) !important; /* 설정된 간격(20px 등) 유지 */
+        gap: var(--ui-col-gap) !important;
         align-items: flex-start;
-        justify-content: flex-start; /* 왼쪽부터 차례대로 나열 */
+        justify-content: flex-start;
     }
     .preview.type2 .result-item,
     .result-wrap.type2 .result-item {
@@ -89,7 +87,7 @@
         flex-direction: column;
         gap: 0 !important;
         align-items: flex-start;
-        flex: 0 0 auto; /* 내용물 크기만큼만 영역 차지 */
+        flex: 0 0 auto;
     }
 
     /* [M1] Monthly Type 1 (상단 + 하단 스택) */
@@ -142,7 +140,6 @@
     }
     .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
     
-    /* [M2 수정] Grid -> Flex (간격 제어) */
     .m2-row {
         display: flex !important; 
         flex-direction: row;
@@ -252,6 +249,19 @@
         padding: 10px 24px; transition: transform 0.1s;
     }
     .month-btn:active { transform: scale(0.97); }
+
+    /* [수정] NRC 업로드 버튼이 카드 안으로 들어오도록 강제 조정 */
+    #contentNrc, #contentManual {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .upload-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        display: flex; justify-content: center; align-items: center;
+        margin-top: 10px; /* 간격 확보 */
+    }
   </style>
 </head>
 
@@ -318,9 +328,7 @@
           </div>
         </div>
 
-
-          
-         <div class="data-content" id="contentStrava" style="display:none;">
+        <div class="data-content" id="contentStrava" style="display:none;">
           
           <div id="stravaConnectBtnWrap" style="width: 100%; padding: 60px 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
              <div style="font-size: 15px; font-weight: 900; margin-bottom: 20px; color: #000;">
@@ -329,11 +337,7 @@
              
              <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 0 20px; height: 50px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(252, 76, 2, 0.3);">
                <span style="font-size: 16px; font-weight: 700; font-family: 'Inter', sans-serif;">Connect with</span>
-               
-               <svg role="img" viewBox="0 0 320 68" xmlns="http://www.w3.org/2000/svg" height="18" fill="white" style="display: block; margin-top: -2px;">
-                 <path d="M72.3 27.4L58.7 60.1h-16L59 21.6 42.1 60.1H25.4L49.9 5h16.3l18.3 40.5 5.8-13h-18zm36.2 32.7h14.7V39.6c0-7.7 2.4-10.7 7.7-10.7 2.5 0 4.6.6 6.3 1.7V17c-2.3-1.4-5-2.2-8.3-2.2-6.5 0-11.8 4.2-14.7 9.8l-1.3-8.8H99v44.3zm67.1 0h16l-20.8-44-20.8 44h16l4.6-10.8h16.2l4.8 10.8zM167 40.1l-4.5-10.6-4.6 10.6h9.1zm60.8 20H214l27.1-60.1h15.9L227.8 60.1zm-80.4 0h15.2l20.4-60.1h-16l-13 41.7-13.3-41.7h-15l21.7 60.1zm158-44h-16.2l-4.7 10.8h-16.1l-4.7-10.8h-16.2l20.8 44 20.8-44z"/>
-                 <path d="M12.5 45.4C9.1 44.1 7.6 42.4 7.6 39.8c0-3.3 2.9-5.1 7.2-5.1 4.2 0 7.8 1.9 10.5 4.3l8.8-10.8C28.8 24 22.4 21 14.9 21 5.4 21 .2 27 .2 37.1c0 10.1 5.9 15.5 15.6 19.2 4.4 1.6 5.8 3.3 5.8 5.6 0 3.3-3.2 5.2-8 5.2-4.8 0-8.9-2.3-12-5.7L0 72.8c5.2 4.8 12.2 7.4 19.8 7.4 11 0 17-6.2 17-17.4 0-10.7-6.3-16-15.6-19.4"/>
-               </svg>
+               <img src="./img/strava_wht.png" alt="Strava" style="height: 18px; width: auto; margin-top: -2px; display: block;">
              </button>
           </div>
 
@@ -354,32 +358,14 @@
               
               <div style="margin-top: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <span style="font-size: 11px; font-weight: 700; color: #999;">Powered by</span>
-                  <svg role="img" viewBox="0 0 320 68" xmlns="http://www.w3.org/2000/svg" height="12" fill="#FC4C02">
-                     <path d="M72.3 27.4L58.7 60.1h-16L59 21.6 42.1 60.1H25.4L49.9 5h16.3l18.3 40.5 5.8-13h-18zm36.2 32.7h14.7V39.6c0-7.7 2.4-10.7 7.7-10.7 2.5 0 4.6.6 6.3 1.7V17c-2.3-1.4-5-2.2-8.3-2.2-6.5 0-11.8 4.2-14.7 9.8l-1.3-8.8H99v44.3zm67.1 0h16l-20.8-44-20.8 44h16l4.6-10.8h16.2l4.8 10.8zM167 40.1l-4.5-10.6-4.6 10.6h9.1zm60.8 20H214l27.1-60.1h15.9L227.8 60.1zm-80.4 0h15.2l20.4-60.1h-16l-13 41.7-13.3-41.7h-15l21.7 60.1zm158-44h-16.2l-4.7 10.8h-16.1l-4.7-10.8h-16.2l20.8 44 20.8-44z"/>
-                     <path d="M12.5 45.4C9.1 44.1 7.6 42.4 7.6 39.8c0-3.3 2.9-5.1 7.2-5.1 4.2 0 7.8 1.9 10.5 4.3l8.8-10.8C28.8 24 22.4 21 14.9 21 5.4 21 .2 27 .2 37.1c0 10.1 5.9 15.5 15.6 19.2 4.4 1.6 5.8 3.3 5.8 5.6 0 3.3-3.2 5.2-8 5.2-4.8 0-8.9-2.3-12-5.7L0 72.8c5.2 4.8 12.2 7.4 19.8 7.4 11 0 17-6.2 17-17.4 0-10.7-6.3-16-15.6-19.4"/>
-                  </svg>
+                  <img src="./img/strava_org.png" alt="Strava" style="height: 12px; width: auto; display: block;">
               </div>
-          </div>
-        </div>
-
-          <div class="garmin-card" id="stravaCard" style="display:none; margin-top:20px;">
-            <div class="garmin-card-left">
-              <div class="garmin-date" id="stravaDateText">0000.00.00</div>
-              <div class="garmin-stats">
-                <span class="garmin-stat" id="stravaDistanceText">00.00Km</span>
-                <span class="garmin-stat" id="stravaPaceText">0'00"</span>
-                <span class="garmin-stat" id="stravaTimeText">0:00</span>
-              </div>
-            </div>
-            <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
-               <div class="hamburger"><span></span><span></span><span></span></div>
-            </button>
           </div>
         </div>
 
         <div class="data-content" id="contentNrc" style="display:none;">
           <div class="sub-title" id="nrcTitle">Upload Your Record</div>
-          <button class="upload-btn" id="btnUploadNrc">Upload NRC record image</button>
+          <button class="upload-btn" id="btnUploadNrc" style="width: 100%; box-sizing: border-box;">Upload NRC record image</button>
           <div class="ocr-status" id="ocrStatus"></div>
           <input type="file" id="fileNrc" accept="image/*" hidden />
         </div>
@@ -638,15 +624,14 @@
     function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
     
     // --- STATE ---
-// --- STATE ---
     const today = new Date(); // [추가] 현재 날짜 가져오기
 
     const state = {
       recordType: 'daily',
-      dataType: null,     
-      font: 'anton',      
-      layout: 'type1',    
-      bg: 'white',        
+      dataType: null,      
+      font: 'anton',       
+      layout: 'type1',     
+      bg: 'white',         
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       // [수정] month와 year를 오늘 날짜 기준으로 설정 (월은 0부터 시작하므로 +1)
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
@@ -1272,6 +1257,7 @@
       if (state.recordType === 'daily') {
         if(state.dataType === 'garmin') d = state.garmin;
         else if(state.dataType === 'strava') d = state.strava;
+        else if(state.dataType === 'nrc') d = state.daily;
         else d = state.manual;
       } else {
         d = state.monthly;
@@ -1456,24 +1442,24 @@
              if(json.success) {
                  realStravaWorkouts = json.data;
                  
-           if(realStravaWorkouts.length > 0) {
-                     state.strava = realStravaWorkouts[0];
-                     state.dataType = 'strava';
-                     
-                     // [수정된 부분] UI 전환: 버튼 숨김 -> 카드 패키지 보임
-                     if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
-                     
-                     // stravaCardWrap (카드 + 로고 감싸는 div)을 보여줌
-                     const stravaCardWrap = document.getElementById('stravaCardWrap');
-                     if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
-                     
-                     // [중요] 로그인 화면 닫고, 리스트 화면 띄우기
-                     closeScreen('stravaLoginScreen');
-                     renderWorkoutList('strava');
-                     openScreen('garminSelectScreen');
-                     
-                     applyDataType();
-                     updatePreview();
+            if(realStravaWorkouts.length > 0) {
+                      state.strava = realStravaWorkouts[0];
+                      state.dataType = 'strava';
+                      
+                      // [수정된 부분] UI 전환: 버튼 숨김 -> 카드 패키지 보임
+                      if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
+                      
+                      // stravaCardWrap (카드 + 로고 감싸는 div)을 보여줌
+                      const stravaCardWrap = document.getElementById('stravaCardWrap');
+                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                      
+                      // [중요] 로그인 화면 닫고, 리스트 화면 띄우기
+                      closeScreen('stravaLoginScreen');
+                      renderWorkoutList('strava');
+                      openScreen('garminSelectScreen');
+                      
+                      applyDataType();
+                      updatePreview();
                  } else {
                      alert("최근 러닝 기록이 없습니다.");
                      if(el.btnStravaLogin) {
