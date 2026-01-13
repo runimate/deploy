@@ -318,16 +318,44 @@
           </div>
         </div>
 
-  <div class="data-content" id="contentStrava" style="display:flex; flex-direction:column; align-items:center; gap:20px; padding:40px 0;">
-    
-    <div style="text-align:center;">
-        <div style="font-weight:900; font-size:16px; margin-bottom:10px;">Connect Your Activity</div>
-        <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/22693664/6763784/2/large.jpg" style="display:none;"> <button style="background:#FC4C02; color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:4px;">
-            Connect with Strava
-        </button>
-    </div>
+<div class="data-content" id="contentStrava" style="display:none;">
+          
+          <div id="stravaConnectBtnWrap" style="width: 100%; padding: 60px 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+             <div style="font-size: 14px; font-weight: 900; margin-bottom: 20px; color: #000;">
+               Connect Your Activity
+             </div>
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(252, 76, 2, 0.3);">
+               <span>Connect with</span>
+               <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="60" height="16" fill="white" style="display: block;">
+                 <title>Strava</title>
+                 <path d="M15.387 17.944l-2.089-4.116h-3.465l5.554 10.172L21 13.828h-3.49l-2.123 4.116zM10.426 9.922L6.87 2.5h-3.52l7.076 14.004L17.5 2.5h-3.52l-3.554 7.422z"/>
+               </svg>
+             </button>
+          </div>
 
-    </div>
+          <div id="stravaCardWrap" style="display: none; flex-direction: column; width: 100%;">
+              <div class="garmin-card" id="stravaCard">
+                <div class="garmin-card-left">
+                  <div class="garmin-date" id="stravaDateText">0000.00.00</div>
+                  <div class="garmin-stats">
+                    <span class="garmin-stat" id="stravaDistanceText">00.00Km</span>
+                    <span class="garmin-stat" id="stravaPaceText">0'00"</span>
+                    <span class="garmin-stat" id="stravaTimeText">0:00:00</span>
+                  </div>
+                </div>
+                <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
+                   <div class="hamburger"><span></span><span></span><span></span></div>
+                </button>
+              </div>
+              
+              <div style="margin-top: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span style="font-size: 11px; font-weight: 700; color: #999;">Powered by</span>
+                  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="60" height="12" fill="#FC4C02">
+                     <path d="M15.387 17.944l-2.089-4.116h-3.465l5.554 10.172L21 13.828h-3.49l-2.123 4.116zM10.426 9.922L6.87 2.5h-3.52l7.076 14.004L17.5 2.5h-3.52l-3.554 7.422z"/>
+                  </svg>
+              </div>
+          </div>
+        </div>
 
           <div class="garmin-card" id="stravaCard" style="display:none; margin-top:20px;">
             <div class="garmin-card-left">
@@ -1423,13 +1451,16 @@
              if(json.success) {
                  realStravaWorkouts = json.data;
                  
-                 if(realStravaWorkouts.length > 0) {
+           if(realStravaWorkouts.length > 0) {
                      state.strava = realStravaWorkouts[0];
                      state.dataType = 'strava';
                      
-                     // UI 전환 (버튼 숨김 -> 카드 보임)
+                     // [수정된 부분] UI 전환: 버튼 숨김 -> 카드 패키지 보임
                      if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.style.display = 'none';
-                     if(el.stravaCard) el.stravaCard.style.display = 'flex';
+                     
+                     // stravaCardWrap (카드 + 로고 감싸는 div)을 보여줌
+                     const stravaCardWrap = document.getElementById('stravaCardWrap');
+                     if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
                      
                      // [중요] 로그인 화면 닫고, 리스트 화면 띄우기
                      closeScreen('stravaLoginScreen');
