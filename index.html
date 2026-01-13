@@ -320,15 +320,19 @@
 
 <div class="data-content" id="contentStrava" style="display:none;">
           
+          <div class="data-content" id="contentStrava" style="display:none;">
+          
           <div id="stravaConnectBtnWrap" style="width: 100%; padding: 60px 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-             <div style="font-size: 14px; font-weight: 900; margin-bottom: 20px; color: #000;">
+             <div style="font-size: 15px; font-weight: 900; margin-bottom: 20px; color: #000;">
                Connect Your Activity
              </div>
-             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(252, 76, 2, 0.3);">
-               <span>Connect with</span>
-               <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="60" height="16" fill="white" style="display: block;">
-                 <title>Strava</title>
-                 <path d="M15.387 17.944l-2.089-4.116h-3.465l5.554 10.172L21 13.828h-3.49l-2.123 4.116zM10.426 9.922L6.87 2.5h-3.52l7.076 14.004L17.5 2.5h-3.52l-3.554 7.422z"/>
+             
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 0 20px; height: 50px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(252, 76, 2, 0.3);">
+               <span style="font-size: 16px; font-weight: 700; font-family: 'Inter', sans-serif;">Connect with</span>
+               
+               <svg role="img" viewBox="0 0 320 68" xmlns="http://www.w3.org/2000/svg" height="18" fill="white" style="display: block; margin-top: -2px;">
+                 <path d="M72.3 27.4L58.7 60.1h-16L59 21.6 42.1 60.1H25.4L49.9 5h16.3l18.3 40.5 5.8-13h-18zm36.2 32.7h14.7V39.6c0-7.7 2.4-10.7 7.7-10.7 2.5 0 4.6.6 6.3 1.7V17c-2.3-1.4-5-2.2-8.3-2.2-6.5 0-11.8 4.2-14.7 9.8l-1.3-8.8H99v44.3zm67.1 0h16l-20.8-44-20.8 44h16l4.6-10.8h16.2l4.8 10.8zM167 40.1l-4.5-10.6-4.6 10.6h9.1zm60.8 20H214l27.1-60.1h15.9L227.8 60.1zm-80.4 0h15.2l20.4-60.1h-16l-13 41.7-13.3-41.7h-15l21.7 60.1zm158-44h-16.2l-4.7 10.8h-16.1l-4.7-10.8h-16.2l20.8 44 20.8-44z"/>
+                 <path d="M12.5 45.4C9.1 44.1 7.6 42.4 7.6 39.8c0-3.3 2.9-5.1 7.2-5.1 4.2 0 7.8 1.9 10.5 4.3l8.8-10.8C28.8 24 22.4 21 14.9 21 5.4 21 .2 27 .2 37.1c0 10.1 5.9 15.5 15.6 19.2 4.4 1.6 5.8 3.3 5.8 5.6 0 3.3-3.2 5.2-8 5.2-4.8 0-8.9-2.3-12-5.7L0 72.8c5.2 4.8 12.2 7.4 19.8 7.4 11 0 17-6.2 17-17.4 0-10.7-6.3-16-15.6-19.4"/>
                </svg>
              </button>
           </div>
@@ -350,8 +354,9 @@
               
               <div style="margin-top: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <span style="font-size: 11px; font-weight: 700; color: #999;">Powered by</span>
-                  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="60" height="12" fill="#FC4C02">
-                     <path d="M15.387 17.944l-2.089-4.116h-3.465l5.554 10.172L21 13.828h-3.49l-2.123 4.116zM10.426 9.922L6.87 2.5h-3.52l7.076 14.004L17.5 2.5h-3.52l-3.554 7.422z"/>
+                  <svg role="img" viewBox="0 0 320 68" xmlns="http://www.w3.org/2000/svg" height="12" fill="#FC4C02">
+                     <path d="M72.3 27.4L58.7 60.1h-16L59 21.6 42.1 60.1H25.4L49.9 5h16.3l18.3 40.5 5.8-13h-18zm36.2 32.7h14.7V39.6c0-7.7 2.4-10.7 7.7-10.7 2.5 0 4.6.6 6.3 1.7V17c-2.3-1.4-5-2.2-8.3-2.2-6.5 0-11.8 4.2-14.7 9.8l-1.3-8.8H99v44.3zm67.1 0h16l-20.8-44-20.8 44h16l4.6-10.8h16.2l4.8 10.8zM167 40.1l-4.5-10.6-4.6 10.6h9.1zm60.8 20H214l27.1-60.1h15.9L227.8 60.1zm-80.4 0h15.2l20.4-60.1h-16l-13 41.7-13.3-41.7h-15l21.7 60.1zm158-44h-16.2l-4.7 10.8h-16.1l-4.7-10.8h-16.2l20.8 44 20.8-44z"/>
+                     <path d="M12.5 45.4C9.1 44.1 7.6 42.4 7.6 39.8c0-3.3 2.9-5.1 7.2-5.1 4.2 0 7.8 1.9 10.5 4.3l8.8-10.8C28.8 24 22.4 21 14.9 21 5.4 21 .2 27 .2 37.1c0 10.1 5.9 15.5 15.6 19.2 4.4 1.6 5.8 3.3 5.8 5.6 0 3.3-3.2 5.2-8 5.2-4.8 0-8.9-2.3-12-5.7L0 72.8c5.2 4.8 12.2 7.4 19.8 7.4 11 0 17-6.2 17-17.4 0-10.7-6.3-16-15.6-19.4"/>
                   </svg>
               </div>
           </div>
