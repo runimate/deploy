@@ -1108,38 +1108,37 @@
     });
 
     // --- MONTHLY & MANUAL ---
-   // --- [PATCH] NRC OCR Logic (External ocr.js Version) ---
+   // --- [PATCH] NRC OCR Logic (Global Window Function) ---
     if (el.btnUploadNrc && el.fileNrc) {
-        // 버튼 클릭 시 파일 선택창 열기
         el.btnUploadNrc.addEventListener('click', () => {
-            el.fileNrc.value = ''; // 초기화
+            el.fileNrc.value = ''; 
             el.fileNrc.click();
         });
         
-        // 파일 선택 시 동작
         el.fileNrc.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // 1. Loading 표시
+            // Loading UI
             if (el.ocrStatus) {
                 el.ocrStatus.style.display = 'block';
-                el.ocrStatus.textContent = 'Loading...';
+                el.ocrStatus.textContent = 'Analyzing...';
                 el.ocrStatus.style.color = '#333';
             }
 
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
-                    // 2. ocr.js에 있는 extractAll 함수 호출
-                    // (window.extractAll로 명시해서 확실하게 호출)
+                    // [핵심] ocr.js의 window.extractAll 함수 호출
                     if (typeof window.extractAll !== 'function') {
-                        throw new Error('ocr.js가 로드되지 않았습니다.');
+                        throw new Error('OCR engine not loaded. Check ocr.js path.');
                     }
 
-                    const result = await window.extractAll(event.target.result);
+                    const result = await window.extractAll(event.target.result, { 
+                        recordType: state.recordType 
+                    });
                     
-                    // 3. 결과 데이터 반영
+                    // 결과 데이터 적용
                     const km = result.km || 0;
                     const pace = (result.paceMin * 60) + result.paceSec;
                     const time = (result.timeH * 3600) + (result.timeM * 60) + result.timeS;
@@ -1155,12 +1154,11 @@
                         if (result.runs) state.monthly.runs = result.runs;
                     }
                     
-                    // 4. 화면 갱신 (탭 이동 및 값 표시)
+                    // 화면 갱신
                     state.dataType = 'nrc';
                     applyDataType(); 
                     updatePreview();
                     
-                    // 5. 완료 메시지
                     if (el.ocrStatus) {
                         el.ocrStatus.textContent = 'DONE!';
                         el.ocrStatus.style.color = '#00C800'; 
