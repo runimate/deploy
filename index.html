@@ -1107,19 +1107,20 @@
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
 
-    // --- MONTHLY & MANUAL ---
-   // --- [PATCH] NRC OCR Logic (Global Window Function) ---
+   // --- [PATCH] NRC OCR Logic (데이터 반영 오류 수정판) ---
     if (el.btnUploadNrc && el.fileNrc) {
+        // 버튼 클릭 시 파일 선택창 열기
         el.btnUploadNrc.addEventListener('click', () => {
             el.fileNrc.value = ''; 
             el.fileNrc.click();
         });
         
+        // 파일 선택 시 동작
         el.fileNrc.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Loading UI
+            // 1. Loading 표시
             if (el.ocrStatus) {
                 el.ocrStatus.style.display = 'block';
                 el.ocrStatus.textContent = 'Analyzing...';
@@ -1138,11 +1139,18 @@
                         recordType: state.recordType 
                     });
                     
-                    // 결과 데이터 적용
-                    const km = result.km || 0;
-                    const pace = (result.paceMin * 60) + result.paceSec;
-                    const time = (result.timeH * 3600) + (result.timeM * 60) + result.timeS;
+                    // 2. 결과 데이터 계산 (NaN 방지 처리 포함)
+                    const km = Number(result.km || 0);
+                    const pMin = Number(result.paceMin || 0);
+                    const pSec = Number(result.paceSec || 0);
+                    const tH = Number(result.timeH || 0);
+                    const tM = Number(result.timeM || 0);
+                    const tS = Number(result.timeS || 0);
+
+                    const pace = (pMin * 60) + pSec;
+                    const time = (tH * 3600) + (tM * 60) + tS;
                     
+                    // 3. 데이터 저장
                     if (state.recordType === 'daily') {
                         state.daily.km = km;
                         state.daily.paceSec = pace;
@@ -1154,11 +1162,12 @@
                         if (result.runs) state.monthly.runs = result.runs;
                     }
                     
-                    // 화면 갱신
-                    state.dataType = 'nrc';
-                    applyDataType(); 
-                    updatePreview();
+                    // 4. [중요] 탭 상태를 강제로 NRC로 변경해야 프리뷰가 갱신됨!
+                    state.dataType = 'nrc'; 
+                    applyDataType(); // 탭 UI 갱신 (NRC 탭 활성화)
+                    updatePreview(); // 프리뷰 텍스트 갱신
                     
+                    // 5. 완료 메시지
                     if (el.ocrStatus) {
                         el.ocrStatus.textContent = 'DONE!';
                         el.ocrStatus.style.color = '#00C800'; 
