@@ -1261,10 +1261,16 @@
     });
 
     // --- RUN BUTTON: Result & Animate ---
-    function buildResultDOM() {
+   function buildResultDOM() {
       el.resultWrap.className = `result-wrap ${state.layout}`;
-      // [수정] M2 결과화면 세로 배치를 위한 클래스 토글
-      el.resultWrap.classList.toggle('monthly', state.recordType === 'monthly');
+      
+      // [핵심 수정] Monthly 모드일 때 .monthly 클래스를 추가하여 CSS가 인식하게 함
+      // 이 코드가 있어야 M2 결과 화면이 세로로 예쁘게 쌓입니다.
+      if (state.recordType === 'monthly') {
+          el.resultWrap.classList.add('monthly');
+      } else {
+          el.resultWrap.classList.remove('monthly');
+      }
       
       let d = { km: 0, runs: 0, paceSec: 0, timeSec: 0 };
       if (state.recordType === 'daily') {
@@ -1295,6 +1301,7 @@
       } else {
         const monthLine = `${monthName(d.month)} ${d.year}`;
         if (state.layout === 'type1') {
+          // M1 Layout
           el.resultBlock.innerHTML = `
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
@@ -1305,6 +1312,7 @@
             </div>
           `;
         } else {
+          // M2 Layout
           el.resultBlock.innerHTML = `
             <div class="m2-month">${monthLine}</div>
             <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
