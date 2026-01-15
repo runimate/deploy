@@ -900,3 +900,52 @@ a.title-link, a.title-link:link, a.title-link:visited, a.title-link:hover, a.tit
   outline: none !important;
   box-shadow: none !important;
 }
+/* =========================================================
+   [긴급 패치] M1/M2 레이아웃 & 매뉴얼 모드 복구
+   이 내용을 styles.css 맨 아래에 붙여넣으세요.
+   ========================================================= */
+
+/* 1. 매뉴얼 모드(v2.0 5번 클릭) 기능 복구 */
+.data-tab.manual-hidden { display: none !important; }
+.data-tab.manual-show { display: flex !important; }
+
+/* 2. M1 (Monthly Type 1) 좌측 정렬 패치 */
+/* 라벨에 고정 너비를 주어 숫자들의 시작 위치를 맞춥니다 */
+.monthly-type1 .m1-item .m-label,
+.result-wrap.type1 .m1-item .result-label {
+    width: 60px !important;      /* 고정 너비 */
+    min-width: 60px !important;
+    margin-right: 12px !important;
+    text-align: left !important; /* 글자 좌측 정렬 */
+    display: inline-block !important;
+}
+.monthly-type1 .m1-item,
+.result-wrap.type1 .m1-item {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: flex-start !important;
+}
+
+/* 3. M2 (Monthly Type 2) 결과화면 세로 배치 패치 */
+/* 프리뷰는 그대로 두고, 결과 화면(.result-wrap)만 세로로 쌓이게 함 */
+.result-wrap.type2.monthly .result-block {
+    display: flex !important;
+    flex-direction: column !important; /* 강제 세로 정렬 */
+    align-items: flex-start !important;
+    gap: 0 !important;
+}
+.result-wrap.type2.monthly .m2-row {
+    display: flex !important;
+    flex-direction: row !important; /* 하단 스탯은 가로 유지 */
+    width: 100% !important;
+    margin-top: 14px !important; /* 거리와 스탯 사이 간격 */
+    gap: 24px !important;
+}
+
+/* 4. 결과 화면 폰트 강제 적용 (Inter로 나오는 문제 해결) */
+/* 선택된 폰트 클래스가 있으면 강제로 해당 폰트 적용 */
+.result-screen.font-anton .result-value, .result-screen.font-anton .m1-distance-value, .result-screen.font-anton .m2-distance-value { font-family: 'Anton', sans-serif !important; }
+.result-screen.font-dots .result-value, .result-screen.font-dots .m1-distance-value, .result-screen.font-dots .m2-distance-value { font-family: 'Bitcount Grid Single', monospace !important; }
+.result-screen.font-lcd .result-value, .result-screen.font-lcd .m1-distance-value, .result-screen.font-lcd .m2-distance-value { font-family: 'DS-Digital', monospace !important; }
+.result-screen.font-gothic .result-value, .result-screen.font-gothic .m1-distance-value, .result-screen.font-gothic .m2-distance-value { font-family: 'Special Gothic Expanded One', sans-serif !important; }
+.result-screen.font-speed .result-value, .result-screen.font-speed .m1-distance-value, .result-screen.font-speed .m2-distance-value { font-family: 'Quantico', sans-serif !important; }
