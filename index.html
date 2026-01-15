@@ -1257,9 +1257,18 @@
     });
 
     // --- RUN BUTTON: Result & Animate ---
-    function buildResultDOM() {
+   function buildResultDOM() {
+      // 1. 레이아웃 클래스 초기화
       el.resultWrap.className = `result-wrap ${state.layout}`;
       
+      // 2. [중요] Monthly 모드일 경우 별도 클래스 추가 (CSS에서 세로 정렬 시키기 위함)
+      if (state.recordType === 'monthly') {
+          el.resultWrap.classList.add('monthly');
+      } else {
+          el.resultWrap.classList.remove('monthly');
+      }
+
+      // 3. 데이터 준비
       let d = { km: 0, runs: 0, paceSec: 0, timeSec: 0 };
       if (state.recordType === 'daily') {
         if(state.dataType === 'garmin') d = state.garmin;
@@ -1270,6 +1279,7 @@
         d = state.monthly;
       }
 
+      // 4. HTML 생성
       if (state.recordType === 'daily') {
         el.resultBlock.innerHTML = `
           <div class="result-item">
@@ -1289,16 +1299,18 @@
       } else {
         const monthLine = `${monthName(d.month)} ${d.year}`;
         if (state.layout === 'type1') {
+          // M1 Layout (타이틀/값 좌측 정렬은 CSS 패치로 해결됨)
           el.resultBlock.innerHTML = `
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
-              <div class="m1-item"><div class="m-label">RUNS</div><div class="m-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="m-label">PACE</div><div class="m-value"><span id="rvPace"></span></div></div>
-              <div class="m1-item"><div class="m-label">TIME</div><div class="m-value"><span id="rvTime"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">PACE</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
             </div>
           `;
         } else {
+          // M2 Layout (CSS 패치로 세로 배치됨)
           el.resultBlock.innerHTML = `
             <div class="m2-month">${monthLine}</div>
             <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
