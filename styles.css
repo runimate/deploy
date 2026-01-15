@@ -909,21 +909,34 @@ a.title-link, a.title-link:link, a.title-link:visited, a.title-link:hover, a.tit
 .data-tab.manual-hidden { display: none !important; }
 .data-tab.manual-show { display: flex !important; }
 
-/* 2. M1 (Monthly Type 1) 좌측 정렬 패치 */
-/* 라벨에 고정 너비를 주어 숫자들의 시작 위치를 맞춥니다 */
+/* 2. M1 (Monthly Type 1) 좌측 정렬 및 상단 정렬 패치 */
+/* 라벨에 고정 너비를 주고, 숫자의 '상단'에 맞춰 정렬합니다 */
 .monthly-type1 .m1-item .m-label,
 .result-wrap.type1 .m1-item .result-label {
-    width: 60px !important;      /* 고정 너비 */
+    width: 60px !important;      /* 라벨 고정 너비 */
     min-width: 60px !important;
     margin-right: 12px !important;
     text-align: left !important; /* 글자 좌측 정렬 */
-    display: inline-block !important;
+    display: block !important;   /* block으로 변경하여 margin/padding 정확도 향상 */
+    
+    /* [핵심] 상단 정렬을 위한 디테일 */
+    padding-top: 6px !important; /* 숫자의 윗선과 라벨의 글자 높이를 시각적으로 맞춤 (필요시 1~2px 조절) */
+    line-height: 1 !important;   /* 라인 높이 오차 제거 */
 }
+
 .monthly-type1 .m1-item,
 .result-wrap.type1 .m1-item {
     display: flex !important;
-    align-items: baseline !important;
+    align-items: flex-start !important; /* [변경] baseline -> flex-start (상단 정렬) */
     justify-content: flex-start !important;
+    gap: 0 !important; /* 내부 갭 제거 (라벨의 margin-right로 제어) */
+}
+
+/* 프리뷰와 결과화면의 줄 높이(Line-height) 오차를 없애기 위한 강제 설정 */
+.monthly-type1 .m1-item .m-value,
+.result-wrap.type1 .m1-item .result-value {
+    line-height: 0.9 !important; /* 숫자 폰트의 상단 여백 제거를 위해 타이트하게 설정 */
+    align-items: flex-start !important; /* 숫자 내부도 상단 정렬 */
 }
 
 /* 3. M2 (Monthly Type 2) 결과화면 세로 배치 패치 */
