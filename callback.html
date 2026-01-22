@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Runimate - Auth</title>
+    <style>
+        body { background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <h2 id="status">러니메이트 연결 중... 🏃‍♂️</h2>
+
+    <script>
+        async function getToken() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+
+            if (!code) {
+                document.getElementById('status').innerText = "인증 코드가 없습니다. 다시 시도해주세요.";
+                setTimeout(() => location.href = '/', 2000);
+                return;
+            }
+
+            try {
+                // 1. 우리가 만들 백엔드 API로 '코드'를 보냄
+                const res = await fetch(`/api/strava/token?code=${code}`);
+                const data = await res.json();
+
+                if (data.access_token) {
+                    // 2. 받은 토큰을 저장 (이제 이 토큰으로 활동 내역을 가져옵니다)
+                    localStorage.setItem('strava_access_token', data.access_token);
+                    localStorage.setItem('strava_refresh_token', data.refresh_token);
+                    localStorage.setItem('strava_expires_at', data.expires_at);
+
+                    document.getElementById('status').innerText = "연결 성공! 메인으로 이동합니다.";
+                    // 3. 메인 페이지(혹은 데이터 보는 페이지)로 이동
+                    setTimeout(() => location.href = '/count.html', 1000); 
+                } else {
+                    throw new Error('토큰 발급 실패');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').innerText = "오류가 발생했습니다: " + err.message;
+            }
+        }
+
+        getToken();
+    </script>
+</body>
+</html>
