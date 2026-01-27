@@ -182,9 +182,9 @@
         <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap">
              <div style="font-size: 14px; color: #777; font-weight: 700;">
-               Strava is on the way.
+               Connect your activity
              </div>
-             <button id="btnStravaLogin" style="background: #B5B5B5; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; transition: opacity 0.2s;">
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; transition: opacity 0.2s;">
                <span>Connect with</span>
                <img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">
              </button>
@@ -219,7 +219,6 @@
 
         <div class="data-content" id="contentManual" style="display:none;">
           <div class="sub-title">Enter Your Record</div>
-          
           <div id="manual-input-container" class="manual-group">
             <div class="manual-row">
               <div class="manual-col">
@@ -1172,6 +1171,20 @@
                 alert("Developer Mode: Manual Tab Enabled");
                 if(el.tabManual) { el.tabManual.classList.remove('manual-hidden'); el.tabManual.classList.add('manual-show'); }
             }
+        });
+    }
+
+    // [추가된 부분] 실제 스트라바 로그인 연동 (OAuth)
+    if(el.btnStravaLogin) {
+        el.btnStravaLogin.addEventListener('click', () => {
+            // ★★★ 여기에 본인의 Strava Client ID를 입력하세요 ★★★
+            const client_id = '192399'; 
+            
+            const redirect_uri = window.location.origin; // 현재 페이지로 복귀
+            const scope = 'activity:read_all';
+            const authUrl = `https://www.strava.com/oauth/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&approval_prompt=force&scope=${scope}`;
+            
+            window.location.href = authUrl;
         });
     }
 
