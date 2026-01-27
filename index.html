@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#ffffff" />
   <style>
     /* =========================================
-       [CSS] 스타일 정의 (원본 유지)
+       [CSS] 스타일 정의 (기존 스타일 유지 + 버튼 스타일 보강)
        ========================================= */
     :root {
       --ui-label-size: 12px;
@@ -118,15 +118,15 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] 프리뷰 하단 Action 버튼 스타일 */
+    /* [수정] 버튼 스타일: 클릭이 확실히 되도록 z-index와 relative 설정 */
     .preview-actions { 
         display: flex; 
         gap: 12px; 
         margin-top: 30px; 
         width: 100%; 
         justify-content: center; 
-        z-index: 100;
-        position: relative;
+        position: relative; /* 중요 */
+        z-index: 50; /* 다른 요소 위에 뜨도록 */
     }
     .action-btn-pill { 
         flex: 1; 
@@ -142,7 +142,8 @@
         font-weight: 800; 
         cursor: pointer; 
         color: #000; 
-        transition: background 0.2s; 
+        transition: background 0.2s, transform 0.1s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .action-btn-pill:active { background: #E0E0E0; transform: scale(0.98); }
     .action-btn-pill svg { width: 20px; height: 20px; stroke-width: 2.5px; }
@@ -435,7 +436,7 @@
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
-        </div>
+    </div>
   </div>
 
   <div class="modal-overlay" id="colorPickerOverlay">
@@ -475,10 +476,8 @@
   <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
-    // ===========================================
-    // [INITIALIZATION & UTILS]
-    // ===========================================
     const $ = (s) => document.querySelector(s);
+    const safelyGet = (id) => document.getElementById(id); // 안전하게 요소 가져오기
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -505,52 +504,57 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
 
-    // --- DOM ELEMENT CACHE (Safe Access) ---
+    // ===========================================
+    // [LOGIC] GENERAL UI - Safe Elements Cache
+    // ===========================================
     const el = {
-      // Main Screens
-      resultScreen: $('#resultScreen'),
-      garminLoginScreen: $('#garminLoginScreen'),
-      stravaLoginScreen: $('#stravaLoginScreen'),
-      garminSelectScreen: $('#garminSelectScreen'),
-      monthPickerScreen: $('#monthPickerScreen'),
-      
-      // Panels & Tabs
-      dataPanel: $('#dataPanel'), 
-      dataPanelHead: $('#dataPanelHead'),
-      dataTabsDaily: $('#dataTabsDaily'),
-      
-      // Buttons
-      btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
-      btnRun: $('#btnRun'),
-      btnGarminList: $('#btnGarminList'),
-      btnStravaList: $('#btnStravaList'),
-      
-      // Strava/Garmin Connect Elements
-      stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), 
-      stravaCard: $('#stravaCard'),
-      garminConnectBtnWrap: $('#garminConnectBtnWrap'), 
-      garminCard: $('#garminCard'),
-      
-      // Inputs & Displays
-      inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
-      btnManualApply: $('#btnManualApply'),
-      
-      // Tabs
-      tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
-      contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
-      
-      // Login Buttons
-      btnOpenGarminLogin: $('#btnOpenGarminLogin'),
-      btnGarminRealSync: $('#btnGarminRealSync'),
-      btnStravaLogin: $('#btnStravaLogin'),
-      
-      // ETC
-      workoutList: $('#workoutList'),
-      
-      // Action Buttons (Save/Copy)
-      btnSaveImage: $('#btnSaveImage'),
-      btnCopyImage: $('#btnCopyImage'),
-      actionBtnGroup: $('#actionBtnGroup')
+        // Safe getters
+        btnStravaLogin: safelyGet('btnStravaLogin'),
+        stravaConnectBtnWrap: safelyGet('stravaConnectBtnWrap'),
+        stravaCard: safelyGet('stravaCard'),
+        garminConnectBtnWrap: safelyGet('garminConnectBtnWrap'),
+        garminCard: safelyGet('garminCard'),
+        garminLoginScreen: safelyGet('garminLoginScreen'),
+        garminSelectScreen: safelyGet('garminSelectScreen'),
+        btnOpenGarminLogin: safelyGet('btnOpenGarminLogin'),
+        btnGarminRealSync: safelyGet('btnGarminRealSync'),
+        btnGarminList: safelyGet('btnGarminList'),
+        btnStravaList: safelyGet('btnStravaList'),
+        
+        // Data Panels
+        dataPanel: safelyGet('dataPanel'),
+        dataPanelHead: safelyGet('dataPanelHead'),
+        dataTabsDaily: safelyGet('dataTabsDaily'),
+        dataEmpty: safelyGet('dataEmpty'),
+        
+        // Tabs
+        tabGarmin: safelyGet('tabGarmin'), 
+        tabStrava: safelyGet('tabStrava'), 
+        tabNrc: safelyGet('tabNrc'), 
+        tabManual: safelyGet('tabManual'),
+        contentGarmin: safelyGet('contentGarmin'), 
+        contentStrava: safelyGet('contentStrava'), 
+        contentNrc: safelyGet('contentNrc'), 
+        contentManual: safelyGet('contentManual'),
+        
+        // Previews
+        previewDaily: safelyGet('previewDaily'),
+        previewMonthly: safelyGet('previewMonthly'),
+        
+        // Action Buttons
+        btnSaveImage: safelyGet('btnSaveImage'),
+        btnCopyImage: safelyGet('btnCopyImage'),
+        actionBtnGroup: safelyGet('actionBtnGroup'),
+        
+        // Manual Input
+        btnManualApply: safelyGet('btnManualApply'),
+        inputDistance: safelyGet('inputDistance'),
+        inputPaceMin: safelyGet('inputPaceMin'),
+        inputPaceSec: safelyGet('inputPaceSec'),
+        
+        // Main Controls
+        btnRun: safelyGet('btnRun'),
+        resultScreen: safelyGet('resultScreen')
     };
 
     // ===========================================
@@ -686,20 +690,17 @@
     }
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
+    // [IMAGE DOWNLOAD & COPY LOGIC] - PREVIEW TARGETING
     // ===============================================
     async function captureResult() {
-        // [핵심] 현재 활성화된 프리뷰 요소를 찾습니다.
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
         
-        // 텍스트 내용물만 캡처 (투명 배경 스티커용)
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
 
-        // 버튼 그룹 잠시 숨김 (캡처 방지)
         if(el.actionBtnGroup) el.actionBtnGroup.style.display = 'none';
 
         try {
@@ -710,7 +711,6 @@
                 logging: false,
                 useCORS: true,
                 allowTaint: true,
-                // [추가] 배경 제거를 위한 클론 처리
                 onclone: (clonedDoc) => {
                     const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
                     if (clonedEl) {
@@ -877,20 +877,24 @@
 
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
-      el.btnDaily.classList.toggle('active', isDaily);
-      el.btnMonthly.classList.toggle('active', !isDaily);
-      el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
-      el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
-      el.previewDaily.style.display = isDaily ? 'flex' : 'none';
-      el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
+      if(el.btnDaily) el.btnDaily.classList.toggle('active', isDaily);
+      if(el.btnMonthly) el.btnMonthly.classList.toggle('active', !isDaily);
+      if(el.dataTabsDaily) el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
+      const monthBlock = document.getElementById('monthBlock');
+      if(monthBlock) monthBlock.style.display = !isDaily ? 'flex' : 'none';
+      if(el.previewDaily) el.previewDaily.style.display = isDaily ? 'flex' : 'none';
+      if(el.previewMonthly) el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
       
-      const m1 = el.previewMonthly.querySelector('.monthly-type1');
-      const m2 = el.previewMonthly.querySelector('.monthly-type2');
+      const m1 = el.previewMonthly ? el.previewMonthly.querySelector('.monthly-type1') : null;
+      const m2 = el.previewMonthly ? el.previewMonthly.querySelector('.monthly-type2') : null;
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      if (!isDaily) { el.alignControlPanel.classList.add('disabled'); } 
-      else { el.alignControlPanel.classList.remove('disabled'); }
+      const alignControlPanel = document.getElementById('alignControlPanel');
+      if(alignControlPanel) {
+          if (!isDaily) { alignControlPanel.classList.add('disabled'); } 
+          else { alignControlPanel.classList.remove('disabled'); }
+      }
 
       const btnFlip = document.querySelector('button[data-font="flip"]');
       if(btnFlip) {
@@ -903,10 +907,10 @@
       }
 
       if(!isDaily) {
-          el.dataEmpty.style.display = 'none';
+          if(el.dataEmpty) el.dataEmpty.style.display = 'none';
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'none';
           if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'none';
-          if(el.monthBlock) el.monthBlock.style.display = 'flex';
+          if(monthBlock) monthBlock.style.display = 'flex';
           if(el.contentNrc) el.contentNrc.style.display = 'block';
           if(el.contentGarmin) el.contentGarmin.style.display = 'none';
           if(el.contentStrava) el.contentStrava.style.display = 'none';
@@ -914,7 +918,7 @@
       } else {
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
           if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'flex';
-          if(el.monthBlock) el.monthBlock.style.display = 'none';
+          if(monthBlock) monthBlock.style.display = 'none';
           applyDataType(); 
       }
       applyUIConfigToRoot(state);
@@ -940,8 +944,8 @@
       targets.forEach(t => { if(t) { t.classList.remove('type1', 'type2'); t.classList.add(state.layout); } });
       
       if (state.recordType === 'monthly') {
-        const m1 = el.previewMonthly.querySelector('.monthly-type1');
-        const m2 = el.previewMonthly.querySelector('.monthly-type2');
+        const m1 = el.previewMonthly ? el.previewMonthly.querySelector('.monthly-type1') : null;
+        const m2 = el.previewMonthly ? el.previewMonthly.querySelector('.monthly-type2') : null;
         if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
         else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
       }
@@ -972,8 +976,9 @@
         updatePreview();
     }
 
-    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
-    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+    // BUTTON EVENT LISTENERS
+    if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+    if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
     
     document.querySelectorAll('[data-layout]').forEach(b => b.addEventListener('click', () => { state.layout = b.dataset.layout; applyLayout(); }));
     document.querySelectorAll('[data-align]').forEach(b => b.addEventListener('click', () => { 
@@ -1014,55 +1019,62 @@
         });
     }
 
+    // Global Screen Controls
     function openScreen(id) { const node = document.getElementById(id); if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); if(el.btnRun) el.btnRun.style.display = 'none'; } }
     function closeScreen(id) { const node = document.getElementById(id); if(node) { node.classList.remove('show'); node.setAttribute('aria-hidden', 'true'); if(el.btnRun) el.btnRun.style.display = 'block'; } }
     document.addEventListener('click', (e) => { const closeId = e.target?.dataset?.close; if (closeId) closeScreen(closeId); });
 
+    // Result Generation Logic
     function buildResultDOM() {
        const resWrap = document.getElementById('resultWrap');
        const resBlock = document.getElementById('resultBlock');
-       resWrap.className = `result-wrap ${state.layout}`;
-       if (state.recordType === 'daily') resWrap.classList.add(`align-${state.align}`);
-       else resWrap.classList.add('monthly'); 
+       if(resWrap) {
+           resWrap.className = `result-wrap ${state.layout}`;
+           if (state.recordType === 'daily') resWrap.classList.add(`align-${state.align}`);
+           else resWrap.classList.add('monthly'); 
+       }
        
        let d = (state.recordType === 'daily') ? 
            ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) 
            : state.monthly;
 
-       if (state.recordType === 'daily') {
-        resBlock.innerHTML = `
-          <div class="result-item"><span class="result-label">DISTANCE</span><span class="result-value"><span id="rvDistance"></span></span></div>
-          <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
-          <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
-        `;
-        resBlock.style.color = (state.fontColor !== 'auto') ? state.fontColor : '';
-        return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
-      } else {
-        const monthLine = `${monthName(d.month)} ${d.year}`;
-        if (state.layout === 'type1') {
-          resBlock.innerHTML = `
-            <div class="m1-month">${monthLine}</div>
-            <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
-            <div class="m1-stack">
-              <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="m-label result-label">PACE</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
-              <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
-            </div>
-          `;
-        } else {
-          resBlock.innerHTML = `
-            <div class="m2-month">${monthLine}</div>
-            <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
-            <div class="m2-row">
-              <div class="result-item"><span class="result-label">RUNS</span><span class="result-value"><span id="rvRuns"></span></span></div>
+       if (resBlock) {
+           if (state.recordType === 'daily') {
+            resBlock.innerHTML = `
+              <div class="result-item"><span class="result-label">DISTANCE</span><span class="result-value"><span id="rvDistance"></span></span></div>
               <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
               <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
-            </div>
-          `;
-        }
-        resBlock.style.color = (state.fontColor !== 'auto') ? state.fontColor : '';
-        return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
-      }
+            `;
+            resBlock.style.color = (state.fontColor !== 'auto') ? state.fontColor : '';
+            return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+          } else {
+            const monthLine = `${monthName(d.month)} ${d.year}`;
+            if (state.layout === 'type1') {
+              resBlock.innerHTML = `
+                <div class="m1-month">${monthLine}</div>
+                <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
+                <div class="m1-stack">
+                  <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
+                  <div class="m1-item"><div class="m-label result-label">PACE</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
+                  <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
+                </div>
+              `;
+            } else {
+              resBlock.innerHTML = `
+                <div class="m2-month">${monthLine}</div>
+                <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
+                <div class="m2-row">
+                  <div class="result-item"><span class="result-label">RUNS</span><span class="result-value"><span id="rvRuns"></span></span></div>
+                  <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
+                  <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
+                </div>
+              `;
+            }
+            resBlock.style.color = (state.fontColor !== 'auto') ? state.fontColor : '';
+            return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+          }
+       }
+       return { km:0, paceSec:0, timeSec:0 };
     }
     
     function lockFitResultTransforms(target, state) {
