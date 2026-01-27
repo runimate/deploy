@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#ffffff" />
   <style>
     /* =========================================
-       [CSS] 기존 스타일 전체 유지
+       [CSS] 핵심 스타일
        ========================================= */
     :root {
       --ui-label-size: 12px;
@@ -35,6 +35,7 @@
     .font-anton .result-label { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-weight: 900 !important; }
     .result-value, .data-value { font-family: inherit !important; font-size: var(--ui-value-size) !important; line-height: 1; font-weight: 900; }
     
+    /* Layout Types */
     .preview.type1 .preview-content, .result-wrap.type1 .result-block { display: flex; flex-direction: column; gap: var(--ui-stack-gap) !important; }
     .preview.type1 .result-item, .result-wrap.type1 .result-item { display: flex; flex-direction: column; gap: 0 !important; width: 100%; }
     .preview.align-left.type1 .result-item, .result-wrap.align-left.type1 .result-item { align-items: flex-start !important; text-align: left !important; }
@@ -47,6 +48,7 @@
     .preview.align-center.type2 .preview-content { justify-content: center; }
     .preview.align-center.type2 .result-item { align-items: center; text-align: center; }
 
+    /* Monthly Layouts */
     .monthly-type1 { display: flex; flex-direction: column; align-items: flex-start !important; width: 100%; }
     .m1-month { font-size: var(--ui-month-size) !important; margin-bottom: var(--ui-month-to-dist-gap) !important; font-weight: 700; }
     .m1-distance .m1-distance-value { font-size: var(--ui-distance-size) !important; font-weight: 900; line-height: 0.9; }
@@ -65,6 +67,7 @@
     .m2-row .data-label { font-size: var(--ui-label-size) !important; margin-bottom: var(--ui-label-to-value-gap) !important; }
     .m2-row .data-value { font-size: var(--ui-value-size) !important; }
 
+    /* Cards & Buttons */
     .garmin-card, .workout-item { width: 100% !important; box-sizing: border-box !important; display: flex; justify-content: space-between !important; align-items: center !important; }
     .w-left, .garmin-card-left { flex: 1 !important; min-width: 0 !important; gap: 6px !important; }
     .w-stats span, .garmin-stat { font-size: 14px !important; font-weight: 900 !important; line-height: 1.2 !important; }
@@ -78,13 +81,29 @@
     .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
     
-    #garminLoginScreen { display: none; position: fixed !important; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; background-color: var(--garmin, #76B6FF) !important; z-index: 99999 !important; pointer-events: auto !important; flex-direction: column; overflow-y: auto; padding-bottom: 120px !important; }
-    #garminLoginScreen.show { display: flex !important; }
+    /* [수정] 오버레이(팝업)들이 평소에는 절대 화면을 가리지 않도록 display: none 강제 */
+    .screen-overlay, .modal-overlay, #garminLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay {
+        display: none;
+        position: fixed !important; 
+        top: 0; left: 0; bottom: 0; right: 0; 
+        width: 100%; height: 100%; 
+        background-color: #fff; /* 기본 배경 */
+        z-index: 99999 !important; 
+        flex-direction: column;
+    }
+    
+    /* .show 클래스가 붙었을 때만 보이도록 설정 */
+    .screen-overlay.show, .modal-overlay.show, #garminLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show {
+        display: flex !important;
+    }
+
+    #garminLoginScreen { background-color: var(--garmin, #76B6FF) !important; }
+    
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
     .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
-    .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
+    .result-screen { z-index: 2147483647 !important; }
     .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
     .data-empty { min-height: 20px; }
@@ -117,8 +136,8 @@
     .pace-colon { font-size: 20px; font-weight: 900; color: #000; margin-top: -2px; }
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
-    
-    /* [추가] 프리뷰 하단 Action 버튼 스타일 (회색 알약) */
+
+    /* 프리뷰 하단 Action 버튼 스타일 */
     .preview-actions { 
         display: flex; 
         gap: 12px; 
@@ -126,7 +145,7 @@
         width: 100%; 
         justify-content: center; 
         position: relative;
-        z-index: 50; /* 클릭 가능하도록 z-index 설정 */
+        z-index: 50; 
     }
     .action-btn-pill { 
         flex: 1; 
@@ -473,12 +492,25 @@
     </div>
   </div>
 
+  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
+    <div class="select-wrap">
+      <div class="select-title">Select<br />Workout</div>
+      <div class="select-list" id="workoutList"></div>
+    </div>
+  </div>
+
+  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
+    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
+    <div class="month-wrap">
+      <div class="month-head"><button class="month-nav" id="monthPrevYear">‹</button><div class="month-year" id="monthYearText">2025</div><button class="month-nav" id="monthNextYear">›</button></div>
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
-    // ===========================================
-    // [INITIALIZATION & UTILS]
-    // ===========================================
     const $ = (s) => document.querySelector(s);
     const safelyGet = (id) => document.getElementById(id);
     const pad2 = (n) => String(n).padStart(2, '0');
@@ -507,58 +539,72 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
 
-    // --- DOM ELEMENT CACHE (Safe Access) ---
+    // ===========================================
+    // [LOGIC] GENERAL UI - Safe Elements Cache
+    // ===========================================
     const el = {
-      // Main Screens
-      resultScreen: safelyGet('resultScreen'),
-      garminLoginScreen: safelyGet('garminLoginScreen'),
-      stravaLoginScreen: safelyGet('stravaLoginScreen'),
-      garminSelectScreen: safelyGet('garminSelectScreen'),
-      monthPickerScreen: safelyGet('monthPickerScreen'),
-      
-      // Panels & Tabs
-      dataPanel: safelyGet('dataPanel'), 
-      dataPanelHead: safelyGet('dataPanelHead'),
-      dataTabsDaily: safelyGet('dataTabsDaily'),
-      dataEmpty: safelyGet('dataEmpty'),
-      
-      // Tabs
-      tabGarmin: safelyGet('tabGarmin'), tabStrava: safelyGet('tabStrava'), 
-      tabNrc: safelyGet('tabNrc'), tabManual: safelyGet('tabManual'),
-      contentGarmin: safelyGet('contentGarmin'), contentStrava: safelyGet('contentStrava'), 
-      contentNrc: safelyGet('contentNrc'), contentManual: safelyGet('contentManual'),
-      
-      // Buttons & Controls
-      btnDaily: safelyGet('btnDaily'), btnMonthly: safelyGet('btnMonthly'),
-      btnRun: safelyGet('btnRun'),
-      btnGarminList: safelyGet('btnGarminList'),
-      btnStravaList: safelyGet('btnStravaList'),
-      
-      // Login & Connect Wraps
-      stravaConnectBtnWrap: safelyGet('stravaConnectBtnWrap'), 
-      stravaCard: safelyGet('stravaCard'),
-      garminConnectBtnWrap: safelyGet('garminConnectBtnWrap'), 
-      garminCard: safelyGet('garminCard'),
-      btnOpenGarminLogin: safelyGet('btnOpenGarminLogin'),
-      btnGarminRealSync: safelyGet('btnGarminRealSync'),
-      btnStravaLogin: safelyGet('btnStravaLogin'),
-      
-      // Manual Input
-      inputDistance: safelyGet('inputDistance'), inputPaceMin: safelyGet('inputPaceMin'), inputPaceSec: safelyGet('inputPaceSec'),
-      btnManualApply: safelyGet('btnManualApply'),
-      
-      // Previews
-      previewDaily: safelyGet('previewDaily'),
-      previewMonthly: safelyGet('previewMonthly'),
-      
-      // Action Buttons (Save/Copy)
-      btnSaveImage: safelyGet('btnSaveImage'),
-      btnCopyImage: safelyGet('btnCopyImage'),
-      actionBtnGroup: safelyGet('actionBtnGroup'),
-      
-      // ETC
-      workoutList: safelyGet('workoutList'),
-      btnHiddenManual: safelyGet('btnHiddenManual')
+        // Safe getters
+        btnStravaLogin: safelyGet('btnStravaLogin'),
+        stravaConnectBtnWrap: safelyGet('stravaConnectBtnWrap'),
+        stravaCard: safelyGet('stravaCard'),
+        garminConnectBtnWrap: safelyGet('garminConnectBtnWrap'),
+        garminCard: safelyGet('garminCard'),
+        garminLoginScreen: safelyGet('garminLoginScreen'),
+        garminSelectScreen: safelyGet('garminSelectScreen'),
+        btnOpenGarminLogin: safelyGet('btnOpenGarminLogin'),
+        btnGarminRealSync: safelyGet('btnGarminRealSync'),
+        btnGarminList: safelyGet('btnGarminList'),
+        btnStravaList: safelyGet('btnStravaList'),
+        
+        // Data Panels
+        dataPanel: safelyGet('dataPanel'),
+        dataPanelHead: safelyGet('dataPanelHead'),
+        dataTabsDaily: safelyGet('dataTabsDaily'),
+        dataEmpty: safelyGet('dataEmpty'),
+        
+        // Tabs
+        tabGarmin: safelyGet('tabGarmin'), 
+        tabStrava: safelyGet('tabStrava'), 
+        tabNrc: safelyGet('tabNrc'), 
+        tabManual: safelyGet('tabManual'),
+        contentGarmin: safelyGet('contentGarmin'), 
+        contentStrava: safelyGet('contentStrava'), 
+        contentNrc: safelyGet('contentNrc'), 
+        contentManual: safelyGet('contentManual'),
+        
+        // Previews
+        previewDaily: safelyGet('previewDaily'),
+        previewMonthly: safelyGet('previewMonthly'),
+        
+        // Action Buttons
+        btnSaveImage: safelyGet('btnSaveImage'),
+        btnCopyImage: safelyGet('btnCopyImage'),
+        actionBtnGroup: safelyGet('actionBtnGroup'),
+        
+        // Manual Input
+        btnManualApply: safelyGet('btnManualApply'),
+        inputDistance: safelyGet('inputDistance'),
+        inputPaceMin: safelyGet('inputPaceMin'),
+        inputPaceSec: safelyGet('inputPaceSec'),
+        
+        // Main Controls
+        btnRun: safelyGet('btnRun'),
+        resultScreen: safelyGet('resultScreen'),
+
+        // Other buttons
+        btnDaily: safelyGet('btnDaily'), btnMonthly: safelyGet('btnMonthly'),
+        btnHiddenManual: safelyGet('btnHiddenManual'),
+        monthPickerScreen: safelyGet('monthPickerScreen'),
+        btnMonthPick: safelyGet('btnMonthPick'),
+        monthPrevYear: safelyGet('monthPrevYear'),
+        monthNextYear: safelyGet('monthNextYear'),
+        monthGrid: safelyGet('monthGrid'),
+        monthYearText: safelyGet('monthYearText'),
+        
+        // Upload
+        btnUploadNrc: safelyGet('btnUploadNrc'),
+        fileNrc: safelyGet('fileNrc'),
+        ocrStatus: safelyGet('ocrStatus')
     };
 
     // ===========================================
@@ -640,7 +686,6 @@
     // [LOGIC] WORKOUT LIST RENDER
     // ===========================================
     function renderWorkoutList(kind = 'garmin') {
-      // Use direct DOM access to be safe
       const listContainer = document.getElementById('workoutList');
       if (!listContainer) return;
       listContainer.innerHTML = ''; 
@@ -670,7 +715,8 @@
                 state.strava = { ...w }; 
                 state.dataType = 'strava'; 
                 if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-                if(el.stravaCard) el.stravaCard.style.display = 'flex';
+                const stravaCardWrap = document.getElementById('stravaCardWrap');
+                if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
             } else { 
                 state.garmin = { ...w }; 
                 state.dataType = 'garmin'; 
@@ -693,7 +739,7 @@
     }
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
+    // [IMAGE DOWNLOAD & COPY LOGIC] - PREVIEW TARGETING
     // ===============================================
     async function captureResult() {
         const isDaily = state.recordType === 'daily';
@@ -735,6 +781,7 @@
         el.btnSaveImage.addEventListener('click', async () => {
             const canvas = await captureResult();
             if (!canvas) return;
+
             const link = document.createElement('a');
             link.download = `RUNIMATE_${state.daily.date || 'record'}.png`;
             link.href = canvas.toDataURL('image/png');
@@ -746,15 +793,16 @@
         el.btnCopyImage.addEventListener('click', async () => {
             const canvas = await captureResult();
             if (!canvas) return;
+
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
-                    alert('이미지가 복사되었습니다!');
+                    alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
                 } catch (err) {
                     console.error('Copy failed:', err);
-                    alert('복사 실패: 브라우저가 지원하지 않거나 보안 연결이 아닙니다.');
+                    alert('복사 실패: 브라우저가 지원하지 않거나 보안 연결이 아닙니다. (이미지 저장 버튼을 이용해주세요)');
                 }
             });
         });
@@ -1021,6 +1069,32 @@
         });
     }
 
+    if(el.btnMonthPick) {
+        el.btnMonthPick.addEventListener('click', () => {
+            if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
+            buildMonthGrid();
+            openScreen('monthPickerScreen');
+        });
+    }
+
+    function buildMonthGrid() {
+      if(!el.monthGrid) return;
+      el.monthGrid.innerHTML = '';
+      for (let i = 1; i <= 12; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'month-cell';
+        b.textContent = monthNameCap(i);
+        if(i === state.monthly.month) b.classList.add('active');
+        b.addEventListener('click', () => {
+          state.monthly.month = i; updatePreview(); closeScreen('monthPickerScreen');
+        });
+        el.monthGrid.appendChild(b);
+      }
+    }
+    if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => { state.monthly.year -= 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
+    if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
+
     if(el.btnHiddenManual) {
         let hiddenClickCount = 0;
         el.btnHiddenManual.addEventListener('click', () => {
@@ -1032,9 +1106,27 @@
         });
     }
 
-    function openScreen(id) { const node = document.getElementById(id); if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); if(el.btnRun) el.btnRun.style.display = 'none'; } }
-    function closeScreen(id) { const node = document.getElementById(id); if(node) { node.classList.remove('show'); node.setAttribute('aria-hidden', 'true'); if(el.btnRun) el.btnRun.style.display = 'block'; } }
-    document.addEventListener('click', (e) => { const closeId = e.target?.dataset?.close; if (closeId) closeScreen(closeId); });
+    // [New] Open/Close logic modified to manage display style explicitly
+    function openScreen(id) { 
+        const node = document.getElementById(id); 
+        if(node) { 
+            node.classList.add('show'); 
+            node.setAttribute('aria-hidden', 'false'); 
+            if(el.btnRun) el.btnRun.style.display = 'none'; 
+        } 
+    }
+    function closeScreen(id) { 
+        const node = document.getElementById(id); 
+        if(node) { 
+            node.classList.remove('show'); 
+            node.setAttribute('aria-hidden', 'true'); 
+            if(el.btnRun) el.btnRun.style.display = 'block'; 
+        } 
+    }
+    document.addEventListener('click', (e) => { 
+        const closeId = e.target?.dataset?.close; 
+        if (closeId) closeScreen(closeId); 
+    });
 
     function buildResultDOM() {
        const resWrap = document.getElementById('resultWrap');
