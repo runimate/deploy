@@ -76,7 +76,7 @@
     .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
     
-    /* [수정됨] 이 부분이 핵심입니다! display: none이 없으면 화면을 가려서 버튼이 안 눌립니다. */
+    /* [수정됨] 팝업창(Overlay) 숨김 처리 및 스타일 */
     #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay { 
         display: none; /* 평소에는 숨김 */
         position: fixed !important; 
@@ -85,10 +85,24 @@
         background-color: #fff; 
         z-index: 99999 !important; 
         flex-direction: column; 
-        overflow-y: auto; 
-        padding-bottom: 120px !important; 
     }
     
+    /* [수정됨] Select Workout 화면 레이아웃 (잘림 방지) */
+    #garminSelectScreen .select-wrap {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden; /* 전체 스크롤 방지 */
+    }
+    
+    #garminSelectScreen .select-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 150px; /* [중요] 하단 여백 대폭 추가하여 잘림 방지 */
+        width: 100%;
+        -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
+    }
+
     /* .show 클래스가 붙어야만 보이도록 설정 */
     #garminLoginScreen.show, #stravaLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show { 
         display: flex !important; 
@@ -546,6 +560,7 @@
     import { applyUIConfigToRoot } from './ui_config.js';
 
     const $ = (s) => document.querySelector(s);
+    const safelyGet = (id) => document.getElementById(id);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -688,7 +703,7 @@
       btnSaveImage: $('#btnSaveImage'), btnCopyImage: $('#btnCopyImage'), actionBtnGroup: $('#actionBtnGroup')
     };
 
-    // --- Screen Control ---
+    // --- Screen Control (Modified to toggle show class) ---
     function openScreen(id) {
       const node = document.getElementById(id);
       if(node) { 
@@ -1500,38 +1515,29 @@
     });
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - FINAL
+    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
     // ===============================================
     const btnSaveImage = document.getElementById('btnSaveImage');
     const btnCopyImage = document.getElementById('btnCopyImage');
     const actionBtnGroup = document.getElementById('actionBtnGroup');
 
-    // 공통 캡처 함수 (PREVIEW 타겟팅)
     async function captureResult() {
-        // 현재 활성화된 프리뷰 요소를 찾습니다.
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
-        
-        // 텍스트 내용물만 캡처 (투명 배경 스티커용)
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
-
-        // 버튼 그룹 잠시 숨김 (캡처 방지)
         if(actionBtnGroup) actionBtnGroup.style.display = 'none';
 
         try {
-            // Wait for fonts to load
             await document.fonts.ready;
-            
             const canvas = await html2canvas(element, {
-                backgroundColor: null, // 투명 배경
-                scale: 3,              // 고화질
+                backgroundColor: null, 
+                scale: 3,              
                 logging: false,
                 useCORS: true,
                 allowTaint: true,
-                // 배경 제거를 위한 클론 처리
                 onclone: (clonedDoc) => {
                     const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
                     if (clonedEl) {
@@ -1545,12 +1551,10 @@
             alert('이미지 캡처 중 오류가 발생했습니다.');
             return null;
         } finally {
-            // 버튼 다시 보이기
             if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
         }
     }
 
-    // 1. SAVE PNG (다운로드)
     if (btnSaveImage) {
         btnSaveImage.addEventListener('click', async () => {
             const canvas = await captureResult();
@@ -1563,7 +1567,6 @@
         });
     }
 
-    // 2. COPY (클립보드 복사 + 모바일 공유)
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
             const canvas = await captureResult();
@@ -1575,33 +1578,31 @@
                     return;
                 }
                 
-                // 1. 모바일 공유하기 (Web Share API) 우선 시도
+                // [수정됨] 모바일/보안 에러 방지를 위한 공유하기(Share) 우선 시도
                 if (navigator.canShare && navigator.share) {
                     try {
                         const file = new File([blob], "runimate_record.png", { type: "image/png" });
-                         // canShare로 파일 공유 가능 여부 확인
                         if (navigator.canShare({ files: [file] })) {
                             await navigator.share({
                                 files: [file],
                                 title: 'Runimate',
                                 text: 'My Running Record'
                             });
-                            return; // 공유 성공 시 종료
+                            return; 
                         }
                     } catch (shareErr) {
-                        // 공유 취소/실패 시 아래 복사 로직으로 fallback
-                        console.log('Share API skipped/failed', shareErr);
+                        console.log('Share canceled or failed', shareErr);
                     }
                 }
 
-                // 2. PC 클립보드 직접 복사 시도
+                // PC 클립보드 복사 시도
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
                 } catch (err) {
                     console.error('Copy failed:', err);
-                    alert('복사 실패: 모바일 보안 정책으로 인해 직접 복사가 제한되었습니다. [Save Image] 버튼을 이용해주세요.');
+                    alert('복사 실패: 브라우저가 지원하지 않거나 보안 연결이 아닙니다. (Save Image 버튼을 사용해주세요)');
                 }
             });
         });
