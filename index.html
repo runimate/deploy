@@ -76,14 +76,33 @@
     .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
     
-    #garminLoginScreen { display: none; position: fixed !important; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; background-color: var(--garmin, #76B6FF) !important; z-index: 99999 !important; pointer-events: auto !important; flex-direction: column; overflow-y: auto; padding-bottom: 120px !important; }
-    #garminLoginScreen.show { display: flex !important; }
+    /* [수정됨] 이 부분이 핵심입니다! display: none이 없으면 화면을 가려서 버튼이 안 눌립니다. */
+    #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay { 
+        display: none; /* 평소에는 숨김 */
+        position: fixed !important; 
+        top: 0; left: 0; bottom: 0; right: 0; 
+        width: 100%; height: 100%; 
+        background-color: #fff; 
+        z-index: 99999 !important; 
+        flex-direction: column; 
+        overflow-y: auto; 
+        padding-bottom: 120px !important; 
+    }
+    
+    /* .show 클래스가 붙어야만 보이도록 설정 */
+    #garminLoginScreen.show, #stravaLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show { 
+        display: flex !important; 
+    }
+    
+    #garminLoginScreen { background-color: var(--garmin, #76B6FF) !important; }
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
     .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
+    
+    /* result-screen도 초기에는 안 보여야 합니다. */
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
-    .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
@@ -116,10 +135,34 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] Result Action Buttons Style */
-    .result-actions { display: flex; gap: 12px; margin-top: 30px; width: 100%; justify-content: center; z-index: 100001; }
-    .action-btn-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; background: #E5E5E5; border: none; border-radius: 999px; font-size: 14px; font-weight: 800; cursor: pointer; color: #000; transition: background 0.2s; }
-    .action-btn-pill:active { background: #d4d4d4; transform: scale(0.98); }
+    /* [추가] Action Buttons Style */
+    .preview-actions { 
+        display: flex; 
+        gap: 12px; 
+        margin-top: 30px; 
+        width: 100%; 
+        justify-content: center; 
+        position: relative;
+        z-index: 50; /* 버튼이 눌리도록 z-index 확보 */
+    }
+    .action-btn-pill { 
+        flex: 1; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 8px; 
+        height: 52px; 
+        background: #F4F4F4; 
+        border: none; 
+        border-radius: 999px; 
+        font-size: 14px; 
+        font-weight: 800; 
+        cursor: pointer; 
+        color: #000; 
+        transition: background 0.2s, transform 0.1s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .action-btn-pill:active { background: #E0E0E0; transform: scale(0.98); }
     .action-btn-pill svg { width: 20px; height: 20px; stroke-width: 2.5px; }
   </style>
 </head>
@@ -383,34 +426,85 @@
           </div>
         </div>
       </div>
+      
+      <div class="preview-actions" id="actionBtnGroup">
+          <button class="action-btn-pill" id="btnSaveImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Save to Image
+          </button>
+          <button class="action-btn-pill" id="btnCopyImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy to Clipboard
+          </button>
+      </div>
     </section>
 
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
+  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title"><div class="gc-big">GARMIN<br />CONNECT</div></div>
+      <div class="garmin-login-form" style="margin-top: 40px; width: 100%;">
+          <input type="email" id="garminEmail" class="gc-input" placeholder="enter your @ email.com">
+          <input type="password" id="garminPassword" class="gc-input" placeholder="password">
+          <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
+      </div>
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+            Your Garmin account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+      <button class="gc-cta" id="btnGarminRealSync" type="button">Sign-In</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title">
+        <div class="gc-big">STRAVA</div>
+        <div class="gc-sub">Connect</div>
+      </div>
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+          Your Strava account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+      <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
+    <div class="select-wrap">
+      <div class="select-title">Select<br />Workout</div>
+      <div class="select-list" id="workoutList"></div>
+    </div>
+  </div>
+
+  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
+    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
+    <div class="month-wrap">
+      <div class="month-head"><button class="month-nav" id="monthPrevYear">‹</button><div class="month-year" id="monthYearText">2025</div><button class="month-nav" id="monthNextYear">›</button></div>
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+  </div>
+
   <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
-    
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
-        
-        <div class="result-actions" id="actionBtnGroup">
-            <button class="action-btn-pill" id="btnSaveImage">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Save to Image
-            </button>
-            <button class="action-btn-pill" id="btnCopyImage">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-                Copy to Clipboard
-            </button>
-        </div>
     </div>
   </div>
 
@@ -1412,9 +1506,16 @@
     const btnCopyImage = document.getElementById('btnCopyImage');
     const actionBtnGroup = document.getElementById('actionBtnGroup');
 
-    // 공통 캡처 함수
+    // 공통 캡처 함수 (PREVIEW 타겟팅)
     async function captureResult() {
-        const element = document.getElementById('resultBlock');
+        // 현재 활성화된 프리뷰 요소를 찾습니다.
+        const isDaily = state.recordType === 'daily';
+        const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
+        const previewEl = document.getElementById(targetId);
+        
+        // 텍스트 내용물만 캡처 (투명 배경 스티커용)
+        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        
         if (!element) return null;
 
         // 버튼 그룹 잠시 숨김 (캡처 방지)
@@ -1429,7 +1530,14 @@
                 scale: 3,              // 고화질
                 logging: false,
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true,
+                // 배경 제거를 위한 클론 처리
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
+                    if (clonedEl) {
+                        clonedEl.style.background = 'transparent';
+                    }
+                }
             });
             return canvas;
         } catch (err) {
@@ -1455,7 +1563,7 @@
         });
     }
 
-    // 2. COPY (클립보드 복사)
+    // 2. COPY (클립보드 복사 + 모바일 공유)
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
             const canvas = await captureResult();
@@ -1466,14 +1574,34 @@
                     alert('이미지 생성 실패');
                     return;
                 }
+                
+                // 1. 모바일 공유하기 (Web Share API) 우선 시도
+                if (navigator.canShare && navigator.share) {
+                    try {
+                        const file = new File([blob], "runimate_record.png", { type: "image/png" });
+                         // canShare로 파일 공유 가능 여부 확인
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Runimate',
+                                text: 'My Running Record'
+                            });
+                            return; // 공유 성공 시 종료
+                        }
+                    } catch (shareErr) {
+                        // 공유 취소/실패 시 아래 복사 로직으로 fallback
+                        console.log('Share API skipped/failed', shareErr);
+                    }
+                }
+
+                // 2. PC 클립보드 직접 복사 시도
                 try {
-                    // 클립보드에 이미지 쓰기
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
                 } catch (err) {
                     console.error('Copy failed:', err);
-                    alert('복사에 실패했습니다. (브라우저가 지원하지 않거나 보안 환경이 아님)');
+                    alert('복사 실패: 모바일 보안 정책으로 인해 직접 복사가 제한되었습니다. [Save Image] 버튼을 이용해주세요.');
                 }
             });
         });
