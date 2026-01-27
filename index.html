@@ -17,7 +17,9 @@
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#ffffff" />
   <style>
-    /* ... (기존 스타일 유지) ... */
+    /* =========================================
+       [CSS] 원본 스타일 100% 유지
+       ========================================= */
     :root {
       --ui-label-size: 12px;
       --ui-value-size: 34px;
@@ -76,7 +78,7 @@
     .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
     
-    /* [수정됨] 팝업창(Overlay) 숨김 처리 및 스타일 */
+    /* 팝업창(Overlay) 숨김 처리 및 스타일 */
     #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay { 
         display: none; /* 평소에는 숨김 */
         position: fixed !important; 
@@ -85,22 +87,24 @@
         background-color: #fff; 
         z-index: 99999 !important; 
         flex-direction: column; 
+        overflow-y: auto; 
+        padding-bottom: 120px !important; 
     }
     
-    /* [수정됨] Select Workout 화면 레이아웃 (잘림 방지) */
+    /* Select Workout 화면 레이아웃 (잘림 방지) */
     #garminSelectScreen .select-wrap {
         display: flex;
         flex-direction: column;
         height: 100%;
-        overflow: hidden; /* 전체 스크롤 방지 */
+        overflow: hidden; 
     }
     
     #garminSelectScreen .select-list {
         flex: 1;
         overflow-y: auto;
-        padding-bottom: 150px; /* [중요] 하단 여백 대폭 추가하여 잘림 방지 */
+        padding-bottom: 150px; 
         width: 100%;
-        -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
+        -webkit-overflow-scrolling: touch; 
     }
 
     /* .show 클래스가 붙어야만 보이도록 설정 */
@@ -149,9 +153,9 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] Action Buttons Style */
+    /* [추가] Action Buttons Style (초기엔 숨김) */
     .preview-actions { 
-        display: flex; 
+        display: none; /* 데이터 로드 전에는 안 보임 */
         gap: 12px; 
         margin-top: 30px; 
         width: 100%; 
@@ -441,7 +445,7 @@
         </div>
       </div>
       
-      <div class="preview-actions" id="actionBtnGroup">
+      <div class="preview-actions" id="actionBtnGroup" style="display:none;">
           <button class="action-btn-pill" id="btnSaveImage">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -743,8 +747,55 @@
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
     }
 
+    // [New: Pre-rendering logic]
+    // 1. 전역 변수: 미리 만들어둔 blob 이미지를 담을 곳
+    let readyBlob = null;
+    let debounceTimer = null;
+    
+    // 2. 백그라운드 렌더링 함수
+    async function generateBlobBackground() {
+        const isDaily = state.recordType === 'daily';
+        const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
+        const previewEl = document.getElementById(targetId);
+        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        
+        if(!element) return;
+        
+        try {
+            await document.fonts.ready;
+            const canvas = await html2canvas(element, {
+                backgroundColor: null,
+                scale: 3,
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
+                    if (clonedEl) {
+                        clonedEl.style.background = 'transparent';
+                    }
+                }
+            });
+            
+            canvas.toBlob((blob) => {
+                readyBlob = blob; // 최신 blob 저장
+            }, 'image/png');
+            
+        } catch(e) {
+            console.log("Pre-render error", e);
+        }
+    }
+    
+    // 3. 디바운스 적용: 연속 클릭 시 맨 마지막에만 렌더링 수행 (성능 보호)
+    function triggerPreRender() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            generateBlobBackground();
+        }, 1000); // 1초 대기 후 실행
+    }
+
     function updatePreview() {
-      // (기존 업데이트 로직 유지)
+      // (기존 업데이트 로직)
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
       else if (state.dataType === 'strava' && state.strava) d = state.strava;
@@ -790,9 +841,22 @@
              }
          }
       }
+      
+      // [수정] 1. 데이터가 있는지 확인
+      const hasData = (d.km > 0 || (d.runs && d.runs > 0));
+      
+      // [수정] 2. 버튼 표시 여부 결정
+      if(el.actionBtnGroup) {
+          el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
+      }
 
       applyPreviewStyles();
-      requestAnimationFrame(applyFitPreview);
+      
+      // [수정] 3. UI 업데이트 후 -> 핏 맞추고 -> 데이터가 있다면 프리-렌더링 예약
+      requestAnimationFrame(() => {
+          applyFitPreview();
+          if(hasData) triggerPreRender();
+      });
     }
     
     function applyPreviewStyles() {
@@ -1523,12 +1587,16 @@
 
     // 공통 캡처 함수 (PREVIEW 타겟팅)
     async function captureResult() {
-        // 현재 활성화된 프리뷰 요소를 찾습니다.
+        // [New: Use pre-rendered blob if available]
+        if(readyBlob) {
+            // 디바운스된 최신 이미지가 있다면 바로 사용 (초고속)
+            return readyBlob; 
+        }
+        
+        // 없으면(로딩 직후 등) 즉시 생성
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
-        
-        // 텍스트 내용물만 캡처 (투명 배경 스티커용)
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
@@ -1554,10 +1622,9 @@
                     }
                 }
             });
-            return canvas;
+            return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         } catch (err) {
             console.error('Capture error:', err);
-            alert('이미지 캡처 중 오류가 발생했습니다.');
             return null;
         } finally {
             // 버튼 다시 보이기
@@ -1568,58 +1635,60 @@
     // 1. SAVE PNG (다운로드)
     if (btnSaveImage) {
         btnSaveImage.addEventListener('click', async () => {
-            const canvas = await captureResult();
-            if (!canvas) return;
-
+            // Save logic: Direct download is preferred
+            const blob = await captureResult();
+            if (!blob) return;
+            
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = `RUNIMATE_${state.daily.date || 'record'}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.href = url;
             link.click();
+            URL.revokeObjectURL(url);
         });
     }
 
-    // 2. COPY (클립보드 복사)
+    // 2. COPY (오직 모바일 공유 시트만 실행 - 크롬/사파리 호환성)
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
-            const canvas = await captureResult();
-            if (!canvas) return;
+            
+            // [중요] 사용자가 버튼을 누른 이 시점에 바로 공유 창을 띄워야 함 (크롬 정책)
+            // 따라서 미리 만들어진 Blob(readyBlob)을 사용하거나 매우 빠르게 생성해야 함.
+            const blob = readyBlob || await captureResult(); 
+            
+            if (!blob) {
+                alert('잠시만 기다려주세요 (이미지 생성 중...)');
+                return;
+            }
 
-            canvas.toBlob(async (blob) => {
-                if (!blob) {
-                    alert('이미지 생성 실패');
-                    return;
-                }
-
-                // 1. 모바일 공유하기 (Web Share API) 우선 시도
-                if (navigator.canShare && navigator.share) {
-                    try {
-                        const file = new File([blob], "runimate_record.png", { type: "image/png" });
-                        if (navigator.canShare({ files: [file] })) {
-                            await navigator.share({
-                                files: [file],
-                                title: 'Runimate',
-                                text: 'My Running Record'
-                            });
-                            return; // 공유 성공 시 종료
-                        }
-                    } catch (shareErr) {
-                        // 공유 취소/실패 시 아래 복사 로직으로 fallback
-                        console.log('Share API skipped/failed', shareErr);
+            // [수정 완료] PC나 클립보드 복사 로직 완전히 배제
+            // 무조건 모바일 네이티브 공유 시트(Share Sheet)만 실행
+            if (navigator.share) {
+                try {
+                    const file = new File([blob], "runimate.png", { type: "image/png" });
+                    
+                    // [핵심] canShare 체크 없이 바로 share 실행 (크롬 호환성)
+                    // files 배열만 전송하여 텍스트만 복사되는 문제 해결
+                    await navigator.share({
+                        files: [file]
+                    });
+                    
+                } catch (shareErr) {
+                    // 사용자가 취소했거나 에러가 났을 때
+                    if(shareErr.name !== 'AbortError') {
+                         console.log('Share failed', shareErr);
+                         alert("공유 실패: " + shareErr.message);
                     }
                 }
-
-                // 2. PC 클립보드 직접 복사 시도
-                try {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
-                } catch (err) {
-                    console.error('Copy failed:', err);
-                    alert('복사 실패: 모바일 보안 정책으로 인해 직접 복사가 제한되었습니다. [Save Image] 버튼을 이용해주세요.');
-                }
-            });
+            } else {
+                // 공유 API가 없는 구형 브라우저나 PC 환경
+                alert('이 브라우저는 공유하기 기능을 지원하지 않습니다. [Save Image]를 이용해주세요.');
+            }
         });
     }
+
+    // Check code on load
+    checkStravaCode();
 
     function initDefaults() {
        applyUIConfigToRoot(state);
