@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#ffffff" />
   <style>
     /* =========================================
-       [CSS] 기존 스타일 유지
+       [CSS] 스타일 정의 (원본 유지)
        ========================================= */
     :root {
       --ui-label-size: 12px;
@@ -118,7 +118,7 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] 프리뷰 하단 Action 버튼 스타일 (회색 알약) */
+    /* [추가] 프리뷰 하단 Action 버튼 스타일 */
     .preview-actions { 
         display: flex; 
         gap: 12px; 
@@ -686,7 +686,7 @@
     }
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - PREVIEW TARGETING
+    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
     // ===============================================
     async function captureResult() {
         // [핵심] 현재 활성화된 프리뷰 요소를 찾습니다.
