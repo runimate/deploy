@@ -17,7 +17,6 @@
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#ffffff" />
   <style>
-    /* ... (기존 스타일 유지) ... */
     :root {
       --ui-label-size: 12px;
       --ui-value-size: 34px;
@@ -83,7 +82,7 @@
     .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
-    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
@@ -116,13 +115,15 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] 프리뷰 하단 Action 버튼 스타일 */
+    /* [추가] 프리뷰 하단 Action 버튼 스타일 (회색 알약) */
     .preview-actions { 
         display: flex; 
         gap: 12px; 
         margin-top: 30px; 
         width: 100%; 
         justify-content: center; 
+        z-index: 100;
+        position: relative;
     }
     .action-btn-pill { 
         flex: 1; 
@@ -131,7 +132,7 @@
         justify-content: center; 
         gap: 8px; 
         height: 52px; 
-        background: #E5E5E5; 
+        background: #F4F4F4; 
         border: none; 
         border-radius: 999px; 
         font-size: 14px; 
@@ -140,7 +141,7 @@
         color: #000; 
         transition: background 0.2s; 
     }
-    .action-btn-pill:active { background: #d4d4d4; transform: scale(0.98); }
+    .action-btn-pill:active { background: #E0E0E0; transform: scale(0.98); }
     .action-btn-pill svg { width: 20px; height: 20px; stroke-width: 2.5px; }
   </style>
 </head>
@@ -431,7 +432,7 @@
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
-    </div>
+        </div>
   </div>
 
   <div class="modal-overlay" id="colorPickerOverlay">
@@ -682,7 +683,7 @@
     }
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
+    // [IMAGE DOWNLOAD & COPY LOGIC] - PREVIEW TARGETING
     // ===============================================
     async function captureResult() {
         // [핵심] 현재 활성화된 프리뷰 요소를 찾습니다.
@@ -691,9 +692,13 @@
         const previewEl = document.getElementById(targetId);
         
         // 텍스트 내용물만 캡처 (투명 배경 스티커용)
+        // previewEl 내부의 .preview-content를 찾습니다.
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
+
+        // 버튼 그룹 잠시 숨김 (캡처 방지)
+        if(el.actionBtnGroup) el.actionBtnGroup.style.display = 'none';
 
         try {
             await document.fonts.ready;
@@ -702,22 +707,15 @@
                 scale: 3,              
                 logging: false,
                 useCORS: true,
-                allowTaint: true,
-                // [추가] 배경 제거를 위한 클론 처리
-                onclone: (clonedDoc) => {
-                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
-                    if (clonedEl) {
-                        // 배경 관련 클래스나 스타일 제거 (투명 PNG 보장)
-                        clonedEl.style.background = 'transparent';
-                        // 필요시 부모의 배경도 날려야 할 수 있음
-                    }
-                }
+                allowTaint: true
             });
             return canvas;
         } catch (err) {
             console.error('Capture error:', err);
             alert('이미지 캡처 중 오류가 발생했습니다.');
             return null;
+        } finally {
+            if(el.actionBtnGroup) el.actionBtnGroup.style.display = 'flex';
         }
     }
 
