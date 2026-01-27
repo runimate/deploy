@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#ffffff" />
   <style>
     /* =========================================
-       [CSS] 스타일 정의 (기존 스타일 유지 + 버튼 스타일 보강)
+       [CSS] 기존 스타일 전체 유지
        ========================================= */
     :root {
       --ui-label-size: 12px;
@@ -117,16 +117,16 @@
     .pace-colon { font-size: 20px; font-weight: 900; color: #000; margin-top: -2px; }
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
-
-    /* [수정] 버튼 스타일: 클릭이 확실히 되도록 z-index와 relative 설정 */
+    
+    /* [추가] 프리뷰 하단 Action 버튼 스타일 (회색 알약) */
     .preview-actions { 
         display: flex; 
         gap: 12px; 
         margin-top: 30px; 
         width: 100%; 
         justify-content: center; 
-        position: relative; /* 중요 */
-        z-index: 50; /* 다른 요소 위에 뜨도록 */
+        position: relative;
+        z-index: 50; /* 클릭 가능하도록 z-index 설정 */
     }
     .action-btn-pill { 
         flex: 1; 
@@ -476,8 +476,11 @@
   <script type="module">
     import { applyUIConfigToRoot } from './ui_config.js';
 
+    // ===========================================
+    // [INITIALIZATION & UTILS]
+    // ===========================================
     const $ = (s) => document.querySelector(s);
-    const safelyGet = (id) => document.getElementById(id); // 안전하게 요소 가져오기
+    const safelyGet = (id) => document.getElementById(id);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -504,57 +507,58 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
 
-    // ===========================================
-    // [LOGIC] GENERAL UI - Safe Elements Cache
-    // ===========================================
+    // --- DOM ELEMENT CACHE (Safe Access) ---
     const el = {
-        // Safe getters
-        btnStravaLogin: safelyGet('btnStravaLogin'),
-        stravaConnectBtnWrap: safelyGet('stravaConnectBtnWrap'),
-        stravaCard: safelyGet('stravaCard'),
-        garminConnectBtnWrap: safelyGet('garminConnectBtnWrap'),
-        garminCard: safelyGet('garminCard'),
-        garminLoginScreen: safelyGet('garminLoginScreen'),
-        garminSelectScreen: safelyGet('garminSelectScreen'),
-        btnOpenGarminLogin: safelyGet('btnOpenGarminLogin'),
-        btnGarminRealSync: safelyGet('btnGarminRealSync'),
-        btnGarminList: safelyGet('btnGarminList'),
-        btnStravaList: safelyGet('btnStravaList'),
-        
-        // Data Panels
-        dataPanel: safelyGet('dataPanel'),
-        dataPanelHead: safelyGet('dataPanelHead'),
-        dataTabsDaily: safelyGet('dataTabsDaily'),
-        dataEmpty: safelyGet('dataEmpty'),
-        
-        // Tabs
-        tabGarmin: safelyGet('tabGarmin'), 
-        tabStrava: safelyGet('tabStrava'), 
-        tabNrc: safelyGet('tabNrc'), 
-        tabManual: safelyGet('tabManual'),
-        contentGarmin: safelyGet('contentGarmin'), 
-        contentStrava: safelyGet('contentStrava'), 
-        contentNrc: safelyGet('contentNrc'), 
-        contentManual: safelyGet('contentManual'),
-        
-        // Previews
-        previewDaily: safelyGet('previewDaily'),
-        previewMonthly: safelyGet('previewMonthly'),
-        
-        // Action Buttons
-        btnSaveImage: safelyGet('btnSaveImage'),
-        btnCopyImage: safelyGet('btnCopyImage'),
-        actionBtnGroup: safelyGet('actionBtnGroup'),
-        
-        // Manual Input
-        btnManualApply: safelyGet('btnManualApply'),
-        inputDistance: safelyGet('inputDistance'),
-        inputPaceMin: safelyGet('inputPaceMin'),
-        inputPaceSec: safelyGet('inputPaceSec'),
-        
-        // Main Controls
-        btnRun: safelyGet('btnRun'),
-        resultScreen: safelyGet('resultScreen')
+      // Main Screens
+      resultScreen: safelyGet('resultScreen'),
+      garminLoginScreen: safelyGet('garminLoginScreen'),
+      stravaLoginScreen: safelyGet('stravaLoginScreen'),
+      garminSelectScreen: safelyGet('garminSelectScreen'),
+      monthPickerScreen: safelyGet('monthPickerScreen'),
+      
+      // Panels & Tabs
+      dataPanel: safelyGet('dataPanel'), 
+      dataPanelHead: safelyGet('dataPanelHead'),
+      dataTabsDaily: safelyGet('dataTabsDaily'),
+      dataEmpty: safelyGet('dataEmpty'),
+      
+      // Tabs
+      tabGarmin: safelyGet('tabGarmin'), tabStrava: safelyGet('tabStrava'), 
+      tabNrc: safelyGet('tabNrc'), tabManual: safelyGet('tabManual'),
+      contentGarmin: safelyGet('contentGarmin'), contentStrava: safelyGet('contentStrava'), 
+      contentNrc: safelyGet('contentNrc'), contentManual: safelyGet('contentManual'),
+      
+      // Buttons & Controls
+      btnDaily: safelyGet('btnDaily'), btnMonthly: safelyGet('btnMonthly'),
+      btnRun: safelyGet('btnRun'),
+      btnGarminList: safelyGet('btnGarminList'),
+      btnStravaList: safelyGet('btnStravaList'),
+      
+      // Login & Connect Wraps
+      stravaConnectBtnWrap: safelyGet('stravaConnectBtnWrap'), 
+      stravaCard: safelyGet('stravaCard'),
+      garminConnectBtnWrap: safelyGet('garminConnectBtnWrap'), 
+      garminCard: safelyGet('garminCard'),
+      btnOpenGarminLogin: safelyGet('btnOpenGarminLogin'),
+      btnGarminRealSync: safelyGet('btnGarminRealSync'),
+      btnStravaLogin: safelyGet('btnStravaLogin'),
+      
+      // Manual Input
+      inputDistance: safelyGet('inputDistance'), inputPaceMin: safelyGet('inputPaceMin'), inputPaceSec: safelyGet('inputPaceSec'),
+      btnManualApply: safelyGet('btnManualApply'),
+      
+      // Previews
+      previewDaily: safelyGet('previewDaily'),
+      previewMonthly: safelyGet('previewMonthly'),
+      
+      // Action Buttons (Save/Copy)
+      btnSaveImage: safelyGet('btnSaveImage'),
+      btnCopyImage: safelyGet('btnCopyImage'),
+      actionBtnGroup: safelyGet('actionBtnGroup'),
+      
+      // ETC
+      workoutList: safelyGet('workoutList'),
+      btnHiddenManual: safelyGet('btnHiddenManual')
     };
 
     // ===========================================
@@ -602,8 +606,7 @@
                       state.dataType = 'strava';
                       
                       if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-                      const stravaCardWrap = document.getElementById('stravaCardWrap');
-                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                      if(el.stravaCard) el.stravaCard.style.display = 'flex';
                       
                       closeScreen('stravaLoginScreen');
                       renderWorkoutList('strava'); 
@@ -637,6 +640,7 @@
     // [LOGIC] WORKOUT LIST RENDER
     // ===========================================
     function renderWorkoutList(kind = 'garmin') {
+      // Use direct DOM access to be safe
       const listContainer = document.getElementById('workoutList');
       if (!listContainer) return;
       listContainer.innerHTML = ''; 
@@ -666,8 +670,7 @@
                 state.strava = { ...w }; 
                 state.dataType = 'strava'; 
                 if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-                const stravaCardWrap = document.getElementById('stravaCardWrap');
-                if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                if(el.stravaCard) el.stravaCard.style.display = 'flex';
             } else { 
                 state.garmin = { ...w }; 
                 state.dataType = 'garmin'; 
@@ -690,7 +693,7 @@
     }
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - PREVIEW TARGETING
+    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
     // ===============================================
     async function captureResult() {
         const isDaily = state.recordType === 'daily';
@@ -976,7 +979,6 @@
         updatePreview();
     }
 
-    // BUTTON EVENT LISTENERS
     if(el.btnDaily) el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
     if(el.btnMonthly) el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
     
@@ -1019,12 +1021,21 @@
         });
     }
 
-    // Global Screen Controls
+    if(el.btnHiddenManual) {
+        let hiddenClickCount = 0;
+        el.btnHiddenManual.addEventListener('click', () => {
+            hiddenClickCount++;
+            if(hiddenClickCount === 5) {
+                alert("Developer Mode: Manual Tab Enabled");
+                if(el.tabManual) { el.tabManual.classList.remove('manual-hidden'); el.tabManual.classList.add('manual-show'); }
+            }
+        });
+    }
+
     function openScreen(id) { const node = document.getElementById(id); if(node) { node.classList.add('show'); node.setAttribute('aria-hidden', 'false'); if(el.btnRun) el.btnRun.style.display = 'none'; } }
     function closeScreen(id) { const node = document.getElementById(id); if(node) { node.classList.remove('show'); node.setAttribute('aria-hidden', 'true'); if(el.btnRun) el.btnRun.style.display = 'block'; } }
     document.addEventListener('click', (e) => { const closeId = e.target?.dataset?.close; if (closeId) closeScreen(closeId); });
 
-    // Result Generation Logic
     function buildResultDOM() {
        const resWrap = document.getElementById('resultWrap');
        const resBlock = document.getElementById('resultBlock');
@@ -1084,17 +1095,28 @@
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
               const w = pvEl.getBoundingClientRect().width; 
-              rvEl.style.width = w + 'px'; rvEl.style.display = 'inline-block'; rvEl.style.whiteSpace = 'nowrap';
-              if(state.align === 'center' && state.recordType === 'daily') rvEl.style.textAlign = 'center';
-              else rvEl.style.textAlign = 'left';
+              rvEl.style.width = w + 'px';
+              rvEl.style.display = 'inline-block';
+              rvEl.style.whiteSpace = 'nowrap';
+              
+              if(state.align === 'center' && state.recordType === 'daily') {
+                  rvEl.style.textAlign = 'center';
+              } else {
+                  rvEl.style.textAlign = 'left';
+              }
           }
       };
+      
       if (state.recordType === 'daily') {
-          syncWidth(rvDistance, 'pvDistanceDaily'); syncWidth(rvPace, 'pvPaceDaily'); syncWidth(rvTime, 'pvTimeDaily');
+          syncWidth(rvDistance, 'pvDistanceDaily');
+          syncWidth(rvPace, 'pvPaceDaily');
+          syncWidth(rvTime, 'pvTimeDaily');
       } else {
           const s = (state.layout === 'type1') ? 'T1' : 'T2';
-          syncWidth(rvDistance, `pvDistanceMonthly${s}`); syncWidth(rvRuns, `pvRunsMonthly${s}`);
-          syncWidth(rvPace, `pvPaceMonthly${s}`); syncWidth(rvTime, `pvTimeMonthly${s}`);
+          syncWidth(rvDistance, `pvDistanceMonthly${s}`);
+          syncWidth(rvRuns, `pvRunsMonthly${s}`);
+          syncWidth(rvPace, `pvPaceMonthly${s}`);
+          syncWidth(rvTime, `pvTimeMonthly${s}`);
       }
       return {
         resetToStart() {
@@ -1107,17 +1129,23 @@
     }
     
     function animateAll(target) {
-      const locker = lockFitResultTransforms(target, state); locker.resetToStart();
+      const locker = lockFitResultTransforms(target, state);
+      locker.resetToStart();
       const hold = 500; const dur = 2000; const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
       function frame(now) {
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
-        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
-        const km = target.km * k; const pace = target.paceSec * k; const time = target.timeSec * k;
+        const p = clamp((dt - hold) / dur, 0, 1);
+        const k = easeOutCubic(p);
+        const km = target.km * k;
+        const pace = target.paceSec * k;
+        const time = target.timeSec * k;
         const runs = (target.runs == null) ? null : Math.round(target.runs * k);
-        
-        const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
+        const rvDistance = $('#rvDistance');
+        const rvPace = $('#rvPace');
+        const rvTime = $('#rvTime');
+        const rvRuns = $('#rvRuns');
         if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
         if (rvPace) rvPace.textContent = fmtPaceResult(pace);
         if (rvTime) rvTime.textContent = fmtTimeResult(time);
@@ -1127,16 +1155,18 @@
       requestAnimationFrame(frame);
     }
     
-    el.btnRun.addEventListener('click', () => {
-       const targetData = buildResultDOM();
-       openScreen('resultScreen');
-       const resScreen = document.getElementById('resultScreen');
-       if(resScreen) {
-           resScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
-           if(state.recordType==='daily') resScreen.classList.add(`align-${state.align}`);
-       }
-       requestAnimationFrame(() => { requestAnimationFrame(() => { animateAll(targetData); }); });
-    });
+    if(el.btnRun) {
+        el.btnRun.addEventListener('click', () => {
+           const targetData = buildResultDOM();
+           openScreen('resultScreen');
+           const resScreen = document.getElementById('resultScreen');
+           if(resScreen) {
+               resScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
+               if(state.recordType==='daily') resScreen.classList.add(`align-${state.align}`);
+           }
+           requestAnimationFrame(() => { requestAnimationFrame(() => { animateAll(targetData); }); });
+        });
+    }
 
     // Check code on load
     checkStravaCode();
