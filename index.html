@@ -873,11 +873,13 @@
             if (kind === 'strava') { 
                 state.strava = { ...w }; 
                 state.dataType = 'strava'; 
+                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
                 if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
                 if(el.stravaCard) el.stravaCard.style.display = 'flex';
             } else { 
                 state.garmin = { ...w }; 
                 state.dataType = 'garmin'; 
+                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
                 if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.setAttribute('style', 'display: none !important');
                 if(el.garminCard) el.garminCard.style.display = 'flex';
             }
@@ -1083,7 +1085,7 @@
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
 
-    // NRC / OCR
+    // NRC / OCR (기존 유지)
     if (el.btnUploadNrc && el.fileNrc) {
         el.btnUploadNrc.addEventListener('click', () => { el.fileNrc.value = ''; el.fileNrc.click(); });
         el.fileNrc.addEventListener('change', async (e) => {
@@ -1139,36 +1141,28 @@
     if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => { state.monthly.year -= 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
     if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
 
-    // Manual Input
-    el.chipDistance.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'DISTANCE';
-      el.formDistance.style.display = 'block'; el.formPace.style.display = 'none';
-      el.inputDistance.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputDistance.focus(), 100);
-    });
-    el.chipPace.addEventListener('click', () => {
-      $('#modalTitle').textContent = 'PACE';
-      el.formDistance.style.display = 'none'; el.formPace.style.display = 'block';
-      el.inputPaceMin.value = ''; el.inputPaceSec.value = ''; openScreen('modalOverlay'); setTimeout(() => el.inputPaceMin.focus(), 100);
-    });
-    el.modalClose.addEventListener('click', () => closeScreen('modalOverlay'));
-    
-    function recalcManualTime() {
-        if(state.manual.km > 0 && state.manual.paceSec > 0) {
-            state.manual.timeSec = state.manual.km * state.manual.paceSec;
-            if($('#manualTimeText')) $('#manualTimeText').textContent = fmtTimePreview(state.manual.timeSec);
+    // [New Manual Input Logic]
+    if (el.btnManualApply) {
+        el.btnManualApply.addEventListener('click', () => {
+            const dist = parseFloat(el.inputDistance.value) || 0;
+            const pMin = parseInt(el.inputPaceMin.value) || 0;
+            const pSec = parseInt(el.inputPaceSec.value) || 0;
+            const totalPace = (pMin * 60) + pSec;
+            
+            state.manual.km = dist;
+            state.manual.paceSec = totalPace;
+            
+            // 자동 시간 계산
+            if (dist > 0 && totalPace > 0) {
+                state.manual.timeSec = dist * totalPace;
+            } else {
+                state.manual.timeSec = 0;
+            }
+            
             updatePreview();
-        }
+            alert(`Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
+        });
     }
-
-    el.formDistance.addEventListener('submit', (e) => {
-      e.preventDefault(); const val = parseFloat(el.inputDistance.value);
-      if (!isNaN(val)) { state.manual.km = val; el.manualDistanceText.textContent = val.toFixed(2); recalcManualTime(); closeScreen('modalOverlay'); }
-    });
-    el.formPace.addEventListener('submit', (e) => {
-      e.preventDefault(); const m = parseInt(el.inputPaceMin.value) || 0; const s = parseInt(el.inputPaceSec.value) || 0;
-      const total = m * 60 + s;
-      if (total > 0) { state.manual.paceSec = total; el.manualPaceText.textContent = fmtPacePreview(total); recalcManualTime(); closeScreen('modalOverlay'); }
-    });
 
     // [Manual Hidden Trigger]
     let hiddenClickCount = 0;
