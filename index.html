@@ -10,6 +10,7 @@
  
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./ocr.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png" />
@@ -82,7 +83,7 @@
     .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
-    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
@@ -114,6 +115,12 @@
     .pace-colon { font-size: 20px; font-weight: 900; color: #000; margin-top: -2px; }
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
+
+    /* [추가] Result Action Buttons Style */
+    .result-actions { display: flex; gap: 12px; margin-top: 30px; width: 100%; justify-content: center; z-index: 100001; }
+    .action-btn-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; background: #E5E5E5; border: none; border-radius: 999px; font-size: 14px; font-weight: 800; cursor: pointer; color: #000; transition: background 0.2s; }
+    .action-btn-pill:active { background: #d4d4d4; transform: scale(0.98); }
+    .action-btn-pill svg { width: 20px; height: 20px; stroke-width: 2.5px; }
   </style>
 </head>
 
@@ -381,62 +388,29 @@
     <button class="run-btn" id="btnRun">RUN</button>
   </div>
 
-  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title"><div class="gc-big">GARMIN<br />CONNECT</div></div>
-      <div class="garmin-login-form" style="margin-top: 40px; width: 100%;">
-          <input type="email" id="garminEmail" class="gc-input" placeholder="enter your @ email.com">
-          <input type="password" id="garminPassword" class="gc-input" placeholder="password">
-          <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
-      </div>
-      <div class="gc-note">
-        <div class="gc-smile">:)</div>
-        <div class="gc-note-text">
-            Your Garmin account information is never saved or stored, so you can feel safe using it.
-        </div>
-      </div>
-      <button class="gc-cta" id="btnGarminRealSync" type="button">Sign-In</button>
-    </div>
-  </div>
-
-  <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
-    <div class="garmin-login-wrap">
-      <div class="garmin-login-title">
-        <div class="gc-big">STRAVA</div>
-        <div class="gc-sub">Connect</div>
-      </div>
-      <div class="gc-note">
-        <div class="gc-smile">:)</div>
-        <div class="gc-note-text">
-          Your Strava account information is never saved or stored, so you can feel safe using it.
-        </div>
-      </div>
-      <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
-    </div>
-  </div>
-
-  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
-    <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
-    <div class="select-wrap">
-      <div class="select-title">Select<br />Workout</div>
-      <div class="select-list" id="workoutList"></div>
-    </div>
-  </div>
-
-  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
-    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
-    <div class="month-wrap">
-      <div class="month-head"><button class="month-nav" id="monthPrevYear">‹</button><div class="month-year" id="monthYearText">2025</div><button class="month-nav" id="monthNextYear">›</button></div>
-      <div class="month-grid" id="monthGrid"></div>
-    </div>
-  </div>
-
   <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
+    
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
+        
+        <div class="result-actions" id="actionBtnGroup">
+            <button class="action-btn-pill" id="btnSaveImage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Save to Image
+            </button>
+            <button class="action-btn-pill" id="btnCopyImage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy to Clipboard
+            </button>
+        </div>
     </div>
   </div>
 
@@ -614,7 +588,10 @@
       pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
       pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
       
-      btnHiddenManual: $('#btnHiddenManual')
+      btnHiddenManual: $('#btnHiddenManual'),
+      
+      // [NEW] Action Buttons
+      btnSaveImage: $('#btnSaveImage'), btnCopyImage: $('#btnCopyImage'), actionBtnGroup: $('#actionBtnGroup')
     };
 
     // --- Screen Control ---
@@ -1427,6 +1404,80 @@
            });
        });
     });
+
+    // ===============================================
+    // [IMAGE DOWNLOAD & COPY LOGIC] - FINAL
+    // ===============================================
+    const btnSaveImage = document.getElementById('btnSaveImage');
+    const btnCopyImage = document.getElementById('btnCopyImage');
+    const actionBtnGroup = document.getElementById('actionBtnGroup');
+
+    // 공통 캡처 함수
+    async function captureResult() {
+        const element = document.getElementById('resultBlock');
+        if (!element) return null;
+
+        // 버튼 그룹 잠시 숨김 (캡처 방지)
+        if(actionBtnGroup) actionBtnGroup.style.display = 'none';
+
+        try {
+            // Wait for fonts to load
+            await document.fonts.ready;
+            
+            const canvas = await html2canvas(element, {
+                backgroundColor: null, // 투명 배경
+                scale: 3,              // 고화질
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            });
+            return canvas;
+        } catch (err) {
+            console.error('Capture error:', err);
+            alert('이미지 캡처 중 오류가 발생했습니다.');
+            return null;
+        } finally {
+            // 버튼 다시 보이기
+            if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
+        }
+    }
+
+    // 1. SAVE PNG (다운로드)
+    if (btnSaveImage) {
+        btnSaveImage.addEventListener('click', async () => {
+            const canvas = await captureResult();
+            if (!canvas) return;
+
+            const link = document.createElement('a');
+            link.download = `RUNIMATE_${state.daily.date || 'record'}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // 2. COPY (클립보드 복사)
+    if (btnCopyImage) {
+        btnCopyImage.addEventListener('click', async () => {
+            const canvas = await captureResult();
+            if (!canvas) return;
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    alert('이미지 생성 실패');
+                    return;
+                }
+                try {
+                    // 클립보드에 이미지 쓰기
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    alert('복사에 실패했습니다. (브라우저가 지원하지 않거나 보안 환경이 아님)');
+                }
+            });
+        });
+    }
 
     function initDefaults() {
        applyUIConfigToRoot(state);
