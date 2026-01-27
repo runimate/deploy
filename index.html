@@ -157,7 +157,7 @@
         width: 100%; 
         justify-content: center; 
         position: relative;
-        z-index: 50; /* 버튼이 눌리도록 z-index 확보 */
+        z-index: 50; 
     }
     .action-btn-pill { 
         flex: 1; 
@@ -1515,29 +1515,38 @@
     });
 
     // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - TARGETING PREVIEW
+    // [IMAGE DOWNLOAD & COPY LOGIC] - FINAL
     // ===============================================
     const btnSaveImage = document.getElementById('btnSaveImage');
     const btnCopyImage = document.getElementById('btnCopyImage');
     const actionBtnGroup = document.getElementById('actionBtnGroup');
 
+    // 공통 캡처 함수 (PREVIEW 타겟팅)
     async function captureResult() {
+        // 현재 활성화된 프리뷰 요소를 찾습니다.
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
+        
+        // 텍스트 내용물만 캡처 (투명 배경 스티커용)
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
+
+        // 버튼 그룹 잠시 숨김 (캡처 방지)
         if(actionBtnGroup) actionBtnGroup.style.display = 'none';
 
         try {
+            // Wait for fonts to load
             await document.fonts.ready;
+            
             const canvas = await html2canvas(element, {
-                backgroundColor: null, 
-                scale: 3,              
+                backgroundColor: null, // 투명 배경
+                scale: 3,              // 고화질
                 logging: false,
                 useCORS: true,
                 allowTaint: true,
+                // 배경 제거를 위한 클론 처리
                 onclone: (clonedDoc) => {
                     const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
                     if (clonedEl) {
@@ -1551,10 +1560,12 @@
             alert('이미지 캡처 중 오류가 발생했습니다.');
             return null;
         } finally {
+            // 버튼 다시 보이기
             if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
         }
     }
 
+    // 1. SAVE PNG (다운로드)
     if (btnSaveImage) {
         btnSaveImage.addEventListener('click', async () => {
             const canvas = await captureResult();
@@ -1567,6 +1578,7 @@
         });
     }
 
+    // 2. COPY (클립보드 복사)
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
             const canvas = await captureResult();
@@ -1577,8 +1589,8 @@
                     alert('이미지 생성 실패');
                     return;
                 }
-                
-                // [수정됨] 모바일/보안 에러 방지를 위한 공유하기(Share) 우선 시도
+
+                // 1. 모바일 공유하기 (Web Share API) 우선 시도
                 if (navigator.canShare && navigator.share) {
                     try {
                         const file = new File([blob], "runimate_record.png", { type: "image/png" });
@@ -1588,21 +1600,22 @@
                                 title: 'Runimate',
                                 text: 'My Running Record'
                             });
-                            return; 
+                            return; // 공유 성공 시 종료
                         }
                     } catch (shareErr) {
-                        console.log('Share canceled or failed', shareErr);
+                        // 공유 취소/실패 시 아래 복사 로직으로 fallback
+                        console.log('Share API skipped/failed', shareErr);
                     }
                 }
 
-                // PC 클립보드 복사 시도
+                // 2. PC 클립보드 직접 복사 시도
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     alert('복사되었습니다! 인스타그램 스토리에 붙여넣기 하세요.');
                 } catch (err) {
                     console.error('Copy failed:', err);
-                    alert('복사 실패: 브라우저가 지원하지 않거나 보안 연결이 아닙니다. (Save Image 버튼을 사용해주세요)');
+                    alert('복사 실패: 모바일 보안 정책으로 인해 직접 복사가 제한되었습니다. [Save Image] 버튼을 이용해주세요.');
                 }
             });
         });
