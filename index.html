@@ -17,6 +17,9 @@
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#ffffff" />
   <style>
+    /* =========================================
+       [CSS] 기존 스타일 유지
+       ========================================= */
     :root {
       --ui-label-size: 12px;
       --ui-value-size: 34px;
@@ -692,7 +695,6 @@
         const previewEl = document.getElementById(targetId);
         
         // 텍스트 내용물만 캡처 (투명 배경 스티커용)
-        // previewEl 내부의 .preview-content를 찾습니다.
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         
         if (!element) return null;
@@ -707,7 +709,14 @@
                 scale: 3,              
                 logging: false,
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true,
+                // [추가] 배경 제거를 위한 클론 처리
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
+                    if (clonedEl) {
+                        clonedEl.style.background = 'transparent';
+                    }
+                }
             });
             return canvas;
         } catch (err) {
