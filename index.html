@@ -1,0 +1,1707 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>RUNIMATE v2.2</title>
+  
+  <link rel="stylesheet" href="./styles.css" />
+ 
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="./ocr.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png" />
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  <style>
+    /* =========================================
+       [CSS] 원본 스타일 100% 유지
+       ========================================= */
+    :root {
+      --ui-label-size: 12px;
+      --ui-value-size: 34px;
+      --ui-label-to-value-gap: 8px;
+      --ui-stack-gap: 18px;
+      --ui-col-gap: 24px;
+      --ui-month-size: 14px;
+      --ui-distance-size: 36px;
+      --ui-month-to-dist-gap: 8px;
+      --ui-dist-to-stats-gap: 14px;
+    }
+    .result-label, .data-label { font-family: inherit !important; font-size: var(--ui-label-size) !important; line-height: 1; opacity: 0.8; margin-bottom: var(--ui-label-to-value-gap) !important; }
+    .font-anton .result-label { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-weight: 900 !important; }
+    .result-value, .data-value { font-family: inherit !important; font-size: var(--ui-value-size) !important; line-height: 1; font-weight: 900; }
+    
+    .preview.type1 .preview-content, .result-wrap.type1 .result-block { display: flex; flex-direction: column; gap: var(--ui-stack-gap) !important; }
+    .preview.type1 .result-item, .result-wrap.type1 .result-item { display: flex; flex-direction: column; gap: 0 !important; width: 100%; }
+    .preview.align-left.type1 .result-item, .result-wrap.align-left.type1 .result-item { align-items: flex-start !important; text-align: left !important; }
+    .preview.align-center.type1 .result-item, .result-wrap.align-center.type1 .result-item { align-items: center !important; text-align: center !important; }
+
+    .preview.type2 .preview-content, .result-wrap.type2 .result-block { display: flex !important; flex-direction: row; gap: var(--ui-col-gap) !important; }
+    .preview.type2 .result-item, .result-wrap.type2 .result-item { display: flex; flex-direction: column; gap: 0 !important; flex: 0 0 auto; }
+    .preview.align-left.type2 .preview-content { justify-content: flex-start; }
+    .preview.align-left.type2 .result-item { align-items: flex-start; text-align: left; }
+    .preview.align-center.type2 .preview-content { justify-content: center; }
+    .preview.align-center.type2 .result-item { align-items: center; text-align: center; }
+
+    .monthly-type1 { display: flex; flex-direction: column; align-items: flex-start !important; width: 100%; }
+    .m1-month { font-size: var(--ui-month-size) !important; margin-bottom: var(--ui-month-to-dist-gap) !important; font-weight: 700; }
+    .m1-distance .m1-distance-value { font-size: var(--ui-distance-size) !important; font-weight: 900; line-height: 0.9; }
+    .m1-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
+    .m1-stack { display: flex; flex-direction: column; gap: var(--ui-stack-gap) !important; width: 100%; align-items: flex-start !important; }
+    .m1-item { display: flex; flex-direction: row; justify-content: flex-start !important; align-items: center; width: 100%; gap: 0 !important; }
+    .m1-item .m-label { font-size: var(--ui-label-size) !important; margin-right: var(--ui-label-to-value-gap) !important; margin-bottom: 0 !important; }
+    .m1-item .m-value { font-size: var(--ui-value-size) !important; font-weight: 900; }
+
+    .monthly-type2 { display: flex; flex-direction: column; width: 100%; align-items: flex-start; }
+    .m2-month-line { font-size: var(--ui-month-size) !important; margin-bottom: var(--ui-month-to-dist-gap) !important; font-weight: 700; }
+    .m2-distance .m2-distance-value { font-size: var(--ui-distance-size) !important; font-weight: 900; line-height: 0.9; }
+    .m2-distance { margin-bottom: var(--ui-dist-to-stats-gap) !important; }
+    .m2-row { display: flex !important; flex-direction: row; justify-content: flex-start; gap: var(--ui-col-gap) !important; width: 100%; }
+    .m2-row .data-item { display: flex; flex-direction: column; gap: 0 !important; flex: 0 0 auto; }
+    .m2-row .data-label { font-size: var(--ui-label-size) !important; margin-bottom: var(--ui-label-to-value-gap) !important; }
+    .m2-row .data-value { font-size: var(--ui-value-size) !important; }
+
+    .garmin-card, .workout-item { width: 100% !important; box-sizing: border-box !important; display: flex; justify-content: space-between !important; align-items: center !important; }
+    .w-left, .garmin-card-left { flex: 1 !important; min-width: 0 !important; gap: 6px !important; }
+    .w-stats span, .garmin-stat { font-size: 14px !important; font-weight: 900 !important; line-height: 1.2 !important; }
+    .hamburger { display: flex; flex-direction: column; gap: 3px; width: 18px; }
+    .hamburger span { display: block; width: 100%; height: 2px; background: #000; border-radius: 2px; }
+    .w-arrow { display: block !important; font-size: 24px !important; font-weight: 900 !important; color: #000 !important; line-height: 1 !important; }
+    .garmin-list-btn, .w-arrow-wrap { width: auto !important; height: auto !important; padding: 0 0 0 14px !important; background: transparent !important; border: none !important; cursor: pointer !important; flex-shrink: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    #garminConnectBtnWrap, #stravaConnectBtnWrap { width: 100% !important; padding: 40px 0 !important; text-align: center !important; display: block; }
+    #garminConnectBtnWrap button, #stravaConnectBtnWrap button { display: inline-block; margin: 0 auto; }
+    
+    .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
+    
+    /* 팝업창(Overlay) 숨김 처리 및 스타일 */
+    #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay { 
+        display: none; /* 평소에는 숨김 */
+        position: fixed !important; 
+        top: 0; left: 0; bottom: 0; right: 0; 
+        width: 100%; height: 100%; 
+        background-color: #fff; 
+        z-index: 99999 !important; 
+        flex-direction: column; 
+        overflow-y: auto; 
+        padding-bottom: 120px !important; 
+    }
+    
+    /* Select Workout 화면 레이아웃 (잘림 방지) */
+    #garminSelectScreen .select-wrap {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden; 
+    }
+    
+    #garminSelectScreen .select-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 150px; 
+        width: 100%;
+        -webkit-overflow-scrolling: touch; 
+    }
+
+    /* .show 클래스가 붙어야만 보이도록 설정 */
+    #garminLoginScreen.show, #stravaLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show { 
+        display: flex !important; 
+    }
+    
+    #garminLoginScreen { background-color: var(--garmin, #76B6FF) !important; }
+    .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
+    .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
+    .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
+    .select-workout { background-color: #fff !important; z-index: 99999 !important; }
+    
+    /* result-screen도 초기에는 안 보여야 합니다. */
+    .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
+    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-block { width: 100%; }
+    .data-empty { min-height: 20px; }
+    .screen-close { cursor: pointer; z-index: 999999; }
+    .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
+
+    .data-tabs { display: flex; width: 100%; gap: 10px !important; }
+    .data-tab { flex: 1; text-align: center; }
+    .data-tab.manual-hidden { display: none !important; }
+    .data-tab.manual-show { display: block !important; }
+    .version { cursor: pointer; user-select: none; }
+
+    .month-block { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px; }
+    .month-label { font-size: 12px; font-weight: 700; opacity: 0.6; margin-bottom: 8px; }
+    .month-btn { background: #fff; border: 2px solid #000; border-radius: 30px; font-size: 16px; font-weight: 700; color: #000; cursor: pointer; padding: 10px 24px; transition: transform 0.1s; }
+    .month-btn:active { transform: scale(0.97); }
+
+    #contentNrc, #contentManual { width: 100%; box-sizing: border-box; }
+    .upload-btn { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; display: flex; justify-content: center; align-items: center; margin-top: 10px; }
+
+    .manual-group { margin-top: 10px; }
+    .manual-row { display: flex; gap: 12px; margin-bottom: 16px; width: 100%; }
+    .manual-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .manual-label { font-size: 11px; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    .big-input { width: 100%; height: 52px; background: #f4f4f4; border: 2px solid transparent; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; color: #000; padding: 0 16px; outline: none; box-sizing: border-box; -webkit-appearance: none; transition: border 0.15s, background 0.15s; }
+    .big-input:focus { background: #fff; border-color: #000; }
+    .big-input::placeholder { color: #ccc; }
+    .pace-wrapper { display: flex; align-items: center; gap: 6px; }
+    .big-input.center-text { text-align: center; padding: 0; }
+    .pace-colon { font-size: 20px; font-weight: 900; color: #000; margin-top: -2px; }
+    .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+    .black-btn:active { transform: scale(0.98); }
+
+    /* [추가] Action Buttons Style (초기엔 숨김) */
+    .preview-actions { 
+        display: none; /* 데이터 로드 전에는 안 보임 */
+        gap: 12px; 
+        margin-top: 30px; 
+        width: 100%; 
+        justify-content: center; 
+        position: relative;
+        z-index: 50; 
+    }
+    .action-btn-pill { 
+        flex: 1; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 8px; 
+        height: 52px; 
+        background: #F4F4F4; 
+        border: none; 
+        border-radius: 999px; 
+        font-size: 14px; 
+        font-weight: 800; 
+        cursor: pointer; 
+        color: #000; 
+        transition: background 0.2s, transform 0.1s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .action-btn-pill:active { background: #E0E0E0; transform: scale(0.98); }
+    .action-btn-pill svg { width: 20px; height: 20px; stroke-width: 2.5px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">
+        RUNIMATE 
+      </a>
+      <span class="version" id="btnHiddenManual">v.2.2</span>
+      <div class="author">by JS @runarchive.js</div>
+    </header>
+
+    <section class="section">
+      <span class="section-label">RECORD TYPE</span>
+      <div class="button-group wide">
+        <button class="toggle-btn flex1 active" id="btnDaily" data-record="daily">Daily</button>
+        <button class="toggle-btn flex1" id="btnMonthly" data-record="monthly">Monthly</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="data-panel" id="dataPanel">
+        <div class="month-block" id="monthBlock" style="display:none;">
+          <div class="month-label">MONTH</div>
+          <button class="month-btn" id="btnMonthPick">December. 2025</button>
+        </div>
+
+        <div class="data-panel-head" id="dataPanelHead">
+          <div class="data-panel-title">DATA TYPE</div>
+        </div>
+
+        <div class="data-tabs" id="dataTabsDaily">
+          <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
+          <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
+          <button class="data-tab nrc" id="tabNrc" data-datatype="nrc">NRC</button>
+          <button class="data-tab manual manual-hidden" id="tabManual" data-datatype="manual">MANUAL</button>
+        </div>
+
+        <div class="data-empty" id="dataEmpty"></div>
+
+        <div class="data-content" id="contentGarmin" style="display:none;">
+          <div id="garminConnectBtnWrap">
+             <div style="font-size: 14px; color: #666; font-weight: 500;">
+               Connect to load your activities
+             </div>
+             <button id="btnOpenGarminLogin" style="background: #000; color: #75b7ff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
+               Login to Garmin
+             </button>
+          </div>
+          <div class="garmin-card" id="garminCard" style="display:none; margin-top:20px;">
+            <div class="garmin-card-left">
+              <div class="garmin-date" id="garminDateText">0000.00.00</div>
+              <div class="garmin-stats">
+                <span class="garmin-stat" id="garminDistanceText">00.00Km</span>
+                <span class="garmin-stat" id="garminPaceText">0'00"</span>
+                <span class="garmin-stat" id="garminTimeText">0:00</span>
+              </div>
+            </div>
+            <button class="garmin-list-btn" id="btnGarminList" aria-label="Open workout list">
+              <div class="hamburger"><span></span><span></span><span></span></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="data-content" id="contentStrava" style="display:none;">
+          <div id="stravaConnectBtnWrap">
+             <div style="font-size: 14px; color: #777; font-weight: 700;">
+               Connect your activity
+             </div>
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; transition: opacity 0.2s;">
+               <span>Connect with</span>
+               <img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">
+             </button>
+          </div>
+          <div id="stravaCardWrap" style="display: none; flex-direction: column; width: 100%;">
+              <div class="garmin-card" id="stravaCard">
+                <div class="garmin-card-left">
+                  <div class="garmin-date" id="stravaDateText">0000.00.00</div>
+                  <div class="garmin-stats">
+                    <span class="garmin-stat" id="stravaDistanceText">00.00Km</span>
+                    <span class="garmin-stat" id="stravaPaceText">0'00"</span>
+                    <span class="garmin-stat" id="stravaTimeText">0:00:00</span>
+                  </div>
+                </div>
+                <button class="garmin-list-btn" id="btnStravaList" aria-label="Open workout list">
+                   <div class="hamburger"><span></span><span></span><span></span></div>
+                </button>
+              </div>
+              <div style="margin-top: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span style="font-size: 11px; font-weight: 700; color: #999;">Powered by</span>
+                  <img src="./img/strava_org.png" alt="Strava" style="height: 12px; width: auto; display: block;">
+              </div>
+          </div>
+        </div>
+
+        <div class="data-content" id="contentNrc" style="display:none;">
+          <div class="sub-title" id="nrcTitle">Upload Your Record</div>
+          <button class="upload-btn" id="btnUploadNrc" style="width: 100%; box-sizing: border-box;">Upload NRC record image</button>
+          <div class="ocr-status" id="ocrStatus"></div>
+          <input type="file" id="fileNrc" accept="image/*" hidden />
+        </div>
+
+        <div class="data-content" id="contentManual" style="display:none;">
+          <div class="sub-title">Enter Your Record</div>
+          <div id="manual-input-container" class="manual-group">
+            <div class="manual-row">
+              <div class="manual-col">
+                <label class="manual-label">DISTANCE (Km)</label>
+                <input type="number" id="inputDistance" class="big-input" placeholder="00.00" inputmode="decimal" step="0.01">
+              </div>
+              <div class="manual-col">
+                <label class="manual-label">PACE</label>
+                <div class="pace-wrapper">
+                  <input type="number" id="inputPaceMin" class="big-input center-text" placeholder="mm" inputmode="numeric">
+                  <span class="pace-colon">:</span>
+                  <input type="number" id="inputPaceSec" class="big-input center-text" placeholder="ss" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+            <button id="btnManualApply" class="black-btn">APPLY RECORD</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <span class="section-label">FONT</span>
+      <div id="fontGroup">
+          <div class="button-group font-group no-wrap">
+            <button class="toggle-btn font-btn font-anton active" data-font="anton">ANTON</button>
+            <button class="toggle-btn font-btn font-dots" data-font="dots">DOTS</button>
+            <button class="toggle-btn font-btn font-lcd" data-font="lcd">LCD</button>
+            <button class="toggle-btn font-btn font-gothic" data-font="gothic">GOTHIC</button>
+            <button class="toggle-btn font-btn font-speed" data-font="speed">SPEED</button>
+          </div>
+          <div class="button-group font-group no-wrap" style="margin-top: 8px;">
+            <button class="toggle-btn font-btn font-opera" data-font="opera">OPERA</button>
+            <button class="toggle-btn font-btn font-marker" data-font="marker">MKR</button>
+            <button class="toggle-btn font-btn font-sten" data-font="sten">STEN</button>
+            <button class="toggle-btn font-btn font-writer" data-font="writer">WRITE</button>
+            <button class="toggle-btn font-btn font-flip" data-font="flip">FLIP</button>
+          </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="two-col">
+        <div class="col">
+          <span class="section-label inline">LAYOUT</span>
+          <div class="button-group two">
+            <button class="toggle-btn flex1 active" id="btnType1" data-layout="type1">Type 1</button>
+            <button class="toggle-btn flex1" id="btnType2" data-layout="type2">Type 2</button>
+          </div>
+        </div>
+        <div class="col">
+          <span class="section-label inline">ALIGN</span>
+          <div class="button-group two" id="alignControlPanel">
+            <button class="toggle-btn flex1 active icon-btn" id="btnAlignLeft" data-align="left" aria-label="Left Align">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                 <line x1="21" y1="6" x2="3" y2="6"></line>
+                 <line x1="15" y1="12" x2="3" y2="12"></line>
+                 <line x1="17" y1="18" x2="3" y2="18"></line>
+               </svg>
+            </button>
+            <button class="toggle-btn flex1 icon-btn" id="btnAlignCenter" data-align="center" aria-label="Center Align">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                 <line x1="21" y1="6" x2="3" y2="6"></line>
+                 <line x1="19" y1="12" x2="5" y2="12"></line>
+                 <line x1="21" y1="18" x2="3" y2="18"></line>
+               </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+        <div class="two-col">
+            <div class="col">
+                <span class="section-label inline">BG COLOR</span>
+                <div class="button-group two">
+                    <button class="toggle-btn flex1 active" id="btnBgWhite" data-bg="white">White</button>
+                    <button class="toggle-btn flex1" id="btnBgBlack" data-bg="black">Black</button>
+                </div>
+            </div>
+            <div class="col">
+                <span class="section-label inline">FONT COLOR</span>
+                <div class="button-group two">
+                    <button class="toggle-btn flex1 active" id="btnFontColorAuto" data-color="auto">AUTO</button>
+                    <button class="toggle-btn flex1 btn-rainbow" id="btnFontColorPicker" aria-label="Custom Color"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+      <span class="section-label">PREVIEW</span>
+
+      <div class="preview type1 bg-white font-anton align-left" id="previewDaily">
+        <div class="preview-content">
+          <div class="result-item">
+            <span class="result-label">DISTANCE</span>
+            <span class="result-value"><span id="pvDistanceDaily">00.00Km</span></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">PACE</span>
+            <span class="result-value"><span id="pvPaceDaily">00'00"</span></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">TIME</span>
+            <span class="result-value"><span id="pvTimeDaily">00:00:00</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview monthly type1 bg-white font-anton" id="previewMonthly" style="display:none;">
+        <div class="preview-content">
+          <div class="monthly-type1">
+            <div class="m1-month" id="pvMonthType1">DECEMBER 2025</div>
+            <div class="m1-distance">
+              <span class="m1-distance-value"><span id="pvDistanceMonthlyT1">00.00Km</span></span>
+            </div>
+            <div class="m1-stack">
+              <div class="m1-item">
+                <div class="m-label">RUNS</div>
+                <div class="m-value"><span id="pvRunsMonthlyT1">00</span></div>
+              </div>
+              <div class="m1-item">
+                <div class="m-label">PACE</div>
+                <div class="m-value"><span id="pvPaceMonthlyT1">00'00"</span></div>
+              </div>
+              <div class="m1-item">
+                <div class="m-label">TIME</div>
+                <div class="m-value"><span id="pvTimeMonthlyT1">00:00:00</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="monthly-type2" style="display:none;">
+            <div class="m2-month-line" id="pvMonthType2">DECEMBER 2025</div>
+            <div class="m2-distance">
+              <span class="m2-distance-value"><span id="pvDistanceMonthlyT2">00.00Km</span></span>
+            </div>
+            <div class="m2-row">
+              <div class="data-item">
+                <span class="data-label">RUNS</span>
+                <span class="data-value"><span id="pvRunsMonthlyT2">00</span></span>
+              </div>
+              <div class="data-item">
+                <span class="data-label">PACE</span>
+                <span class="data-value"><span id="pvPaceMonthlyT2">00'00"</span></span>
+              </div>
+              <div class="data-item">
+                <span class="data-label">TIME</span>
+                <span class="data-value"><span id="pvTimeMonthlyT2">00:00:00</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="preview-actions" id="actionBtnGroup" style="display:none;">
+          <button class="action-btn-pill" id="btnSaveImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Save to Image
+          </button>
+          <button class="action-btn-pill" id="btnCopyImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy to Clipboard
+          </button>
+      </div>
+    </section>
+
+    <button class="run-btn" id="btnRun">RUN</button>
+  </div>
+
+  <div class="screen-overlay garmin-login" id="garminLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminLoginScreen" aria-label="Close">×</button>
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title"><div class="gc-big">GARMIN<br />CONNECT</div></div>
+      <div class="garmin-login-form" style="margin-top: 40px; width: 100%;">
+          <input type="email" id="garminEmail" class="gc-input" placeholder="enter your @ email.com">
+          <input type="password" id="garminPassword" class="gc-input" placeholder="password">
+          <div id="garminError" class="g-error-msg">아이디 또는 비밀번호를 확인해주세요.</div>
+      </div>
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+            Your Garmin account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+      <button class="gc-cta" id="btnGarminRealSync" type="button">Sign-In</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay garmin-login" id="stravaLoginScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="stravaLoginScreen" aria-label="Close">×</button>
+    <div class="garmin-login-wrap">
+      <div class="garmin-login-title">
+        <div class="gc-big">STRAVA</div>
+        <div class="gc-sub">Connect</div>
+      </div>
+      <div class="gc-note">
+        <div class="gc-smile">:)</div>
+        <div class="gc-note-text">
+          Your Strava account information is never saved or stored, so you can feel safe using it.
+        </div>
+      </div>
+      <button class="gc-cta" id="btnStravaConnect" type="button">Connect Strava</button>
+    </div>
+  </div>
+
+  <div class="screen-overlay select-workout" id="garminSelectScreen" aria-hidden="true">
+    <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
+    <div class="select-wrap">
+      <div class="select-title">Select<br />Workout</div>
+      <div class="select-list" id="workoutList"></div>
+    </div>
+  </div>
+
+  <div class="screen-overlay month-picker" id="monthPickerScreen" aria-hidden="true">
+    <button class="screen-close" data-close="monthPickerScreen" aria-label="Close">×</button>
+    <div class="month-wrap">
+      <div class="month-head"><button class="month-nav" id="monthPrevYear">‹</button><div class="month-year" id="monthYearText">2025</div><button class="month-nav" id="monthNextYear">›</button></div>
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+  </div>
+
+  <div class="screen-overlay result-screen bg-white font-dots" id="resultScreen" aria-hidden="true">
+    <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
+    <div class="result-wrap type1" id="resultWrap">
+        <div class="result-block" id="resultBlock"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="colorPickerOverlay">
+    <div class="modal color-modal">
+        <div class="modal-head">
+            <div class="modal-title">Select Color</div>
+            <button class="modal-close" id="colorPickerClose">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="color-grid">
+                <button class="color-chip" style="background:#000000" data-c="#000000"></button>
+                <button class="color-chip" style="background:#FFFFFF; border:1px solid #eee" data-c="#FFFFFF"></button>
+                <button class="color-chip" style="background:#FF3B30" data-c="#FF3B30"></button>
+                <button class="color-chip" style="background:#FF9500" data-c="#FF9500"></button>
+                <button class="color-chip" style="background:#FFCC00" data-c="#FFCC00"></button>
+                <button class="color-chip" style="background:#34C759" data-c="#34C759"></button>
+                <button class="color-chip" style="background:#00C7BE" data-c="#00C7BE"></button>
+                <button class="color-chip" style="background:#30B0C7" data-c="#30B0C7"></button>
+                <button class="color-chip" style="background:#32ADE6" data-c="#32ADE6"></button>
+                <button class="color-chip" style="background:#007AFF" data-c="#007AFF"></button>
+                <button class="color-chip" style="background:#5856D6" data-c="#5856D6"></button>
+                <button class="color-chip" style="background:#AF52DE" data-c="#AF52DE"></button>
+                <button class="color-chip" style="background:#FF2D55" data-c="#FF2D55"></button>
+                <button class="color-chip" style="background:#A2845E" data-c="#A2845E"></button>
+                <button class="color-chip" style="background:#8E8E93" data-c="#8E8E93"></button>
+            </div>
+            <div class="custom-color-row">
+                <label class="custom-color-btn">
+                    <span>Custom Color (Picker)</span>
+                    <input type="color" id="nativeColorInput" value="#000000">
+                </label>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { applyUIConfigToRoot } from './ui_config.js';
+
+    const $ = (s) => document.querySelector(s);
+    const safelyGet = (id) => document.getElementById(id);
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+    // [포맷팅 함수] ... (기존 유지)
+    function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
+    function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
+    function fmtPacePreview(sec) {
+      const s = Math.max(0, Math.floor(sec || 0));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${m}'${pad2(r)}"`; 
+    }
+    function fmtTimePreview(sec) {
+      const s = Math.max(0, Math.floor(sec || 0));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const r = s % 60;
+      if (h > 0) return `${h}:${pad2(m)}:${pad2(r)}`;
+      else return `${pad2(m)}:${pad2(r)}`;
+    }
+    function fmtPaceResult(sec) { return fmtPacePreview(sec); }
+    function fmtTimeResult(sec) { return fmtTimePreview(sec); }
+    
+    function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
+    function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
+
+    // --- FIT HELPERS ---
+    function fitOne(span, minScale = 0.35) {
+      if (!span) return;
+      span.style.transform = ''; span.style.transformOrigin = 'left bottom';
+      const w = span.parentElement?.clientWidth; const sw = span.scrollWidth;
+      if (!w || !sw) return;
+      if (sw > w) {
+          const s = Math.max(minScale, w / sw);
+          span.style.transform = `scale(${s})`;
+      }
+    }
+    
+    function computeScaleForGroup(spans, minScale = 0.35) {
+      const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
+      let need = 1;
+      arr.forEach(sp => {
+        sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
+        const w = sp.parentElement?.clientWidth; const sw = span.scrollWidth;
+        if (w && sw > w) need = Math.min(need, w / sw);
+      });
+      return Math.max(minScale, Math.min(1, need));
+    }
+    
+    function applyLockedScale(spans, scale) {
+      (spans || []).filter(Boolean).forEach(sp => {
+        sp.style.transformOrigin = 'left bottom';
+        sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
+      });
+    }
+    
+    // --- STATE ---
+    const today = new Date(); 
+
+    const state = {
+      recordType: 'daily',
+      dataType: null,      
+      font: 'anton',       
+      layout: 'type1',     
+      bg: 'white',         
+      align: 'left',       
+      fontColor: 'auto',   
+      daily: { km: 0, paceSec: 0, timeSec: 0 },
+      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
+      garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
+      strava: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
+      manual: { km: 0, paceSec: 0, timeSec: 0 }
+    };
+
+    let realGarminWorkouts = [];
+    let realStravaWorkouts = [];
+    
+    function generateMockWorkouts() {
+        const arr = [];
+        for(let i=0; i<20; i++) {
+            arr.push({
+                date: `2025.01.${String(20-i).padStart(2,'0')}`,
+                km: (5 + (i * 0.7)).toFixed(2),
+                paceSec: 300 + (i * 3), 
+                timeSec: 1800 + (i * 100)
+            });
+        }
+        return arr;
+    }
+
+    // --- ELEMENTS ---
+    const el = {
+      btnDaily: $('#btnDaily'), btnMonthly: $('#btnMonthly'),
+      dataPanel: $('#dataPanel'), dataPanelHead: $('#dataPanelHead'),
+      dataTabsDaily: $('#dataTabsDaily'),
+      dataEmpty: $('#dataEmpty'),
+      tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
+      contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
+      
+      garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
+      garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
+      btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
+      
+      stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), btnStravaLogin: $('#btnStravaLogin'), stravaCard: $('#stravaCard'), btnStravaList: $('#btnStravaList'),
+      stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
+      
+      monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
+      fontGroup: $('#fontGroup'),
+      btnType1: $('#btnType1'), btnType2: $('#btnType2'),
+      btnBgWhite: $('#btnBgWhite'), btnBgBlack: $('#btnBgBlack'),
+      
+      alignControlPanel: $('#alignControlPanel'),
+      btnAlignLeft: $('#btnAlignLeft'), btnAlignCenter: $('#btnAlignCenter'),
+      btnFontColorAuto: $('#btnFontColorAuto'), btnFontColorPicker: $('#btnFontColorPicker'),
+      colorPickerOverlay: $('#colorPickerOverlay'), colorPickerClose: $('#colorPickerClose'), nativeColorInput: $('#nativeColorInput'),
+      
+      previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
+      pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
+      
+      workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
+      
+      // [Manual New Elements]
+      inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
+      btnManualApply: $('#btnManualApply'),
+      
+      btnGarminList: $('#btnGarminList'),
+      garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
+      
+      btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
+      
+      btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
+      monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
+      
+      pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
+      pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
+      
+      btnHiddenManual: $('#btnHiddenManual'),
+      
+      // [NEW] Action Buttons
+      btnSaveImage: $('#btnSaveImage'), btnCopyImage: $('#btnCopyImage'), actionBtnGroup: $('#actionBtnGroup')
+    };
+
+    // --- Screen Control (Modified to toggle show class) ---
+    function openScreen(id) {
+      const node = document.getElementById(id);
+      if(node) { 
+          node.classList.add('show'); 
+          node.setAttribute('aria-hidden', 'false');
+          if(el.btnRun) el.btnRun.style.display = 'none';
+      }
+    }
+    function closeScreen(id) {
+      const node = document.getElementById(id);
+      if(node) { 
+          node.classList.remove('show'); 
+          node.setAttribute('aria-hidden', 'true');
+          if(el.btnRun) el.btnRun.style.display = 'block';
+      }
+    }
+    document.addEventListener('click', (e) => {
+      const closeId = e.target?.dataset?.close;
+      if (closeId) closeScreen(closeId);
+    });
+
+    // --- UI LOGIC ---
+    function applyDataType() {
+      [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
+        if (!t) return;
+        t.classList.toggle('active', state.dataType === t.dataset.datatype);
+      });
+      el.dataEmpty.style.display = 'none';
+      el.contentGarmin.style.display = 'none'; el.contentStrava.style.display = 'none';
+      el.contentNrc.style.display = 'none'; el.contentManual.style.display = 'none';
+      
+      if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
+
+      if (state.dataType === 'garmin') el.contentGarmin.style.display = 'block';
+      else if (state.dataType === 'strava') el.contentStrava.style.display = 'block';
+      else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
+      else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
+    }
+
+    // [New: Pre-rendering logic]
+    // 1. 전역 변수: 미리 만들어둔 blob 이미지를 담을 곳
+    let readyBlob = null;
+    let debounceTimer = null;
+    
+    // 2. 백그라운드 렌더링 함수
+    async function generateBlobBackground() {
+        const isDaily = state.recordType === 'daily';
+        const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
+        const previewEl = document.getElementById(targetId);
+        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        
+        if(!element) return;
+        
+        try {
+            await document.fonts.ready;
+            const canvas = await html2canvas(element, {
+                backgroundColor: null,
+                scale: 3,
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
+                    if (clonedEl) {
+                        clonedEl.style.background = 'transparent';
+                    }
+                }
+            });
+            
+            canvas.toBlob((blob) => {
+                readyBlob = blob; // 최신 blob 저장
+            }, 'image/png');
+            
+        } catch(e) {
+            console.log("Pre-render error", e);
+        }
+    }
+    
+    // 3. 디바운스 적용: 연속 클릭 시 맨 마지막에만 렌더링 수행 (성능 보호)
+    function triggerPreRender() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            generateBlobBackground();
+        }, 1000); // 1초 대기 후 실행
+    }
+
+    function updatePreview() {
+      // (기존 업데이트 로직)
+      let d = { km: 0, paceSec: 0, timeSec: 0 };
+      if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
+      else if (state.dataType === 'strava' && state.strava) d = state.strava;
+      else if (state.dataType === 'manual') d = state.manual;
+      else if (state.dataType === 'nrc' && state.daily) d = state.daily;
+      
+      const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
+      const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
+      const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
+
+      $('#pvDistanceDaily').textContent = kmText;
+      $('#pvPaceDaily').textContent = paceText;
+      $('#pvTimeDaily').textContent = timeText;
+
+      const m = state.monthly;
+      if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
+      if(el.pvMonthType1) el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
+      if(el.pvMonthType2) el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
+      
+      if(el.pvDistanceMonthlyT1) el.pvDistanceMonthlyT1.textContent = fmtKmPreview(m.km);
+      if(el.pvRunsMonthlyT1) el.pvRunsMonthlyT1.textContent = fmtRunsPreview(m.runs);
+      if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvTimeMonthlyT1) el.pvTimeMonthlyT1.textContent = fmtTimePreview(m.timeSec);
+
+      if(el.pvDistanceMonthlyT2) el.pvDistanceMonthlyT2.textContent = fmtKmPreview(m.km);
+      if(el.pvRunsMonthlyT2) el.pvRunsMonthlyT2.textContent = fmtRunsPreview(m.runs);
+      if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
+      
+      if(state.dataType === 'garmin' || state.dataType === 'strava') {
+         const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
+         if(cardSrc && cardSrc.date !== '-') {
+              if(state.dataType === 'garmin') {
+                 if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
+                 if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+             } else {
+                 if($('#stravaDateText')) $('#stravaDateText').textContent = cardSrc.date;
+                 if($('#stravaDistanceText')) $('#stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#stravaPaceText')) $('#stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#stravaTimeText')) $('#stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+             }
+         }
+      }
+      
+      // [수정] 1. 데이터가 있는지 확인
+      const hasData = (d.km > 0 || (d.runs && d.runs > 0));
+      
+      // [수정] 2. 버튼 표시 여부 결정
+      if(el.actionBtnGroup) {
+          el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
+      }
+
+      applyPreviewStyles();
+      
+      // [수정] 3. UI 업데이트 후 -> 핏 맞추고 -> 데이터가 있다면 프리-렌더링 예약
+      requestAnimationFrame(() => {
+          applyFitPreview();
+          if(hasData) triggerPreRender();
+      });
+    }
+    
+    function applyPreviewStyles() {
+        const pvs = [el.previewDaily, el.previewMonthly];
+        pvs.forEach(pv => {
+            if(!pv) return;
+            pv.classList.remove('align-left', 'align-center');
+            if(state.recordType === 'monthly') {
+                pv.classList.add('align-left'); 
+            } else {
+                pv.classList.add(`align-${state.align}`);
+            }
+
+            if(state.fontColor === 'auto') {
+                pv.style.color = ''; 
+            } else {
+                pv.style.color = state.fontColor;
+            }
+        });
+    }
+
+    function resetPreviews() {
+      const targets = [
+        el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily,
+        el.pvDistanceMonthlyT1, el.pvRunsMonthlyT1, el.pvPaceMonthlyT1, el.pvTimeMonthlyT1,
+        el.pvDistanceMonthlyT2, el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2
+      ];
+      targets.forEach(t => {
+        if(t) {
+            t.style.transform = ''; 
+            t.style.width = '';
+            if(t.parentElement) t.parentElement.style.width = '';
+        }
+      });
+    }
+
+    function applyFitPreview() {
+      if (state.recordType === 'daily') {
+        if (state.layout === 'type2') {
+          const scale = computeScaleForGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
+          applyLockedScale([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], scale);
+        } else {
+          fitOne(el.pvDistanceDaily, 0.30);
+          fitOne(el.pvPaceDaily, 0.30);
+          fitOne(el.pvTimeDaily, 0.30);
+        }
+        return;
+      }
+      if (state.layout === 'type2') {
+          const scale = computeScaleForGroup([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], 0.30);
+          applyLockedScale([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], scale);
+          fitOne(el.pvDistanceMonthlyT2, 0.26);
+      } else {
+          fitOne(el.pvDistanceMonthlyT1, 0.26);
+          fitOne(el.pvRunsMonthlyT1, 0.30);
+          fitOne(el.pvPaceMonthlyT1, 0.30);
+          fitOne(el.pvTimeMonthlyT1, 0.30);
+      }
+    }
+
+    // --- GARMIN LOGIC (기존 유지) ---
+    el.tabGarmin.addEventListener('click', () => {
+      state.dataType = 'garmin'; applyDataType(); updatePreview();
+      if (realGarminWorkouts.length > 0) { 
+          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
+          if(el.garminCard) el.garminCard.style.display = 'flex';
+      } else { 
+          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
+          if(el.garminCard) el.garminCard.style.display = 'none';
+      }
+    });
+    el.btnOpenGarminLogin.addEventListener('click', () => { el.garminError.style.display = 'none'; openScreen('garminLoginScreen'); });
+
+    async function fetchGarminData() {
+      const email = $('#garminEmail').value;
+      const password = $('#garminPassword').value;
+      const btn = $('#btnGarminRealSync');
+      const errorMsg = $('#garminError');
+
+      if (!email || !password) {
+        if(errorMsg) {
+            errorMsg.textContent = "Please enter email and password.";
+            errorMsg.style.display = 'block';
+        }
+        return;
+      }
+      if(errorMsg) errorMsg.style.display = 'none';
+
+      btn.innerText = "Connecting...";
+      btn.disabled = true; btn.style.opacity = '0.7';
+
+      try {
+        const SERVER_URL = "https://runimate-production.up.railway.app/api/garmin";
+
+        const res = await fetch(SERVER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (!res.ok) {
+            throw new Error(`Server Error: ${res.status}`);
+        }
+
+        const result = await res.json();
+
+        if (result.success) {
+          realGarminWorkouts = result.data;
+          
+          if (realGarminWorkouts.length > 0) {
+             state.garmin = realGarminWorkouts[0];
+             state.dataType = 'garmin';
+             applyDataType(); updatePreview();
+             
+             if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
+             if(el.garminCard) el.garminCard.style.display = 'flex';
+             closeScreen('garminLoginScreen');
+             renderWorkoutList('garmin');
+             openScreen('garminSelectScreen');
+          } else {
+             if(errorMsg) { errorMsg.textContent = "Login success, but no activities found."; errorMsg.style.display = 'block'; }
+          }
+        } else {
+          if(errorMsg) { errorMsg.textContent = "Login Failed: Check your info."; errorMsg.style.display = 'block'; }
+        }
+      } catch (err) {
+        console.error(err);
+        if(errorMsg) { errorMsg.textContent = "Connection Error."; errorMsg.style.display = 'block'; }
+        alert(`서버 연결 실패!\n(에러: ${err.message})`);
+      } finally {
+        if(btn) { btn.innerText = "Sign-In"; btn.disabled = false; btn.style.opacity = '1'; }
+      }
+    }
+    
+    if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
+
+    function renderWorkoutList(kind = 'garmin') {
+      const listContainer = el.workoutList;
+      listContainer.innerHTML = ''; 
+      
+      const list = (kind === 'strava') 
+        ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts())
+        : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
+
+      list.forEach((w) => {
+        const btn = document.createElement('div'); 
+        btn.className = 'workout-item'; 
+        btn.innerHTML = `
+          <div class="w-left">
+            <div class="w-date">${w.date}</div>
+            <div class="w-stats">
+              <span>${fmtKmPreview(w.km)}</span>
+              <span>${fmtPaceResult(w.paceSec)}</span>
+              <span>${fmtTimeResult(w.timeSec)}</span>
+            </div>
+          </div>
+          <div class="w-arrow-wrap">
+             <div class="w-arrow">→</div>
+          </div>
+        `;
+        
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if (kind === 'strava') { 
+                state.strava = { ...w }; 
+                state.dataType = 'strava'; 
+                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
+                if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+                if(el.stravaCard) el.stravaCard.style.display = 'flex';
+            } else { 
+                state.garmin = { ...w }; 
+                state.dataType = 'garmin'; 
+                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
+                if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.setAttribute('style', 'display: none !important');
+                if(el.garminCard) el.garminCard.style.display = 'flex';
+            }
+            applyDataType(); 
+            updatePreview(); 
+            closeScreen('garminSelectScreen'); 
+        };
+        listContainer.appendChild(btn);
+      });
+    }
+    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+
+    // --- OTHER TABS ---
+    if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
+        state.dataType = 'strava'; 
+        applyDataType(); 
+        updatePreview(); 
+        
+        if (realStravaWorkouts.length > 0) {
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+             if(el.stravaCard) el.stravaCard.style.display = 'flex';
+        } else {
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: flex !important');
+             if(el.stravaCard) el.stravaCard.style.display = 'none';
+        }
+    });
+
+    if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
+    
+    // [Manual 탭 클릭 시]
+    if(el.tabManual) el.tabManual.addEventListener('click', () => { 
+        state.dataType = 'manual'; 
+        applyDataType(); 
+        updatePreview(); 
+    });
+
+    // --- APPLY HELPERS ---
+    function applyRecordType() {
+      const isDaily = (state.recordType === 'daily');
+      el.btnDaily.classList.toggle('active', isDaily);
+      el.btnMonthly.classList.toggle('active', !isDaily);
+      el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
+      el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
+      el.previewDaily.style.display = isDaily ? 'flex' : 'none';
+      el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
+      
+      const m1 = el.previewMonthly.querySelector('.monthly-type1');
+      const m2 = el.previewMonthly.querySelector('.monthly-type2');
+      if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
+      else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
+
+      if (!isDaily) {
+         el.alignControlPanel.classList.add('disabled');
+      } else {
+         el.alignControlPanel.classList.remove('disabled');
+      }
+
+      // [NEW] Flip Font Button Disable/Enable Logic for Monthly Mode
+      const btnFlip = document.querySelector('button[data-font="flip"]');
+      if(btnFlip) {
+          if(!isDaily) {
+              // Monthly Mode: Disable Flip
+              btnFlip.disabled = true;
+              btnFlip.style.opacity = '0.3';
+              btnFlip.style.pointerEvents = 'none';
+              // 만약 현재 폰트가 flip이면 다른 폰트로 강제 변경 (예: anton)
+              if(state.font === 'flip') {
+                  state.font = 'anton';
+                  // UI 업데이트를 위해 applyFont 호출
+                  applyFont();
+              }
+          } else {
+              // Daily Mode: Enable Flip
+              btnFlip.disabled = false;
+              btnFlip.style.opacity = '1';
+              btnFlip.style.pointerEvents = 'auto';
+          }
+      }
+
+      if(!isDaily) {
+          el.dataEmpty.style.display = 'none';
+          if(el.dataPanelHead) el.dataPanelHead.style.display = 'none';
+          if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'none';
+          if(el.monthBlock) el.monthBlock.style.display = 'flex';
+          if(el.contentNrc) el.contentNrc.style.display = 'block';
+          if(el.contentGarmin) el.contentGarmin.style.display = 'none';
+          if(el.contentStrava) el.contentStrava.style.display = 'none';
+          if(el.contentManual) el.contentManual.style.display = 'none';
+      } else {
+          if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
+          if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'flex';
+          if(el.monthBlock) el.monthBlock.style.display = 'none';
+          applyDataType(); 
+      }
+      
+      applyUIConfigToRoot(state);
+      updatePreview();
+    }
+    
+    function applyFont() {
+      el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
+      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
+        t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed', 'font-opera', 'font-marker', 'font-sten', 'font-writer', 'font-flip');
+        t.classList.add(`font-${state.font}`);
+      });
+      applyUIConfigToRoot(state);
+      requestAnimationFrame(applyFitPreview);
+    }
+
+    function applyLayout() {
+      el.btnType1.classList.toggle('active', state.layout === 'type1');
+      el.btnType2.classList.toggle('active', state.layout === 'type2');
+      
+      resetPreviews();
+      el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
+      el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
+      el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
+      
+      if (state.recordType === 'monthly') {
+        const m1 = el.previewMonthly.querySelector('.monthly-type1');
+        const m2 = el.previewMonthly.querySelector('.monthly-type2');
+        if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
+        else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
+      }
+      
+      applyUIConfigToRoot(state);
+      setTimeout(() => { updatePreview(); }, 0);
+    }
+    
+    function applyBG() {
+      el.btnBgWhite.classList.toggle('active', state.bg === 'white');
+      el.btnBgBlack.classList.toggle('active', state.bg === 'black');
+      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
+        t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`);
+      });
+    }
+
+    function applyAlign() {
+        el.btnAlignLeft.classList.toggle('active', state.align === 'left');
+        el.btnAlignCenter.classList.toggle('active', state.align === 'center');
+        applyUIConfigToRoot(state);
+        updatePreview();
+    }
+    
+    function applyFontColor() {
+        el.btnFontColorAuto.classList.toggle('active', state.fontColor === 'auto');
+        el.btnFontColorPicker.classList.toggle('active', state.fontColor !== 'auto');
+        
+        if (state.fontColor !== 'auto') {
+            el.btnFontColorPicker.style.background = state.fontColor;
+        } else {
+            el.btnFontColorPicker.style.background = ''; // CSS class style 복귀
+        }
+
+        updatePreview();
+    }
+
+    // --- EVENTS ---
+    el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
+    el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
+    
+    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
+    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
+    
+    el.btnAlignLeft.addEventListener('click', () => { 
+        if(state.recordType === 'monthly') return;
+        state.align = 'left'; applyAlign(); 
+    });
+    el.btnAlignCenter.addEventListener('click', () => { 
+        if(state.recordType === 'monthly') return;
+        state.align = 'center'; applyAlign(); 
+    });
+
+    el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
+    el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+    
+    el.btnFontColorAuto.addEventListener('click', () => {
+        state.fontColor = 'auto';
+        applyFontColor();
+    });
+    el.btnFontColorPicker.addEventListener('click', () => {
+        openScreen('colorPickerOverlay');
+    });
+    
+    // Color Picker Modal Logic
+    document.querySelectorAll('.color-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            state.fontColor = e.target.dataset.c;
+            applyFontColor();
+            closeScreen('colorPickerOverlay');
+        });
+    });
+    el.nativeColorInput.addEventListener('input', (e) => {
+        state.fontColor = e.target.value;
+        applyFontColor(); 
+    });
+    el.nativeColorInput.addEventListener('change', (e) => {
+        closeScreen('colorPickerOverlay');
+    });
+    $('#colorPickerClose').addEventListener('click', () => closeScreen('colorPickerOverlay'));
+
+    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
+       b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
+    });
+
+    // NRC / OCR (기존 유지)
+    if (el.btnUploadNrc && el.fileNrc) {
+        el.btnUploadNrc.addEventListener('click', () => { el.fileNrc.value = ''; el.fileNrc.click(); });
+        el.fileNrc.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (el.ocrStatus) { el.ocrStatus.style.display = 'block'; el.ocrStatus.textContent = 'Analyzing...'; el.ocrStatus.style.color = '#333'; }
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    if (typeof window.extractAll !== 'function') throw new Error('OCR engine not loaded.');
+                    const result = await window.extractAll(event.target.result, { recordType: state.recordType });
+                    const km = Number(result.km || 0); const pMin = Number(result.paceMin || 0); const pSec = Number(result.paceSec || 0);
+                    const tH = Number(result.timeH || 0); const tM = Number(result.timeM || 0); const tS = Number(result.timeS || 0);
+                    const pace = (pMin * 60) + pSec; const time = (tH * 3600) + (tM * 60) + tS;
+                    
+                    if (state.recordType === 'daily') {
+                        state.daily.km = km; state.daily.paceSec = pace; state.daily.timeSec = time;
+                    } else {
+                        state.monthly.km = km; state.monthly.paceSec = pace; state.monthly.timeSec = time;
+                        if (result.runs) state.monthly.runs = result.runs;
+                    }
+                    state.dataType = 'nrc'; applyDataType(); updatePreview();
+                    if (el.ocrStatus) { el.ocrStatus.textContent = 'DONE!'; el.ocrStatus.style.color = '#00C800'; }
+                } catch (err) {
+                    console.error(err);
+                    if (el.ocrStatus) { el.ocrStatus.textContent = 'Error: ' + err.message; el.ocrStatus.style.color = 'red'; }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Month Picker
+    if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
+        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
+        buildMonthGrid(); openScreen('monthPickerScreen');
+    });
+
+    function buildMonthGrid() {
+      el.monthGrid.innerHTML = '';
+      for (let i = 1; i <= 12; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'month-cell';
+        b.textContent = monthNameCap(i);
+        if(i === state.monthly.month) b.classList.add('active');
+        b.addEventListener('click', () => {
+          state.monthly.month = i; updatePreview(); closeScreen('monthPickerScreen');
+        });
+        el.monthGrid.appendChild(b);
+      }
+    }
+    if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => { state.monthly.year -= 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
+    if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
+
+    // [New Manual Input Logic]
+    if (el.btnManualApply) {
+        el.btnManualApply.addEventListener('click', () => {
+            const dist = parseFloat(el.inputDistance.value) || 0;
+            const pMin = parseInt(el.inputPaceMin.value) || 0;
+            const pSec = parseInt(el.inputPaceSec.value) || 0;
+            const totalPace = (pMin * 60) + pSec;
+            
+            state.manual.km = dist;
+            state.manual.paceSec = totalPace;
+            
+            // 자동 시간 계산
+            if (dist > 0 && totalPace > 0) {
+                state.manual.timeSec = dist * totalPace;
+            } else {
+                state.manual.timeSec = 0;
+            }
+            
+            updatePreview();
+            alert(`Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
+        });
+    }
+
+    // [Manual Hidden Trigger]
+    let hiddenClickCount = 0;
+    if(el.btnHiddenManual) {
+        el.btnHiddenManual.addEventListener('click', () => {
+            hiddenClickCount++;
+            if(hiddenClickCount === 5) {
+                alert("Developer Mode: Manual Tab Enabled");
+                if(el.tabManual) { el.tabManual.classList.remove('manual-hidden'); el.tabManual.classList.add('manual-show'); }
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // [STRAVA LOGIC - FIXED & INTEGRATED]
+    // -----------------------------------------------------------
+    
+    // [중요] Railway 서버 주소 (배포된 백엔드)
+    const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app"; 
+
+    // 1. 로그인 버튼 클릭 (인증 페이지 이동)
+    if(el.btnStravaLogin) {
+        el.btnStravaLogin.addEventListener('click', () => {
+            // [본인의 Strava Client ID 입력]
+            const client_id = '192399'; // <-- Client ID 확인 필수
+            
+            const redirect_uri = window.location.origin; // 현재 페이지로 복귀
+            const scope = 'activity:read_all';
+            const authUrl = `https://www.strava.com/oauth/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&approval_prompt=force&scope=${scope}`;
+            
+            window.location.href = authUrl;
+        });
+    }
+
+    // 2. 인증 코드(Code) 확인 및 데이터 요청
+    function checkStravaCode() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code'); // 'code' 파라미터 확인
+
+        if (code) {
+            // 주소창 깔끔하게 정리 (code 파라미터 숨김)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchStravaData(code);
+        }
+    }
+    
+    async function fetchStravaData(code) {
+         if(el.btnStravaLogin) {
+             el.btnStravaLogin.innerHTML = '<span>Importing...</span>';
+             el.btnStravaLogin.style.opacity = "0.7";
+             el.btnStravaLogin.disabled = true;
+         }
+         
+         try {
+             // [수정] 백엔드 엔드포인트 (/api/strava) 및 Body 키값 ({ code }) 수정
+             const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava`, {
+                 method: "POST",
+                 headers: { "Content-Type": "application/json" },
+                 body: JSON.stringify({ code: code }) 
+             });
+             
+             const json = await res.json();
+             
+             if(json.success) {
+                 realStravaWorkouts = json.data;
+                 
+                 if(realStravaWorkouts.length > 0) {
+                      state.strava = realStravaWorkouts[0];
+                      state.dataType = 'strava';
+                      
+                      // 1. 연결 버튼 숨김 (중요: !important로 강제 숨김)
+                      if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+                      
+                      // 2. 카드 보여줌
+                      const stravaCardWrap = document.getElementById('stravaCardWrap');
+                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                      
+                      // 3. 로그인 화면 닫기 & [핵심] 워크아웃 선택 화면 열기
+                      closeScreen('stravaLoginScreen');
+                      renderWorkoutList('strava');
+                      openScreen('garminSelectScreen'); // <-- 여기가 실행되어야 "Select Workout"이 뜹니다.
+                      
+                      applyDataType();
+                      updatePreview();
+                 } else {
+                     alert("최근 러닝 기록이 없습니다.");
+                     resetStravaBtn();
+                 }
+             } else {
+                 throw new Error(json.message || "Server Error");
+             }
+         } catch(err) {
+             console.error(err);
+             alert("데이터 불러오기 실패: " + err.message);
+             resetStravaBtn();
+         }
+    }
+
+    function resetStravaBtn() {
+        if(el.btnStravaLogin) {
+             el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`;
+             el.btnStravaLogin.style.opacity = "1";
+             el.btnStravaLogin.disabled = false;
+        }
+    }
+    
+    // 페이지 로드 시 코드 체크 실행
+    checkStravaCode();
+    
+    // [추가] 스트라바 리스트 버튼(햄버거) 클릭 이벤트
+    if(el.btnStravaList) {
+        el.btnStravaList.addEventListener('click', (e) => {
+             e.stopPropagation(); 
+             renderWorkoutList('strava'); 
+             openScreen('garminSelectScreen'); 
+        });
+    }
+
+    // --- RUN BUTTON: Result ---
+    function buildResultDOM() {
+       el.resultWrap.className = `result-wrap ${state.layout}`;
+       // Add Align class
+       if (state.recordType === 'daily') {
+           el.resultWrap.classList.add(`align-${state.align}`);
+       } else {
+           el.resultWrap.classList.add('monthly'); 
+       }
+       
+       let d = (state.recordType === 'daily') ? 
+           ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) 
+           : state.monthly;
+
+       if (state.recordType === 'daily') {
+        el.resultBlock.innerHTML = `
+          <div class="result-item">
+            <span class="result-label">DISTANCE</span>
+            <span class="result-value"><span id="rvDistance"></span></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">PACE</span>
+            <span class="result-value"><span id="rvPace"></span></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">TIME</span>
+            <span class="result-value"><span id="rvTime"></span></span>
+          </div>
+        `;
+        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor;
+        else el.resultBlock.style.color = '';
+        return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+      } else {
+        const monthLine = `${monthName(d.month)} ${d.year}`;
+        if (state.layout === 'type1') {
+          el.resultBlock.innerHTML = `
+            <div class="m1-month">${monthLine}</div>
+            <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
+            <div class="m1-stack">
+              <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">PACE</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
+            </div>
+          `;
+        } else {
+          el.resultBlock.innerHTML = `
+            <div class="m2-month">${monthLine}</div>
+            <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
+            <div class="m2-row">
+              <div class="result-item"><span class="result-label">RUNS</span><span class="result-value"><span id="rvRuns"></span></span></div>
+              <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
+              <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
+            </div>
+          `;
+        }
+        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor;
+        else el.resultBlock.style.color = '';
+        return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+      }
+    }
+    
+    // Result 너비 동기화 (프리뷰 기준)
+    function lockFitResultTransforms(target, state) {
+      const rvDistance = $('#rvDistance');
+      const rvPace = $('#rvPace');
+      const rvTime = $('#rvTime');
+      const rvRuns = $('#rvRuns');
+
+      const syncWidth = (rvEl, pvId) => {
+          if (!rvEl) return;
+          const pvEl = document.getElementById(pvId);
+          if (pvEl) {
+              const w = pvEl.getBoundingClientRect().width; 
+              rvEl.style.width = w + 'px';
+              rvEl.style.display = 'inline-block';
+              rvEl.style.whiteSpace = 'nowrap';
+              
+              if(state.align === 'center' && state.recordType === 'daily') {
+                  rvEl.style.textAlign = 'center';
+              } else {
+                  rvEl.style.textAlign = 'left';
+              }
+          }
+      };
+      
+      if (state.recordType === 'daily') {
+          syncWidth(rvDistance, 'pvDistanceDaily');
+          syncWidth(rvPace, 'pvPaceDaily');
+          syncWidth(rvTime, 'pvTimeDaily');
+      } else {
+          const s = (state.layout === 'type1') ? 'T1' : 'T2';
+          syncWidth(rvDistance, `pvDistanceMonthly${s}`);
+          syncWidth(rvRuns, `pvRunsMonthly${s}`);
+          syncWidth(rvPace, `pvPaceMonthly${s}`);
+          syncWidth(rvTime, `pvTimeMonthly${s}`);
+      }
+      return {
+        resetToStart() {
+          if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
+          if (rvPace) rvPace.textContent = fmtPaceResult(0);
+          if (rvTime) rvTime.textContent = fmtTimeResult(0);
+          if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
+        }
+      };
+    }
+    
+    function animateAll(target) {
+      const locker = lockFitResultTransforms(target, state);
+      locker.resetToStart();
+      const hold = 500; const dur = 2000; const t0 = performance.now();
+      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+      function frame(now) {
+        const dt = now - t0;
+        if (dt < hold) { requestAnimationFrame(frame); return; }
+        const p = clamp((dt - hold) / dur, 0, 1);
+        const k = easeOutCubic(p);
+        const km = target.km * k;
+        const pace = target.paceSec * k;
+        const time = target.timeSec * k;
+        const runs = (target.runs == null) ? null : Math.round(target.runs * k);
+        const rvDistance = $('#rvDistance');
+        const rvPace = $('#rvPace');
+        const rvTime = $('#rvTime');
+        const rvRuns = $('#rvRuns');
+        if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
+        if (rvPace) rvPace.textContent = fmtPaceResult(pace);
+        if (rvTime) rvTime.textContent = fmtTimeResult(time);
+        if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+    
+    el.btnRun.addEventListener('click', () => {
+       const targetData = buildResultDOM();
+       openScreen('resultScreen');
+       el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
+       // Add Align class to result screen for safety
+       if(state.recordType==='daily') el.resultScreen.classList.add(`align-${state.align}`);
+       
+       requestAnimationFrame(() => {
+           requestAnimationFrame(() => {
+               animateAll(targetData);
+           });
+       });
+    });
+
+    // ===============================================
+    // [IMAGE DOWNLOAD & COPY LOGIC] - FINAL
+    // ===============================================
+    const btnSaveImage = document.getElementById('btnSaveImage');
+    const btnCopyImage = document.getElementById('btnCopyImage');
+    const actionBtnGroup = document.getElementById('actionBtnGroup');
+
+    // 공통 캡처 함수 (PREVIEW 타겟팅)
+    async function captureResult() {
+        // [New: Use pre-rendered blob if available]
+        if(readyBlob) {
+            // 디바운스된 최신 이미지가 있다면 바로 사용 (초고속)
+            return readyBlob; 
+        }
+        
+        // 없으면(로딩 직후 등) 즉시 생성
+        const isDaily = state.recordType === 'daily';
+        const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
+        const previewEl = document.getElementById(targetId);
+        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        
+        if (!element) return null;
+
+        // 버튼 그룹 잠시 숨김 (캡처 방지)
+        if(actionBtnGroup) actionBtnGroup.style.display = 'none';
+
+        try {
+            // Wait for fonts to load
+            await document.fonts.ready;
+            
+            const canvas = await html2canvas(element, {
+                backgroundColor: null, // 투명 배경
+                scale: 3,              // 고화질
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                // 배경 제거를 위한 클론 처리
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
+                    if (clonedEl) {
+                        clonedEl.style.background = 'transparent';
+                    }
+                }
+            });
+            return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        } catch (err) {
+            console.error('Capture error:', err);
+            return null;
+        } finally {
+            // 버튼 다시 보이기
+            if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
+        }
+    }
+
+    // 1. SAVE PNG (다운로드)
+    if (btnSaveImage) {
+        btnSaveImage.addEventListener('click', async () => {
+            // Save logic: Direct download is preferred
+            const blob = await captureResult();
+            if (!blob) return;
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `RUNIMATE_${state.daily.date || 'record'}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // 2. COPY (오직 모바일 공유 시트만 실행 - 크롬/사파리 호환성)
+    if (btnCopyImage) {
+        btnCopyImage.addEventListener('click', async () => {
+            
+            // [중요] 사용자가 버튼을 누른 이 시점에 바로 공유 창을 띄워야 함 (크롬 정책)
+            // 따라서 미리 만들어진 Blob(readyBlob)을 사용하거나 매우 빠르게 생성해야 함.
+            const blob = readyBlob || await captureResult(); 
+            
+            if (!blob) {
+                alert('잠시만 기다려주세요 (이미지 생성 중...)');
+                return;
+            }
+
+            // [수정 완료] PC나 클립보드 복사 로직 완전히 배제
+            // 무조건 모바일 네이티브 공유 시트(Share Sheet)만 실행
+            if (navigator.share) {
+                try {
+                    const file = new File([blob], "runimate.png", { type: "image/png" });
+                    
+                    // [핵심] canShare 체크 없이 바로 share 실행 (크롬 호환성)
+                    // files 배열만 전송하여 텍스트만 복사되는 문제 해결
+                    await navigator.share({
+                        files: [file]
+                    });
+                    
+                } catch (shareErr) {
+                    // 사용자가 취소했거나 에러가 났을 때
+                    if(shareErr.name !== 'AbortError') {
+                         console.log('Share failed', shareErr);
+                         alert("공유 실패: " + shareErr.message);
+                    }
+                }
+            } else {
+                // 공유 API가 없는 구형 브라우저나 PC 환경
+                alert('이 브라우저는 공유하기 기능을 지원하지 않습니다. [Save Image]를 이용해주세요.');
+            }
+        });
+    }
+
+    // Check code on load
+    checkStravaCode();
+
+    function initDefaults() {
+       applyUIConfigToRoot(state);
+       applyRecordType(); 
+       applyFont(); 
+       applyLayout(); 
+       applyBG(); 
+       applyDataType();
+       applyAlign();
+       applyFontColor();
+       updatePreview();
+    }
+    initDefaults();
+  </script>
+</body>
+</html>
