@@ -1,6 +1,6 @@
-/* ocr.js — SMART OCR v2.0 (Geometry & Layout Context Aware) */
+/* ocr.js — SMART OCR v2.1 (RUNS Enhanced) */
 
-/* 1) Tesseract 로드 (CDN 백업) */
+/* 1) Tesseract 로드 */
 async function ensureTesseract() {
   if (window.Tesseract) return window.Tesseract;
   await new Promise((resolve, reject) => {
@@ -15,7 +15,7 @@ async function ensureTesseract() {
   return window.Tesseract;
 }
 
-/* 2) 이미지 전처리 (캔버스 활용) */
+/* 2) 이미지 전처리 */
 function makeCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
 
 async function toCanvas(imgDataURL){
@@ -28,11 +28,10 @@ async function toCanvas(imgDataURL){
   });
 }
 
-// 흑백 대비 강화 및 스케일링
 async function preprocessImage(imgDataURL){
   const {img, w, h} = await toCanvas(imgDataURL);
   
-  // OCR 인식률 향상을 위해 이미지 확대 (최소 1500px 너비 확보)
+  // OCR 인식률 향상을 위해 이미지 확대
   const scale = w < 1500 ? 2.5 : 1.5; 
   const sw = Math.round(w * scale);
   const sh = Math.round(h * scale);
@@ -40,7 +39,6 @@ async function preprocessImage(imgDataURL){
   const c = makeCanvas(sw, sh);
   const ctx = c.getContext('2d', { willReadFrequently: true });
   
-  // 흰 배경으로 초기화 (투명 PNG 대비)
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0,0,sw,sh);
   ctx.drawImage(img, 0, 0, sw, sh);
@@ -48,15 +46,13 @@ async function preprocessImage(imgDataURL){
   const imageData = ctx.getImageData(0, 0, sw, sh);
   const d = imageData.data;
   
-  // 그레이스케일 + 감마 보정 (흐릿한 텍스트 선명하게)
+  // 그레이스케일 + 대비 강화
   for(let i=0; i<d.length; i+=4){
     let gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
-    // Contrast Stretching
     gray = (gray - 50) * 1.5; 
     if(gray < 0) gray = 0;
     if(gray > 255) gray = 255;
     
-    // 이진화 (Thresholding) - 노이즈 제거
     const val = gray > 160 ? 255 : 0;
     d[i] = d[i+1] = d[i+2] = val;
   }
@@ -65,109 +61,118 @@ async function preprocessImage(imgDataURL){
   return c.toDataURL('image/png');
 }
 
-/* 3) 문자열 파싱 헬퍼 */
+/* 3) 파싱 헬퍼 */
 function cleanText(t){ return (t||'').replace(/[\u2018\u2019\u2032\u2035]/g,"'").replace(/[\u201C\u201D\u2033]/g,'"').trim(); }
 function parseNum(t){ return parseFloat(t.replace(/,/g,'').replace(/O/gi,'0').replace(/l/gi,'1')); }
 
-// 시간/페이스 정규식 파서
 function parseTimeStr(str) {
-  const s = cleanText(str).replace(/\s/g, ''); // 공백제거
+  const s = cleanText(str).replace(/\s/g, ''); 
   
-  // Case 1: H:M:S (ex: 1:05:46)
-  let m = s.match(/(\d{1,2})[:;](\d{2})[:;](\d{2})/);
+  let m = s.match(/(\d{1,2})[:;](\d{2})[:;](\d{2})/); // H:M:S
   if(m) return { h: +m[1], m: +m[2], s: +m[3], raw: `${m[1]}:${m[2]}:${m[3]}` };
 
-  // Case 2: Pace (ex: 6'28", 6'28)
-  m = s.match(/(\d{1,2})['’](\d{2})["”]?/);
+  m = s.match(/(\d{1,2})['’](\d{2})["”]?/); // Pace
   if(m) return { m: +m[1], s: +m[2], raw: `${m[1]}'${m[2]}"` };
 
-  // Case 3: M:S (ex: 23:28) - 보통 Time이나 Pace 둘 다 가능성 있음
-  m = s.match(/(\d{1,2})[:;](\d{2})/);
+  m = s.match(/(\d{1,2})[:;](\d{2})/); // M:S
   if(m) return { m: +m[1], s: +m[2], raw: `${m[1]}:${m[2]}` };
 
   return null;
 }
 
-/* 4) 지오메트리 분석 (위치 기반 데이터 매칭) */
+/* 4) 지오메트리 & 레이아웃 분석 */
 function parseByGeometry(lines, width, height, recordType) {
   let candidates = {
     km: { val: 0, size: 0 },
-    runs: { val: null, dist: 9999 }, // Daily일 땐 null 유지
+    runs: { val: null, dist: 9999 },
     pace: { m:0, s:0, dist: 9999 },
     time: { h:0, m:0, s:0, dist: 9999 }
   };
 
   const KEYWORDS = {
-    runs: /Runs|러닝|Run|Run.|Running/i,
+    runs: /Runs|러닝|Run|Running/i,
     pace: /Pace|페이스|Avg|평균/i,
     time: /Time|시간|Duration/i
   };
 
-  // 1. Distance 찾기 (가장 큰 숫자 & 상단 위치)
+  // 1. Distance (가장 큰 숫자)
   lines.forEach(line => {
     const text = cleanText(line.text);
     const box = line.bbox;
-    const h = box.y1 - box.y0; // 폰트 크기 추정
+    const h = box.y1 - box.y0; 
     
-    // 숫자로만 구성된 텍스트 (소수점 포함)
+    // 숫자이면서 길이가 적당한 것 (소수점 포함)
     if (/^[\d.,]+$/.test(text) && text.length < 9) {
-       // 상단 60% 영역 안에 있고, 기존 후보보다 폰트가 크면 갱신
+       // 화면 상단 60% 영역 & 가장 큰 폰트
        if (box.y0 < height * 0.6 && h > candidates.km.size) {
           candidates.km = { val: parseNum(text), size: h };
        }
     }
   });
 
-  // 2. 라벨(키워드) 기반으로 값 찾기
+  // 2. 키워드 기반 값 찾기
   lines.forEach(line => {
-    const text = cleanText(line.text);
+    let text = cleanText(line.text);
     const cx = (line.bbox.x0 + line.bbox.x1) / 2;
     const cy = (line.bbox.y0 + line.bbox.y1) / 2;
 
+    // [강화된 Runs 로직]
+    if (KEYWORDS.runs.test(text)) {
+        // Case A: "24 Runs" 처럼 같은 줄에 숫자가 있는 경우
+        const inlineMatch = text.match(/^(\d{1,3})\s*(Runs|Run|러닝)/i);
+        if (inlineMatch) {
+            candidates.runs = { val: parseInt(inlineMatch[1]), dist: 0 };
+        } 
+        // Case B: 같은 줄에 숫자가 뒤에 있는 경우 "Runs 24"
+        else {
+            const inlineMatchBack = text.match(/(Runs|Run|러닝)\s*(\d{1,3})/i);
+            if (inlineMatchBack) {
+                candidates.runs = { val: parseInt(inlineMatchBack[2]), dist: 0 };
+            } 
+            // Case C: 숫자가 다른 줄에 있는 경우 (가장 가까운 이웃 탐색)
+            else {
+                findNearest(lines, cx, cy, 'runs', candidates);
+            }
+        }
+    }
+
     if (KEYWORDS.pace.test(text)) findNearest(lines, cx, cy, 'pace', candidates);
     if (KEYWORDS.time.test(text)) findNearest(lines, cx, cy, 'time', candidates);
-    
-    // Monthly 모드이거나, Daily라도 '러닝/Runs' 글자가 명확히 보이면 찾음
-    if (KEYWORDS.runs.test(text)) {
-        findNearest(lines, cx, cy, 'runs', candidates);
-    }
   });
 
   return candidates;
 }
 
-// 라벨 근처의 값 찾기 (위/아래/옆 검색)
+// 이웃 값 찾기 (거리 기반)
 function findNearest(allLines, lx, ly, type, results) {
   allLines.forEach(target => {
     const t = cleanText(target.text);
-    // 라벨 자신은 제외
-    if(t.length < 1 || /Runs|Pace|Time|러닝|페이스|시간/i.test(t)) return;
+    // 라벨 키워드가 포함된 줄은 값으로 쓰지 않음 (단, 숫자만 딱 있는 경우는 허용)
+    if (/Runs|Pace|Time|러닝|페이스|시간/i.test(t)) return;
 
     const tx = (target.bbox.x0 + target.bbox.x1) / 2;
     const ty = (target.bbox.y0 + target.bbox.y1) / 2;
     
-    // 유클리드 거리 계산
+    // 거리 계산
     const dist = Math.sqrt(Math.pow(lx - tx, 2) + Math.pow(ly - ty, 2));
     
-    // 너무 멀면 무시 (화면 높이의 20% 이상 떨어진 건 관계 없음)
-    // 단, Daily 모드에서는 간격이 좁으므로 엄격하게 체크
-    if (dist > 300) return; 
+    // 너무 멀면 패스
+    if (dist > 400) return;
 
-    // 타입별 검증
     if (type === 'runs') {
-        // Runs는 정수여야 함 (Monthly: 13, Daily: 1)
+        // Runs는 정수 (1~3자리)
         if (/^\d{1,3}$/.test(t) && !t.includes(':') && !t.includes("'")) {
-             if (dist < results.runs.dist) results.runs = { val: parseInt(t), dist };
+             // 기존보다 더 가까우면 갱신
+             if (dist < results.runs.dist) {
+                 results.runs = { val: parseInt(t), dist };
+             }
         }
     } else if (type === 'pace') {
-        // 페이스: 6'30" 또는 6:30
         const p = parseTimeStr(t);
-        // 페이스는 보통 시간이(Hour) 없음. 분:초 구조
         if (p && p.h === undefined && dist < results.pace.dist) {
              results.pace = { ...p, dist };
         }
     } else if (type === 'time') {
-        // 시간: 1:05:46 또는 23:28
         const tm = parseTimeStr(t);
         if (tm && dist < results.time.dist) {
              results.time = { ...tm, dist };
@@ -176,45 +181,56 @@ function findNearest(allLines, lx, ly, type, results) {
   });
 }
 
-/* 5) 메인 함수 */
+/* 5) 메인 실행 함수 */
 window.extractAll = async function(imgDataURL, { recordType='daily' } = {}){
   try {
     await ensureTesseract();
     const processedImg = await preprocessImage(imgDataURL);
 
-    // OCR 실행 (한국어+영어)
-    // PSM 11 (Sparse Text) 모드가 라벨/값 분리된 레이아웃에 최적
+    // 한글+영어 + Sparse Text 모드
     const { data } = await Tesseract.recognize(processedImg, 'eng+kor', {
       tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT 
     });
 
     const imgObj = await toCanvas(processedImg);
+    // 지오메트리 분석 실행
     const geo = parseByGeometry(data.lines, imgObj.w, imgObj.h, recordType);
 
-    // 결과 정리
+    // 결과 매핑
     let km = geo.km.val || 0;
     
-    // Runs: Monthly면 필수, Daily면 없으면 null(또는 1)
+    // Runs 처리 로직
     let runs = geo.runs.val;
-    if (recordType === 'monthly' && runs === null) runs = 0; // 못 찾았으면 0
-    if (recordType === 'daily' && runs === null) runs = 1;   // Daily는 기본 1
+    
+    // Monthly인데 OCR이 못 찾았다면?
+    // fallback: 전체 텍스트에서 정규식으로 한번 더 훑기
+    if (recordType === 'monthly' && runs === null) {
+        const fullText = data.text || '';
+        const regexMatch = fullText.match(/(\d{1,3})\s*(Runs|Run|러닝)/i);
+        if (regexMatch) {
+            runs = parseInt(regexMatch[1]);
+        } else {
+            runs = 0; // 정말 없으면 0
+        }
+    }
+    // Daily는 기본 1회
+    if (recordType === 'daily') runs = 1;
 
     let paceMin = geo.pace.m || 0;
     let paceSec = geo.pace.s || 0;
-    
     let timeH = geo.time.h || 0;
     let timeM = geo.time.m || 0;
     let timeS = geo.time.s || 0;
 
-    // 데이터 보정 (Missing Data Recovery)
-    // 시간이 0인데, 거리와 페이스가 있다면 역산 (Time = Dist * Pace)
+    // 데이터 상호 보정 (누락된 값 채우기)
+    // Time = Dist * Pace
     if (timeH+timeM+timeS === 0 && km > 0 && (paceMin*60+paceSec) > 0) {
         const totalSec = Math.round(km * (paceMin*60 + paceSec));
         timeH = Math.floor(totalSec / 3600);
         timeM = Math.floor((totalSec % 3600) / 60);
         timeS = totalSec % 60;
     }
-    // 페이스가 0인데, 거리와 시간이 있다면 역산 (Pace = Time / Dist)
+    // Pace = Time / Dist
     else if ((paceMin+paceSec) === 0 && km > 0 && (timeH*3600 + timeM*60 + timeS) > 0) {
         const totalSec = timeH*3600 + timeM*60 + timeS;
         const paceTotal = totalSec / km;
@@ -224,7 +240,7 @@ window.extractAll = async function(imgDataURL, { recordType='daily' } = {}){
 
     return {
       km,
-      runs: (recordType === 'monthly') ? runs : null, // Daily 요청이면 UI에 표시 안하므로 null 리턴
+      runs: (recordType === 'monthly') ? runs : null,
       paceMin,
       paceSec,
       timeH, timeM, timeS,
@@ -233,7 +249,6 @@ window.extractAll = async function(imgDataURL, { recordType='daily' } = {}){
 
   } catch (e) {
     console.error("OCR Error:", e);
-    // 에러 발생 시 기본값 반환하여 앱이 멈추지 않게 함
     return { km: 0, runs: 0, paceMin: 0, paceSec: 0, timeH: 0, timeM: 0, timeS: 0 };
   }
 };
