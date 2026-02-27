@@ -569,7 +569,13 @@
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
     // [포맷팅 함수]
-    function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
+    function fmtKmPreview(km) { 
+        // 월간 모드일 때는 소수점 1자리, 일간 모드일 때는 2자리로 표시
+        if (state.recordType === 'monthly') {
+            return `${Number(km || 0).toFixed(1)}Km`;
+        }
+        return `${Number(km || 0).toFixed(2)}Km`; 
+    }
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
