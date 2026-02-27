@@ -656,9 +656,8 @@
     
 function generateMockWorkouts() {
         const arr = [];
-        // [수정] 모의 데이터도 사용자가 선택한 현재 연/월에 맞춰 생성되도록 개선 (테스트 시 값 누락 방지)
-        const y = state.monthly.year || 2025;
-        const m = String(state.monthly.month || 1).padStart(2, '0');
+        const y = state.monthly.year || new Date().getFullYear();
+        const m = String(state.monthly.month || new Date().getMonth() + 1).padStart(2, '0');
         for(let i=0; i<20; i++) {
             arr.push({
                 date: `${y}.${m}.${String(20-i).padStart(2,'0')}`,
@@ -830,7 +829,6 @@ function generateMockWorkouts() {
     }
 
     function updatePreview() {
-      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
           if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
@@ -841,27 +839,32 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // [핵심 수정 1] 엄격한 러닝/트레일러닝 필터링 적용
-              const wStr = JSON.stringify(w).toLowerCase();
-              
-              // 1. 보행(걷기) 키워드가 있으면 무조건 제외
-              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
-              if (isWalk) return;
+              // [수정 1] 데이터 구조가 깨지지 않도록 속성을 직접 타겟팅
+              let typeStr = '';
+              if (typeof w.activityType === 'object' && w.activityType !== null) {
+                  typeStr = String(w.activityType.typeKey || '').toLowerCase();
+              } else {
+                  typeStr = String(w.type || w.activityType || w.sport_type || w.sportType || '').toLowerCase();
+              }
 
-              // 2. 러닝, 트레일러닝 관련 키워드가 없으면 제외 (오직 러닝 계열만 통과)
-              const isRun = wStr.includes('run') || wStr.includes('러닝') || wStr.includes('달리기') || wStr.includes('trail') || wStr.includes('트레일');
-              if (!isRun) return;
+              // type 정보가 있을 때만 필터링 진행 (모의 데이터 등 없는 경우는 통과)
+              if (typeStr) {
+                  const isWalk = typeStr.includes('walk') || typeStr.includes('걷기') || typeStr.includes('보행');
+                  if (isWalk) return; // 걷기 무조건 제외
 
-              // [핵심 수정 2] 날짜 파싱 방어 코드 (어떤 기호로 오든 연/월 추출)
+                  const isRun = typeStr.includes('run') || typeStr.includes('trail') || typeStr.includes('러닝') || typeStr.includes('달리기');
+                  if (!isRun) return; // 러닝/트레일러닝 계열이 아니면 제외
+              }
+
+              // [수정 2] 날짜 파싱 방어 코드
               const dateStr = String(w.date || '');
               const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
               
               if (parts.length >= 2) {
                   let wYear = parseInt(parts[0], 10);
-                  if (wYear < 100) wYear += 2000; // 25 -> 2025 보정
+                  if (wYear < 100) wYear += 2000;
                   const wMonth = parseInt(parts[1], 10);
 
-                  // 사용자가 선택한 연/월과 데이터의 연/월이 일치할 때만 합산
                   if (wYear === state.monthly.year && wMonth === state.monthly.month) {
                       totalKm += parseFloat(w.km || 0);
                       totalTimeSec += parseInt(w.timeSec || 0, 10);
@@ -1462,16 +1465,16 @@ function applyRecordType() {
                       state.strava = realStravaWorkouts[0];
                       state.dataType = 'strava';
                       
+                      if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+                      const stravaCardWrap = document.getElementById('stravaCardWrap');
+                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                      
+                      closeScreen('stravaLoginScreen');
+                      renderWorkoutList('strava');
+                      openScreen('garminSelectScreen'); 
+                      
                       applyDataType();
                       updatePreview();
-
-                      closeScreen('stravaLoginScreen');
-
-                      // 일간 모드일 때만 Select 모달을 노출 (월간 모드 유지)
-                      if (state.recordType === 'daily') {
-                          renderWorkoutList('strava');
-                          openScreen('garminSelectScreen'); 
-                      }
                  } else {
                      alert("최근 러닝 기록이 없습니다.");
                      resetStravaBtn();
@@ -1481,7 +1484,10 @@ function applyRecordType() {
              }
          } catch(err) {
              console.error(err);
-             alert("데이터 불러오기 실패: " + err.message);
+             // [수정] 에러 메시지에 '400'이 포함되어 있으면 팝업을 띄우지 않고 조용히 넘깁니다.
+             if (!err.message.includes('400')) {
+                 alert("데이터 불러오기 실패: " + err.message);
+             }
              resetStravaBtn();
          }
     }
