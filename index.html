@@ -654,11 +654,14 @@
     let realGarminWorkouts = [];
     let realStravaWorkouts = [];
     
-    function generateMockWorkouts() {
+function generateMockWorkouts() {
         const arr = [];
+        // [수정] 모의 데이터도 사용자가 선택한 현재 연/월에 맞춰 생성되도록 개선 (테스트 시 값 누락 방지)
+        const y = state.monthly.year || 2025;
+        const m = String(state.monthly.month || 1).padStart(2, '0');
         for(let i=0; i<20; i++) {
             arr.push({
-                date: `2025.01.${String(20-i).padStart(2,'0')}`,
+                date: `${y}.${m}.${String(20-i).padStart(2,'0')}`,
                 km: (5 + (i * 0.7)).toFixed(2),
                 paceSec: 300 + (i * 3), 
                 timeSec: 1800 + (i * 100)
@@ -827,7 +830,7 @@
     }
 
     function updatePreview() {
-      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직 (러닝/트레일 러닝만 필터링)
+      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
           if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
@@ -838,27 +841,26 @@
           let runs = 0;
 
           workouts.forEach(w => {
-              // [수정 1] 가민 오브젝트 필터링 버그 해결
-              // 객체 전체를 JSON 텍스트로 풀어버린 후 키워드를 검사하여 데이터가 어떤 형태로 오든 누락되지 않게 처리
+              // [핵심 수정 1] 네거티브 필터링 방식으로 변경
+              // 명확하게 '보행', '자전거', '수영'인 경우만 합산에서 제외 (러닝, 트레일러닝 등은 모두 통과)
               const wStr = JSON.stringify(w).toLowerCase();
-              
               const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
-              const isRun = wStr.includes('run') || wStr.includes('러닝') || wStr.includes('달리기') || wStr.includes('trail') || wStr.includes('트레일');
+              const isRide = wStr.includes('ride') || wStr.includes('bike') || wStr.includes('자전거') || wStr.includes('cycling');
+              const isSwim = wStr.includes('swim') || wStr.includes('수영');
               
-              if (isWalk && !isRun) return;
+              if (isWalk || isRide || isSwim) return; 
 
-              const hasType = w.type || w.activityType || w.sport_type || w.sportType;
-              if (hasType && !isRun) return;
-
-              // [수정 2] 스트라바 날짜 파싱 버그 해결
-              // 정규식을 사용해 날짜 구분자가 점(.)이든 하이픈(-)이든 슬래시(/)든 연/월을 무조건 추출
+              // [핵심 수정 2] 날짜 파싱 완전 방어 코드
+              // "-", ".", "/" 등 어떤 기호로 날짜가 들어오든 연/월을 무조건 추출
               const dateStr = String(w.date || '');
-              const dateMatch = dateStr.match(/(\d{4})[.\-\/]\s*(\d{1,2})/);
+              const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
+              
+              if (parts.length >= 2) {
+                  let wYear = parseInt(parts[0], 10);
+                  if (wYear < 100) wYear += 2000; // 25 -> 2025 보정
+                  const wMonth = parseInt(parts[1], 10);
 
-              if (dateMatch) {
-                  const wYear = parseInt(dateMatch[1], 10);
-                  const wMonth = parseInt(dateMatch[2], 10);
-                  
+                  // 사용자가 선택한 연/월과 데이터의 연/월이 일치할 때만 합산
                   if (wYear === state.monthly.year && wMonth === state.monthly.month) {
                       totalKm += parseFloat(w.km || 0);
                       totalTimeSec += parseInt(w.timeSec || 0, 10);
