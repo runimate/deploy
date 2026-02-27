@@ -829,6 +829,7 @@ function generateMockWorkouts() {
     }
 
     function updatePreview() {
+      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
           if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
@@ -839,40 +840,32 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // 1. 데이터 타입 정확하게 추출 (Garmin은 activityType.typeKey, Strava는 type 또는 sport_type)
-              let typeStr = "";
-              if (w.activityType && w.activityType.typeKey) {
-                  typeStr = String(w.activityType.typeKey).toLowerCase();
-              } else if (w.type) {
-                  typeStr = String(w.type).toLowerCase();
-              } else if (w.sport_type) {
-                  typeStr = String(w.sport_type).toLowerCase();
-              } else {
-                  typeStr = "running"; // Mock 데이터 등 type이 없는 경우 기본값
-              }
+              // 1. 가장 직관적이고 단순한 필터링
+              // 데이터를 통째로 문자열로 만들어서 키워드만 쓱 훑어봅니다.
+              const wStr = JSON.stringify(w).toLowerCase();
 
-              // 2. 운동 이름 추출 (예외 처리를 위함)
-              const nameStr = String(w.name || w.activityName || '').toLowerCase();
+              // '걷기'나 '보행' 단어가 있으면 뒤도 안 돌아보고 버립니다.
+              if (wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행')) return;
 
-              // 3. 진짜 러닝/트레일러닝인지 판별
-              const isRunType = typeStr.includes('run') || typeStr.includes('trail') || typeStr.includes('러닝') || typeStr.includes('달리기');
+              // 원본 데이터에 운동 종류(type)가 명시되어 있는 경우에만 검사합니다.
+              const hasTypeInfo = w.type || w.activityType || w.sport_type || w.sportType;
               
-              // 4. 이름에 걷기/보행이 명시적으로 포함된 경우 안전장치로 제외
-              const isWalkName = nameStr.includes('walk') || nameStr.includes('걷기') || nameStr.includes('보행');
-
-              // 러닝 카테고리가 아니거나(하이킹, 사이클 등), 이름이 걷기인 경우 무조건 합산 제외!
-              if (!isRunType || isWalkName) {
-                  return; 
+              if (hasTypeInfo) {
+                  // 러닝이나 트레일러닝 단어가 없으면 버립니다.
+                  const isRun = wStr.includes('run') || wStr.includes('trail') || wStr.includes('러닝') || wStr.includes('달리기');
+                  if (!isRun) return; 
               }
 
+              // 2. 날짜 파싱 (기호가 뭐든 무조건 점(.)으로 바꿔서 연/월 추출)
               const dateStr = String(w.date || '');
-              const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
+              const parts = dateStr.replace(/[\-\/]/g, '.').split('.');
               
               if (parts.length >= 2) {
                   let wYear = parseInt(parts[0], 10);
-                  if (wYear < 100) wYear += 2000;
+                  if (wYear < 100) wYear += 2000; // 25년 -> 2025년 보정
                   const wMonth = parseInt(parts[1], 10);
 
+                  // 화면에 선택된 연/월과 일치하면 합산!
                   if (wYear === state.monthly.year && wMonth === state.monthly.month) {
                       totalKm += parseFloat(w.km || 0);
                       totalTimeSec += parseInt(w.timeSec || 0, 10);
@@ -887,6 +880,7 @@ function generateMockWorkouts() {
           state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
       }
 
+      // 화면 업데이트 로직 (기존과 동일)
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
       else if (state.dataType === 'strava' && state.strava) d = state.strava;
