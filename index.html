@@ -840,51 +840,43 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // 1. 어떤 구조로 데이터가 오든 속성값들을 싹 다 긁어모아 하나의 텍스트로 만듭니다.
-              let typeStr = "";
-              try {
-                  if (w.activityType && w.activityType.typeKey) typeStr += w.activityType.typeKey + " ";
-                  if (w.type) typeStr += w.type + " ";
-                  if (w.sport_type) typeStr += w.sport_type + " ";
-                  if (w.sportType) typeStr += w.sportType + " ";
-                  if (w.name) typeStr += w.name + " ";
-                  if (w.activityName) typeStr += w.activityName + " ";
-              } catch(e) {}
+              // 1. [진짜 원인 해결] 깐깐한 달리기 필터링 폐기! 
+              // 대신 전체 텍스트에서 '걷기', '자전거', '수영' 단어가 있으면 그 기록만 버립니다.
+              const wStr = JSON.stringify(w).toLowerCase();
               
-              typeStr = typeStr.toLowerCase().trim();
-
-              // 실제 타입 데이터가 존재할 때만 거릅니다. (모의 데이터 보호)
-              if (typeStr !== "") {
-                  const isWalk = typeStr.includes('walk') || typeStr.includes('걷기') || typeStr.includes('보행');
-                  const isRun = typeStr.includes('run') || typeStr.includes('trail') || typeStr.includes('러닝') || typeStr.includes('달리기');
-                  
-                  // 보행은 확실히 쳐내고, 러닝/트레일은 무조건 통과시킵니다.
-                  if (isWalk) return; 
-                  if (!isRun) return; 
+              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              const isRide = wStr.includes('ride') || wStr.includes('bike') || wStr.includes('cycl') || wStr.includes('자전거');
+              const isSwim = wStr.includes('swim') || wStr.includes('수영');
+              
+              // 달리기가 아닌 확실한 다른 운동들은 합산에서 뺌
+              if (isWalk || isRide || isSwim) {
+                  return; 
               }
+              // 위 조건에 안 걸리면 무조건 통과 (런이라는 단어가 없어도 합산됨!)
 
-              // 2. 날짜 파싱 완전 방어 (기호 다 무시하고 순수 숫자만 뽑아냅니다)
+              // 2. 날짜 파싱 방어 코드 (어떤 기호로 오든 연/월 무조건 추출)
               const dateStr = String(w.date || '');
               const nums = dateStr.match(/\d+/g); 
+              
+              if (!nums || nums.length < 2) return;
               
               let wYear = state.monthly.year; 
               let wMonth = state.monthly.month; 
               
-              if (nums && nums.length >= 2) {
-                  if (nums[0].length === 4) { // 예: 2025.02.14
-                      wYear = parseInt(nums[0], 10);
-                      wMonth = parseInt(nums[1], 10);
-                  } else if (nums.length >= 3) { // 예: 25.02.14
-                      wYear = parseInt(nums[0], 10) + 2000;
-                      wMonth = parseInt(nums[1], 10);
-                  } else if (nums.length === 2) { // 예: 02.14 (연도 없음)
-                      wMonth = parseInt(nums[0], 10);
-                  }
+              if (nums[0].length === 4) { 
+                  wYear = parseInt(nums[0], 10);
+                  wMonth = parseInt(nums[1], 10);
+              } else if (nums.length >= 3) { 
+                  wYear = parseInt(nums[0], 10) + 2000; // 25 -> 2025 보정
+                  wMonth = parseInt(nums[1], 10);
+              } else if (nums.length === 2) { 
+                  wMonth = parseInt(nums[0], 10);
               }
 
-              // 3. 월 선택기와 연/월이 일치하면 무조건 합산!
+              // 3. 화면에 선택된 연/월과 데이터의 연/월이 일치하면 무조건 합산!
               if (wYear === state.monthly.year && wMonth === state.monthly.month) {
-                  totalKm += parseFloat(w.km || 0);
+                  // km 데이터에 소수점이 콤마(,)로 들어오는 에러까지 완벽 방어
+                  totalKm += parseFloat(String(w.km || '0').replace(',', '.'));
                   totalTimeSec += parseInt(w.timeSec || 0, 10);
                   runs += 1;
               }
@@ -896,7 +888,7 @@ function generateMockWorkouts() {
           state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
       }
 
-      // 화면 업데이트 로직
+      // 화면 업데이트 로직 (기존 유지)
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
       else if (state.dataType === 'strava' && state.strava) d = state.strava;
