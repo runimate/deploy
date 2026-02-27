@@ -838,22 +838,27 @@
           let runs = 0;
 
           workouts.forEach(w => {
-              // 1. 데이터 필터링: 보행 제외, 러닝 & 트레일러닝만 합산
-              // API 응답 데이터 필드 대응 (type, activityType, sport_type 등)
-              const typeStr = String(w.type || w.activityType || w.sport_type || w.sportType || '').toLowerCase();
-              if (typeStr) {
-                  const isRun = typeStr.includes('run') || typeStr.includes('러닝') || typeStr.includes('달리기');
-                  const isTrail = typeStr.includes('trail') || typeStr.includes('트레일');
-                  
-                  // 러닝이나 트레일러닝 카테고리가 아니면 건너뜀 (보행 제외)
-                  if (!isRun && !isTrail) return;
-              }
+              // [수정 1] 가민 오브젝트 필터링 버그 해결
+              // 객체 전체를 JSON 텍스트로 풀어버린 후 키워드를 검사하여 데이터가 어떤 형태로 오든 누락되지 않게 처리
+              const wStr = JSON.stringify(w).toLowerCase();
+              
+              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              const isRun = wStr.includes('run') || wStr.includes('러닝') || wStr.includes('달리기') || wStr.includes('trail') || wStr.includes('트레일');
+              
+              if (isWalk && !isRun) return;
 
-              // 2. 날짜 합산 처리
-              const parts = w.date.split('.');
-              if (parts.length >= 2) {
-                  const wYear = parseInt(parts[0], 10);
-                  const wMonth = parseInt(parts[1], 10);
+              const hasType = w.type || w.activityType || w.sport_type || w.sportType;
+              if (hasType && !isRun) return;
+
+              // [수정 2] 스트라바 날짜 파싱 버그 해결
+              // 정규식을 사용해 날짜 구분자가 점(.)이든 하이픈(-)이든 슬래시(/)든 연/월을 무조건 추출
+              const dateStr = String(w.date || '');
+              const dateMatch = dateStr.match(/(\d{4})[.\-\/]\s*(\d{1,2})/);
+
+              if (dateMatch) {
+                  const wYear = parseInt(dateMatch[1], 10);
+                  const wMonth = parseInt(dateMatch[2], 10);
+                  
                   if (wYear === state.monthly.year && wMonth === state.monthly.month) {
                       totalKm += parseFloat(w.km || 0);
                       totalTimeSec += parseInt(w.timeSec || 0, 10);
