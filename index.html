@@ -839,24 +839,12 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // [수정 1] 데이터 구조가 깨지지 않도록 속성을 직접 타겟팅
-              let typeStr = '';
-              if (typeof w.activityType === 'object' && w.activityType !== null) {
-                  typeStr = String(w.activityType.typeKey || '').toLowerCase();
-              } else {
-                  typeStr = String(w.type || w.activityType || w.sport_type || w.sportType || '').toLowerCase();
-              }
+              // [수정 완료] 서버 데이터에 '러닝' 명시가 없을 수도 있으므로, '걷기/보행'이 아니면 무조건 합산되도록 변경
+              const wStr = JSON.stringify(w).toLowerCase();
+              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              
+              if (isWalk) return; // 걷기 기록만 단호하게 버림
 
-              // type 정보가 있을 때만 필터링 진행 (모의 데이터 등 없는 경우는 통과)
-              if (typeStr) {
-                  const isWalk = typeStr.includes('walk') || typeStr.includes('걷기') || typeStr.includes('보행');
-                  if (isWalk) return; // 걷기 무조건 제외
-
-                  const isRun = typeStr.includes('run') || typeStr.includes('trail') || typeStr.includes('러닝') || typeStr.includes('달리기');
-                  if (!isRun) return; // 러닝/트레일러닝 계열이 아니면 제외
-              }
-
-              // [수정 2] 날짜 파싱 방어 코드
               const dateStr = String(w.date || '');
               const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
               
@@ -1044,12 +1032,14 @@ function generateMockWorkouts() {
           if (realGarminWorkouts.length > 0) {
              state.garmin = realGarminWorkouts[0];
              state.dataType = 'garmin';
+             applyDataType(); updatePreview();
              
-             applyDataType(); 
-             updatePreview();
+             if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
+             if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
              
              closeScreen('garminLoginScreen');
              
+             // [복구 완료] 일간 모드일 때만 워크아웃 팝업 띄우기
              if (state.recordType === 'daily') {
                  renderWorkoutList('garmin');
                  openScreen('garminSelectScreen');
@@ -1467,11 +1457,15 @@ function applyRecordType() {
                       
                       if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
                       const stravaCardWrap = document.getElementById('stravaCardWrap');
-                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+                      if(stravaCardWrap) stravaCardWrap.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
                       
                       closeScreen('stravaLoginScreen');
-                      renderWorkoutList('strava');
-                      openScreen('garminSelectScreen'); 
+                      
+                      // [복구 완료] 일간 모드일 때만 워크아웃 팝업 띄우기
+                      if (state.recordType === 'daily') {
+                          renderWorkoutList('strava');
+                          openScreen('garminSelectScreen'); 
+                      }
                       
                       applyDataType();
                       updatePreview();
@@ -1484,7 +1478,7 @@ function applyRecordType() {
              }
          } catch(err) {
              console.error(err);
-             // [수정] 에러 메시지에 '400'이 포함되어 있으면 팝업을 띄우지 않고 조용히 넘깁니다.
+             // 400 에러(만료된 코드)일 때는 성가신 팝업을 띄우지 않고 조용히 넘김
              if (!err.message.includes('400')) {
                  alert("데이터 불러오기 실패: " + err.message);
              }
