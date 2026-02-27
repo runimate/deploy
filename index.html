@@ -153,7 +153,7 @@
     .black-btn { width: 100%; height: 52px; background: #000; color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .black-btn:active { transform: scale(0.98); }
 
-    /* [추가] Action Buttons Style (초기엔 숨김) */
+    /* Action Buttons Style (초기엔 숨김) */
     .preview-actions { 
         display: none; /* 데이터 로드 전에는 안 보임 */
         gap: 12px; 
@@ -205,11 +205,6 @@
 
     <section class="section">
       <div class="data-panel" id="dataPanel">
-        <div class="month-block" id="monthBlock" style="display:none;">
-          <div class="month-label">MONTH</div>
-          <button class="month-btn" id="btnMonthPick">December. 2025</button>
-        </div>
-
         <div class="data-panel-head" id="dataPanelHead">
           <div class="data-panel-title">DATA TYPE</div>
         </div>
@@ -219,6 +214,11 @@
           <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
           <button class="data-tab nrc" id="tabNrc" data-datatype="nrc">NRC</button>
           <button class="data-tab manual manual-hidden" id="tabManual" data-datatype="manual">MANUAL</button>
+        </div>
+
+        <div class="month-block" id="monthBlock" style="display:none; margin-top: 16px;">
+          <div class="month-label">MONTH</div>
+          <button class="month-btn" id="btnMonthPick">December. 2025</button>
         </div>
 
         <div class="data-empty" id="dataEmpty"></div>
@@ -568,7 +568,7 @@
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [포맷팅 함수] ... (기존 유지)
+    // [포맷팅 함수] ...
     function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     function fmtPacePreview(sec) {
@@ -686,7 +686,6 @@
       
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
       
-      // [Manual New Elements]
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
       btnManualApply: $('#btnManualApply'),
       
@@ -703,11 +702,10 @@
       
       btnHiddenManual: $('#btnHiddenManual'),
       
-      // [NEW] Action Buttons
       btnSaveImage: $('#btnSaveImage'), btnCopyImage: $('#btnCopyImage'), actionBtnGroup: $('#actionBtnGroup')
     };
 
-    // --- Screen Control (Modified to toggle show class) ---
+    // --- Screen Control ---
     function openScreen(id) {
       const node = document.getElementById(id);
       if(node) { 
@@ -730,6 +728,7 @@
     });
 
     // --- UI LOGIC ---
+    // [MODIFIED] 데이터 타입에 따른 카드 비활성화 로직 (월간 모드 연동)
     function applyDataType() {
       [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
         if (!t) return;
@@ -741,18 +740,42 @@
       
       if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
-      if (state.dataType === 'garmin') el.contentGarmin.style.display = 'block';
-      else if (state.dataType === 'strava') el.contentStrava.style.display = 'block';
-      else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
-      else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
+      if (state.dataType === 'garmin') {
+          el.contentGarmin.style.display = 'block';
+          if (realGarminWorkouts.length > 0) {
+              if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
+              // 월간 모드일 경우 카드 영역을 아예 숨기고 프리뷰에 합산값을 띄움
+              if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
+          } else {
+              if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
+              if(el.garminCard) el.garminCard.style.display = 'none';
+          }
+      }
+      else if (state.dataType === 'strava') {
+          el.contentStrava.style.display = 'block';
+          if (realStravaWorkouts.length > 0) {
+              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+              const stravaCardWrap = document.getElementById('stravaCardWrap');
+              if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+              // 월간 모드일 경우 스트라바 카드 영역 숨김
+              if(el.stravaCard) el.stravaCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
+          } else {
+              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: flex !important');
+              const stravaCardWrap = document.getElementById('stravaCardWrap');
+              if(stravaCardWrap) stravaCardWrap.style.display = 'none';
+          }
+      }
+      else if (state.dataType === 'nrc') {
+          el.contentNrc.style.display = 'block';
+      }
+      else if (state.dataType === 'manual') {
+          el.contentManual.style.display = 'block';
+      }
     }
 
-    // [New: Pre-rendering logic]
-    // 1. 전역 변수: 미리 만들어둔 blob 이미지를 담을 곳
     let readyBlob = null;
     let debounceTimer = null;
     
-    // 2. 백그라운드 렌더링 함수
     async function generateBlobBackground() {
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
@@ -778,7 +801,7 @@
             });
             
             canvas.toBlob((blob) => {
-                readyBlob = blob; // 최신 blob 저장
+                readyBlob = blob; 
             }, 'image/png');
             
         } catch(e) {
@@ -786,16 +809,44 @@
         }
     }
     
-    // 3. 디바운스 적용: 연속 클릭 시 맨 마지막에만 렌더링 수행 (성능 보호)
     function triggerPreRender() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             generateBlobBackground();
-        }, 1000); // 1초 대기 후 실행
+        }, 1000); 
     }
 
     function updatePreview() {
-      // (기존 업데이트 로직)
+      // [NEW] 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
+      if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
+          let workouts = [];
+          if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
+          if (state.dataType === 'strava') workouts = realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts();
+
+          let totalKm = 0;
+          let totalTimeSec = 0;
+          let runs = 0;
+
+          workouts.forEach(w => {
+              // date 포맷: "YYYY.MM.DD"
+              const parts = w.date.split('.');
+              if (parts.length >= 2) {
+                  const wYear = parseInt(parts[0], 10);
+                  const wMonth = parseInt(parts[1], 10);
+                  if (wYear === state.monthly.year && wMonth === state.monthly.month) {
+                      totalKm += parseFloat(w.km || 0);
+                      totalTimeSec += parseInt(w.timeSec || 0, 10);
+                      runs += 1;
+                  }
+              }
+          });
+
+          state.monthly.km = totalKm;
+          state.monthly.runs = runs;
+          state.monthly.timeSec = totalTimeSec;
+          state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
+      }
+
       let d = { km: 0, paceSec: 0, timeSec: 0 };
       if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
       else if (state.dataType === 'strava' && state.strava) d = state.strava;
@@ -842,17 +893,14 @@
          }
       }
       
-      // [수정] 1. 데이터가 있는지 확인
-      const hasData = (d.km > 0 || (d.runs && d.runs > 0));
+      const hasData = (state.recordType === 'daily' ? d.km > 0 : m.km > 0 || (m.runs && m.runs > 0));
       
-      // [수정] 2. 버튼 표시 여부 결정
       if(el.actionBtnGroup) {
           el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
       }
 
       applyPreviewStyles();
       
-      // [수정] 3. UI 업데이트 후 -> 핏 맞추고 -> 데이터가 있다면 프리-렌더링 예약
       requestAnimationFrame(() => {
           applyFitPreview();
           if(hasData) triggerPreRender();
@@ -917,16 +965,11 @@
       }
     }
 
-    // --- GARMIN LOGIC (기존 유지) ---
+    // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
-      state.dataType = 'garmin'; applyDataType(); updatePreview();
-      if (realGarminWorkouts.length > 0) { 
-          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
-          if(el.garminCard) el.garminCard.style.display = 'flex';
-      } else { 
-          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
-          if(el.garminCard) el.garminCard.style.display = 'none';
-      }
+      state.dataType = 'garmin'; 
+      applyDataType(); 
+      updatePreview();
     });
     el.btnOpenGarminLogin.addEventListener('click', () => { el.garminError.style.display = 'none'; openScreen('garminLoginScreen'); });
 
@@ -969,13 +1012,17 @@
           if (realGarminWorkouts.length > 0) {
              state.garmin = realGarminWorkouts[0];
              state.dataType = 'garmin';
-             applyDataType(); updatePreview();
              
-             if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
-             if(el.garminCard) el.garminCard.style.display = 'flex';
+             applyDataType(); 
+             updatePreview();
+             
              closeScreen('garminLoginScreen');
-             renderWorkoutList('garmin');
-             openScreen('garminSelectScreen');
+             
+             // [MODIFIED] 일간 모드일 때만 Select 모달을 노출
+             if (state.recordType === 'daily') {
+                 renderWorkoutList('garmin');
+                 openScreen('garminSelectScreen');
+             }
           } else {
              if(errorMsg) { errorMsg.textContent = "Login success, but no activities found."; errorMsg.style.display = 'block'; }
           }
@@ -1023,15 +1070,9 @@
             if (kind === 'strava') { 
                 state.strava = { ...w }; 
                 state.dataType = 'strava'; 
-                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
-                if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-                if(el.stravaCard) el.stravaCard.style.display = 'flex';
             } else { 
                 state.garmin = { ...w }; 
                 state.dataType = 'garmin'; 
-                // [수정] display:none !important를 강제로 주입하여 확실하게 숨김
-                if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.setAttribute('style', 'display: none !important');
-                if(el.garminCard) el.garminCard.style.display = 'flex';
             }
             applyDataType(); 
             updatePreview(); 
@@ -1040,26 +1081,21 @@
         listContainer.appendChild(btn);
       });
     }
-    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+    el.btnGarminList.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        renderWorkoutList('garmin'); 
+        openScreen('garminSelectScreen'); 
+    });
 
     // --- OTHER TABS ---
     if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
         state.dataType = 'strava'; 
         applyDataType(); 
         updatePreview(); 
-        
-        if (realStravaWorkouts.length > 0) {
-             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-             if(el.stravaCard) el.stravaCard.style.display = 'flex';
-        } else {
-             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: flex !important');
-             if(el.stravaCard) el.stravaCard.style.display = 'none';
-        }
     });
 
     if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
     
-    // [Manual 탭 클릭 시]
     if(el.tabManual) el.tabManual.addEventListener('click', () => { 
         state.dataType = 'manual'; 
         applyDataType(); 
@@ -1067,11 +1103,13 @@
     });
 
     // --- APPLY HELPERS ---
+    // [MODIFIED] 월간 모드일 때 탭 숨김 로직 제거, 일/월에 상관없이 항상 상단 데이터 탭 유지
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily);
       el.btnMonthly.classList.toggle('active', !isDaily);
-      el.dataTabsDaily.style.display = isDaily ? 'flex' : 'none';
+      
+      el.dataTabsDaily.style.display = 'flex'; // 항상 보이도록 유지
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
@@ -1087,22 +1125,17 @@
          el.alignControlPanel.classList.remove('disabled');
       }
 
-      // [NEW] Flip Font Button Disable/Enable Logic for Monthly Mode
       const btnFlip = document.querySelector('button[data-font="flip"]');
       if(btnFlip) {
           if(!isDaily) {
-              // Monthly Mode: Disable Flip
               btnFlip.disabled = true;
               btnFlip.style.opacity = '0.3';
               btnFlip.style.pointerEvents = 'none';
-              // 만약 현재 폰트가 flip이면 다른 폰트로 강제 변경 (예: anton)
               if(state.font === 'flip') {
                   state.font = 'anton';
-                  // UI 업데이트를 위해 applyFont 호출
                   applyFont();
               }
           } else {
-              // Daily Mode: Enable Flip
               btnFlip.disabled = false;
               btnFlip.style.opacity = '1';
               btnFlip.style.pointerEvents = 'auto';
@@ -1111,20 +1144,12 @@
 
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
-          if(el.dataPanelHead) el.dataPanelHead.style.display = 'none';
-          if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'none';
-          if(el.monthBlock) el.monthBlock.style.display = 'flex';
-          if(el.contentNrc) el.contentNrc.style.display = 'block';
-          if(el.contentGarmin) el.contentGarmin.style.display = 'none';
-          if(el.contentStrava) el.contentStrava.style.display = 'none';
-          if(el.contentManual) el.contentManual.style.display = 'none';
+          if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
       } else {
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
-          if(el.dataTabsDaily) el.dataTabsDaily.style.display = 'flex';
-          if(el.monthBlock) el.monthBlock.style.display = 'none';
-          applyDataType(); 
       }
       
+      applyDataType(); 
       applyUIConfigToRoot(state);
       updatePreview();
     }
@@ -1181,7 +1206,7 @@
         if (state.fontColor !== 'auto') {
             el.btnFontColorPicker.style.background = state.fontColor;
         } else {
-            el.btnFontColorPicker.style.background = ''; // CSS class style 복귀
+            el.btnFontColorPicker.style.background = ''; 
         }
 
         updatePreview();
@@ -1214,7 +1239,6 @@
         openScreen('colorPickerOverlay');
     });
     
-    // Color Picker Modal Logic
     document.querySelectorAll('.color-chip').forEach(chip => {
         chip.addEventListener('click', (e) => {
             state.fontColor = e.target.dataset.c;
@@ -1235,7 +1259,7 @@
        b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
     });
 
-    // NRC / OCR (기존 유지)
+    // NRC / OCR
     if (el.btnUploadNrc && el.fileNrc) {
         el.btnUploadNrc.addEventListener('click', () => { el.fileNrc.value = ''; el.fileNrc.click(); });
         el.fileNrc.addEventListener('change', async (e) => {
@@ -1302,7 +1326,6 @@
             state.manual.km = dist;
             state.manual.paceSec = totalPace;
             
-            // 자동 시간 계산
             if (dist > 0 && totalPace > 0) {
                 state.manual.timeSec = dist * totalPace;
             } else {
@@ -1327,19 +1350,16 @@
     }
 
     // -----------------------------------------------------------
-    // [STRAVA LOGIC - FIXED & INTEGRATED]
+    // [STRAVA LOGIC]
     // -----------------------------------------------------------
     
-    // [중요] Railway 서버 주소 (배포된 백엔드)
     const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app"; 
 
-    // 1. 로그인 버튼 클릭 (인증 페이지 이동)
     if(el.btnStravaLogin) {
         el.btnStravaLogin.addEventListener('click', () => {
-            // [본인의 Strava Client ID 입력]
-            const client_id = '192399'; // <-- Client ID 확인 필수
+            const client_id = '192399'; 
             
-            const redirect_uri = window.location.origin; // 현재 페이지로 복귀
+            const redirect_uri = window.location.origin; 
             const scope = 'activity:read_all';
             const authUrl = `https://www.strava.com/oauth/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&approval_prompt=force&scope=${scope}`;
             
@@ -1347,13 +1367,11 @@
         });
     }
 
-    // 2. 인증 코드(Code) 확인 및 데이터 요청
     function checkStravaCode() {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('code'); // 'code' 파라미터 확인
+        const code = params.get('code'); 
 
         if (code) {
-            // 주소창 깔끔하게 정리 (code 파라미터 숨김)
             window.history.replaceState({}, document.title, window.location.pathname);
             fetchStravaData(code);
         }
@@ -1367,7 +1385,6 @@
          }
          
          try {
-             // [수정] 백엔드 엔드포인트 (/api/strava) 및 Body 키값 ({ code }) 수정
              const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava`, {
                  method: "POST",
                  headers: { "Content-Type": "application/json" },
@@ -1383,20 +1400,16 @@
                       state.strava = realStravaWorkouts[0];
                       state.dataType = 'strava';
                       
-                      // 1. 연결 버튼 숨김 (중요: !important로 강제 숨김)
-                      if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
-                      
-                      // 2. 카드 보여줌
-                      const stravaCardWrap = document.getElementById('stravaCardWrap');
-                      if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
-                      
-                      // 3. 로그인 화면 닫기 & [핵심] 워크아웃 선택 화면 열기
-                      closeScreen('stravaLoginScreen');
-                      renderWorkoutList('strava');
-                      openScreen('garminSelectScreen'); // <-- 여기가 실행되어야 "Select Workout"이 뜹니다.
-                      
                       applyDataType();
                       updatePreview();
+
+                      closeScreen('stravaLoginScreen');
+
+                      // [MODIFIED] 일간 모드일 때만 Select 모달을 노출
+                      if (state.recordType === 'daily') {
+                          renderWorkoutList('strava');
+                          openScreen('garminSelectScreen'); 
+                      }
                  } else {
                      alert("최근 러닝 기록이 없습니다.");
                      resetStravaBtn();
@@ -1419,10 +1432,8 @@
         }
     }
     
-    // 페이지 로드 시 코드 체크 실행
     checkStravaCode();
     
-    // [추가] 스트라바 리스트 버튼(햄버거) 클릭 이벤트
     if(el.btnStravaList) {
         el.btnStravaList.addEventListener('click', (e) => {
              e.stopPropagation(); 
@@ -1434,7 +1445,6 @@
     // --- RUN BUTTON: Result ---
     function buildResultDOM() {
        el.resultWrap.className = `result-wrap ${state.layout}`;
-       // Add Align class
        if (state.recordType === 'daily') {
            el.resultWrap.classList.add(`align-${state.align}`);
        } else {
@@ -1492,7 +1502,6 @@
       }
     }
     
-    // Result 너비 동기화 (프리뷰 기준)
     function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance');
       const rvPace = $('#rvPace');
@@ -1568,7 +1577,6 @@
        const targetData = buildResultDOM();
        openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
-       // Add Align class to result screen for safety
        if(state.recordType==='daily') el.resultScreen.classList.add(`align-${state.align}`);
        
        requestAnimationFrame(() => {
@@ -1585,15 +1593,11 @@
     const btnCopyImage = document.getElementById('btnCopyImage');
     const actionBtnGroup = document.getElementById('actionBtnGroup');
 
-    // 공통 캡처 함수 (PREVIEW 타겟팅)
     async function captureResult() {
-        // [New: Use pre-rendered blob if available]
         if(readyBlob) {
-            // 디바운스된 최신 이미지가 있다면 바로 사용 (초고속)
             return readyBlob; 
         }
         
-        // 없으면(로딩 직후 등) 즉시 생성
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
@@ -1601,20 +1605,17 @@
         
         if (!element) return null;
 
-        // 버튼 그룹 잠시 숨김 (캡처 방지)
         if(actionBtnGroup) actionBtnGroup.style.display = 'none';
 
         try {
-            // Wait for fonts to load
             await document.fonts.ready;
             
             const canvas = await html2canvas(element, {
-                backgroundColor: null, // 투명 배경
-                scale: 3,              // 고화질
+                backgroundColor: null,
+                scale: 3,             
                 logging: false,
                 useCORS: true,
                 allowTaint: true,
-                // 배경 제거를 위한 클론 처리
                 onclone: (clonedDoc) => {
                     const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
                     if (clonedEl) {
@@ -1627,15 +1628,12 @@
             console.error('Capture error:', err);
             return null;
         } finally {
-            // 버튼 다시 보이기
             if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
         }
     }
 
-    // 1. SAVE PNG (다운로드)
     if (btnSaveImage) {
         btnSaveImage.addEventListener('click', async () => {
-            // Save logic: Direct download is preferred
             const blob = await captureResult();
             if (!blob) return;
             
@@ -1648,12 +1646,8 @@
         });
     }
 
-    // 2. COPY (오직 모바일 공유 시트만 실행 - 크롬/사파리 호환성)
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
-            
-            // [중요] 사용자가 버튼을 누른 이 시점에 바로 공유 창을 띄워야 함 (크롬 정책)
-            // 따라서 미리 만들어진 Blob(readyBlob)을 사용하거나 매우 빠르게 생성해야 함.
             const blob = readyBlob || await captureResult(); 
             
             if (!blob) {
@@ -1661,34 +1655,25 @@
                 return;
             }
 
-            // [수정 완료] PC나 클립보드 복사 로직 완전히 배제
-            // 무조건 모바일 네이티브 공유 시트(Share Sheet)만 실행
             if (navigator.share) {
                 try {
                     const file = new File([blob], "runimate.png", { type: "image/png" });
                     
-                    // [핵심] canShare 체크 없이 바로 share 실행 (크롬 호환성)
-                    // files 배열만 전송하여 텍스트만 복사되는 문제 해결
                     await navigator.share({
                         files: [file]
                     });
                     
                 } catch (shareErr) {
-                    // 사용자가 취소했거나 에러가 났을 때
                     if(shareErr.name !== 'AbortError') {
                          console.log('Share failed', shareErr);
                          alert("공유 실패: " + shareErr.message);
                     }
                 }
             } else {
-                // 공유 API가 없는 구형 브라우저나 PC 환경
                 alert('이 브라우저는 공유하기 기능을 지원하지 않습니다. [Save Image]를 이용해주세요.');
             }
         });
     }
-
-    // Check code on load
-    checkStravaCode();
 
     function initDefaults() {
        applyUIConfigToRoot(state);
