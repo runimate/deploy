@@ -568,7 +568,7 @@
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-    // [포맷팅 함수] ...
+    // [포맷팅 함수]
     function fmtKmPreview(km) { return `${Number(km || 0).toFixed(2)}Km`; }
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     function fmtPacePreview(sec) {
@@ -728,7 +728,6 @@
     });
 
     // --- UI LOGIC ---
-    // [MODIFIED] 데이터 타입에 따른 카드 비활성화 로직 (월간 모드 연동)
     function applyDataType() {
       [el.tabGarmin, el.tabStrava, el.tabNrc, el.tabManual].forEach(t => {
         if (!t) return;
@@ -744,7 +743,6 @@
           el.contentGarmin.style.display = 'block';
           if (realGarminWorkouts.length > 0) {
               if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
-              // 월간 모드일 경우 카드 영역을 아예 숨기고 프리뷰에 합산값을 띄움
               if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
           } else {
               if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
@@ -757,7 +755,6 @@
               if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
               const stravaCardWrap = document.getElementById('stravaCardWrap');
               if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
-              // 월간 모드일 경우 스트라바 카드 영역 숨김
               if(el.stravaCard) el.stravaCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
           } else {
               if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: flex !important');
@@ -817,7 +814,7 @@
     }
 
     function updatePreview() {
-      // [NEW] 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
+      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직 (러닝/트레일 러닝만 필터링)
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
           if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
@@ -828,7 +825,18 @@
           let runs = 0;
 
           workouts.forEach(w => {
-              // date 포맷: "YYYY.MM.DD"
+              // 1. 데이터 필터링: 보행 제외, 러닝 & 트레일러닝만 합산
+              // API 응답 데이터 필드 대응 (type, activityType, sport_type 등)
+              const typeStr = String(w.type || w.activityType || w.sport_type || w.sportType || '').toLowerCase();
+              if (typeStr) {
+                  const isRun = typeStr.includes('run') || typeStr.includes('러닝') || typeStr.includes('달리기');
+                  const isTrail = typeStr.includes('trail') || typeStr.includes('트레일');
+                  
+                  // 러닝이나 트레일러닝 카테고리가 아니면 건너뜀 (보행 제외)
+                  if (!isRun && !isTrail) return;
+              }
+
+              // 2. 날짜 합산 처리
               const parts = w.date.split('.');
               if (parts.length >= 2) {
                   const wYear = parseInt(parts[0], 10);
@@ -1018,7 +1026,6 @@
              
              closeScreen('garminLoginScreen');
              
-             // [MODIFIED] 일간 모드일 때만 Select 모달을 노출
              if (state.recordType === 'daily') {
                  renderWorkoutList('garmin');
                  openScreen('garminSelectScreen');
@@ -1103,13 +1110,12 @@
     });
 
     // --- APPLY HELPERS ---
-    // [MODIFIED] 월간 모드일 때 탭 숨김 로직 제거, 일/월에 상관없이 항상 상단 데이터 탭 유지
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily);
       el.btnMonthly.classList.toggle('active', !isDaily);
       
-      el.dataTabsDaily.style.display = 'flex'; // 항상 보이도록 유지
+      el.dataTabsDaily.style.display = 'flex'; 
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
@@ -1357,6 +1363,13 @@
 
     if(el.btnStravaLogin) {
         el.btnStravaLogin.addEventListener('click', () => {
+            // [추가] Strava 연동(리다이렉트) 전 현재 상태 임시 저장
+            sessionStorage.setItem('runimate_restore_state', JSON.stringify({
+                recordType: state.recordType,
+                dataType: state.dataType,
+                monthly: state.monthly
+            }));
+
             const client_id = '192399'; 
             
             const redirect_uri = window.location.origin; 
@@ -1372,6 +1385,21 @@
         const code = params.get('code'); 
 
         if (code) {
+            // [추가] 리다이렉트 후 돌아왔을 때 이전 UI 상태 복구
+            const saved = sessionStorage.getItem('runimate_restore_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.recordType = parsed.recordType || 'daily';
+                    state.dataType = parsed.dataType || 'strava';
+                    if (parsed.monthly) {
+                        state.monthly.year = parsed.monthly.year;
+                        state.monthly.month = parsed.monthly.month;
+                    }
+                } catch(e) { console.error("상태 복구 실패", e); }
+                sessionStorage.removeItem('runimate_restore_state');
+            }
+
             window.history.replaceState({}, document.title, window.location.pathname);
             fetchStravaData(code);
         }
@@ -1405,7 +1433,7 @@
 
                       closeScreen('stravaLoginScreen');
 
-                      // [MODIFIED] 일간 모드일 때만 Select 모달을 노출
+                      // 일간 모드일 때만 Select 모달을 노출 (월간 모드 유지)
                       if (state.recordType === 'daily') {
                           renderWorkoutList('strava');
                           openScreen('garminSelectScreen'); 
@@ -1686,6 +1714,8 @@
        applyFontColor();
        updatePreview();
     }
+    
+    // 페이지 로드 시 상태 복원 후 기본 UI 세팅 (Strava OAuth 대응)
     initDefaults();
   </script>
 </body>
