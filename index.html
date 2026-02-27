@@ -967,6 +967,8 @@
         const result = await res.json();
         if (result.success) {
           realGarminWorkouts = result.data;
+          // 👉 이 줄을 추가해서 진짜 데이터 형태를 확인해 보세요!
+          console.log("가민 원본 데이터 확인:", realGarminWorkouts);
           sessionStorage.setItem('runimate_garmin_data', JSON.stringify(realGarminWorkouts)); // 가민 데이터 안전 보관
           
           if (realGarminWorkouts.length > 0) {
