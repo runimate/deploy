@@ -285,7 +285,7 @@
           <input type="file" id="fileNrc" accept="image/*" hidden />
         </div>
 
-        <div class="data-content" id="contentManual" style="display:none;">
+<div class="data-content" id="contentManual" style="display:none;">
           <div class="sub-title">Enter Your Record</div>
           <div id="manual-input-container" class="manual-group">
             <div class="manual-row">
@@ -293,6 +293,12 @@
                 <label class="manual-label">DISTANCE (Km)</label>
                 <input type="number" id="inputDistance" class="big-input" placeholder="00.00" inputmode="decimal" step="0.01">
               </div>
+              
+              <div class="manual-col" id="manualColRuns" style="display:none;">
+                <label class="manual-label">RUNS</label>
+                <input type="number" id="inputRuns" class="big-input" placeholder="00" inputmode="numeric">
+              </div>
+
               <div class="manual-col">
                 <label class="manual-label">PACE</label>
                 <div class="pace-wrapper">
@@ -693,6 +699,7 @@
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
       
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
+      inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'),
       btnManualApply: $('#btnManualApply'),
       
       btnGarminList: $('#btnGarminList'),
@@ -1116,10 +1123,15 @@
     });
 
     // --- APPLY HELPERS ---
-    function applyRecordType() {
+function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily);
       el.btnMonthly.classList.toggle('active', !isDaily);
+      
+      // [여기에 추가!] 월간 모드면 RUNS 입력칸 표시, 일간 모드면 숨김
+      if (el.manualColRuns) {
+          el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
+      }
       
       el.dataTabsDaily.style.display = 'flex'; 
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
@@ -1327,7 +1339,7 @@
     if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => { state.monthly.year -= 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
     if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
 
-    // [New Manual Input Logic]
+// [New Manual Input Logic]
     if (el.btnManualApply) {
         el.btnManualApply.addEventListener('click', () => {
             const dist = parseFloat(el.inputDistance.value) || 0;
@@ -1335,17 +1347,25 @@
             const pSec = parseInt(el.inputPaceSec.value) || 0;
             const totalPace = (pMin * 60) + pSec;
             
-            state.manual.km = dist;
-            state.manual.paceSec = totalPace;
-            
-            if (dist > 0 && totalPace > 0) {
-                state.manual.timeSec = dist * totalPace;
+            // 일간/월간 모드에 따라 데이터 저장 위치 분기
+            if (state.recordType === 'daily') {
+                state.manual.km = dist;
+                state.manual.paceSec = totalPace;
+                state.manual.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                
+                updatePreview();
+                alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
             } else {
-                state.manual.timeSec = 0;
+                const runs = parseInt(el.inputRuns.value) || 0;
+                
+                state.monthly.km = dist;
+                state.monthly.runs = runs;
+                state.monthly.paceSec = totalPace;
+                state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                
+                updatePreview();
+                alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
             }
-            
-            updatePreview();
-            alert(`Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
         });
     }
 
