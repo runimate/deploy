@@ -792,45 +792,43 @@
     }
 
     function updatePreview() {
-      // 월간 모드일 때 합산 로직
+      // 월간 모드일 때 합산 로직 (필터링 꼼수 완전 제거, 받은 데이터 그대로 합산)
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
-          // [핵심 해결 1] 233km 차단: 모의 데이터를 월간 모드 합산에서 영구 제외!
           let workouts = [];
+          // [핵심] 233km 버그 방지: 모의 데이터(Mock)는 월간 모드에서 절대 사용 안 함!
           if (state.dataType === 'garmin') workouts = realGarminWorkouts;
           if (state.dataType === 'strava') workouts = realStravaWorkouts;
 
-          let totalKm = 0; let totalTimeSec = 0; let runs = 0;
+          let totalKm = 0;
+          let totalTimeSec = 0;
+          let runs = 0;
 
           workouts.forEach(w => {
-              // [핵심 해결 3] 완벽한 걷기 필터링: JSON 구조 전체를 텍스트화해서 불순물 검사
-              const wStr = JSON.stringify(w).toLowerCase();
-              
-              // 보행, 자전거, 수영 키워드가 있으면 절대 합산 안 함 (단호하게 거름)
-              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행') || wStr.includes('step');
-              const isRide = wStr.includes('ride') || wStr.includes('bike') || wStr.includes('cycl') || wStr.includes('자전거');
-              const isSwim = wStr.includes('swim') || wStr.includes('수영');
-              
-              if (isWalk || isRide || isSwim) return; 
+              // 데이터에 'run', 'walk' 정보가 없으므로 텍스트 필터링 삭제.
+              // 오직 "연/월"이 현재 선택한 달과 일치하는지만 검사합니다.
 
-              // 날짜 파싱 방어 코드
               const dateStr = String(w.date || '');
               const nums = dateStr.match(/\d+/g); 
               
               if (!nums || nums.length < 2) return;
               
-              let wYear = state.monthly.year; let wMonth = state.monthly.month; 
+              let wYear = state.monthly.year; 
+              let wMonth = state.monthly.month; 
               
+              // 날짜 포맷 (YYYY.MM.DD 또는 YY.MM.DD) 방어 코드
               if (nums[0].length === 4) { 
-                  wYear = parseInt(nums[0], 10); wMonth = parseInt(nums[1], 10);
+                  wYear = parseInt(nums[0], 10);
+                  wMonth = parseInt(nums[1], 10);
               } else if (nums.length >= 3) { 
-                  wYear = parseInt(nums[0], 10) + 2000; wMonth = parseInt(nums[1], 10);
+                  wYear = parseInt(nums[0], 10) + 2000;
+                  wMonth = parseInt(nums[1], 10);
               } else if (nums.length === 2) { 
                   wMonth = parseInt(nums[0], 10);
               }
 
-              // 화면에 선택된 연/월과 일치하면 합산
+              // 화면에 선택된 연/월과 데이터의 연/월이 일치하면 무조건 합산
               if (wYear === state.monthly.year && wMonth === state.monthly.month) {
-                  totalKm += parseFloat(String(w.km || '0').replace(',', '.')); // 콤마 소수점 방어
+                  totalKm += parseFloat(String(w.km || '0').replace(',', '.'));
                   totalTimeSec += parseInt(w.timeSec || 0, 10);
                   runs += 1;
               }
@@ -842,10 +840,10 @@
           state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
       }
 
-      // 화면 업데이트 (일간 fallback으로는 모의 데이터 허용)
+      // 일간 및 기본 화면 업데이트 로직
       let d = { km: 0, paceSec: 0, timeSec: 0 };
-      if (state.dataType === 'garmin') d = realGarminWorkouts.length > 0 ? state.garmin : (state.garmin.km > 0 ? state.garmin : generateMockWorkouts()[0]);
-      else if (state.dataType === 'strava') d = realStravaWorkouts.length > 0 ? state.strava : (state.strava.km > 0 ? state.strava : generateMockWorkouts()[0]);
+      if (state.dataType === 'garmin') d = realGarminWorkouts.length > 0 ? state.garmin : (state.garmin && state.garmin.km > 0 ? state.garmin : generateMockWorkouts()[0]);
+      else if (state.dataType === 'strava') d = realStravaWorkouts.length > 0 ? state.strava : (state.strava && state.strava.km > 0 ? state.strava : generateMockWorkouts()[0]);
       else if (state.dataType === 'manual') d = state.manual;
       else if (state.dataType === 'nrc' && state.daily) d = state.daily;
       
@@ -853,9 +851,13 @@
       const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
       const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
 
-      $('#pvDistanceDaily').textContent = kmText;
-      $('#pvPaceDaily').textContent = paceText;
-      $('#pvTimeDaily').textContent = timeText;
+      const elDistanceDaily = document.getElementById('pvDistanceDaily');
+      const elPaceDaily = document.getElementById('pvPaceDaily');
+      const elTimeDaily = document.getElementById('pvTimeDaily');
+      
+      if(elDistanceDaily) elDistanceDaily.textContent = kmText;
+      if(elPaceDaily) elPaceDaily.textContent = paceText;
+      if(elTimeDaily) elTimeDaily.textContent = timeText;
 
       const m = state.monthly;
       if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
@@ -874,25 +876,29 @@
       
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
-         if(cardSrc && cardSrc.date !== '-') {
+         if(cardSrc && cardSrc.date && cardSrc.date !== '-') {
               if(state.dataType === 'garmin') {
-                 if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
-                 if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-                 if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 if(document.getElementById('garminDateText')) document.getElementById('garminDateText').textContent = cardSrc.date;
+                 if(document.getElementById('garminDistanceText')) document.getElementById('garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if(document.getElementById('garminPaceText')) document.getElementById('garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if(document.getElementById('garminTimeText')) document.getElementById('garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              } else {
-                 if($('#stravaDateText')) $('#stravaDateText').textContent = cardSrc.date;
-                 if($('#stravaDistanceText')) $('#stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if($('#stravaPaceText')) $('#stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-                 if($('#stravaTimeText')) $('#stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 if(document.getElementById('stravaDateText')) document.getElementById('stravaDateText').textContent = cardSrc.date;
+                 if(document.getElementById('stravaDistanceText')) document.getElementById('stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if(document.getElementById('stravaPaceText')) document.getElementById('stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if(document.getElementById('stravaTimeText')) document.getElementById('stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              }
          }
       }
       
       const hasData = (state.recordType === 'daily' ? d.km > 0 : m.km > 0 || (m.runs && m.runs > 0));
-      if(el.actionBtnGroup) el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
+      
+      if(el.actionBtnGroup) {
+          el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
+      }
 
       applyPreviewStyles();
+      
       requestAnimationFrame(() => {
           applyFitPreview();
           if(hasData) triggerPreRender();
