@@ -839,11 +839,31 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // [수정 완료] 서버 데이터에 '러닝' 명시가 없을 수도 있으므로, '걷기/보행'이 아니면 무조건 합산되도록 변경
-              const wStr = JSON.stringify(w).toLowerCase();
-              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              // 1. 데이터 타입 정확하게 추출 (Garmin은 activityType.typeKey, Strava는 type 또는 sport_type)
+              let typeStr = "";
+              if (w.activityType && w.activityType.typeKey) {
+                  typeStr = String(w.activityType.typeKey).toLowerCase();
+              } else if (w.type) {
+                  typeStr = String(w.type).toLowerCase();
+              } else if (w.sport_type) {
+                  typeStr = String(w.sport_type).toLowerCase();
+              } else {
+                  typeStr = "running"; // Mock 데이터 등 type이 없는 경우 기본값
+              }
+
+              // 2. 운동 이름 추출 (예외 처리를 위함)
+              const nameStr = String(w.name || w.activityName || '').toLowerCase();
+
+              // 3. 진짜 러닝/트레일러닝인지 판별
+              const isRunType = typeStr.includes('run') || typeStr.includes('trail') || typeStr.includes('러닝') || typeStr.includes('달리기');
               
-              if (isWalk) return; // 걷기 기록만 단호하게 버림
+              // 4. 이름에 걷기/보행이 명시적으로 포함된 경우 안전장치로 제외
+              const isWalkName = nameStr.includes('walk') || nameStr.includes('걷기') || nameStr.includes('보행');
+
+              // 러닝 카테고리가 아니거나(하이킹, 사이클 등), 이름이 걷기인 경우 무조건 합산 제외!
+              if (!isRunType || isWalkName) {
+                  return; 
+              }
 
               const dateStr = String(w.date || '');
               const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
@@ -1412,7 +1432,6 @@ function applyRecordType() {
         const code = params.get('code'); 
 
         if (code) {
-            // [추가] 리다이렉트 후 돌아왔을 때 이전 UI 상태 복구
             const saved = sessionStorage.getItem('runimate_restore_state');
             if (saved) {
                 try {
@@ -1428,11 +1447,13 @@ function applyRecordType() {
             }
 
             window.history.replaceState({}, document.title, window.location.pathname);
-            fetchStravaData(code);
+            
+            // 핵심 수정: 페이지 로딩 시 자동으로 체크하는 경우(isAuto = true)로 넘깁니다.
+            fetchStravaData(code, true); 
         }
     }
     
-    async function fetchStravaData(code) {
+    async function fetchStravaData(code, isAuto = false) {
          if(el.btnStravaLogin) {
              el.btnStravaLogin.innerHTML = '<span>Importing...</span>';
              el.btnStravaLogin.style.opacity = "0.7";
@@ -1461,7 +1482,6 @@ function applyRecordType() {
                       
                       closeScreen('stravaLoginScreen');
                       
-                      // [복구 완료] 일간 모드일 때만 워크아웃 팝업 띄우기
                       if (state.recordType === 'daily') {
                           renderWorkoutList('strava');
                           openScreen('garminSelectScreen'); 
@@ -1478,8 +1498,8 @@ function applyRecordType() {
              }
          } catch(err) {
              console.error(err);
-             // 400 에러(만료된 코드)일 때는 성가신 팝업을 띄우지 않고 조용히 넘김
-             if (!err.message.includes('400')) {
+             // 핵심 수정: 자동 체크(페이지 로드) 중 생긴 에러면 팝업을 절대 띄우지 않고 꿀꺽 삼킵니다.
+             if (!isAuto) {
                  alert("데이터 불러오기 실패: " + err.message);
              }
              resetStravaBtn();
