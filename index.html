@@ -576,7 +576,6 @@
 
     // [포맷팅 함수]
     function fmtKmPreview(km) { 
-        // 월간 모드일 때는 소수점 1자리, 일간 모드일 때는 2자리로 표시
         if (state.recordType === 'monthly') {
             return `${Number(km || 0).toFixed(1)}Km`;
         }
@@ -651,10 +650,11 @@
       manual: { km: 0, paceSec: 0, timeSec: 0 }
     };
 
-    let realGarminWorkouts = [];
-    let realStravaWorkouts = [];
+    // [핵심 해결 2] 스트라바 리다이렉션으로 인한 가민 데이터 증발 방지 (세션 저장소 활용)
+    let realGarminWorkouts = JSON.parse(sessionStorage.getItem('runimate_garmin_data') || '[]');
+    let realStravaWorkouts = JSON.parse(sessionStorage.getItem('runimate_strava_data') || '[]');
     
-function generateMockWorkouts() {
+    function generateMockWorkouts() {
         const arr = [];
         const y = state.monthly.year || new Date().getFullYear();
         const m = String(state.monthly.month || new Date().getMonth() + 1).padStart(2, '0');
@@ -677,46 +677,29 @@ function generateMockWorkouts() {
       dataEmpty: $('#dataEmpty'),
       tabGarmin: $('#tabGarmin'), tabStrava: $('#tabStrava'), tabNrc: $('#tabNrc'), tabManual: $('#tabManual'),
       contentGarmin: $('#contentGarmin'), contentStrava: $('#contentStrava'), contentNrc: $('#contentNrc'), contentManual: $('#contentManual'),
-      
       garminConnectBtnWrap: $('#garminConnectBtnWrap'), btnOpenGarminLogin: $('#btnOpenGarminLogin'),
       garminCard: $('#garminCard'), garminLoginScreen: $('#garminLoginScreen'),
       btnGarminRealSync: $('#btnGarminRealSync'), garminStatus: $('#garminStatus'), garminError: $('#garminError'),
-      
       stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), btnStravaLogin: $('#btnStravaLogin'), stravaCard: $('#stravaCard'), btnStravaList: $('#btnStravaList'),
       stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
-      
       monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
-      fontGroup: $('#fontGroup'),
-      btnType1: $('#btnType1'), btnType2: $('#btnType2'),
+      fontGroup: $('#fontGroup'), btnType1: $('#btnType1'), btnType2: $('#btnType2'),
       btnBgWhite: $('#btnBgWhite'), btnBgBlack: $('#btnBgBlack'),
-      
-      alignControlPanel: $('#alignControlPanel'),
-      btnAlignLeft: $('#btnAlignLeft'), btnAlignCenter: $('#btnAlignCenter'),
+      alignControlPanel: $('#alignControlPanel'), btnAlignLeft: $('#btnAlignLeft'), btnAlignCenter: $('#btnAlignCenter'),
       btnFontColorAuto: $('#btnFontColorAuto'), btnFontColorPicker: $('#btnFontColorPicker'),
       colorPickerOverlay: $('#colorPickerOverlay'), colorPickerClose: $('#colorPickerClose'), nativeColorInput: $('#nativeColorInput'),
-      
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
-      
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
-      
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
-      inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'),
-      btnManualApply: $('#btnManualApply'),
-      
-      btnGarminList: $('#btnGarminList'),
-      garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
-      
+      inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'), btnManualApply: $('#btnManualApply'),
+      btnGarminList: $('#btnGarminList'), garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
-      
       btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
       monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
-      
       pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
       pvMonthType2: $('#pvMonthType2'), pvDistanceMonthlyT2: $('#pvDistanceMonthlyT2'), pvRunsMonthlyT2: $('#pvRunsMonthlyT2'), pvPaceMonthlyT2: $('#pvPaceMonthlyT2'), pvTimeMonthlyT2: $('#pvTimeMonthlyT2'),
-      
       btnHiddenManual: $('#btnHiddenManual'),
-      
       btnSaveImage: $('#btnSaveImage'), btnCopyImage: $('#btnCopyImage'), actionBtnGroup: $('#actionBtnGroup')
     };
 
@@ -777,12 +760,8 @@ function generateMockWorkouts() {
               if(stravaCardWrap) stravaCardWrap.style.display = 'none';
           }
       }
-      else if (state.dataType === 'nrc') {
-          el.contentNrc.style.display = 'block';
-      }
-      else if (state.dataType === 'manual') {
-          el.contentManual.style.display = 'block';
-      }
+      else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
+      else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
     }
 
     let readyBlob = null;
@@ -793,90 +772,65 @@ function generateMockWorkouts() {
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
         const element = previewEl ? previewEl.querySelector('.preview-content') : null;
-        
         if(!element) return;
-        
         try {
             await document.fonts.ready;
             const canvas = await html2canvas(element, {
-                backgroundColor: null,
-                scale: 3,
-                logging: false,
-                useCORS: true,
-                allowTaint: true,
+                backgroundColor: null, scale: 3, logging: false, useCORS: true, allowTaint: true,
                 onclone: (clonedDoc) => {
                     const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
-                    if (clonedEl) {
-                        clonedEl.style.background = 'transparent';
-                    }
+                    if (clonedEl) clonedEl.style.background = 'transparent';
                 }
             });
-            
-            canvas.toBlob((blob) => {
-                readyBlob = blob; 
-            }, 'image/png');
-            
-        } catch(e) {
-            console.log("Pre-render error", e);
-        }
+            canvas.toBlob((blob) => { readyBlob = blob; }, 'image/png');
+        } catch(e) {}
     }
     
     function triggerPreRender() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            generateBlobBackground();
-        }, 1000); 
+        debounceTimer = setTimeout(() => { generateBlobBackground(); }, 1000); 
     }
 
-   function updatePreview() {
-      // 월간 모드일 때 Garmin / Strava 데이터 스캔 및 합산 로직
+    function updatePreview() {
+      // 월간 모드일 때 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
+          // [핵심 해결 1] 233km 차단: 모의 데이터를 월간 모드 합산에서 영구 제외!
           let workouts = [];
-          if (state.dataType === 'garmin') workouts = realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts();
-          if (state.dataType === 'strava') workouts = realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts();
+          if (state.dataType === 'garmin') workouts = realGarminWorkouts;
+          if (state.dataType === 'strava') workouts = realStravaWorkouts;
 
-          let totalKm = 0;
-          let totalTimeSec = 0;
-          let runs = 0;
+          let totalKm = 0; let totalTimeSec = 0; let runs = 0;
 
           workouts.forEach(w => {
-              // 1. [진짜 원인 해결] 깐깐한 달리기 필터링 폐기! 
-              // 대신 전체 텍스트에서 '걷기', '자전거', '수영' 단어가 있으면 그 기록만 버립니다.
+              // [핵심 해결 3] 완벽한 걷기 필터링: JSON 구조 전체를 텍스트화해서 불순물 검사
               const wStr = JSON.stringify(w).toLowerCase();
               
-              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              // 보행, 자전거, 수영 키워드가 있으면 절대 합산 안 함 (단호하게 거름)
+              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행') || wStr.includes('step');
               const isRide = wStr.includes('ride') || wStr.includes('bike') || wStr.includes('cycl') || wStr.includes('자전거');
               const isSwim = wStr.includes('swim') || wStr.includes('수영');
               
-              // 달리기가 아닌 확실한 다른 운동들은 합산에서 뺌
-              if (isWalk || isRide || isSwim) {
-                  return; 
-              }
-              // 위 조건에 안 걸리면 무조건 통과 (런이라는 단어가 없어도 합산됨!)
+              if (isWalk || isRide || isSwim) return; 
 
-              // 2. 날짜 파싱 방어 코드 (어떤 기호로 오든 연/월 무조건 추출)
+              // 날짜 파싱 방어 코드
               const dateStr = String(w.date || '');
               const nums = dateStr.match(/\d+/g); 
               
               if (!nums || nums.length < 2) return;
               
-              let wYear = state.monthly.year; 
-              let wMonth = state.monthly.month; 
+              let wYear = state.monthly.year; let wMonth = state.monthly.month; 
               
               if (nums[0].length === 4) { 
-                  wYear = parseInt(nums[0], 10);
-                  wMonth = parseInt(nums[1], 10);
+                  wYear = parseInt(nums[0], 10); wMonth = parseInt(nums[1], 10);
               } else if (nums.length >= 3) { 
-                  wYear = parseInt(nums[0], 10) + 2000; // 25 -> 2025 보정
-                  wMonth = parseInt(nums[1], 10);
+                  wYear = parseInt(nums[0], 10) + 2000; wMonth = parseInt(nums[1], 10);
               } else if (nums.length === 2) { 
                   wMonth = parseInt(nums[0], 10);
               }
 
-              // 3. 화면에 선택된 연/월과 데이터의 연/월이 일치하면 무조건 합산!
+              // 화면에 선택된 연/월과 일치하면 합산
               if (wYear === state.monthly.year && wMonth === state.monthly.month) {
-                  // km 데이터에 소수점이 콤마(,)로 들어오는 에러까지 완벽 방어
-                  totalKm += parseFloat(String(w.km || '0').replace(',', '.'));
+                  totalKm += parseFloat(String(w.km || '0').replace(',', '.')); // 콤마 소수점 방어
                   totalTimeSec += parseInt(w.timeSec || 0, 10);
                   runs += 1;
               }
@@ -888,10 +842,10 @@ function generateMockWorkouts() {
           state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
       }
 
-      // 화면 업데이트 로직 (기존 유지)
+      // 화면 업데이트 (일간 fallback으로는 모의 데이터 허용)
       let d = { km: 0, paceSec: 0, timeSec: 0 };
-      if (state.dataType === 'garmin' && state.garmin) d = state.garmin;
-      else if (state.dataType === 'strava' && state.strava) d = state.strava;
+      if (state.dataType === 'garmin') d = realGarminWorkouts.length > 0 ? state.garmin : (state.garmin.km > 0 ? state.garmin : generateMockWorkouts()[0]);
+      else if (state.dataType === 'strava') d = realStravaWorkouts.length > 0 ? state.strava : (state.strava.km > 0 ? state.strava : generateMockWorkouts()[0]);
       else if (state.dataType === 'manual') d = state.manual;
       else if (state.dataType === 'nrc' && state.daily) d = state.daily;
       
@@ -899,13 +853,9 @@ function generateMockWorkouts() {
       const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
       const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
 
-      const elDistanceDaily = document.getElementById('pvDistanceDaily');
-      const elPaceDaily = document.getElementById('pvPaceDaily');
-      const elTimeDaily = document.getElementById('pvTimeDaily');
-      
-      if(elDistanceDaily) elDistanceDaily.textContent = kmText;
-      if(elPaceDaily) elPaceDaily.textContent = paceText;
-      if(elTimeDaily) elTimeDaily.textContent = timeText;
+      $('#pvDistanceDaily').textContent = kmText;
+      $('#pvPaceDaily').textContent = paceText;
+      $('#pvTimeDaily').textContent = timeText;
 
       const m = state.monthly;
       if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
@@ -926,27 +876,23 @@ function generateMockWorkouts() {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
          if(cardSrc && cardSrc.date !== '-') {
               if(state.dataType === 'garmin') {
-                 if(document.getElementById('garminDateText')) document.getElementById('garminDateText').textContent = cardSrc.date;
-                 if(document.getElementById('garminDistanceText')) document.getElementById('garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if(document.getElementById('garminPaceText')) document.getElementById('garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-                 if(document.getElementById('garminTimeText')) document.getElementById('garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 if($('#garminDateText')) $('#garminDateText').textContent = cardSrc.date;
+                 if($('#garminDistanceText')) $('#garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#garminPaceText')) $('#garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#garminTimeText')) $('#garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              } else {
-                 if(document.getElementById('stravaDateText')) document.getElementById('stravaDateText').textContent = cardSrc.date;
-                 if(document.getElementById('stravaDistanceText')) document.getElementById('stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if(document.getElementById('stravaPaceText')) document.getElementById('stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
-                 if(document.getElementById('stravaTimeText')) document.getElementById('stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
+                 if($('#stravaDateText')) $('#stravaDateText').textContent = cardSrc.date;
+                 if($('#stravaDistanceText')) $('#stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
+                 if($('#stravaPaceText')) $('#stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if($('#stravaTimeText')) $('#stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              }
          }
       }
       
       const hasData = (state.recordType === 'daily' ? d.km > 0 : m.km > 0 || (m.runs && m.runs > 0));
-      
-      if(el.actionBtnGroup) {
-          el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
-      }
+      if(el.actionBtnGroup) el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
 
       applyPreviewStyles();
-      
       requestAnimationFrame(() => {
           applyFitPreview();
           if(hasData) triggerPreRender();
@@ -958,33 +904,16 @@ function generateMockWorkouts() {
         pvs.forEach(pv => {
             if(!pv) return;
             pv.classList.remove('align-left', 'align-center');
-            if(state.recordType === 'monthly') {
-                pv.classList.add('align-left'); 
-            } else {
-                pv.classList.add(`align-${state.align}`);
-            }
-
-            if(state.fontColor === 'auto') {
-                pv.style.color = ''; 
-            } else {
-                pv.style.color = state.fontColor;
-            }
+            if(state.recordType === 'monthly') pv.classList.add('align-left'); 
+            else pv.classList.add(`align-${state.align}`);
+            if(state.fontColor === 'auto') pv.style.color = ''; 
+            else pv.style.color = state.fontColor;
         });
     }
 
     function resetPreviews() {
-      const targets = [
-        el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily,
-        el.pvDistanceMonthlyT1, el.pvRunsMonthlyT1, el.pvPaceMonthlyT1, el.pvTimeMonthlyT1,
-        el.pvDistanceMonthlyT2, el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2
-      ];
-      targets.forEach(t => {
-        if(t) {
-            t.style.transform = ''; 
-            t.style.width = '';
-            if(t.parentElement) t.parentElement.style.width = '';
-        }
-      });
+      const targets = [el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily, el.pvDistanceMonthlyT1, el.pvRunsMonthlyT1, el.pvPaceMonthlyT1, el.pvTimeMonthlyT1, el.pvDistanceMonthlyT2, el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2];
+      targets.forEach(t => { if(t) { t.style.transform = ''; t.style.width = ''; if(t.parentElement) t.parentElement.style.width = ''; } });
     }
 
     function applyFitPreview() {
@@ -992,11 +921,7 @@ function generateMockWorkouts() {
         if (state.layout === 'type2') {
           const scale = computeScaleForGroup([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], 0.30);
           applyLockedScale([el.pvDistanceDaily, el.pvPaceDaily, el.pvTimeDaily], scale);
-        } else {
-          fitOne(el.pvDistanceDaily, 0.30);
-          fitOne(el.pvPaceDaily, 0.30);
-          fitOne(el.pvTimeDaily, 0.30);
-        }
+        } else { fitOne(el.pvDistanceDaily, 0.30); fitOne(el.pvPaceDaily, 0.30); fitOne(el.pvTimeDaily, 0.30); }
         return;
       }
       if (state.layout === 'type2') {
@@ -1004,18 +929,20 @@ function generateMockWorkouts() {
           applyLockedScale([el.pvRunsMonthlyT2, el.pvPaceMonthlyT2, el.pvTimeMonthlyT2], scale);
           fitOne(el.pvDistanceMonthlyT2, 0.26);
       } else {
-          fitOne(el.pvDistanceMonthlyT1, 0.26);
-          fitOne(el.pvRunsMonthlyT1, 0.30);
-          fitOne(el.pvPaceMonthlyT1, 0.30);
-          fitOne(el.pvTimeMonthlyT1, 0.30);
+          fitOne(el.pvDistanceMonthlyT1, 0.26); fitOne(el.pvRunsMonthlyT1, 0.30); fitOne(el.pvPaceMonthlyT1, 0.30); fitOne(el.pvTimeMonthlyT1, 0.30);
       }
     }
 
     // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
-      state.dataType = 'garmin'; 
-      applyDataType(); 
-      updatePreview();
+      state.dataType = 'garmin'; applyDataType(); updatePreview();
+      if (realGarminWorkouts.length > 0) { 
+          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
+          if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
+      } else { 
+          if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
+          if(el.garminCard) el.garminCard.style.display = 'none';
+      }
     });
     el.btnOpenGarminLogin.addEventListener('click', () => { el.garminError.style.display = 'none'; openScreen('garminLoginScreen'); });
 
@@ -1026,49 +953,32 @@ function generateMockWorkouts() {
       const errorMsg = $('#garminError');
 
       if (!email || !password) {
-        if(errorMsg) {
-            errorMsg.textContent = "Please enter email and password.";
-            errorMsg.style.display = 'block';
-        }
+        if(errorMsg) { errorMsg.textContent = "Please enter email and password."; errorMsg.style.display = 'block'; }
         return;
       }
       if(errorMsg) errorMsg.style.display = 'none';
-
-      btn.innerText = "Connecting...";
-      btn.disabled = true; btn.style.opacity = '0.7';
+      btn.innerText = "Connecting..."; btn.disabled = true; btn.style.opacity = '0.7';
 
       try {
         const SERVER_URL = "https://runimate-production.up.railway.app/api/garmin";
-
-        const res = await fetch(SERVER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-        
-        if (!res.ok) {
-            throw new Error(`Server Error: ${res.status}`);
-        }
+        const res = await fetch(SERVER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+        if (!res.ok) throw new Error(`Server Error: ${res.status}`);
 
         const result = await res.json();
-
         if (result.success) {
           realGarminWorkouts = result.data;
+          sessionStorage.setItem('runimate_garmin_data', JSON.stringify(realGarminWorkouts)); // 가민 데이터 안전 보관
           
           if (realGarminWorkouts.length > 0) {
-             state.garmin = realGarminWorkouts[0];
-             state.dataType = 'garmin';
+             state.garmin = realGarminWorkouts[0]; state.dataType = 'garmin';
              applyDataType(); updatePreview();
              
              if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
              if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
-             
              closeScreen('garminLoginScreen');
              
-             // [복구 완료] 일간 모드일 때만 워크아웃 팝업 띄우기
              if (state.recordType === 'daily') {
-                 renderWorkoutList('garmin');
-                 openScreen('garminSelectScreen');
+                 renderWorkoutList('garmin'); openScreen('garminSelectScreen');
              }
           } else {
              if(errorMsg) { errorMsg.textContent = "Login success, but no activities found."; errorMsg.style.display = 'block'; }
@@ -1079,117 +989,81 @@ function generateMockWorkouts() {
       } catch (err) {
         console.error(err);
         if(errorMsg) { errorMsg.textContent = "Connection Error."; errorMsg.style.display = 'block'; }
-        alert(`서버 연결 실패!\n(에러: ${err.message})`);
       } finally {
         if(btn) { btn.innerText = "Sign-In"; btn.disabled = false; btn.style.opacity = '1'; }
       }
     }
-    
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
     function renderWorkoutList(kind = 'garmin') {
-      const listContainer = el.workoutList;
-      listContainer.innerHTML = ''; 
-      
-      const list = (kind === 'strava') 
-        ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts())
-        : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
+      const listContainer = el.workoutList; listContainer.innerHTML = ''; 
+      const list = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts()) : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
 
       list.forEach((w) => {
-        const btn = document.createElement('div'); 
-        btn.className = 'workout-item'; 
+        const btn = document.createElement('div'); btn.className = 'workout-item'; 
         btn.innerHTML = `
-          <div class="w-left">
-            <div class="w-date">${w.date}</div>
-            <div class="w-stats">
-              <span>${fmtKmPreview(w.km)}</span>
-              <span>${fmtPaceResult(w.paceSec)}</span>
-              <span>${fmtTimeResult(w.timeSec)}</span>
-            </div>
-          </div>
-          <div class="w-arrow-wrap">
-             <div class="w-arrow">→</div>
-          </div>
+          <div class="w-left"><div class="w-date">${w.date}</div><div class="w-stats"><span>${fmtKmPreview(w.km)}</span><span>${fmtPaceResult(w.paceSec)}</span><span>${fmtTimeResult(w.timeSec)}</span></div></div>
+          <div class="w-arrow-wrap"><div class="w-arrow">→</div></div>
         `;
-        
         btn.onclick = (e) => {
             e.stopPropagation();
             if (kind === 'strava') { 
-                state.strava = { ...w }; 
-                state.dataType = 'strava'; 
+                state.strava = { ...w }; state.dataType = 'strava'; 
+                if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+                if(el.stravaCard) el.stravaCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
             } else { 
-                state.garmin = { ...w }; 
-                state.dataType = 'garmin'; 
+                state.garmin = { ...w }; state.dataType = 'garmin'; 
+                if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.setAttribute('style', 'display: none !important');
+                if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
             }
-            applyDataType(); 
-            updatePreview(); 
-            closeScreen('garminSelectScreen'); 
+            applyDataType(); updatePreview(); closeScreen('garminSelectScreen'); 
         };
         listContainer.appendChild(btn);
       });
     }
-    el.btnGarminList.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        renderWorkoutList('garmin'); 
-        openScreen('garminSelectScreen'); 
-    });
+    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
     // --- OTHER TABS ---
     if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
-        state.dataType = 'strava'; 
-        applyDataType(); 
-        updatePreview(); 
+        state.dataType = 'strava'; applyDataType(); updatePreview(); 
+        if (realStravaWorkouts.length > 0) {
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
+             const stravaCardWrap = document.getElementById('stravaCardWrap');
+             if(stravaCardWrap) stravaCardWrap.style.display = 'flex';
+             if(el.stravaCard) el.stravaCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
+        } else {
+             if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: flex !important');
+             const stravaCardWrap = document.getElementById('stravaCardWrap');
+             if(stravaCardWrap) stravaCardWrap.style.display = 'none';
+        }
     });
 
     if(el.tabNrc) el.tabNrc.addEventListener('click', () => { state.dataType = 'nrc'; applyDataType(); updatePreview(); });
-    
-    if(el.tabManual) el.tabManual.addEventListener('click', () => { 
-        state.dataType = 'manual'; 
-        applyDataType(); 
-        updatePreview(); 
-    });
+    if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
 
     // --- APPLY HELPERS ---
-function applyRecordType() {
+    function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
-      el.btnDaily.classList.toggle('active', isDaily);
-      el.btnMonthly.classList.toggle('active', !isDaily);
-      
-      // [여기에 추가!] 월간 모드면 RUNS 입력칸 표시, 일간 모드면 숨김
-      if (el.manualColRuns) {
-          el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
-      }
-      
+      el.btnDaily.classList.toggle('active', isDaily); el.btnMonthly.classList.toggle('active', !isDaily);
+      if (el.manualColRuns) el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
       el.dataTabsDaily.style.display = 'flex'; 
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
       
-      const m1 = el.previewMonthly.querySelector('.monthly-type1');
-      const m2 = el.previewMonthly.querySelector('.monthly-type2');
+      const m1 = el.previewMonthly.querySelector('.monthly-type1'); const m2 = el.previewMonthly.querySelector('.monthly-type2');
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      if (!isDaily) {
-         el.alignControlPanel.classList.add('disabled');
-      } else {
-         el.alignControlPanel.classList.remove('disabled');
-      }
+      if (!isDaily) el.alignControlPanel.classList.add('disabled'); else el.alignControlPanel.classList.remove('disabled');
 
       const btnFlip = document.querySelector('button[data-font="flip"]');
       if(btnFlip) {
           if(!isDaily) {
-              btnFlip.disabled = true;
-              btnFlip.style.opacity = '0.3';
-              btnFlip.style.pointerEvents = 'none';
-              if(state.font === 'flip') {
-                  state.font = 'anton';
-                  applyFont();
-              }
+              btnFlip.disabled = true; btnFlip.style.opacity = '0.3'; btnFlip.style.pointerEvents = 'none';
+              if(state.font === 'flip') { state.font = 'anton'; applyFont(); }
           } else {
-              btnFlip.disabled = false;
-              btnFlip.style.opacity = '1';
-              btnFlip.style.pointerEvents = 'auto';
+              btnFlip.disabled = false; btnFlip.style.opacity = '1'; btnFlip.style.pointerEvents = 'auto';
           }
       }
 
@@ -1199,10 +1073,7 @@ function applyRecordType() {
       } else {
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
       }
-      
-      applyDataType(); 
-      applyUIConfigToRoot(state);
-      updatePreview();
+      applyDataType(); applyUIConfigToRoot(state); updatePreview();
     }
     
     function applyFont() {
@@ -1211,111 +1082,60 @@ function applyRecordType() {
         t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed', 'font-opera', 'font-marker', 'font-sten', 'font-writer', 'font-flip');
         t.classList.add(`font-${state.font}`);
       });
-      applyUIConfigToRoot(state);
-      requestAnimationFrame(applyFitPreview);
+      applyUIConfigToRoot(state); requestAnimationFrame(applyFitPreview);
     }
 
     function applyLayout() {
-      el.btnType1.classList.toggle('active', state.layout === 'type1');
-      el.btnType2.classList.toggle('active', state.layout === 'type2');
-      
+      el.btnType1.classList.toggle('active', state.layout === 'type1'); el.btnType2.classList.toggle('active', state.layout === 'type2');
       resetPreviews();
       el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
       el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
       el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
       
       if (state.recordType === 'monthly') {
-        const m1 = el.previewMonthly.querySelector('.monthly-type1');
-        const m2 = el.previewMonthly.querySelector('.monthly-type2');
+        const m1 = el.previewMonthly.querySelector('.monthly-type1'); const m2 = el.previewMonthly.querySelector('.monthly-type2');
         if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
         else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
       }
-      
-      applyUIConfigToRoot(state);
-      setTimeout(() => { updatePreview(); }, 0);
+      applyUIConfigToRoot(state); setTimeout(() => { updatePreview(); }, 0);
     }
     
     function applyBG() {
-      el.btnBgWhite.classList.toggle('active', state.bg === 'white');
-      el.btnBgBlack.classList.toggle('active', state.bg === 'black');
-      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
-        t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`);
-      });
+      el.btnBgWhite.classList.toggle('active', state.bg === 'white'); el.btnBgBlack.classList.toggle('active', state.bg === 'black');
+      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => { t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`); });
     }
 
-    function applyAlign() {
-        el.btnAlignLeft.classList.toggle('active', state.align === 'left');
-        el.btnAlignCenter.classList.toggle('active', state.align === 'center');
-        applyUIConfigToRoot(state);
-        updatePreview();
-    }
+    function applyAlign() { el.btnAlignLeft.classList.toggle('active', state.align === 'left'); el.btnAlignCenter.classList.toggle('active', state.align === 'center'); applyUIConfigToRoot(state); updatePreview(); }
     
     function applyFontColor() {
-        el.btnFontColorAuto.classList.toggle('active', state.fontColor === 'auto');
-        el.btnFontColorPicker.classList.toggle('active', state.fontColor !== 'auto');
-        
-        if (state.fontColor !== 'auto') {
-            el.btnFontColorPicker.style.background = state.fontColor;
-        } else {
-            el.btnFontColorPicker.style.background = ''; 
-        }
-
+        el.btnFontColorAuto.classList.toggle('active', state.fontColor === 'auto'); el.btnFontColorPicker.classList.toggle('active', state.fontColor !== 'auto');
+        if (state.fontColor !== 'auto') el.btnFontColorPicker.style.background = state.fontColor; else el.btnFontColorPicker.style.background = ''; 
         updatePreview();
     }
 
     // --- EVENTS ---
     el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
     el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    
     el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
     el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    
-    el.btnAlignLeft.addEventListener('click', () => { 
-        if(state.recordType === 'monthly') return;
-        state.align = 'left'; applyAlign(); 
-    });
-    el.btnAlignCenter.addEventListener('click', () => { 
-        if(state.recordType === 'monthly') return;
-        state.align = 'center'; applyAlign(); 
-    });
-
+    el.btnAlignLeft.addEventListener('click', () => { if(state.recordType === 'monthly') return; state.align = 'left'; applyAlign(); });
+    el.btnAlignCenter.addEventListener('click', () => { if(state.recordType === 'monthly') return; state.align = 'center'; applyAlign(); });
     el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
     el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
+    el.btnFontColorAuto.addEventListener('click', () => { state.fontColor = 'auto'; applyFontColor(); });
+    el.btnFontColorPicker.addEventListener('click', () => { openScreen('colorPickerOverlay'); });
     
-    el.btnFontColorAuto.addEventListener('click', () => {
-        state.fontColor = 'auto';
-        applyFontColor();
-    });
-    el.btnFontColorPicker.addEventListener('click', () => {
-        openScreen('colorPickerOverlay');
-    });
-    
-    document.querySelectorAll('.color-chip').forEach(chip => {
-        chip.addEventListener('click', (e) => {
-            state.fontColor = e.target.dataset.c;
-            applyFontColor();
-            closeScreen('colorPickerOverlay');
-        });
-    });
-    el.nativeColorInput.addEventListener('input', (e) => {
-        state.fontColor = e.target.value;
-        applyFontColor(); 
-    });
-    el.nativeColorInput.addEventListener('change', (e) => {
-        closeScreen('colorPickerOverlay');
-    });
+    document.querySelectorAll('.color-chip').forEach(chip => { chip.addEventListener('click', (e) => { state.fontColor = e.target.dataset.c; applyFontColor(); closeScreen('colorPickerOverlay'); }); });
+    el.nativeColorInput.addEventListener('input', (e) => { state.fontColor = e.target.value; applyFontColor(); });
+    el.nativeColorInput.addEventListener('change', (e) => { closeScreen('colorPickerOverlay'); });
     $('#colorPickerClose').addEventListener('click', () => closeScreen('colorPickerOverlay'));
-
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => {
-       b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); });
-    });
+    el.fontGroup.querySelectorAll('[data-font]').forEach(b => { b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); }); });
 
     // NRC / OCR
     if (el.btnUploadNrc && el.fileNrc) {
         el.btnUploadNrc.addEventListener('click', () => { el.fileNrc.value = ''; el.fileNrc.click(); });
         el.fileNrc.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
             if (el.ocrStatus) { el.ocrStatus.style.display = 'block'; el.ocrStatus.textContent = 'Analyzing...'; el.ocrStatus.style.color = '#333'; }
             const reader = new FileReader();
             reader.onload = async (event) => {
@@ -1326,12 +1146,8 @@ function applyRecordType() {
                     const tH = Number(result.timeH || 0); const tM = Number(result.timeM || 0); const tS = Number(result.timeS || 0);
                     const pace = (pMin * 60) + pSec; const time = (tH * 3600) + (tM * 60) + tS;
                     
-                    if (state.recordType === 'daily') {
-                        state.daily.km = km; state.daily.paceSec = pace; state.daily.timeSec = time;
-                    } else {
-                        state.monthly.km = km; state.monthly.paceSec = pace; state.monthly.timeSec = time;
-                        if (result.runs) state.monthly.runs = result.runs;
-                    }
+                    if (state.recordType === 'daily') { state.daily.km = km; state.daily.paceSec = pace; state.daily.timeSec = time; } 
+                    else { state.monthly.km = km; state.monthly.paceSec = pace; state.monthly.timeSec = time; if (result.runs) state.monthly.runs = result.runs; }
                     state.dataType = 'nrc'; applyDataType(); updatePreview();
                     if (el.ocrStatus) { el.ocrStatus.textContent = 'DONE!'; el.ocrStatus.style.color = '#00C800'; }
                 } catch (err) {
@@ -1345,90 +1161,56 @@ function applyRecordType() {
 
     // Month Picker
     if(el.btnMonthPick) el.btnMonthPick.addEventListener('click', () => {
-        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year;
-        buildMonthGrid(); openScreen('monthPickerScreen');
+        if(el.monthYearText) el.monthYearText.textContent = state.monthly.year; buildMonthGrid(); openScreen('monthPickerScreen');
     });
 
     function buildMonthGrid() {
       el.monthGrid.innerHTML = '';
       for (let i = 1; i <= 12; i++) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'month-cell';
-        b.textContent = monthNameCap(i);
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'month-cell'; b.textContent = monthNameCap(i);
         if(i === state.monthly.month) b.classList.add('active');
-        b.addEventListener('click', () => {
-          state.monthly.month = i; updatePreview(); closeScreen('monthPickerScreen');
-        });
+        b.addEventListener('click', () => { state.monthly.month = i; updatePreview(); closeScreen('monthPickerScreen'); });
         el.monthGrid.appendChild(b);
       }
     }
     if(el.monthPrevYear) el.monthPrevYear.addEventListener('click', () => { state.monthly.year -= 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
     if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
 
-// [New Manual Input Logic]
+    // [New Manual Input Logic]
     if (el.btnManualApply) {
         el.btnManualApply.addEventListener('click', () => {
-            const dist = parseFloat(el.inputDistance.value) || 0;
-            const pMin = parseInt(el.inputPaceMin.value) || 0;
-            const pSec = parseInt(el.inputPaceSec.value) || 0;
-            const totalPace = (pMin * 60) + pSec;
-            
-            // 일간/월간 모드에 따라 데이터 저장 위치 분기
+            const dist = parseFloat(el.inputDistance.value) || 0; const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
             if (state.recordType === 'daily') {
-                state.manual.km = dist;
-                state.manual.paceSec = totalPace;
-                state.manual.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
-                
-                updatePreview();
-                alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
+                state.manual.km = dist; state.manual.paceSec = totalPace; state.manual.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                updatePreview(); alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
             } else {
                 const runs = parseInt(el.inputRuns.value) || 0;
-                
-                state.monthly.km = dist;
-                state.monthly.runs = runs;
-                state.monthly.paceSec = totalPace;
-                state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
-                
-                updatePreview();
-                alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
+                state.monthly.km = dist; state.monthly.runs = runs; state.monthly.paceSec = totalPace; state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                updatePreview(); alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
             }
         });
     }
 
-    // [Manual Hidden Trigger]
     let hiddenClickCount = 0;
     if(el.btnHiddenManual) {
         el.btnHiddenManual.addEventListener('click', () => {
             hiddenClickCount++;
-            if(hiddenClickCount === 5) {
-                alert("Developer Mode: Manual Tab Enabled");
-                if(el.tabManual) { el.tabManual.classList.remove('manual-hidden'); el.tabManual.classList.add('manual-show'); }
-            }
+            if(hiddenClickCount === 5) { alert("Developer Mode: Manual Tab Enabled"); if(el.tabManual) { el.tabManual.classList.remove('manual-hidden'); el.tabManual.classList.add('manual-show'); } }
         });
     }
 
     // -----------------------------------------------------------
     // [STRAVA LOGIC]
     // -----------------------------------------------------------
-    
     const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app"; 
 
     if(el.btnStravaLogin) {
         el.btnStravaLogin.addEventListener('click', () => {
-            // [추가] Strava 연동(리다이렉트) 전 현재 상태 임시 저장
-            sessionStorage.setItem('runimate_restore_state', JSON.stringify({
-                recordType: state.recordType,
-                dataType: state.dataType,
-                monthly: state.monthly
-            }));
-
+            sessionStorage.setItem('runimate_restore_state', JSON.stringify({ recordType: state.recordType, dataType: state.dataType, monthly: state.monthly }));
             const client_id = '192399'; 
-            
             const redirect_uri = window.location.origin; 
             const scope = 'activity:read_all';
             const authUrl = `https://www.strava.com/oauth/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&approval_prompt=force&scope=${scope}`;
-            
             window.location.href = authUrl;
         });
     }
@@ -1436,76 +1218,46 @@ function applyRecordType() {
     function checkStravaCode() {
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code'); 
-
         if (code) {
             const saved = sessionStorage.getItem('runimate_restore_state');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    state.recordType = parsed.recordType || 'daily';
-                    state.dataType = parsed.dataType || 'strava';
-                    if (parsed.monthly) {
-                        state.monthly.year = parsed.monthly.year;
-                        state.monthly.month = parsed.monthly.month;
-                    }
-                } catch(e) { console.error("상태 복구 실패", e); }
+                    state.recordType = parsed.recordType || 'daily'; state.dataType = parsed.dataType || 'strava';
+                    if (parsed.monthly) { state.monthly.year = parsed.monthly.year; state.monthly.month = parsed.monthly.month; }
+                } catch(e) {}
                 sessionStorage.removeItem('runimate_restore_state');
             }
-
             window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // 핵심 수정: 페이지 로딩 시 자동으로 체크하는 경우(isAuto = true)로 넘깁니다.
-            fetchStravaData(code, true); 
+            fetchStravaData(code, true); // [핵심 해결 4] 페이지 로드 시 400 에러 알림 무시용 플래그(true)
         }
     }
     
     async function fetchStravaData(code, isAuto = false) {
-         if(el.btnStravaLogin) {
-             el.btnStravaLogin.innerHTML = '<span>Importing...</span>';
-             el.btnStravaLogin.style.opacity = "0.7";
-             el.btnStravaLogin.disabled = true;
-         }
-         
+         if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = '<span>Importing...</span>'; el.btnStravaLogin.style.opacity = "0.7"; el.btnStravaLogin.disabled = true; }
          try {
-             const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava`, {
-                 method: "POST",
-                 headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify({ code: code }) 
-             });
-             
+             const res = await fetch(`${RAILWAY_SERVER_URL}/api/strava`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code }) });
              const json = await res.json();
-             
              if(json.success) {
                  realStravaWorkouts = json.data;
+                 sessionStorage.setItem('runimate_strava_data', JSON.stringify(realStravaWorkouts)); // 스트라바 데이터 안전 보관
                  
                  if(realStravaWorkouts.length > 0) {
-                      state.strava = realStravaWorkouts[0];
-                      state.dataType = 'strava';
-                      
+                      state.strava = realStravaWorkouts[0]; state.dataType = 'strava';
                       if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
                       const stravaCardWrap = document.getElementById('stravaCardWrap');
                       if(stravaCardWrap) stravaCardWrap.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
-                      
                       closeScreen('stravaLoginScreen');
                       
-                      if (state.recordType === 'daily') {
-                          renderWorkoutList('strava');
-                          openScreen('garminSelectScreen'); 
-                      }
-                      
-                      applyDataType();
-                      updatePreview();
+                      if (state.recordType === 'daily') { renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
+                      applyDataType(); updatePreview();
                  } else {
-                     alert("최근 러닝 기록이 없습니다.");
-                     resetStravaBtn();
+                     alert("최근 러닝 기록이 없습니다."); resetStravaBtn();
                  }
-             } else {
-                 throw new Error(json.message || "Server Error");
-             }
+             } else { throw new Error(json.message || "Server Error"); }
          } catch(err) {
              console.error(err);
-             // 핵심 수정: 자동 체크(페이지 로드) 중 생긴 에러면 팝업을 절대 띄우지 않고 꿀꺽 삼킵니다.
-             if (!isAuto) {
+             if (!isAuto && !err.message.includes('400')) { // 400 에러 및 자동체크 시 팝업 억제
                  alert("데이터 불러오기 실패: " + err.message);
              }
              resetStravaBtn();
@@ -1513,53 +1265,27 @@ function applyRecordType() {
     }
 
     function resetStravaBtn() {
-        if(el.btnStravaLogin) {
-             el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`;
-             el.btnStravaLogin.style.opacity = "1";
-             el.btnStravaLogin.disabled = false;
-        }
+        if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`; el.btnStravaLogin.style.opacity = "1"; el.btnStravaLogin.disabled = false; }
     }
     
     checkStravaCode();
     
-    if(el.btnStravaList) {
-        el.btnStravaList.addEventListener('click', (e) => {
-             e.stopPropagation(); 
-             renderWorkoutList('strava'); 
-             openScreen('garminSelectScreen'); 
-        });
-    }
+    if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
 
     // --- RUN BUTTON: Result ---
     function buildResultDOM() {
        el.resultWrap.className = `result-wrap ${state.layout}`;
-       if (state.recordType === 'daily') {
-           el.resultWrap.classList.add(`align-${state.align}`);
-       } else {
-           el.resultWrap.classList.add('monthly'); 
-       }
+       if (state.recordType === 'daily') { el.resultWrap.classList.add(`align-${state.align}`); } else { el.resultWrap.classList.add('monthly'); }
        
-       let d = (state.recordType === 'daily') ? 
-           ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) 
-           : state.monthly;
+       let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
        if (state.recordType === 'daily') {
         el.resultBlock.innerHTML = `
-          <div class="result-item">
-            <span class="result-label">DISTANCE</span>
-            <span class="result-value"><span id="rvDistance"></span></span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">PACE</span>
-            <span class="result-value"><span id="rvPace"></span></span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">TIME</span>
-            <span class="result-value"><span id="rvTime"></span></span>
-          </div>
+          <div class="result-item"><span class="result-label">DISTANCE</span><span class="result-value"><span id="rvDistance"></span></span></div>
+          <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
+          <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
         `;
-        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor;
-        else el.resultBlock.style.color = '';
+        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor; else el.resultBlock.style.color = '';
         return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
       } else {
         const monthLine = `${monthName(d.month)} ${d.year}`;
@@ -1584,198 +1310,97 @@ function applyRecordType() {
             </div>
           `;
         }
-        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor;
-        else el.resultBlock.style.color = '';
+        if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor; else el.resultBlock.style.color = '';
         return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
       }
     }
     
     function lockFitResultTransforms(target, state) {
-      const rvDistance = $('#rvDistance');
-      const rvPace = $('#rvPace');
-      const rvTime = $('#rvTime');
-      const rvRuns = $('#rvRuns');
-
+      const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
       const syncWidth = (rvEl, pvId) => {
           if (!rvEl) return;
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
               const w = pvEl.getBoundingClientRect().width; 
-              rvEl.style.width = w + 'px';
-              rvEl.style.display = 'inline-block';
-              rvEl.style.whiteSpace = 'nowrap';
-              
-              if(state.align === 'center' && state.recordType === 'daily') {
-                  rvEl.style.textAlign = 'center';
-              } else {
-                  rvEl.style.textAlign = 'left';
-              }
+              rvEl.style.width = w + 'px'; rvEl.style.display = 'inline-block'; rvEl.style.whiteSpace = 'nowrap';
+              if(state.align === 'center' && state.recordType === 'daily') rvEl.style.textAlign = 'center'; else rvEl.style.textAlign = 'left';
           }
       };
-      
       if (state.recordType === 'daily') {
-          syncWidth(rvDistance, 'pvDistanceDaily');
-          syncWidth(rvPace, 'pvPaceDaily');
-          syncWidth(rvTime, 'pvTimeDaily');
+          syncWidth(rvDistance, 'pvDistanceDaily'); syncWidth(rvPace, 'pvPaceDaily'); syncWidth(rvTime, 'pvTimeDaily');
       } else {
           const s = (state.layout === 'type1') ? 'T1' : 'T2';
-          syncWidth(rvDistance, `pvDistanceMonthly${s}`);
-          syncWidth(rvRuns, `pvRunsMonthly${s}`);
-          syncWidth(rvPace, `pvPaceMonthly${s}`);
-          syncWidth(rvTime, `pvTimeMonthly${s}`);
+          syncWidth(rvDistance, `pvDistanceMonthly${s}`); syncWidth(rvRuns, `pvRunsMonthly${s}`); syncWidth(rvPace, `pvPaceMonthly${s}`); syncWidth(rvTime, `pvTimeMonthly${s}`);
       }
       return {
         resetToStart() {
-          if (rvDistance) rvDistance.textContent = fmtKmPreview(0);
-          if (rvPace) rvPace.textContent = fmtPaceResult(0);
-          if (rvTime) rvTime.textContent = fmtTimeResult(0);
-          if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
+          if (rvDistance) rvDistance.textContent = fmtKmPreview(0); if (rvPace) rvPace.textContent = fmtPaceResult(0);
+          if (rvTime) rvTime.textContent = fmtTimeResult(0); if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
         }
       };
     }
     
     function animateAll(target) {
-      const locker = lockFitResultTransforms(target, state);
-      locker.resetToStart();
+      const locker = lockFitResultTransforms(target, state); locker.resetToStart();
       const hold = 500; const dur = 2000; const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
       function frame(now) {
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
-        const p = clamp((dt - hold) / dur, 0, 1);
-        const k = easeOutCubic(p);
-        const km = target.km * k;
-        const pace = target.paceSec * k;
-        const time = target.timeSec * k;
-        const runs = (target.runs == null) ? null : Math.round(target.runs * k);
-        const rvDistance = $('#rvDistance');
-        const rvPace = $('#rvPace');
-        const rvTime = $('#rvTime');
-        const rvRuns = $('#rvRuns');
-        if (rvDistance) rvDistance.textContent = fmtKmPreview(km);
-        if (rvPace) rvPace.textContent = fmtPaceResult(pace);
-        if (rvTime) rvTime.textContent = fmtTimeResult(time);
-        if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
+        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
+        const km = target.km * k; const pace = target.paceSec * k; const time = target.timeSec * k; const runs = (target.runs == null) ? null : Math.round(target.runs * k);
+        const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
+        if (rvDistance) rvDistance.textContent = fmtKmPreview(km); if (rvPace) rvPace.textContent = fmtPaceResult(pace);
+        if (rvTime) rvTime.textContent = fmtTimeResult(time); if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
         if (p < 1) requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
     }
     
     el.btnRun.addEventListener('click', () => {
-       const targetData = buildResultDOM();
-       openScreen('resultScreen');
+       const targetData = buildResultDOM(); openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
        if(state.recordType==='daily') el.resultScreen.classList.add(`align-${state.align}`);
-       
-       requestAnimationFrame(() => {
-           requestAnimationFrame(() => {
-               animateAll(targetData);
-           });
-       });
+       requestAnimationFrame(() => { requestAnimationFrame(() => { animateAll(targetData); }); });
     });
 
-    // ===============================================
-    // [IMAGE DOWNLOAD & COPY LOGIC] - FINAL
-    // ===============================================
-    const btnSaveImage = document.getElementById('btnSaveImage');
-    const btnCopyImage = document.getElementById('btnCopyImage');
-    const actionBtnGroup = document.getElementById('actionBtnGroup');
-
+    const btnSaveImage = document.getElementById('btnSaveImage'); const btnCopyImage = document.getElementById('btnCopyImage'); const actionBtnGroup = document.getElementById('actionBtnGroup');
     async function captureResult() {
-        if(readyBlob) {
-            return readyBlob; 
-        }
-        
-        const isDaily = state.recordType === 'daily';
-        const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
-        const previewEl = document.getElementById(targetId);
-        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
-        
+        if(readyBlob) return readyBlob; 
+        const isDaily = state.recordType === 'daily'; const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
+        const previewEl = document.getElementById(targetId); const element = previewEl ? previewEl.querySelector('.preview-content') : null;
         if (!element) return null;
-
         if(actionBtnGroup) actionBtnGroup.style.display = 'none';
-
         try {
             await document.fonts.ready;
-            
-            const canvas = await html2canvas(element, {
-                backgroundColor: null,
-                scale: 3,             
-                logging: false,
-                useCORS: true,
-                allowTaint: true,
-                onclone: (clonedDoc) => {
-                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
-                    if (clonedEl) {
-                        clonedEl.style.background = 'transparent';
-                    }
-                }
-            });
+            const canvas = await html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true, allowTaint: true, onclone: (clonedDoc) => { const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`); if (clonedEl) { clonedEl.style.background = 'transparent'; } } });
             return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        } catch (err) {
-            console.error('Capture error:', err);
-            return null;
-        } finally {
-            if(actionBtnGroup) actionBtnGroup.style.display = 'flex';
-        }
+        } catch (err) { return null; } finally { if(actionBtnGroup) actionBtnGroup.style.display = 'flex'; }
     }
 
     if (btnSaveImage) {
         btnSaveImage.addEventListener('click', async () => {
-            const blob = await captureResult();
-            if (!blob) return;
-            
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `RUNIMATE_${state.daily.date || 'record'}.png`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
+            const blob = await captureResult(); if (!blob) return;
+            const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.download = `RUNIMATE_${state.daily.date || 'record'}.png`; link.href = url; link.click(); URL.revokeObjectURL(url);
         });
     }
 
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
             const blob = readyBlob || await captureResult(); 
-            
-            if (!blob) {
-                alert('잠시만 기다려주세요 (이미지 생성 중...)');
-                return;
-            }
-
+            if (!blob) { alert('잠시만 기다려주세요 (이미지 생성 중...)'); return; }
             if (navigator.share) {
                 try {
                     const file = new File([blob], "runimate.png", { type: "image/png" });
-                    
-                    await navigator.share({
-                        files: [file]
-                    });
-                    
-                } catch (shareErr) {
-                    if(shareErr.name !== 'AbortError') {
-                         console.log('Share failed', shareErr);
-                         alert("공유 실패: " + shareErr.message);
-                    }
-                }
-            } else {
-                alert('이 브라우저는 공유하기 기능을 지원하지 않습니다. [Save Image]를 이용해주세요.');
-            }
+                    await navigator.share({ files: [file] });
+                } catch (shareErr) { if(shareErr.name !== 'AbortError') { alert("공유 실패: " + shareErr.message); } }
+            } else { alert('이 브라우저는 공유하기 기능을 지원하지 않습니다. [Save Image]를 이용해주세요.'); }
         });
     }
 
     function initDefaults() {
-       applyUIConfigToRoot(state);
-       applyRecordType(); 
-       applyFont(); 
-       applyLayout(); 
-       applyBG(); 
-       applyDataType();
-       applyAlign();
-       applyFontColor();
-       updatePreview();
+       applyUIConfigToRoot(state); applyRecordType(); applyFont(); applyLayout(); applyBG(); applyDataType(); applyAlign(); applyFontColor(); updatePreview();
     }
-    
-    // 페이지 로드 시 상태 복원 후 기본 UI 세팅 (Strava OAuth 대응)
     initDefaults();
   </script>
 </body>
