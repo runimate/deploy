@@ -841,17 +841,18 @@ function generateMockWorkouts() {
           let runs = 0;
 
           workouts.forEach(w => {
-              // [핵심 수정 1] 네거티브 필터링 방식으로 변경
-              // 명확하게 '보행', '자전거', '수영'인 경우만 합산에서 제외 (러닝, 트레일러닝 등은 모두 통과)
+              // [핵심 수정 1] 엄격한 러닝/트레일러닝 필터링 적용
               const wStr = JSON.stringify(w).toLowerCase();
-              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
-              const isRide = wStr.includes('ride') || wStr.includes('bike') || wStr.includes('자전거') || wStr.includes('cycling');
-              const isSwim = wStr.includes('swim') || wStr.includes('수영');
               
-              if (isWalk || isRide || isSwim) return; 
+              // 1. 보행(걷기) 키워드가 있으면 무조건 제외
+              const isWalk = wStr.includes('walk') || wStr.includes('걷기') || wStr.includes('보행');
+              if (isWalk) return;
 
-              // [핵심 수정 2] 날짜 파싱 완전 방어 코드
-              // "-", ".", "/" 등 어떤 기호로 날짜가 들어오든 연/월을 무조건 추출
+              // 2. 러닝, 트레일러닝 관련 키워드가 없으면 제외 (오직 러닝 계열만 통과)
+              const isRun = wStr.includes('run') || wStr.includes('러닝') || wStr.includes('달리기') || wStr.includes('trail') || wStr.includes('트레일');
+              if (!isRun) return;
+
+              // [핵심 수정 2] 날짜 파싱 방어 코드 (어떤 기호로 오든 연/월 추출)
               const dateStr = String(w.date || '');
               const parts = dateStr.split(/[.\-\/]/).map(s => s.trim());
               
