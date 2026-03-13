@@ -97,17 +97,17 @@
       font-size: 32px; 
       display: flex; 
       align-items: center; 
-      gap: 16px; /* 기존 공백문자를 제거하고 gap으로 간격을 30% 타이트하게 조정 */
+      gap: 16px; 
       margin-bottom: 8px; 
     }
     
-    /* 투명 여백을 깎아낸 SVG에 맞춰 크기를 20% 키우고 상단 정렬 조정 */
+    /* 20% 커진 화살표 크기 유지 & 상단으로 3px 추가 이동 */
     .acg-arrow {
       display: inline-block; 
-      width: 26px;  /* 내부 여백이 없는 상태의 26px이므로 눈으로 보기엔 훨씬 큽니다 */
+      width: 26px; 
       height: 26px;
       flex-shrink: 0;
-      margin-top: -2px; /* 텍스트와 높이를 맞추는 미세 조정 */
+      margin-top: -5px; /* 기존 -2px에서 위로 3px 더 올림 */
     }
 
     /* Fixed Run Button */
@@ -195,6 +195,7 @@
       <span class="section-label">PREVIEW</span>
       <div class="board-wrap" id="previewBoard">
         <div class="acg-text acg-dday" id="pvDday">D-30</div>
+        
         <div class="acg-text acg-line">
           <span>DISTANCE</span><span id="pvDist">10.56km</span>
         </div>
@@ -205,7 +206,7 @@
           <span>TIME</span><span id="pvTime">1:24:37</span>
         </div>
         <div class="acg-text acg-line" id="lineElev" style="display: none;">
-          <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor">
+          <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor" stroke="var(--bg-color)" stroke-width="0.8" stroke-linejoin="miter">
             <path d="M12.4 0 V11 H9.0 V5.8 L2.4 12.4 L0 10 L6.6 3.4 H1.4 V0 Z"/>
           </svg>
           <span id="pvElev">215m</span>
@@ -231,7 +232,7 @@
         <span>TIME</span><span id="rvTime">0:00:00</span>
       </div>
       <div class="acg-text acg-line" id="rvLineElev" style="display: none;">
-        <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor">
+        <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor" stroke="var(--bg-color)" stroke-width="0.8" stroke-linejoin="miter">
           <path d="M12.4 0 V11 H9.0 V5.8 L2.4 12.4 L0 10 L6.6 3.4 H1.4 V0 Z"/>
         </svg>
         <span id="rvElev">0m</span>
@@ -327,7 +328,7 @@
       const targetPaceSec = targetDist > 0 ? (targetTimeSec / targetDist) : 0;
       const targetElev = parseInt($('inElev').value) || 0;
 
-      // Set initial layout for Result Board
+      // 애니메이션 전 초기값 세팅
       if (mode === 'RUN') {
         $('rvLinePace').style.display = 'flex';
         $('rvLineElev').style.display = 'none';
@@ -336,38 +337,46 @@
         $('rvLineElev').style.display = 'flex';
       }
 
+      $('rvDday').innerText = `D-99`;
+      $('rvDist').innerText = `0.00km`;
+      $('rvPace').innerText = `0'00"`;
+      $('rvTime').innerText = `0:00`;
+      $('rvElev').innerText = `0m`;
+
       // Show screen
       $('resultScreen').classList.add('show');
 
-      // Animate Loop
-      const duration = 2000;
-      const startTime = performance.now();
-      const startDday = 99;
+      // 0.8초(800ms) 대기 후 애니메이션 시작
+      setTimeout(() => {
+        const duration = 2000;
+        const startTime = performance.now();
+        const startDday = 99;
 
-      function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3); // Cubic ease out
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3); // Cubic ease out
 
-        // Calculate current frames
-        const currentDday = Math.round(startDday - ((startDday - targetDday) * easeOut));
-        const currentDist = targetDist * easeOut;
-        const currentPaceSec = targetPaceSec * easeOut;
-        const currentTimeSec = targetTimeSec * easeOut;
-        const currentElev = Math.round(targetElev * easeOut);
+          // Calculate current frames
+          const currentDday = Math.round(startDday - ((startDday - targetDday) * easeOut));
+          const currentDist = targetDist * easeOut;
+          const currentPaceSec = targetPaceSec * easeOut;
+          const currentTimeSec = targetTimeSec * easeOut;
+          const currentElev = Math.round(targetElev * easeOut);
 
-        // Render frames
-        $('rvDday').innerText = `D-${currentDday}`;
-        $('rvDist').innerText = `${currentDist.toFixed(2)}km`;
-        $('rvPace').innerText = formatPace(currentPaceSec);
-        $('rvTime').innerText = formatTime(currentTimeSec);
-        $('rvElev').innerText = `${currentElev}m`;
+          // Render frames
+          $('rvDday').innerText = `D-${currentDday}`;
+          $('rvDist').innerText = `${currentDist.toFixed(2)}km`;
+          $('rvPace').innerText = formatPace(currentPaceSec);
+          $('rvTime').innerText = formatTime(currentTimeSec);
+          $('rvElev').innerText = `${currentElev}m`;
 
-        if (progress < 1) {
-          requestAnimationFrame(update);
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          }
         }
-      }
-      requestAnimationFrame(update);
+        requestAnimationFrame(update);
+      }, 800); // 딜레이 시간 (0.8초)
     }
 
     $('btnActionRun').addEventListener('click', animateResult);
