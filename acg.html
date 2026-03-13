@@ -101,13 +101,13 @@
       margin-bottom: 8px; 
     }
     
-    /* 완벽하게 수정된 화살표 스타일 */
+    /* 화살표 크기 확대(110%) 및 광학적 상단 정렬 맞춤 */
     .acg-arrow {
       display: inline-block; 
-      width: 32px;  /* 글자 크기(32px)와 동일하게 맞춰서 시각적 안정감 부여 */
-      height: 32px;
+      width: 36px;  /* 기존 32px에서 110% 확대 */
+      height: 36px;
       flex-shrink: 0;
-      margin-top: 2px; /* 숫자와 시각적 밸런스를 맞추기 위한 미세조정 */
+      margin-top: -4px; /* 숫자 높이와 완벽하게 맞물리도록 위로 살짝 이동 */
     }
 
     /* Fixed Run Button */
@@ -200,7 +200,7 @@
         <div class="acg-text acg-line">TIME &nbsp;<span id="pvTime">1:24:37</span></div>
         <div class="acg-text acg-line" id="lineElev" style="display: none;">
           <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22 2 V15 H18 V8.828 L6.828 20 L4 17.172 L15.172 6 H9 V2 H22 Z"/>
+            <path d="M20 4 V15 H16.6 V9.8 L10 16.4 L7.6 14 L14.2 7.4 H9 V4 Z"/>
           </svg>
           <span id="pvElev">215m</span>
         </div>
@@ -219,7 +219,7 @@
       <div class="acg-text acg-line">TIME &nbsp;<span id="rvTime">0:00:00</span></div>
       <div class="acg-text acg-line" id="rvLineElev" style="display: none;">
         <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M22 2 V15 H18 V8.828 L6.828 20 L4 17.172 L15.172 6 H9 V2 H22 Z"/>
+          <path d="M20 4 V15 H16.6 V9.8 L10 16.4 L7.6 14 L14.2 7.4 H9 V4 Z"/>
         </svg>
         <span id="rvElev">0m</span>
       </div>
