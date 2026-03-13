@@ -97,17 +97,17 @@
       font-size: 32px; 
       display: flex; 
       align-items: center; 
-      gap: 12px; 
+      gap: 16px; /* 기존 공백문자를 제거하고 gap으로 간격을 30% 타이트하게 조정 */
       margin-bottom: 8px; 
     }
     
-    /* 화살표 크기 확대(110%) 및 광학적 상단 정렬 맞춤 */
+    /* 투명 여백을 깎아낸 SVG에 맞춰 크기를 20% 키우고 상단 정렬 조정 */
     .acg-arrow {
       display: inline-block; 
-      width: 36px;  /* 기존 32px에서 110% 확대 */
-      height: 36px;
+      width: 26px;  /* 내부 여백이 없는 상태의 26px이므로 눈으로 보기엔 훨씬 큽니다 */
+      height: 26px;
       flex-shrink: 0;
-      margin-top: -4px; /* 숫자 높이와 완벽하게 맞물리도록 위로 살짝 이동 */
+      margin-top: -2px; /* 텍스트와 높이를 맞추는 미세 조정 */
     }
 
     /* Fixed Run Button */
@@ -195,12 +195,18 @@
       <span class="section-label">PREVIEW</span>
       <div class="board-wrap" id="previewBoard">
         <div class="acg-text acg-dday" id="pvDday">D-30</div>
-        <div class="acg-text acg-line">DISTANCE &nbsp;<span id="pvDist">10.56km</span></div>
-        <div class="acg-text acg-line" id="linePace">PACE &nbsp;<span id="pvPace">5'47"</span></div>
-        <div class="acg-text acg-line">TIME &nbsp;<span id="pvTime">1:24:37</span></div>
+        <div class="acg-text acg-line">
+          <span>DISTANCE</span><span id="pvDist">10.56km</span>
+        </div>
+        <div class="acg-text acg-line" id="linePace">
+          <span>PACE</span><span id="pvPace">5'47"</span>
+        </div>
+        <div class="acg-text acg-line">
+          <span>TIME</span><span id="pvTime">1:24:37</span>
+        </div>
         <div class="acg-text acg-line" id="lineElev" style="display: none;">
-          <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 4 V15 H16.6 V9.8 L10 16.4 L7.6 14 L14.2 7.4 H9 V4 Z"/>
+          <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor">
+            <path d="M12.4 0 V11 H9.0 V5.8 L2.4 12.4 L0 10 L6.6 3.4 H1.4 V0 Z"/>
           </svg>
           <span id="pvElev">215m</span>
         </div>
@@ -214,12 +220,19 @@
     <button class="screen-close" id="btnCloseResult">×</button>
     <div class="board-wrap" style="border:none; padding: 20px;" id="resultBoard">
       <div class="acg-text acg-dday" id="rvDday">D-99</div>
-      <div class="acg-text acg-line">DISTANCE &nbsp;<span id="rvDist">0.00km</span></div>
-      <div class="acg-text acg-line" id="rvLinePace">PACE &nbsp;<span id="rvPace">0'00"</span></div>
-      <div class="acg-text acg-line">TIME &nbsp;<span id="rvTime">0:00:00</span></div>
+      
+      <div class="acg-text acg-line">
+        <span>DISTANCE</span><span id="rvDist">0.00km</span>
+      </div>
+      <div class="acg-text acg-line" id="rvLinePace">
+        <span>PACE</span><span id="rvPace">0'00"</span>
+      </div>
+      <div class="acg-text acg-line">
+        <span>TIME</span><span id="rvTime">0:00:00</span>
+      </div>
       <div class="acg-text acg-line" id="rvLineElev" style="display: none;">
-        <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M20 4 V15 H16.6 V9.8 L10 16.4 L7.6 14 L14.2 7.4 H9 V4 Z"/>
+        <svg class="acg-arrow" viewBox="0 0 12.4 12.4" fill="currentColor">
+          <path d="M12.4 0 V11 H9.0 V5.8 L2.4 12.4 L0 10 L6.6 3.4 H1.4 V0 Z"/>
         </svg>
         <span id="rvElev">0m</span>
       </div>
