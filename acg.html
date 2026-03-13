@@ -97,17 +97,17 @@
       font-size: 32px; 
       display: flex; 
       align-items: center; 
-      gap: 10px; 
+      gap: 12px; 
       margin-bottom: 8px; 
     }
     
-    /* 화살표 정렬 및 크기 조정 */
+    /* 완벽하게 수정된 화살표 스타일 */
     .acg-arrow {
       display: inline-block; 
-      width: 38px; 
-      height: 38px;
+      width: 32px;  /* 글자 크기(32px)와 동일하게 맞춰서 시각적 안정감 부여 */
+      height: 32px;
       flex-shrink: 0;
-      margin-top: -2px; /* 숫자와 시각적 밸런스를 맞추기 위한 미세조정 */
+      margin-top: 2px; /* 숫자와 시각적 밸런스를 맞추기 위한 미세조정 */
     }
 
     /* Fixed Run Button */
@@ -200,7 +200,7 @@
         <div class="acg-text acg-line">TIME &nbsp;<span id="pvTime">1:24:37</span></div>
         <div class="acg-text acg-line" id="lineElev" style="display: none;">
           <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="20,6 20,18 16.5,18 16.5,9.5 7.5,18.5 5,16 11.5,9.5 8,9.5 8,6" />
+            <path d="M22 2 V15 H18 V8.828 L6.828 20 L4 17.172 L15.172 6 H9 V2 H22 Z"/>
           </svg>
           <span id="pvElev">215m</span>
         </div>
@@ -219,7 +219,7 @@
       <div class="acg-text acg-line">TIME &nbsp;<span id="rvTime">0:00:00</span></div>
       <div class="acg-text acg-line" id="rvLineElev" style="display: none;">
         <svg class="acg-arrow" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="20,6 20,18 16.5,18 16.5,9.5 7.5,18.5 5,16 11.5,9.5 8,9.5 8,6" />
+          <path d="M22 2 V15 H18 V8.828 L6.828 20 L4 17.172 L15.172 6 H9 V2 H22 Z"/>
         </svg>
         <span id="rvElev">0m</span>
       </div>
@@ -329,7 +329,7 @@
       // Animate Loop
       const duration = 2000;
       const startTime = performance.now();
-      const startDday = 99; // D-day는 무조건 99에서 시작
+      const startDday = 99;
 
       function update(currentTime) {
         const elapsed = currentTime - startTime;
