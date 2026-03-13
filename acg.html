@@ -85,11 +85,11 @@
     }
 
     .acg-text {
-      font-family: 'Helv', Arial, sans-serif; /* 헬베티카 폰트 적용 */
-      font-weight: bold;
+      font-family: 'Helv', Arial, sans-serif;
+      font-weight: 900; /* 폰트를 더 두껍게 설정 */
+      /* -webkit-text-stroke: 1px currentColor; */ /* 만약 900으로도 부족하면 이 주석을 해제해! */
       letter-spacing: -0.5px;
       line-height: 1.1;
-      text-transform: uppercase;
     }
 
     .acg-dday { font-size: 80px; margin-bottom: 24px; letter-spacing: -2px; }
@@ -188,7 +188,7 @@
         <div class="acg-text acg-line" id="linePace">PACE &nbsp;<span id="pvPace">5'47"</span></div>
         <div class="acg-text acg-line">TIME &nbsp;<span id="pvTime">1:24:37</span></div>
         <div class="acg-text acg-line" id="lineElev" style="display: none;">
-          <svg class="acg-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="acg-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square" stroke-linejoin="miter">
             <line x1="6" y1="18" x2="18" y2="6"></line>
             <polyline points="6 6 18 6 18 18"></polyline>
           </svg>
@@ -208,7 +208,7 @@
       <div class="acg-text acg-line" id="rvLinePace">PACE &nbsp;<span id="rvPace">0'00"</span></div>
       <div class="acg-text acg-line">TIME &nbsp;<span id="rvTime">0:00:00</span></div>
       <div class="acg-text acg-line" id="rvLineElev" style="display: none;">
-        <svg class="acg-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="acg-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square" stroke-linejoin="miter">
           <line x1="6" y1="18" x2="18" y2="6"></line>
           <polyline points="6 6 18 6 18 18"></polyline>
         </svg>
@@ -252,9 +252,9 @@
       const totalSec = (th * 3600) + (tm * 60) + ts;
       const paceSec = dist > 0 ? (totalSec / dist) : 0;
 
-      // Update Preview Board
+      // Update Preview Board (단위를 직접 소문자로 입력)
       $('pvDday').innerText = `D-${dday}`;
-      $('pvDist').innerText = `${dist.toFixed(2)}km`; /* 대소문자 이미지에 맞게 km */
+      $('pvDist').innerText = `${dist.toFixed(2)}km`;
       $('pvTime').innerText = formatTime(totalSec);
       
       if (mode === 'RUN') {
@@ -334,7 +334,7 @@
         const currentTimeSec = targetTimeSec * easeOut;
         const currentElev = Math.round(targetElev * easeOut);
 
-        // Render frames
+        // Render frames (단위 소문자 반영)
         $('rvDday').innerText = `D-${currentDday}`;
         $('rvDist').innerText = `${currentDist.toFixed(2)}km`;
         $('rvPace').innerText = formatPace(currentPaceSec);
