@@ -1,4 +1,4 @@
-// js/ocr.js — SMART HYBRID OCR v4.1 (Mode-Aware Layout & Math Guard)
+// js/ocr.js — SMART HYBRID OCR v3.1 (Auto-Invert & Math Guard)
 
 // 1. Tesseract 로드
 async function ensureTesseract() {
@@ -15,8 +15,9 @@ async function ensureTesseract() {
   return window.Tesseract;
 }
 
-// 2. 캔버스 및 전처리 유틸리티 (다크모드 완벽 대응)
+// 2. 캔버스 변환 유틸
 function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
 async function toCanvas(imgDataURL) {
   return new Promise((res, rej) => {
     const img = new Image();
@@ -27,6 +28,7 @@ async function toCanvas(imgDataURL) {
   });
 }
 
+// 3. 다크모드 대응 및 대비 강화 전처리 (매우 중요)
 async function preprocessImage(imgDataURL) {
   const { img, w, h } = await toCanvas(imgDataURL);
   const scale = w < 1000 ? 2.5 : 1.5; 
@@ -39,18 +41,23 @@ async function preprocessImage(imgDataURL) {
   const imageData = ctx.getImageData(0, 0, sw, sh);
   const d = imageData.data;
   
+  // A. 다크모드/라이트모드 판별 (평균 밝기 계산)
   let totalLuma = 0;
   for (let i = 0; i < d.length; i += 4) {
       totalLuma += d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
   }
   const isDarkMode = (totalLuma / (sw * sh)) < 127;
 
+  // B. 이진화 및 극단적 대비 처리 (항상 흰 배경에 검은 글씨로 통일)
   for (let i = 0; i < d.length; i += 4) {
     let gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-    if (isDarkMode) gray = 255 - gray; 
     
-    gray = (gray - 50) * 1.8;
-    const val = gray > 140 ? 255 : 0;
+    if (isDarkMode) {
+        gray = 255 - gray; // 다크모드면 색상을 반전시킴
+    }
+    
+    gray = (gray - 50) * 1.8; // 대비 강화
+    const val = gray > 140 ? 255 : 0; // 이진화
     d[i] = d[i + 1] = d[i + 2] = val;
   }
   
@@ -58,11 +65,12 @@ async function preprocessImage(imgDataURL) {
   return c.toDataURL('image/png');
 }
 
+// 4. 텍스트 정제
 function cleanText(t) { return (t || '').replace(/[\u2018\u2019\u2032\u2035]/g, "'").replace(/[\u201C\u201D\u2033]/g, '"').trim(); }
 function parseNum(t) { return parseFloat(t.replace(/,/g, '').replace(/O/gi, '0').replace(/l/gi, '1')); }
 
-// 3. ✨ 핵심: 모드(일간/월간)에 따른 맞춤형 공간 파싱
-function parseByLayout(lines, width, height, recordType) {
+// 5. 전역 텍스트 파싱 (시간과 페이스 꼬임 방지)
+function parseValues(fullText, lines, height) {
   let results = {
     km: { val: 0, size: 0 },
     pace: { m: 0, s: 0 },
@@ -70,84 +78,69 @@ function parseByLayout(lines, width, height, recordType) {
     runs: { val: null }
   };
 
+  // [거리] 화면 상단에서 폰트가 가장 큰 숫자
   lines.forEach(line => {
     const text = cleanText(line.text);
-    const box = line.bbox;
-    const cx = (box.x0 + box.x1) / 2; 
-    const cy = (box.y0 + box.y1) / 2; 
-    const fontH = box.y1 - box.y0;    
+    const fontH = line.bbox.y1 - line.bbox.y0;
+    const cy = (line.bbox.y0 + line.bbox.y1) / 2;
 
-    // A. 거리 (KM) - 화면 위쪽 45%
-    if (cy < height * 0.45 && /^[\d.,]+$/.test(text) && !/['":]/.test(text)) {
+    if (/^[\d.,]+$/.test(text) && !/['":]/.test(text) && cy < height * 0.5) {
         if (fontH > results.km.size) {
             results.km = { val: parseNum(text), size: fontH };
         }
     }
-
-    // B. 하단 데이터 영역 (화면 45% ~ 85%)
-    if (cy > height * 0.45 && cy < height * 0.85) {
-        
-        const match2 = text.match(/(\d{1,2})[^\d]+(\d{2})/); // 페이스 또는 MM:SS
-        const match3 = text.match(/(\d{1,2})[^\d]+(\d{2})[^\d]+(\d{2})/); // H:MM:SS
-        const isJustNumber = /^\d{1,3}$/.test(text); // 기호 없는 순수 숫자 (Runs 후보)
-
-        // X 좌표를 기준으로 왼쪽, 가운데, 오른쪽 3등분
-        let zone = '';
-        if (cx < width * 0.35) zone = 'left';
-        else if (cx < width * 0.65) zone = 'center';
-        else zone = 'right';
-
-        if (recordType === 'monthly') {
-            // [월간 모드] 좌: Runs / 중: Pace / 우: Time
-            if (zone === 'left' && isJustNumber) {
-                results.runs = { val: parseInt(text) };
-            }
-            if (zone === 'center' && match2 && !match3) {
-                results.pace = { m: parseInt(match2[1]), s: parseInt(match2[2]) };
-            }
-            if (zone === 'right') {
-                if (match3) results.time = { h: parseInt(match3[1]), m: parseInt(match3[2]), s: parseInt(match3[3]) };
-                else if (match2) results.time = { h: 0, m: parseInt(match2[1]), s: parseInt(match2[2]) };
-            }
-        } else {
-            // [일간 모드] 좌: Pace / 중: Time / 우: Calories(무시)
-            if (zone === 'left' && match2 && !match3) {
-                results.pace = { m: parseInt(match2[1]), s: parseInt(match2[2]) };
-            }
-            if (zone === 'center') {
-                if (match3) results.time = { h: parseInt(match3[1]), m: parseInt(match3[2]), s: parseInt(match3[3]) };
-                else if (match2) results.time = { h: 0, m: parseInt(match2[1]), s: parseInt(match2[2]) };
-            }
-        }
-    }
-
-    // C. 백업: 한 줄에 "22 Runs" 형태로 예쁘게 붙어있을 경우
-    const runMatch = text.match(/(\d{1,3})\s*(Runs|Run|러닝)/i);
-    if (runMatch) results.runs = { val: parseInt(runMatch[1]) };
   });
+
+  // [페이스] 전체 텍스트에서 ' 기호 검색 (ex: 5'59")
+  const paceMatch = fullText.match(/(\d{1,2})\s*['’]\s*(\d{2})/);
+  if (paceMatch) {
+      results.pace = { m: parseInt(paceMatch[1]), s: parseInt(paceMatch[2]) };
+  }
+
+  // [시간] 전체 텍스트에서 : 기호 검색 (페이스와 절대 중복되지 않게)
+  const timeMatch3 = fullText.match(/(\d{1,2})\s*[:;]\s*(\d{2})\s*[:;]\s*(\d{2})/);
+  if (timeMatch3) {
+      results.time = { h: parseInt(timeMatch3[1]), m: parseInt(timeMatch3[2]), s: parseInt(timeMatch3[3]) };
+  } else {
+      // MM:SS 추출 (페이스 값과 동일하면 무시)
+      const timeMatches2 = [...fullText.matchAll(/(\d{1,2})\s*[:;]\s*(\d{2})/g)];
+      for (const m of timeMatches2) {
+          const mm = parseInt(m[1]), ss = parseInt(m[2]);
+          if (results.pace.m === mm && results.pace.s === ss) continue;
+          results.time = { h: 0, m: mm, s: ss };
+          break;
+      }
+  }
+
+  // [횟수] Runs
+  const runMatch = fullText.match(/(\d{1,3})\s*(Runs|Run|러닝)/i);
+  if (runMatch) results.runs = { val: parseInt(runMatch[1]) };
 
   return results;
 }
 
-// 4. 수학적 교차 검증 보정기
-function dynamicMathGuard(ocrKm, calcKm) {
-    if (!ocrKm || !calcKm) return ocrKm;
-    const diff = Math.abs(ocrKm - calcKm);
+// 6. 지능형 수학 보정기 (5->3, 10->7 등 앞자리 오인식 완벽 보정)
+function dynamicDecimalGuard(rawKm, estKm) {
+    if (!rawKm || !estKm) return rawKm;
+    const diff = Math.abs(rawKm - estKm);
     
+    // 오차가 0.8 ~ 5.0 사이로 크게 난 경우 (앞자리 착각)
     if (diff > 0.8 && diff < 5.0) {
-        const decOcr = ocrKm % 1;
-        const decCalc = calcKm % 1;
+        const decRaw = rawKm % 1;
+        const decEst = estKm % 1;
         
-        if (Math.abs(decOcr - decCalc) < 0.1) {
-            const fixedKm = parseFloat(calcKm.toFixed(2));
-            console.log(`[Math Guard 🚀] ${ocrKm}km -> ${fixedKm}km 로 자동 보정됨!`);
+        // 소수점 차이가 0.15 이내라면 앞자리만 틀린 것이 확실함!
+        if (Math.abs(decRaw - decEst) < 0.15) {
+            const estInt = Math.round(estKm - decRaw);
+            const fixedKm = parseFloat((estInt + decRaw).toFixed(2));
+            console.log(`[Math Guard 발동] ${rawKm}km -> ${fixedKm}km 로 보정되었습니다.`);
             return fixedKm;
         }
     }
-    return ocrKm;
+    return rawKm;
 }
 
-// 5. 메인 파이프라인
+// 7. 메인 실행 함수 (Window 객체에 등록)
 window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
   try {
     await ensureTesseract();
@@ -159,8 +152,8 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
 
     const imgObj = await toCanvas(processedImg);
     
-    // 파싱 함수에 recordType을 넘겨주어 레이아웃 기준을 다르게 적용
-    const parsed = parseByLayout(data.lines, imgObj.w, imgObj.h, recordType);
+    // 파싱 실행
+    const parsed = parseValues(data.text, data.lines, imgObj.h);
 
     let km = parsed.km.val || 0;
     let runs = recordType === 'monthly' ? (parsed.runs.val || 0) : 1;
@@ -173,6 +166,7 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
     const totalPaceSec = (paceMin * 60) + paceSec;
     const totalTimeSec = (timeH * 3600) + (timeM * 60) + timeS;
     
+    // 누락 데이터 수학적 채우기
     if (totalTimeSec === 0 && km > 0 && totalPaceSec > 0) {
         const calcSec = Math.round(km * totalPaceSec);
         timeH = Math.floor(calcSec / 3600);
@@ -184,8 +178,9 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
         paceSec = calcPace % 60;
     }
 
-    const calcKm = (totalTimeSec > 0 && totalPaceSec > 0) ? (totalTimeSec / totalPaceSec) : null;
-    km = dynamicMathGuard(km, calcKm);
+    // 최종 교차 검증 (Distance 수학적 보정)
+    const estKm = (totalTimeSec > 0 && totalPaceSec > 0) ? (totalTimeSec / totalPaceSec) : null;
+    km = dynamicDecimalGuard(km, estKm);
 
     return {
       km: parseFloat(km.toFixed(2)),
