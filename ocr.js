@@ -175,10 +175,11 @@ function applyFiveGuard(rawKm, estKm) {
   return rawKm;
 }
 
+
 /* ------------------------------------------------------------------
-   6) 메인 추출 파이프라인 (export 함수)
+   6) 메인 추출 파이프라인 (window 전역 함수로 연결)
 ------------------------------------------------------------------ */
-export async function extractAll(imgDataURL, { recordType = 'daily' } = {}) {
+window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
   try {
     await ensureTesseract();
     
