@@ -1,4 +1,4 @@
-// js/ocr.js — SMART HYBRID OCR v3.1.1 (Auto-Invert & Math Guard + Runs Patch)
+// js/ocr.js — SMART HYBRID OCR v3.4 (Ultimate Crop-Resistant Auto Detect)
 
 // 1. Tesseract 로드
 async function ensureTesseract() {
@@ -15,7 +15,6 @@ async function ensureTesseract() {
   return window.Tesseract;
 }
 
-// 2. 캔버스 변환 유틸
 function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 
 async function toCanvas(imgDataURL) {
@@ -28,7 +27,7 @@ async function toCanvas(imgDataURL) {
   });
 }
 
-// 3. 다크모드 대응 및 대비 강화 전처리
+// 2. 다크모드 대응 및 대비 강화 전처리
 async function preprocessImage(imgDataURL) {
   const { img, w, h } = await toCanvas(imgDataURL);
   const scale = w < 1000 ? 2.5 : 1.5; 
@@ -41,23 +40,18 @@ async function preprocessImage(imgDataURL) {
   const imageData = ctx.getImageData(0, 0, sw, sh);
   const d = imageData.data;
   
-  // A. 다크모드/라이트모드 판별 (평균 밝기 계산)
   let totalLuma = 0;
   for (let i = 0; i < d.length; i += 4) {
       totalLuma += d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
   }
   const isDarkMode = (totalLuma / (sw * sh)) < 127;
 
-  // B. 이진화 및 극단적 대비 처리 (항상 흰 배경에 검은 글씨로 통일)
   for (let i = 0; i < d.length; i += 4) {
     let gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+    if (isDarkMode) gray = 255 - gray; 
     
-    if (isDarkMode) {
-        gray = 255 - gray; // 다크모드면 색상을 반전시킴
-    }
-    
-    gray = (gray - 50) * 1.8; // 대비 강화
-    const val = gray > 140 ? 255 : 0; // 이진화
+    gray = (gray - 50) * 1.8; 
+    const val = gray > 140 ? 255 : 0; 
     d[i] = d[i + 1] = d[i + 2] = val;
   }
   
@@ -65,13 +59,43 @@ async function preprocessImage(imgDataURL) {
   return c.toDataURL('image/png');
 }
 
-// 4. 텍스트 정제
 function cleanText(t) { return (t || '').replace(/[\u2018\u2019\u2032\u2035]/g, "'").replace(/[\u201C\u201D\u2033]/g, '"').trim(); }
 function parseNum(t) { return parseFloat(t.replace(/,/g, '').replace(/O/gi, '0').replace(/l/gi, '1')); }
 
-// 5. 전역 텍스트 파싱 (시간과 페이스 꼬임 방지)
-// ⚠️ 수정포인트: 파라미터에 width를 추가하여 좌우 위치 파악 가능하게 함
-function parseValues(fullText, lines, width, height) {
+// 3. ✨ [궁극기] 일간/월간 모드 공간 지능 판별기
+function autoDetectMode(data, width) {
+    const fullText = data.text;
+    
+    // A. 텍스트 기반 1차 확인 (연도+월, 또는 Runs 글자 존재 여부)
+    const datePatternKor = /20\d{2}\s*년\s*\d{1,2}\s*월/;
+    const datePatternEng = /(?:JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|JAN|FEB|MAR|APR|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*20\d{2}/i;
+    const runsPattern = /(?:^|\s)(\d{1,3})\s*(Runs|Run|러닝)/i;
+
+    if (datePatternKor.test(fullText) || datePatternEng.test(fullText) || runsPattern.test(fullText)) {
+        console.log("💡 [Auto Detect] '날짜' 또는 '러닝' 텍스트로 월간(Monthly) 모드 감지됨.");
+        return 'monthly';
+    }
+
+    // B. [핵심] 공간 기반 2차 확인 (바짝 크롭된 이미지 대응)
+    // 텍스트를 못 찾았더라도, 페이스(ex: 5'30")의 X 좌표가 화면 가운데(35% 이후)에 있다면 무조건 월간 모드!
+    for (let word of data.words) {
+        const text = cleanText(word.text);
+        if (/\d{1,2}\s*['’]\s*\d{2}/.test(text)) {
+            const cx = (word.bbox.x0 + word.bbox.x1) / 2;
+            if (cx > width * 0.35) {
+                console.log("💡 [Auto Detect] 상단이 잘렸으나 페이스가 가운데 위치하여 월간(Monthly) 모드로 감지됨.");
+                return 'monthly';
+            }
+            break;
+        }
+    }
+    
+    console.log("💡 [Auto Detect] 일간(Daily) 기록으로 감지되었습니다.");
+    return 'daily';
+}
+
+// 4. 전역 텍스트 파싱
+function parseValues(data, width, height) {
   let results = {
     km: { val: 0, size: 0 },
     pace: { m: 0, s: 0 },
@@ -79,31 +103,32 @@ function parseValues(fullText, lines, width, height) {
     runs: { val: null }
   };
 
-  // [거리] 화면 상단에서 폰트가 가장 큰 숫자
-  lines.forEach(line => {
+  const fullText = data.text;
+
+  // [거리]
+  data.lines.forEach(line => {
     const text = cleanText(line.text);
     const fontH = line.bbox.y1 - line.bbox.y0;
     const cy = (line.bbox.y0 + line.bbox.y1) / 2;
 
-    if (/^[\d.,]+$/.test(text) && !/['":]/.test(text) && cy < height * 0.5) {
+    if (/^[\d.,]+$/.test(text) && !/['":]/.test(text) && cy < height * 0.55) {
         if (fontH > results.km.size) {
             results.km = { val: parseNum(text), size: fontH };
         }
     }
   });
 
-  // [페이스] 전체 텍스트에서 ' 기호 검색 (ex: 5'59")
+  // [페이스]
   const paceMatch = fullText.match(/(\d{1,2})\s*['’]\s*(\d{2})/);
   if (paceMatch) {
       results.pace = { m: parseInt(paceMatch[1]), s: parseInt(paceMatch[2]) };
   }
 
-  // [시간] 전체 텍스트에서 : 기호 검색 (페이스와 절대 중복되지 않게)
+  // [시간]
   const timeMatch3 = fullText.match(/(\d{1,2})\s*[:;]\s*(\d{2})\s*[:;]\s*(\d{2})/);
   if (timeMatch3) {
       results.time = { h: parseInt(timeMatch3[1]), m: parseInt(timeMatch3[2]), s: parseInt(timeMatch3[3]) };
   } else {
-      // MM:SS 추출 (페이스 값과 동일하면 무시)
       const timeMatches2 = [...fullText.matchAll(/(\d{1,2})\s*[:;]\s*(\d{2})/g)];
       for (const m of timeMatches2) {
           const mm = parseInt(m[1]), ss = parseInt(m[2]);
@@ -113,51 +138,45 @@ function parseValues(fullText, lines, width, height) {
       }
   }
 
-  // ⚠️ [횟수] Runs 개선 로직
-  // 1. 먼저 기존처럼 "22 Runs" 형태로 한 줄에 예쁘게 붙어있는 경우 탐색
-  const runMatch = fullText.match(/(\d{1,3})\s*(Runs|Run|러닝)/i);
+  // [횟수 (Runs)]
+  const runMatch = fullText.match(/(?:^|\s)(\d{1,3})\s*(Runs|Run|러닝)/i);
   if (runMatch) {
       results.runs = { val: parseInt(runMatch[1]) };
   } else {
-      // 2. 정규식으로 못 찾았을 경우, 월간 모드 특성을 활용 (화면 좌측 하단의 고립된 숫자)
-      lines.forEach(line => {
-          const text = cleanText(line.text);
-          const cx = (line.bbox.x0 + line.bbox.x1) / 2;
-          const cy = (line.bbox.y0 + line.bbox.y1) / 2;
-          
-          // 화면 하단(45% 아래) & 왼쪽(35% 미만)에 있는 1~3자리 숫자는 러닝 횟수
-          if (cy > height * 0.45 && cx < width * 0.35 && /^\d{1,3}$/.test(text)) {
+      for (let word of data.words) {
+          const text = cleanText(word.text);
+          const cx = (word.bbox.x0 + word.bbox.x1) / 2;
+          const cy = (word.bbox.y0 + word.bbox.y1) / 2;
+
+          if (cy > height * 0.4 && cx < width * 0.45 && /^\d{1,3}$/.test(text)) {
               results.runs = { val: parseInt(text) };
+              break; 
           }
-      });
+      }
   }
 
   return results;
 }
 
-// 6. 지능형 수학 보정기 (5->3, 10->7 등 앞자리 오인식 완벽 보정)
+// 5. 지능형 수학 보정기
 function dynamicDecimalGuard(rawKm, estKm) {
     if (!rawKm || !estKm) return rawKm;
     const diff = Math.abs(rawKm - estKm);
     
-    // 오차가 0.8 ~ 5.0 사이로 크게 난 경우 (앞자리 착각)
     if (diff > 0.8 && diff < 5.0) {
         const decRaw = rawKm % 1;
         const decEst = estKm % 1;
-        
-        // 소수점 차이가 0.15 이내라면 앞자리만 틀린 것이 확실함!
         if (Math.abs(decRaw - decEst) < 0.15) {
             const estInt = Math.round(estKm - decRaw);
             const fixedKm = parseFloat((estInt + decRaw).toFixed(2));
-            console.log(`[Math Guard 발동] ${rawKm}km -> ${fixedKm}km 로 보정되었습니다.`);
             return fixedKm;
         }
     }
     return rawKm;
 }
 
-// 7. 메인 실행 함수 (Window 객체에 등록)
-window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
+// 6. 메인 실행 함수
+window.extractAll = async function(imgDataURL, { recordType = 'auto' } = {}) {
   try {
     await ensureTesseract();
     
@@ -168,11 +187,19 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
 
     const imgObj = await toCanvas(processedImg);
     
-    // ⚠️ 수정포인트: parseValues에 imgObj.w (가로 넓이) 값도 전달
-    const parsed = parseValues(data.text, data.lines, imgObj.w, imgObj.h);
+    // ⚠️ 변경점: 자동 감지 함수에 data와 너비(width)를 함께 넘겨 공간까지 판별하게 함
+    let currentMode = recordType;
+    if (currentMode === 'auto') {
+        currentMode = autoDetectMode(data, imgObj.w);
+    }
+
+    const parsed = parseValues(data, imgObj.w, imgObj.h);
 
     let km = parsed.km.val || 0;
-    let runs = recordType === 'monthly' ? (parsed.runs.val || 0) : 1;
+    
+    // 일간 모드일 경우 고도(Elevation) 숫자가 Runs로 착각되는 것을 완벽 방지
+    let runs = currentMode === 'monthly' ? (parsed.runs.val || 0) : 1;
+    
     let paceMin = parsed.pace.m;
     let paceSec = parsed.pace.s;
     let timeH = parsed.time.h;
@@ -182,7 +209,6 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
     const totalPaceSec = (paceMin * 60) + paceSec;
     const totalTimeSec = (timeH * 3600) + (timeM * 60) + timeS;
     
-    // 누락 데이터 수학적 채우기
     if (totalTimeSec === 0 && km > 0 && totalPaceSec > 0) {
         const calcSec = Math.round(km * totalPaceSec);
         timeH = Math.floor(calcSec / 3600);
@@ -194,7 +220,6 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
         paceSec = calcPace % 60;
     }
 
-    // 최종 교차 검증 (Distance 수학적 보정)
     const estKm = (totalTimeSec > 0 && totalPaceSec > 0) ? (totalTimeSec / totalPaceSec) : null;
     km = dynamicDecimalGuard(km, estKm);
 
@@ -204,7 +229,8 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
       paceMin,
       paceSec,
       timeH, timeM, timeS,
-      timeRaw: `${timeH > 0 ? timeH + ':' : ''}${String(timeM).padStart(2,'0')}:${String(timeS).padStart(2,'0')}`
+      timeRaw: `${timeH > 0 ? timeH + ':' : ''}${String(timeM).padStart(2,'0')}:${String(timeS).padStart(2,'0')}`,
+      detectedMode: currentMode
     };
 
   } catch (e) {
