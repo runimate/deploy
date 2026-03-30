@@ -5,6 +5,7 @@ import https from 'https';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { GarminConnect } from 'garmin-connect';
+import rateLimit from 'express-rate-limit'; // [추가] 요청 제한 라이브러리
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,11 +17,29 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../')));
 
 // ----------------------------------------------------
-// [개선] 가민 세션 저장소 (문자열 형태의 토큰 세션 보관)
+// [보안] 가민 연동 전용 Rate Limiter 설정
+// 15분당 한 IP에서 최대 5번의 로그인/조회만 허용합니다.
+// ----------------------------------------------------
+const garminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15분
+    max: 5, // IP당 최대 요청 횟수
+    message: { 
+        success: false, 
+        msg: "너무 많은 시도가 감지되었습니다. 보안을 위해 15분 뒤에 다시 시도해주세요." 
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// ----------------------------------------------------
+// [핵심] 가민 세션 저장소 (서버 메모리에 세션 토큰 보관)
 // ----------------------------------------------------
 const garminSessionTokens = new Map();
 
-app.post('/api/garmin', async (req, res) => {
+// ----------------------------------------------------
+// [가민 API] 요청 제한(garminLimiter) 적용
+// ----------------------------------------------------
+app.post('/api/garmin', garminLimiter, async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -31,25 +50,23 @@ app.post('/api/garmin', async (req, res) => {
         const client = new GarminConnect();
         let isSessionValid = false;
 
-        // 1. 저장된 토큰 세션이 있는지 확인
+        // 1. 저장된 세션 토큰 확인 (불필요한 로그인 방지)
         if (garminSessionTokens.has(email)) {
             try {
-                console.log(`[Garmin] 저장된 세션 토큰 복원 시도: ${email}`);
-                // 저장된 JSON 세션 정보를 불러와서 로그인을 건너뜀
+                console.log(`[Garmin] 세션 복원 시도: ${email}`);
                 await client.importSession(garminSessionTokens.get(email));
                 isSessionValid = true;
             } catch (sessionErr) {
-                console.log(`[Garmin] 기존 세션 만료, 다시 로그인합니다.`);
+                console.log(`[Garmin] 세션 만료됨`);
                 garminSessionTokens.delete(email);
             }
         }
 
-        // 2. 세션이 없거나 만료된 경우만 실제 로그인 시도 (429 차단의 주범 방지)
+        // 2. 세션이 없을 때만 실제 로그인 (가장 위험한 단계)
         if (!isSessionValid) {
-            console.log(`[Garmin] 신규 로그인 시도 (SSO 호출): ${email}`);
+            console.log(`[Garmin] 신규 로그인 시도: ${email}`);
             await client.login(email, password);
-            
-            // 로그인 성공 시 세션 정보를 문자열로 내보내서 저장 (Garth 세션)
+            // 로그인 성공 시 세션 추출 및 저장
             const sessionJson = client.exportSession();
             garminSessionTokens.set(email, sessionJson);
         }
@@ -76,7 +93,7 @@ app.post('/api/garmin', async (req, res) => {
     } catch (err) {
         console.error("[Garmin Error]", err.message);
         
-        // 429 에러(Too Many Requests) 특별 처리
+        // 차단(429) 에러 발생 시 처리
         if (err.message.includes('429')) {
             return res.status(429).json({ 
                 success: false, 
@@ -84,13 +101,12 @@ app.post('/api/garmin', async (req, res) => {
             });
         }
 
-        // 기타 에러 발생 시 세션 삭제
         garminSessionTokens.delete(email);
-        res.status(500).json({ success: false, msg: err.message });
+        res.status(500).json({ success: false, msg: "가민 연동 실패: 아이디/비번을 확인해주세요." });
     }
 });
 
-// --- 스트라바 로그인 및 활동 조회 로직 (기존과 동일하므로 생략 가능하나 그대로 유지) ---
+// --- 스트라바 로직 (기본 유지) ---
 app.get('/api/strava/login', (req, res) => {
     const clientId = process.env.STRAVA_CLIENT_ID;
     const redirectUri = process.env.STRAVA_REDIRECT_URI;
