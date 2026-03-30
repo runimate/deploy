@@ -1,47 +1,114 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import https from 'https'; // [중요] 스트라바 통신용
+import https from 'https';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import { GarminConnect } from 'garmin-connect'; // 가민 라이브러리 추가
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ----------------------------------------------------
-// [1] 정적 파일 연결
-// ----------------------------------------------------
+// [필수 추가] 미들웨어 설정
+app.use(cors());
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../')));
 
 // ----------------------------------------------------
-// [2] 스트라바 로그인 (인증 페이지로 이동)
+// [핵심] 가민 세션 저장소 (서버 메모리에 로그인 상태 유지)
 // ----------------------------------------------------
-app.get('/api/strava/login', (req, res) => {
-  const clientId = process.env.STRAVA_CLIENT_ID;
-  const redirectUri = process.env.STRAVA_REDIRECT_URI;
+const garminSessions = new Map();
 
-  if (!clientId || !redirectUri) return res.status(500).send("환경변수 설정 필요");
+// ----------------------------------------------------
+// [신규] 가민 운동 기록 조회 API (429 차단 방지 적용)
+// ----------------------------------------------------
+app.post('/api/garmin', async (req, res) => {
+    const { email, password } = req.body;
 
-  const state = Math.random().toString(36).substring(7);
-  res.cookie('strava_oauth_state', state, { httpOnly: true, secure: true, sameSite: 'Lax', maxAge: 600000 });
+    if (!email || !password) {
+        return res.status(400).json({ success: false, msg: "이메일과 비밀번호가 필요합니다." });
+    }
 
-  const scope = "read,activity:read_all"; 
-  const url = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=${scope}&state=${state}`;
-  
-  res.redirect(url);
+    try {
+        let client;
+
+        // 1. 이미 로그인된 세션이 있는지 확인 (매번 로그인 방지)
+        if (garminSessions.has(email)) {
+            console.log(`[Garmin] 캐시된 세션 사용: ${email}`);
+            client = garminSessions.get(email);
+        } else {
+            // 2. 세션이 없으면 신규 로그인 시도
+            console.log(`[Garmin] 신규 로그인 시도: ${email}`);
+            client = new GarminConnect();
+            await client.login(email, password);
+            
+            // 로그인 성공 시 세션 저장소에 보관
+            garminSessions.set(email, client);
+        }
+
+        // 3. 활동 데이터 가져오기 (최근 20개)
+        const activities = await client.getActivities(0, 20);
+        
+        // 4. 데이터 가공 (러니메이트 형식에 맞춤)
+        const formatted = activities
+            .filter(a => a.activityType.typeKey.includes('run'))
+            .map(a => {
+                const km = a.distance / 1000;
+                const timeSec = a.duration;
+                return {
+                    date: a.startTimeLocal.substring(0, 10).replace(/-/g, '.'),
+                    km: km,
+                    timeSec: timeSec,
+                    paceSec: km > 0 ? (timeSec / km) : 0,
+                    sportType: a.activityType.typeKey
+                };
+            });
+
+        res.json({ success: true, data: formatted });
+
+    } catch (err) {
+        console.error("[Garmin Error]", err.message);
+        
+        // 에러 발생 시 해당 계정의 세션 삭제 (재로그인 유도)
+        garminSessions.delete(email);
+        
+        // 가민 서버가 429 에러를 뱉을 경우의 처리
+        if (err.message.includes('429')) {
+            return res.status(429).json({ 
+                success: false, 
+                msg: "가민 서버의 요청 제한에 걸렸습니다. 1시간 뒤에 다시 시도해주세요." 
+            });
+        }
+        
+        res.status(500).json({ success: false, msg: "가민 연동 중 에러가 발생했습니다." });
+    }
 });
 
 // ----------------------------------------------------
-// [3] 운동 기록 조회 API (새로 추가된 핵심 기능!)
+// [기존] 스트라바 로그인 (유지)
+// ----------------------------------------------------
+app.get('/api/strava/login', (req, res) => {
+    const clientId = process.env.STRAVA_CLIENT_ID;
+    const redirectUri = process.env.STRAVA_REDIRECT_URI;
+    if (!clientId || !redirectUri) return res.status(500).send("환경변수 설정 필요");
+    const state = Math.random().toString(36).substring(7);
+    const scope = "read,activity:read_all"; 
+    const url = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=auto&scope=${scope}&state=${state}`;
+    res.redirect(url);
+});
+
+// ----------------------------------------------------
+// [기존] 스트라바 운동 기록 조회 (유지)
 // ----------------------------------------------------
 app.get('/api/strava/activities', (req, res) => {
     const token = req.query.token;
     if (!token) return res.status(400).json({ success: false, msg: "토큰이 없습니다." });
 
-    // 스트라바 서버에 기록 요청
     const options = {
         hostname: 'www.strava.com',
-        path: '/api/v3/athlete/activities?per_page=30', // 최근 30개만
+        path: '/api/v3/athlete/activities?per_page=30',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -54,49 +121,30 @@ app.get('/api/strava/activities', (req, res) => {
         stravaRes.on('data', (chunk) => { data += chunk; });
         stravaRes.on('end', () => {
             try {
-                if (stravaRes.statusCode !== 200) {
-                    throw new Error(`Strava Error: ${stravaRes.statusCode}`);
-                }
+                if (stravaRes.statusCode !== 200) throw new Error(`Strava Error: ${stravaRes.statusCode}`);
                 const activities = JSON.parse(data);
-                
-                // [데이터 가공] 우리 앱 입맛에 맞게 변환
                 const formatted = activities
-                    .filter(a => a.type === 'Run') // 러닝만 필터링
+                    .filter(a => a.type === 'Run')
                     .map(a => {
                         const km = a.distance / 1000;
                         const timeSec = a.moving_time;
-                        const paceSec = km > 0 ? (timeSec / km) : 0;
-                        
-                        // 날짜 포맷 (YYYY-MM-DD -> YYYY.MM.DD)
-                        const date = a.start_date_local.substring(0, 10).replace(/-/g, '.');
-
                         return {
-                            date: date,
-                            km: km,            // 숫자 그대로 (프론트에서 포맷팅)
-                            timeSec: timeSec,  // 초 단위
-                            paceSec: paceSec   // 초 단위 (페이스)
+                            date: a.start_date_local.substring(0, 10).replace(/-/g, '.'),
+                            km: km,
+                            timeSec: timeSec,
+                            paceSec: km > 0 ? (timeSec / km) : 0
                         };
                     });
-
                 res.json({ success: true, data: formatted });
-
             } catch (err) {
-                console.error(err);
                 res.status(500).json({ success: false, msg: "데이터 불러오기 실패" });
             }
         });
     });
-
-    stravaReq.on('error', (e) => {
-        console.error(e);
-        res.status(500).json({ success: false, msg: "네트워크 에러" });
-    });
+    stravaReq.on('error', (e) => res.status(500).json({ success: false, msg: "네트워크 에러" }));
     stravaReq.end();
 });
 
-// ----------------------------------------------------
-// [4] 서버 시작
-// ----------------------------------------------------
 app.listen(port, () => {
-  console.log(`🚀 RUNIMATE Server running on port ${port}`);
+    console.log(`🚀 RUNIMATE Server running on port ${port}`);
 });
