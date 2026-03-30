@@ -1,4 +1,4 @@
-// js/ocr.js — SMART HYBRID OCR v3.1 (Auto-Invert & Math Guard)
+// js/ocr.js — SMART HYBRID OCR v3.1.1 (Auto-Invert & Math Guard + Runs Patch)
 
 // 1. Tesseract 로드
 async function ensureTesseract() {
@@ -28,7 +28,7 @@ async function toCanvas(imgDataURL) {
   });
 }
 
-// 3. 다크모드 대응 및 대비 강화 전처리 (매우 중요)
+// 3. 다크모드 대응 및 대비 강화 전처리
 async function preprocessImage(imgDataURL) {
   const { img, w, h } = await toCanvas(imgDataURL);
   const scale = w < 1000 ? 2.5 : 1.5; 
@@ -70,7 +70,8 @@ function cleanText(t) { return (t || '').replace(/[\u2018\u2019\u2032\u2035]/g, 
 function parseNum(t) { return parseFloat(t.replace(/,/g, '').replace(/O/gi, '0').replace(/l/gi, '1')); }
 
 // 5. 전역 텍스트 파싱 (시간과 페이스 꼬임 방지)
-function parseValues(fullText, lines, height) {
+// ⚠️ 수정포인트: 파라미터에 width를 추가하여 좌우 위치 파악 가능하게 함
+function parseValues(fullText, lines, width, height) {
   let results = {
     km: { val: 0, size: 0 },
     pace: { m: 0, s: 0 },
@@ -112,9 +113,24 @@ function parseValues(fullText, lines, height) {
       }
   }
 
-  // [횟수] Runs
+  // ⚠️ [횟수] Runs 개선 로직
+  // 1. 먼저 기존처럼 "22 Runs" 형태로 한 줄에 예쁘게 붙어있는 경우 탐색
   const runMatch = fullText.match(/(\d{1,3})\s*(Runs|Run|러닝)/i);
-  if (runMatch) results.runs = { val: parseInt(runMatch[1]) };
+  if (runMatch) {
+      results.runs = { val: parseInt(runMatch[1]) };
+  } else {
+      // 2. 정규식으로 못 찾았을 경우, 월간 모드 특성을 활용 (화면 좌측 하단의 고립된 숫자)
+      lines.forEach(line => {
+          const text = cleanText(line.text);
+          const cx = (line.bbox.x0 + line.bbox.x1) / 2;
+          const cy = (line.bbox.y0 + line.bbox.y1) / 2;
+          
+          // 화면 하단(45% 아래) & 왼쪽(35% 미만)에 있는 1~3자리 숫자는 러닝 횟수
+          if (cy > height * 0.45 && cx < width * 0.35 && /^\d{1,3}$/.test(text)) {
+              results.runs = { val: parseInt(text) };
+          }
+      });
+  }
 
   return results;
 }
@@ -152,8 +168,8 @@ window.extractAll = async function(imgDataURL, { recordType = 'daily' } = {}) {
 
     const imgObj = await toCanvas(processedImg);
     
-    // 파싱 실행
-    const parsed = parseValues(data.text, data.lines, imgObj.h);
+    // ⚠️ 수정포인트: parseValues에 imgObj.w (가로 넓이) 값도 전달
+    const parsed = parseValues(data.text, data.lines, imgObj.w, imgObj.h);
 
     let km = parsed.km.val || 0;
     let runs = recordType === 'monthly' ? (parsed.runs.val || 0) : 1;
