@@ -19,7 +19,7 @@
     }
 
     :root {
-      --bg-color: #FF5100; /* 이미지에 맞춰 기본값을 강렬한 오렌지로 변경 */
+      --bg-color: #FF5100;
       --font-color: #FFFFFF;
     }
 
@@ -428,15 +428,18 @@
       }
     }
 
-    // Event Listeners for Modes
-    ['btnRun', 'btnTrail', 'btnMonthly'].forEach(id => {
-      $(id).addEventListener('click', (e) => {
-        mode = e.target.innerText;
-        ['btnRun', 'btnTrail', 'btnMonthly'].forEach(btn => $(btn).classList.remove('active'));
-        e.target.classList.add('active');
-        updateUI();
-      });
-    });
+    // --- 버그 수정: ID를 통해 명확하게 Mode를 제어하도록 변경 ---
+    function setMode(newMode) {
+      mode = newMode;
+      $('btnRun').classList.toggle('active', mode === 'RUN');
+      $('btnTrail').classList.toggle('active', mode === 'TRAIL');
+      $('btnMonthly').classList.toggle('active', mode === 'MONTHLY');
+      updateUI();
+    }
+
+    $('btnRun').addEventListener('click', () => setMode('RUN'));
+    $('btnTrail').addEventListener('click', () => setMode('TRAIL'));
+    $('btnMonthly').addEventListener('click', () => setMode('MONTHLY'));
 
     // Event Listeners for Fonts
     $('btnFontHelv').addEventListener('click', () => {
@@ -474,4 +477,90 @@
         $('rvDaily').style.display = 'none';
         $('rvMonthly').style.display = 'flex';
         
-        $('rvMMonth').innerText = formatMonth($('inMonth').value
+        $('rvMMonth').innerText = formatMonth($('inMonth').value);
+        $('rvMTotal').innerText = `0.0`;
+        $('rvMRuns').innerText = `0`;
+        $('rvMTime').innerText = `0:00:00`;
+        $('rvMElev').innerText = `0m`;
+
+      } else {
+        $('rvDaily').style.display = 'flex';
+        $('rvMonthly').style.display = 'none';
+
+        if (mode === 'RUN') {
+          $('rvLinePace').style.display = 'flex';
+          $('rvLineElev').style.display = 'none';
+        } else {
+          $('rvLinePace').style.display = 'none';
+          $('rvLineElev').style.display = 'flex';
+        }
+
+        $('rvDday').innerText = `D-99`;
+        $('rvDist').innerText = `0.00km`;
+        $('rvPace').innerText = `0'00"`;
+        $('rvTime').innerText = `0:00`;
+        $('rvElev').innerText = `0m`;
+      }
+
+      // 0.8초(800ms) 대기 후 애니메이션 시작
+      setTimeout(() => {
+        const duration = 2000;
+        const startTime = performance.now();
+
+        // Target Values
+        const isM = (mode === 'MONTHLY');
+        const targetDday = parseInt($('inDday').value) || 0;
+        const targetDist = parseFloat($(isM ? 'inMTotal' : 'inDist').value) || 0;
+        const th = parseInt($(isM ? 'inMTimeH' : 'inTimeH').value) || 0;
+        const tm = parseInt($(isM ? 'inMTimeM' : 'inTimeM').value) || 0;
+        const ts = parseInt($(isM ? 'inMTimeS' : 'inTimeS').value) || 0;
+        const targetTimeSec = (th * 3600) + (tm * 60) + ts;
+        const targetPaceSec = targetDist > 0 ? (targetTimeSec / targetDist) : 0;
+        const targetElev = parseInt($(isM ? 'inMElev' : 'inElev').value) || 0;
+        const targetRuns = parseInt($('inMRuns').value) || 0;
+
+        const startDday = 99;
+
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+
+          const currentDist = targetDist * easeOut;
+          const currentTimeSec = targetTimeSec * easeOut;
+          const currentElev = Math.round(targetElev * easeOut);
+
+          if (isM) {
+            const currentRuns = Math.round(targetRuns * easeOut);
+            $('rvMTotal').innerText = currentDist.toFixed(1);
+            $('rvMRuns').innerText = currentRuns;
+            $('rvMTime').innerText = formatTime(currentTimeSec);
+            $('rvMElev').innerText = `${currentElev.toLocaleString()}m`;
+          } else {
+            const currentDday = Math.round(startDday - ((startDday - targetDday) * easeOut));
+            const currentPaceSec = targetPaceSec * easeOut;
+            $('rvDday').innerText = `D-${currentDday}`;
+            $('rvDist').innerText = `${currentDist.toFixed(2)}km`;
+            $('rvPace').innerText = formatPace(currentPaceSec);
+            $('rvTime').innerText = formatTime(currentTimeSec);
+            $('rvElev').innerText = `${currentElev.toLocaleString()}m`;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          }
+        }
+        requestAnimationFrame(update);
+      }, 800);
+    }
+
+    $('btnActionRun').addEventListener('click', animateResult);
+    $('btnCloseResult').addEventListener('click', () => {
+      $('resultScreen').classList.remove('show');
+    });
+
+    // Init
+    updateUI();
+  </script>
+</body>
+</html>
