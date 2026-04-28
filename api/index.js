@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import https from 'https';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { GarminConnect } from 'garmin-connect';
+import { GarminConnect } from '@gooin/garmin-connect';
 import rateLimit from 'express-rate-limit';
 
 const __filename = fileURLToPath(import.meta.url);
