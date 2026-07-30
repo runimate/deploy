@@ -506,8 +506,9 @@
     <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
     <div class="select-wrap">
       <div class="select-title">Select<br />Workout</div>
-      <div class="button-group two" id="sportTypeToggle" style="margin: 18px 0 16px 0;">
-        <button class="toggle-btn flex1 active" id="btnSportRun" data-sport="run">Run</button>
+      <div class="button-group three" id="sportTypeToggle" style="margin: 18px 0 16px 0;">
+        <button class="toggle-btn flex1 active" id="btnSportAll" data-sport="all">All</button>
+        <button class="toggle-btn flex1" id="btnSportRun" data-sport="run">Run</button>
         <button class="toggle-btn flex1" id="btnSportTrail" data-sport="trail">Trail Run</button>
       </div>
       <div class="select-list" id="workoutList"></div>
@@ -691,7 +692,7 @@
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
       pvPaceLabelDaily: $('#pvPaceLabelDaily'),
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
-      btnSportRun: $('#btnSportRun'), btnSportTrail: $('#btnSportTrail'),
+      btnSportRun: $('#btnSportRun'), btnSportTrail: $('#btnSportTrail'), btnSportAll: $('#btnSportAll'),
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
       inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'), btnManualApply: $('#btnManualApply'),
       btnGarminList: $('#btnGarminList'), garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
@@ -998,7 +999,7 @@
              closeScreen('garminLoginScreen');
              
              if (state.recordType === 'daily') {
-                 selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen');
+                 selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen');
              }
           } else {
              if(errorMsg) { errorMsg.textContent = "Login success, but no activities found."; errorMsg.style.display = 'block'; }
@@ -1016,9 +1017,10 @@
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
     let selectScreenKind = 'garmin';
-    let selectScreenSport = 'run';
+    let selectScreenSport = 'all';
 
     function syncSportToggleUI() {
+      if(el.btnSportAll) el.btnSportAll.classList.toggle('active', selectScreenSport === 'all');
       if(el.btnSportRun) el.btnSportRun.classList.toggle('active', selectScreenSport === 'run');
       if(el.btnSportTrail) el.btnSportTrail.classList.toggle('active', selectScreenSport === 'trail');
     }
@@ -1027,10 +1029,14 @@
       selectScreenKind = kind;
       const listContainer = el.workoutList; listContainer.innerHTML = ''; 
       const fullList = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts()) : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
-      const list = fullList.filter(w => isTrailWorkout(w) === (selectScreenSport === 'trail'));
+      const list = fullList.filter(w => {
+        if (selectScreenSport === 'all') return true;
+        return isTrailWorkout(w) === (selectScreenSport === 'trail');
+      });
 
       if (list.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; padding: 40px 0; color:#999; font-weight:700; font-size:13px;">No ${selectScreenSport === 'trail' ? 'Trail Run' : 'Run'} records found.</div>`;
+        const label = selectScreenSport === 'trail' ? 'Trail Run' : (selectScreenSport === 'run' ? 'Run' : 'workout');
+        listContainer.innerHTML = `<div style="text-align:center; padding: 40px 0; color:#999; font-weight:700; font-size:13px;">No ${label} records found.</div>`;
         return;
       }
 
@@ -1058,8 +1064,9 @@
         listContainer.appendChild(btn);
       });
     }
-    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
 
+    if(el.btnSportAll) el.btnSportAll.addEventListener('click', () => { selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
     if(el.btnSportRun) el.btnSportRun.addEventListener('click', () => { selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
     if(el.btnSportTrail) el.btnSportTrail.addEventListener('click', () => { selectScreenSport = 'trail'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
 
@@ -1279,7 +1286,7 @@
                       if(stravaCardWrap) stravaCardWrap.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
                       closeScreen('stravaLoginScreen');
                       
-                      if (state.recordType === 'daily') { selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
+                      if (state.recordType === 'daily') { selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
                       applyDataType(); updatePreview();
                  } else {
                      alert("최근 러닝 기록이 없습니다."); resetStravaBtn();
@@ -1298,7 +1305,7 @@
     
     checkStravaCode();
     
-    if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
+    if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
 
     // --- RUN BUTTON: Result ---
     function buildResultDOM() {
