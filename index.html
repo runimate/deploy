@@ -325,13 +325,6 @@
             <button class="toggle-btn font-btn font-gothic" data-font="gothic">GOTHIC</button>
             <button class="toggle-btn font-btn font-speed" data-font="speed">SPEED</button>
           </div>
-          <div class="button-group font-group no-wrap" style="margin-top: 8px;">
-            <button class="toggle-btn font-btn font-opera" data-font="opera">OPERA</button>
-            <button class="toggle-btn font-btn font-marker" data-font="marker">MKR</button>
-            <button class="toggle-btn font-btn font-sten" data-font="sten">STEN</button>
-            <button class="toggle-btn font-btn font-writer" data-font="writer">WRITE</button>
-            <button class="toggle-btn font-btn font-flip" data-font="flip">FLIP</button>
-          </div>
       </div>
     </section>
 
@@ -395,7 +388,7 @@
             <span class="result-value"><span id="pvDistanceDaily">00.00Km</span></span>
           </div>
           <div class="result-item">
-            <span class="result-label">PACE</span>
+            <span class="result-label" id="pvPaceLabelDaily">PACE</span>
             <span class="result-value"><span id="pvPaceDaily">00'00"</span></span>
           </div>
           <div class="result-item">
@@ -513,6 +506,10 @@
     <button class="screen-close close-big" data-close="garminSelectScreen" aria-label="Close">×</button>
     <div class="select-wrap">
       <div class="select-title">Select<br />Workout</div>
+      <div class="button-group two" id="sportTypeToggle" style="margin: 18px 0 16px 0;">
+        <button class="toggle-btn flex1 active" id="btnSportRun" data-sport="run">Run</button>
+        <button class="toggle-btn flex1" id="btnSportTrail" data-sport="trail">Trail Run</button>
+      </div>
       <div class="select-list" id="workoutList"></div>
     </div>
   </div>
@@ -598,6 +595,8 @@
     }
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
+    function fmtElevPreview(m) { return `${Math.round(Number(m || 0))}m`; }
+    function isTrailWorkout(w) { return String((w && w.sportType) || '').toLowerCase().includes('trail'); }
     
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
@@ -690,7 +689,9 @@
       colorPickerOverlay: $('#colorPickerOverlay'), colorPickerClose: $('#colorPickerClose'), nativeColorInput: $('#nativeColorInput'),
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
+      pvPaceLabelDaily: $('#pvPaceLabelDaily'),
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
+      btnSportRun: $('#btnSportRun'), btnSportTrail: $('#btnSportTrail'),
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
       inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'), btnManualApply: $('#btnManualApply'),
       btnGarminList: $('#btnGarminList'), garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
@@ -854,8 +855,9 @@
       else if (state.dataType === 'manual') d = state.manual;
       else if (state.dataType === 'nrc' && state.daily) d = state.daily;
       
+      const dailyIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
       const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
-      const paceText = (d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"";
+      const midText = dailyIsTrail ? fmtElevPreview(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
       const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
 
       const elDistanceDaily = document.getElementById('pvDistanceDaily');
@@ -863,8 +865,9 @@
       const elTimeDaily = document.getElementById('pvTimeDaily');
       
       if(elDistanceDaily) elDistanceDaily.textContent = kmText;
-      if(elPaceDaily) elPaceDaily.textContent = paceText;
+      if(elPaceDaily) elPaceDaily.textContent = midText;
       if(elTimeDaily) elTimeDaily.textContent = timeText;
+      if(el.pvPaceLabelDaily) el.pvPaceLabelDaily.textContent = dailyIsTrail ? 'ELEV. GAIN' : 'PACE';
 
       const m = state.monthly;
       if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
@@ -884,15 +887,17 @@
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
          if(cardSrc && cardSrc.date && cardSrc.date !== '-') {
+              const cardIsTrail = isTrailWorkout(cardSrc);
+              const cardMidText = cardIsTrail ? fmtElevPreview(cardSrc.elevGain) : fmtPaceResult(cardSrc.paceSec);
               if(state.dataType === 'garmin') {
                  if(document.getElementById('garminDateText')) document.getElementById('garminDateText').textContent = cardSrc.date;
                  if(document.getElementById('garminDistanceText')) document.getElementById('garminDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if(document.getElementById('garminPaceText')) document.getElementById('garminPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if(document.getElementById('garminPaceText')) document.getElementById('garminPaceText').textContent = cardMidText;
                  if(document.getElementById('garminTimeText')) document.getElementById('garminTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              } else {
                  if(document.getElementById('stravaDateText')) document.getElementById('stravaDateText').textContent = cardSrc.date;
                  if(document.getElementById('stravaDistanceText')) document.getElementById('stravaDistanceText').textContent = fmtKmPreview(cardSrc.km);
-                 if(document.getElementById('stravaPaceText')) document.getElementById('stravaPaceText').textContent = fmtPaceResult(cardSrc.paceSec);
+                 if(document.getElementById('stravaPaceText')) document.getElementById('stravaPaceText').textContent = cardMidText;
                  if(document.getElementById('stravaTimeText')) document.getElementById('stravaTimeText').textContent = fmtTimeResult(cardSrc.timeSec);
              }
          }
@@ -993,7 +998,7 @@
              closeScreen('garminLoginScreen');
              
              if (state.recordType === 'daily') {
-                 renderWorkoutList('garmin'); openScreen('garminSelectScreen');
+                 selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen');
              }
           } else {
              if(errorMsg) { errorMsg.textContent = "Login success, but no activities found."; errorMsg.style.display = 'block'; }
@@ -1010,14 +1015,31 @@
     }
     if(el.btnGarminRealSync) el.btnGarminRealSync.addEventListener('click', fetchGarminData);
 
+    let selectScreenKind = 'garmin';
+    let selectScreenSport = 'run';
+
+    function syncSportToggleUI() {
+      if(el.btnSportRun) el.btnSportRun.classList.toggle('active', selectScreenSport === 'run');
+      if(el.btnSportTrail) el.btnSportTrail.classList.toggle('active', selectScreenSport === 'trail');
+    }
+
     function renderWorkoutList(kind = 'garmin') {
+      selectScreenKind = kind;
       const listContainer = el.workoutList; listContainer.innerHTML = ''; 
-      const list = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts()) : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
+      const fullList = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts()) : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
+      const list = fullList.filter(w => isTrailWorkout(w) === (selectScreenSport === 'trail'));
+
+      if (list.length === 0) {
+        listContainer.innerHTML = `<div style="text-align:center; padding: 40px 0; color:#999; font-weight:700; font-size:13px;">No ${selectScreenSport === 'trail' ? 'Trail Run' : 'Run'} records found.</div>`;
+        return;
+      }
 
       list.forEach((w) => {
+        const wIsTrail = isTrailWorkout(w);
+        const midStat = wIsTrail ? fmtElevPreview(w.elevGain) : fmtPaceResult(w.paceSec);
         const btn = document.createElement('div'); btn.className = 'workout-item'; 
         btn.innerHTML = `
-          <div class="w-left"><div class="w-date">${w.date}</div><div class="w-stats"><span>${fmtKmPreview(w.km)}</span><span>${fmtPaceResult(w.paceSec)}</span><span>${fmtTimeResult(w.timeSec)}</span></div></div>
+          <div class="w-left"><div class="w-date">${w.date}</div><div class="w-stats"><span>${fmtKmPreview(w.km)}</span><span>${midStat}</span><span>${fmtTimeResult(w.timeSec)}</span></div></div>
           <div class="w-arrow-wrap"><div class="w-arrow">→</div></div>
         `;
         btn.onclick = (e) => {
@@ -1036,7 +1058,10 @@
         listContainer.appendChild(btn);
       });
     }
-    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+    el.btnGarminList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen'); });
+
+    if(el.btnSportRun) el.btnSportRun.addEventListener('click', () => { selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
+    if(el.btnSportTrail) el.btnSportTrail.addEventListener('click', () => { selectScreenSport = 'trail'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
 
     // --- OTHER TABS ---
     if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
@@ -1072,16 +1097,6 @@
 
       if (!isDaily) el.alignControlPanel.classList.add('disabled'); else el.alignControlPanel.classList.remove('disabled');
 
-      const btnFlip = document.querySelector('button[data-font="flip"]');
-      if(btnFlip) {
-          if(!isDaily) {
-              btnFlip.disabled = true; btnFlip.style.opacity = '0.3'; btnFlip.style.pointerEvents = 'none';
-              if(state.font === 'flip') { state.font = 'anton'; applyFont(); }
-          } else {
-              btnFlip.disabled = false; btnFlip.style.opacity = '1'; btnFlip.style.pointerEvents = 'auto';
-          }
-      }
-
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
           if(el.dataPanelHead) el.dataPanelHead.style.display = 'flex';
@@ -1094,7 +1109,7 @@
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
-        t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed', 'font-opera', 'font-marker', 'font-sten', 'font-writer', 'font-flip');
+        t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed');
         t.classList.add(`font-${state.font}`);
       });
       applyUIConfigToRoot(state); requestAnimationFrame(applyFitPreview);
@@ -1244,7 +1259,7 @@
                 sessionStorage.removeItem('runimate_restore_state');
             }
             window.history.replaceState({}, document.title, window.location.pathname);
-            fetchStravaData(code, true); // [핵심 해결 4] 페이지 로드 시 400 에러 알림 무시용 플래그(true)
+            fetchStravaData(code, true); // OAuth 리다이렉트 복귀 시 자동 조회
         }
     }
     
@@ -1264,17 +1279,15 @@
                       if(stravaCardWrap) stravaCardWrap.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
                       closeScreen('stravaLoginScreen');
                       
-                      if (state.recordType === 'daily') { renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
+                      if (state.recordType === 'daily') { selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
                       applyDataType(); updatePreview();
                  } else {
                      alert("최근 러닝 기록이 없습니다."); resetStravaBtn();
                  }
-             } else { throw new Error(json.message || "Server Error"); }
+             } else { throw new Error(json.msg || json.message || "Server Error"); }
          } catch(err) {
-             console.error(err);
-             if (!isAuto && !err.message.includes('400')) { // 400 에러 및 자동체크 시 팝업 억제
-                 alert("데이터 불러오기 실패: " + err.message);
-             }
+             console.error("[Strava Error]", err);
+             alert("스트라바 데이터 불러오기 실패: " + err.message + "\n(Railway 서버의 STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET 환경변수를 확인해주세요)");
              resetStravaBtn();
          }
     }
@@ -1285,7 +1298,7 @@
     
     checkStravaCode();
     
-    if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
+    if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'run'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
 
     // --- RUN BUTTON: Result ---
     function buildResultDOM() {
@@ -1295,13 +1308,15 @@
        let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
        if (state.recordType === 'daily') {
+        const resultIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
+        const midLabel = resultIsTrail ? 'ELEV. GAIN' : 'PACE';
         el.resultBlock.innerHTML = `
           <div class="result-item"><span class="result-label">DISTANCE</span><span class="result-value"><span id="rvDistance"></span></span></div>
-          <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
+          <div class="result-item"><span class="result-label">${midLabel}</span><span class="result-value"><span id="rvPace"></span></span></div>
           <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
         `;
         if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor; else el.resultBlock.style.color = '';
-        return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+        return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), elevGain: +(d.elevGain || 0), timeSec: +(d.timeSec || 0), isTrail: resultIsTrail };
       } else {
         const monthLine = `${monthName(d.month)} ${d.year}`;
         if (state.layout === 'type1') {
@@ -1349,7 +1364,7 @@
       }
       return {
         resetToStart() {
-          if (rvDistance) rvDistance.textContent = fmtKmPreview(0); if (rvPace) rvPace.textContent = fmtPaceResult(0);
+          if (rvDistance) rvDistance.textContent = fmtKmPreview(0); if (rvPace) rvPace.textContent = target.isTrail ? fmtElevPreview(0) : fmtPaceResult(0);
           if (rvTime) rvTime.textContent = fmtTimeResult(0); if (rvRuns) rvRuns.textContent = fmtRunsPreview(0);
         }
       };
@@ -1363,9 +1378,9 @@
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
         const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
-        const km = target.km * k; const pace = target.paceSec * k; const time = target.timeSec * k; const runs = (target.runs == null) ? null : Math.round(target.runs * k);
+        const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k; const runs = (target.runs == null) ? null : Math.round(target.runs * k);
         const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
-        if (rvDistance) rvDistance.textContent = fmtKmPreview(km); if (rvPace) rvPace.textContent = fmtPaceResult(pace);
+        if (rvDistance) rvDistance.textContent = fmtKmPreview(km); if (rvPace) rvPace.textContent = target.isTrail ? fmtElevPreview(mid) : fmtPaceResult(mid);
         if (rvTime) rvTime.textContent = fmtTimeResult(time); if (rvRuns) rvRuns.textContent = fmtRunsPreview(runs ?? 0);
         if (p < 1) requestAnimationFrame(frame);
       }

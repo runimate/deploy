@@ -53,67 +53,6 @@ export const UI_CONFIG = {
       d2_c: { labelSize: 11, valueSize: 24, labelToValueGap: 6, colGap: 26 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 26, statsLvGap: -10, statsStackGap: 18 },
       m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 4, distToStatsGap: 16, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 28 }
-    },
-
-    // =================================================================
-    // 6. OPERA 폰트
-    // =================================================================
-    opera: {
-      d1_l: { labelSize: 13, valueSize: 34, labelToValueGap: 8, stackGap: 20 },
-      d1_c: { labelSize: 13, valueSize: 34, labelToValueGap: 8, stackGap: 20 },
-      d2_l: { labelSize: 11, valueSize: 24, labelToValueGap: 8, colGap: 24 },
-      d2_c: { labelSize: 11, valueSize: 24, labelToValueGap: 8, colGap: 24 },
-      m1: { monthSize: 16, distanceSize: 40, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 24, statsLvGap: -15, statsStackGap: 20 },
-      m2: { monthSize: 18, distanceSize: 44, monthToDistGap: 10, distToStatsGap: 24, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 30 }
-    },
-
-    // =================================================================
-    // 7. MARKER 폰트
-    // =================================================================
-    marker: {
-      d1_l: { labelSize: 12, valueSize: 30, labelToValueGap: 7, stackGap: 24 },
-      d1_c: { labelSize: 12, valueSize: 30, labelToValueGap: 7, stackGap: 24 },
-      d2_l: { labelSize: 11, valueSize: 23, labelToValueGap: 6, colGap: 27 },
-      d2_c: { labelSize: 11, valueSize: 23, labelToValueGap: 6, colGap: 27 },
-      m1: { monthSize: 16, distanceSize: 40, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 24, statsLvGap: -15, statsStackGap: 20 },
-      m2: { monthSize: 18, distanceSize: 42, monthToDistGap: 6, distToStatsGap: 24, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 36 }
-    },
-
-    // =================================================================
-    // [NEW] 8. STEN 폰트 (기존 TYPE 대체)
-    // =================================================================
-    sten: {
-      d1_l: { labelSize: 13, valueSize: 32, labelToValueGap: 7, stackGap: 24 },
-      d1_c: { labelSize: 13, valueSize: 32, labelToValueGap: 7, stackGap: 24 },
-      d2_l: { labelSize: 11, valueSize: 26, labelToValueGap: 6, colGap: 32 },
-      d2_c: { labelSize: 11, valueSize: 26, labelToValueGap: 6, colGap: 32 },
-      m1: { monthSize: 16, distanceSize: 40, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 22, statsLvGap: -15, statsStackGap: 20 },
-      m2: { monthSize: 18, distanceSize: 44, monthToDistGap: 6, distToStatsGap: 22, statsLabelSize: 11, statsValueSize: 23, statsLvGap: 12, statsColGap: 30 }
-    },
-
-    // =================================================================
-    // 9. WRITER 폰트
-    // =================================================================
-    writer: {
-      d1_l: { labelSize: 13, valueSize: 34, labelToValueGap: 7, stackGap: 20 },
-      d1_c: { labelSize: 13, valueSize: 34, labelToValueGap: 7, stackGap: 20 },
-      d2_l: { labelSize: 12, valueSize: 24, labelToValueGap: 8, colGap: 36 },
-      d2_c: { labelSize: 12, valueSize: 24, labelToValueGap: 8, colGap: 36 },
-      m1: { monthSize: 16, distanceSize: 42, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 24, statsLvGap: -15, statsStackGap: 20 },
-      m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 6, distToStatsGap: 24, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 32 }
-    },
-
-    // =================================================================
-    // [NEW] 10. FLIP 폰트 (기존 GRACE 대체)
-    // =================================================================
-    flip: {
-      d1_l: { labelSize: 14, valueSize: 42, labelToValueGap: 5, stackGap: 22 },
-      d1_c: { labelSize: 14, valueSize: 42, labelToValueGap: 5, stackGap: 22 },
-      d2_l: { labelSize: 12, valueSize: 28, labelToValueGap: 6, colGap: 24 },
-      d2_c: { labelSize: 12, valueSize: 28, labelToValueGap: 6, colGap: 24 },
-      // Monthly 설정은 존재하지만 index.html 로직에서 선택 불가 처리됨
-      m1: { monthSize: 20, distanceSize: 48, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 16, statsValueSize: 26, statsLvGap: -10, statsStackGap: 20 },
-      m2: { monthSize: 20, distanceSize: 48, monthToDistGap: 6, distToStatsGap: 20, statsLabelSize: 16, statsValueSize: 32, statsLvGap: 4, statsColGap: 40 }
     }
   }
 };
