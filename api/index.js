@@ -73,6 +73,7 @@ app.post('/api/garmin', garminLimiter, async (req, res) => {
                     km: km,
                     timeSec: timeSec,
                     paceSec: km > 0 ? (timeSec / km) : 0,
+                    elevGain: a.elevationGain || 0,
                     sportType: a.activityType.typeKey
                 };
             });
@@ -171,6 +172,7 @@ function fetchStravaActivities(token, res) {
                             km: km,
                             timeSec: timeSec,
                             paceSec: (km > 0) ? (timeSec / km) : 0,
+                            elevGain: a.total_elevation_gain || 0,
                             sportType: a.type
                         };
                     });
