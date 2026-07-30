@@ -147,7 +147,7 @@ body.no-scroll{ overflow: hidden; }
 .data-tab.manual-hidden { display: none !important; }
 .data-tab.manual-show { display: flex !important; }
 
-.data-content{ display:none; margin-top: 12px; }
+.data-content{ display:none; margin-top: 8px; }
 
 /* DATA CARDS & ITEMS */
 .garmin-card, .workout-item{ width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; border: 2px solid #000; border-radius: 14px; padding: 10px 12px; background:#fff; cursor:pointer; margin-bottom: 10px; }
@@ -163,12 +163,12 @@ body.no-scroll{ overflow: hidden; }
 /* LOGIN BUTTON WRAPS */
 #garminConnectBtnWrap, #stravaConnectBtnWrap {
     width: 100%;
-    padding: 20px 0 !important;
+    padding: 14px 0 !important;
     display: flex;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 24px !important;
+    gap: 14px !important;
     text-align: center !important;
 }
 #garminConnectBtnWrap > *, #stravaConnectBtnWrap > * { margin: 0 auto !important; }
