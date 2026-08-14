@@ -608,18 +608,29 @@
     function isTrailWorkout(w) { return String((w && w.sportType) || '').toLowerCase().includes('trail'); }
 
     // [헤더] RUNIMATE 타이틀을 컨테이너 가로폭에 정확히 맞춤 (폰트/화면 크기와 무관하게 항상 100% 채움)
+    // title은 CSS상 width:100% 블록이라 scrollWidth가 항상 박스폭(=100%)을 반환해버려서
+    // 실제 글자의 고유 너비를 측정할 수 없다. 측정 순간만 auto폭으로 바꿔서 진짜 너비를 잰다.
     function fitTitleWidth() {
       const titleEl = document.querySelector('.title');
       const headerEl = document.querySelector('.header');
       if (!titleEl || !headerEl) return;
-      titleEl.style.fontSize = '';
       const targetWidth = headerEl.clientWidth;
+      if (!targetWidth) return;
+
+      titleEl.style.fontSize = '';
+      titleEl.style.display = 'inline-block';
+      titleEl.style.width = 'auto';
+
       const currentSize = parseFloat(getComputedStyle(titleEl).fontSize) || 0;
-      const naturalWidth = titleEl.scrollWidth;
-      if (naturalWidth > 0 && currentSize > 0 && targetWidth > 0) {
+      const naturalWidth = titleEl.getBoundingClientRect().width;
+
+      if (naturalWidth > 0 && currentSize > 0) {
         const newSize = currentSize * (targetWidth / naturalWidth);
         titleEl.style.fontSize = `${newSize}px`;
       }
+
+      titleEl.style.display = 'block';
+      titleEl.style.width = '100%';
     }
 
     // [EX 스타일] 거리 숫자를 박스 가로폭에 맞춰 정확히 채우기 (9.99KM이든 99.99KM이든 항상 꽉 채움)
@@ -1551,6 +1562,8 @@
     // 타이틀 폭 맞춤: 폰트 로딩 완료 후 + 화면 크기 변경 시 재계산
     fitTitleWidth();
     if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitTitleWidth); }
+    setTimeout(fitTitleWidth, 100);
+    setTimeout(fitTitleWidth, 500);
     let titleResizeTimer = null;
     window.addEventListener('resize', () => { clearTimeout(titleResizeTimer); titleResizeTimer = setTimeout(fitTitleWidth, 150); });
   </script>
