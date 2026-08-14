@@ -58,6 +58,7 @@
     color: #fff !important;
 }
 
+html, body{ overflow-x: hidden; max-width: 100%; }
 body{
   background:#fff;
   font-family: 'Inter', sans-serif;
@@ -67,15 +68,25 @@ body{
 }
 body.no-scroll{ overflow: hidden; }
 
-.container{ width: min(360px, 100%); margin: 0 auto; position: relative; }
+.container{ width: min(360px, 100%); margin: 0 auto; position: relative; max-width: 100%; overflow-x: hidden; }
 
 /* HEADER */
-.header { margin-bottom: 22px; }
-.header-row{ display:flex; align-items:flex-start; justify-content:space-between; gap: 10px; }
-.title{ font-family: 'RunimateEX', sans-serif; font-size: clamp(36px, 10vw, 46px); font-weight: 400; letter-spacing: -0.5px; line-height: 0.9; }
-.version{ font-family: 'RunimateEX', sans-serif; font-size: clamp(18px, 5vw, 22px); font-weight: 400; margin-top: 4px; cursor: pointer; user-select: none; }
-.author{ margin-top: 4px; font-size: 11px; font-weight: 600; color:#000; white-space: nowrap; }
-.title-link{ display: inline-flex; align-items: baseline; color: inherit; text-decoration: none; cursor: pointer; }
+.header { margin-bottom: 22px; position: relative; padding-top: 18px; }
+.title{
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-family: 'RunimateEX', sans-serif;
+  font-size: clamp(28px, 9vw, 44px);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 0.95;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.version{ font-family: 'RunimateEX', sans-serif; font-size: clamp(16px, 4.5vw, 20px); font-weight: 400; margin-top: 4px; cursor: pointer; user-select: none; }
+.author{ position: absolute; top: 0; right: 0; font-size: 11px; font-weight: 600; color:#000; white-space: nowrap; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.title-link{ display: block; color: inherit; text-decoration: none; cursor: pointer; }
 .title-link:hover, .title-link:visited, .title-link:active, .title-link:focus { color: inherit; text-decoration: none; }
 
 /* SECTIONS */
@@ -333,6 +344,19 @@ body.no-scroll{ overflow: hidden; }
 /* =========================================
    [신규] EX 스타일 전용 카드 레이아웃
    ========================================= */
+
+/* Daily + EX 폰트일 때만 전용 카드 표시 (CSS로 강제 - JS 인라인 스타일 타이밍 이슈 방지) */
+#previewDaily.font-ex #previewDailyContent { display: none !important; }
+#previewDaily.font-ex #previewDailyEx { display: flex !important; }
+#previewDaily:not(.font-ex) #previewDailyEx { display: none !important; }
+
+/* EX 카드는 자체 아웃라인을 갖기 때문에, 바깥 프리뷰 박스의 이중 테두리를 제거 */
+#previewDaily.font-ex {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
 .ex-card {
     width: 100%;
     box-sizing: border-box;
@@ -344,6 +368,7 @@ body.no-scroll{ overflow: hidden; }
     gap: 16px;
     font-family: 'RunimateEX', sans-serif;
     background: #fff;
+    overflow: hidden;
 }
 .preview.bg-white .ex-card, .result-screen.bg-white .ex-card { background: #fff; border-color: #000; }
 .preview.bg-black .ex-card, .result-screen.bg-black .ex-card { background: #000; border-color: #fff; }

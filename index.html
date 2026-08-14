@@ -187,10 +187,8 @@
 <body>
   <div class="container">
     <header class="header">
-      <div class="header-row">
-        <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">RUNIMATE</a>
-        <div class="author">by JS @runarchive.js</div>
-      </div>
+      <div class="author">by JS @runarchive.js</div>
+      <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">RUNIMATE</a>
       <div class="version" id="btnHiddenManual">V.2.5</div>
     </header>
 
@@ -884,9 +882,8 @@
       if(el.pvPaceLabelDaily) el.pvPaceLabelDaily.textContent = dailyIsTrail ? 'ELEV. GAIN' : 'PACE';
 
       // [EX 스타일] Daily + EX 폰트일 때만 전용 카드 레이아웃으로 전환
+      // (표시/숨김은 CSS가 #previewDaily.font-ex 클래스 기준으로 강제 처리 - JS 인라인 스타일에 의존하지 않음)
       const isExDaily = (state.font === 'ex' && state.recordType === 'daily');
-      if (el.previewDailyContent) el.previewDailyContent.style.display = isExDaily ? 'none' : 'flex';
-      if (el.previewDailyEx) el.previewDailyEx.style.display = isExDaily ? 'flex' : 'none';
       if (isExDaily) {
           const exNum = (d.km > 0) ? Number(d.km).toFixed(2) : '00.00';
           const exMid = dailyIsTrail ? fmtElevEx(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
