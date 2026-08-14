@@ -377,6 +377,9 @@ body.no-scroll{ overflow: hidden; }
 .preview.bg-white .ex-card, .result-screen.bg-white .ex-card { background: #fff; border-color: #000; }
 .preview.bg-black .ex-card, .result-screen.bg-black .ex-card { background: #000; border-color: #fff; }
 
+/* RUN 애니메이션(공유용) 결과 화면에서는 카드 아웃라인 없이 텍스트만 표시 */
+.result-screen .ex-card { border: none; }
+
 .ex-distance-row{ display:flex; align-items:baseline; justify-content:space-between; width:100%; overflow: hidden; }
 .ex-distance-num{ display:inline-block; font-size: 40px; font-weight: 900; line-height: 1; white-space: nowrap; transform-origin: left center; }
 .ex-distance-unit{ flex: 0 0 auto; font-size: 40px; font-weight: 900; line-height: 1; margin-left: 6px; white-space: nowrap; }

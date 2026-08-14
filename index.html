@@ -1392,7 +1392,7 @@
               <div class="ex-stats-row"><span class="ex-stat-left" id="rvMid"><svg class="ex-elev-icon" id="rvMidIcon" viewBox="0 0 12 12" width="11" height="11" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M9.28 0H0.03V2.72682H7.28L0 10.0251L1.9225 11.9524L9.28 4.57644V12H12V2.72682V0H9.28Z"/></svg><span id="rvMidValue"></span></span><span class="ex-stat-right" id="rvTime"></span></div>
             </div>
           `;
-          el.resultBlock.style.color = '';
+          if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor; else el.resultBlock.style.color = '';
           return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), elevGain: +(d.elevGain || 0), timeSec: +(d.timeSec || 0), isTrail: resultIsTrail };
         }
 
