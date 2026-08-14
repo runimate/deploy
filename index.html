@@ -187,8 +187,8 @@
 <body>
   <div class="container">
     <header class="header">
-      <div class="author">by JS @runarchive.js</div>
       <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">RUNIMATE</a>
+      <div class="author">by JS @runarchive.js</div>
       <div class="version" id="btnHiddenManual">V.2.5</div>
     </header>
 
@@ -394,7 +394,9 @@
             <span class="ex-distance-unit">KM</span>
           </div>
           <div class="ex-stats-row">
-            <span class="ex-stat-left" id="pvExMid">0'00"</span>
+            <span class="ex-stat-left" id="pvExMid">
+              <svg class="ex-elev-icon" id="pvExMidIcon" viewBox="0 0 12 12" width="11" height="11" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M9.28 0H0.03V2.72682H7.28L0 10.0251L1.9225 11.9524L9.28 4.57644V12H12V2.72682V0H9.28Z"/></svg><span id="pvExMidValue">0'00"</span>
+            </span>
             <span class="ex-stat-right" id="pvExTime">0:00:00</span>
           </div>
         </div>
@@ -599,11 +601,29 @@
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
     function fmtElevPreview(m) { return `${Math.round(Number(m || 0))}m`; }
-    function fmtElevEx(m) {
+    function fmtElevExValue(m) {
       const v = Math.round(Number(m || 0));
-      return `↗ ${v.toLocaleString('en-US')}M`;
+      return `${v.toLocaleString('en-US')}M`;
     }
     function isTrailWorkout(w) { return String((w && w.sportType) || '').toLowerCase().includes('trail'); }
+
+    // [EX 스타일] 거리 숫자를 박스 가로폭에 맞춰 정확히 채우기 (9.99KM이든 99.99KM이든 항상 꽉 채움)
+    function fitExNumber(numEl) {
+      if (!numEl) return;
+      const unitEl = numEl.nextElementSibling;
+      const row = numEl.parentElement;
+      if (!row) return;
+      numEl.style.display = 'inline-block';
+      numEl.style.transform = 'none';
+      const rowWidth = row.clientWidth;
+      const unitWidth = unitEl ? unitEl.getBoundingClientRect().width : 0;
+      const available = Math.max(10, rowWidth - unitWidth - 6);
+      const natural = numEl.scrollWidth;
+      if (natural > 0 && available > 0) {
+        numEl.style.transformOrigin = 'left center';
+        numEl.style.transform = `scaleX(${available / natural})`;
+      }
+    }
 
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
@@ -698,6 +718,7 @@
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
       previewDailyContent: $('#previewDailyContent'), previewDailyEx: $('#previewDailyEx'),
       pvExDistanceNum: $('#pvExDistanceNum'), pvExMid: $('#pvExMid'), pvExTime: $('#pvExTime'),
+      pvExMidIcon: $('#pvExMidIcon'), pvExMidValue: $('#pvExMidValue'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
       pvPaceLabelDaily: $('#pvPaceLabelDaily'),
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
@@ -886,11 +907,13 @@
       const isExDaily = (state.font === 'ex' && state.recordType === 'daily');
       if (isExDaily) {
           const exNum = (d.km > 0) ? Number(d.km).toFixed(2) : '00.00';
-          const exMid = dailyIsTrail ? fmtElevEx(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
+          const exMidValue = dailyIsTrail ? fmtElevExValue(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
           const exTime = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
           if (el.pvExDistanceNum) el.pvExDistanceNum.textContent = exNum;
-          if (el.pvExMid) el.pvExMid.textContent = exMid;
+          if (el.pvExMidIcon) el.pvExMidIcon.style.display = dailyIsTrail ? 'inline-block' : 'none';
+          if (el.pvExMidValue) el.pvExMidValue.textContent = exMidValue;
           if (el.pvExTime) el.pvExTime.textContent = exTime;
+          requestAnimationFrame(() => fitExNumber(el.pvExDistanceNum));
       }
 
       const m = state.monthly;
@@ -1351,7 +1374,7 @@
           el.resultBlock.innerHTML = `
             <div class="ex-card">
               <div class="ex-distance-row"><span class="ex-distance-num" id="rvDistance"></span><span class="ex-distance-unit">KM</span></div>
-              <div class="ex-stats-row"><span class="ex-stat-left" id="rvMid"></span><span class="ex-stat-right" id="rvTime"></span></div>
+              <div class="ex-stats-row"><span class="ex-stat-left" id="rvMid"><svg class="ex-elev-icon" id="rvMidIcon" viewBox="0 0 12 12" width="11" height="11" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M9.28 0H0.03V2.72682H7.28L0 10.0251L1.9225 11.9524L9.28 4.57644V12H12V2.72682V0H9.28Z"/></svg><span id="rvMidValue"></span></span><span class="ex-stat-right" id="rvTime"></span></div>
             </div>
           `;
           el.resultBlock.style.color = '';
@@ -1422,10 +1445,12 @@
     function animateAll(target) {
       const isExDaily = (state.font === 'ex' && state.recordType === 'daily');
       if (isExDaily) {
-        const rvDistance = $('#rvDistance'); const rvMid = $('#rvMid'); const rvTime = $('#rvTime');
+        const rvDistance = $('#rvDistance'); const rvMidIcon = $('#rvMidIcon'); const rvMidValue = $('#rvMidValue'); const rvTime = $('#rvTime');
+        if (rvMidIcon) rvMidIcon.style.display = target.isTrail ? 'inline-block' : 'none';
         if (rvDistance) rvDistance.textContent = '0.00';
-        if (rvMid) rvMid.textContent = target.isTrail ? fmtElevEx(0) : fmtPaceResult(0);
+        if (rvMidValue) rvMidValue.textContent = target.isTrail ? fmtElevExValue(0) : fmtPaceResult(0);
         if (rvTime) rvTime.textContent = fmtTimeResult(0);
+        fitExNumber(rvDistance);
 
         const hold = 500; const dur = 2000; const t0 = performance.now();
         const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
@@ -1435,8 +1460,9 @@
           const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
           const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k;
           if (rvDistance) rvDistance.textContent = km.toFixed(2);
-          if (rvMid) rvMid.textContent = target.isTrail ? fmtElevEx(mid) : fmtPaceResult(mid);
+          if (rvMidValue) rvMidValue.textContent = target.isTrail ? fmtElevExValue(mid) : fmtPaceResult(mid);
           if (rvTime) rvTime.textContent = fmtTimeResult(time);
+          fitExNumber(rvDistance);
           if (p < 1) requestAnimationFrame(exFrame);
         }
         requestAnimationFrame(exFrame);

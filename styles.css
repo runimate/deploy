@@ -71,7 +71,7 @@ body.no-scroll{ overflow: hidden; }
 .container{ width: min(360px, 100%); margin: 0 auto; position: relative; max-width: 100%; overflow-x: hidden; }
 
 /* HEADER */
-.header { margin-bottom: 22px; position: relative; padding-top: 18px; }
+.header { margin-bottom: 22px; }
 .title{
   display: block;
   width: 100%;
@@ -84,8 +84,9 @@ body.no-scroll{ overflow: hidden; }
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-.version{ font-family: 'RunimateEX', sans-serif; font-size: clamp(16px, 4.5vw, 20px); font-weight: 400; margin-top: 4px; cursor: pointer; user-select: none; }
-.author{ position: absolute; top: 0; right: 0; font-size: 11px; font-weight: 600; color:#000; white-space: nowrap; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.version{ font-family: 'RunimateEX', sans-serif; font-size: clamp(16px, 4.5vw, 20px); font-weight: 400; margin-top: 6px; cursor: pointer; user-select: none; }
+/* RUNIMATE 타이틀 우측 하단에 붙는 크레딧 - 항상 우측 정렬, 타이틀 바로 아래 스침 */
+.author{ margin-top: -4px; margin-bottom: 2px; text-align: right; font-size: 11px; font-weight: 600; color:#000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .title-link{ display: block; color: inherit; text-decoration: none; cursor: pointer; }
 .title-link:hover, .title-link:visited, .title-link:active, .title-link:focus { color: inherit; text-decoration: none; }
 
@@ -350,11 +351,14 @@ body.no-scroll{ overflow: hidden; }
 #previewDaily.font-ex #previewDailyEx { display: flex !important; }
 #previewDaily:not(.font-ex) #previewDailyEx { display: none !important; }
 
-/* EX 카드는 자체 아웃라인을 갖기 때문에, 바깥 프리뷰 박스의 이중 테두리를 제거 */
+/* EX 카드는 자체 아웃라인을 갖기 때문에, 바깥 프리뷰 박스의 이중 테두리를 제거하고
+   다른 폰트의 Type2 박스처럼 가로 100%를 그대로 사용 */
 #previewDaily.font-ex {
     border: none !important;
     padding: 0 !important;
     background: transparent !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 .ex-card {
@@ -373,11 +377,13 @@ body.no-scroll{ overflow: hidden; }
 .preview.bg-white .ex-card, .result-screen.bg-white .ex-card { background: #fff; border-color: #000; }
 .preview.bg-black .ex-card, .result-screen.bg-black .ex-card { background: #000; border-color: #fff; }
 
-.ex-distance-row{ display:flex; align-items:baseline; justify-content:space-between; width:100%; }
-.ex-distance-num{ font-size: clamp(32px, 9vw, 44px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ex-distance-unit{ font-size: clamp(32px, 9vw, 44px); font-weight: 900; line-height: 1; margin-left: 4px; white-space: nowrap; }
+.ex-distance-row{ display:flex; align-items:baseline; justify-content:space-between; width:100%; overflow: hidden; }
+.ex-distance-num{ display:inline-block; font-size: 40px; font-weight: 900; line-height: 1; white-space: nowrap; transform-origin: left center; }
+.ex-distance-unit{ flex: 0 0 auto; font-size: 40px; font-weight: 900; line-height: 1; margin-left: 6px; white-space: nowrap; }
 .ex-stats-row{ display:flex; align-items:center; justify-content:space-between; width:100%; }
-.ex-stat-left, .ex-stat-right{ font-size: clamp(15px, 4vw, 18px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ex-stat-left{ display:inline-flex; align-items:center; }
+.ex-stat-left, .ex-stat-right{ font-size: clamp(14px, 4vw, 17px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ex-elev-icon{ margin-right: 4px; flex: 0 0 auto; }
 
 /* RUN Button */
 .run-btn{ position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; cursor: pointer; background: #ff9000; color: #000; width: min(360px, calc(100% - 40px)); padding: 16px; border:none; border-radius: 999px; font-size: 24px; font-weight: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
