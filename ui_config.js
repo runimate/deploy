@@ -53,6 +53,20 @@ export const UI_CONFIG = {
       d2_c: { labelSize: 11, valueSize: 24, labelToValueGap: 6, colGap: 26 },
       m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 26, statsLvGap: -10, statsStackGap: 18 },
       m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 4, distToStatsGap: 16, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 28 }
+    },
+
+    // =================================================================
+    // 2. EX 폰트 (신규 - Monthly 모드에서 EX 선택 시 사용되는 수치.
+    //    Daily 모드는 index.html의 전용 .ex-card 레이아웃을 사용하며
+    //    이 값을 참조하지 않음)
+    // =================================================================
+    ex: {
+      d1_l: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 22 },
+      d1_c: { labelSize: 12, valueSize: 32, labelToValueGap: 4, stackGap: 22 },
+      d2_l: { labelSize: 11, valueSize: 24, labelToValueGap: 6, colGap: 26 },
+      d2_c: { labelSize: 11, valueSize: 24, labelToValueGap: 6, colGap: 26 },
+      m1: { monthSize: 14, distanceSize: 38, monthToDistGap: 8, distToStatsGap: 20, statsLabelSize: 12, statsValueSize: 26, statsLvGap: -10, statsStackGap: 18 },
+      m2: { monthSize: 18, distanceSize: 46, monthToDistGap: 4, distToStatsGap: 16, statsLabelSize: 12, statsValueSize: 26, statsLvGap: 4, statsColGap: 28 }
     }
   }
 };
@@ -60,7 +74,7 @@ export const UI_CONFIG = {
 export function applyUIConfigToRoot(state) {
   const { font, recordType, layout, align } = state;
   const fontConfig = UI_CONFIG.fonts[font] || UI_CONFIG.fonts.anton;
-  
+
   let modeKey = '';
   if (recordType === 'daily') {
     const suffix = (align === 'center') ? '_c' : '_l';
@@ -68,7 +82,7 @@ export function applyUIConfigToRoot(state) {
   } else {
     modeKey = (layout === 'type1') ? 'm1' : 'm2';
   }
-  
+
   const config = fontConfig[modeKey];
   if (!config) return;
 
@@ -79,7 +93,7 @@ export function applyUIConfigToRoot(state) {
     set('--ui-label-size', config.labelSize);
     set('--ui-value-size', config.valueSize);
     set('--ui-label-to-value-gap', config.labelToValueGap);
-    
+
     if (layout === 'type1') {
         set('--ui-stack-gap', config.stackGap);
     } else {

@@ -4,14 +4,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>RUNIMATE v2.2</title>
-  
+  <title>RUNIMATE v2.5</title>
+
   <link rel="stylesheet" href="./styles.css" />
- 
+
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./ocr.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  
+
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.json" />
@@ -34,7 +34,7 @@
     .result-label, .data-label { font-family: inherit !important; font-size: var(--ui-label-size) !important; line-height: 1; opacity: 0.8; margin-bottom: var(--ui-label-to-value-gap) !important; }
     .font-anton .result-label { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-weight: 900 !important; }
     .result-value, .data-value { font-family: inherit !important; font-size: var(--ui-value-size) !important; line-height: 1; font-weight: 900; }
-    
+
     .preview.type1 .preview-content, .result-wrap.type1 .result-block { display: flex; flex-direction: column; gap: var(--ui-stack-gap) !important; }
     .preview.type1 .result-item, .result-wrap.type1 .result-item { display: flex; flex-direction: column; gap: 0 !important; width: 100%; }
     .preview.align-left.type1 .result-item, .result-wrap.align-left.type1 .result-item { align-items: flex-start !important; text-align: left !important; }
@@ -73,50 +73,50 @@
     .w-arrow { display: block !important; font-size: 24px !important; font-weight: 900 !important; color: #000 !important; line-height: 1 !important; }
     .garmin-list-btn, .w-arrow-wrap { width: auto !important; height: auto !important; padding: 0 0 0 14px !important; background: transparent !important; border: none !important; cursor: pointer !important; flex-shrink: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
     #garminConnectBtnWrap button, #stravaConnectBtnWrap button { display: inline-block; margin: 0 auto; }
-    
+
     .run-btn { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 5000 !important; cursor: pointer !important; background: #ff9000 !important; color: #000 !important; width: min(360px, calc(100% - 40px)) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .run-btn:active { transform: translateX(-50%) scale(0.98) !important; }
-    
+
     /* 팝업창(Overlay) 숨김 처리 및 스타일 */
-    #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay { 
+    #garminLoginScreen, #stravaLoginScreen, #garminSelectScreen, #monthPickerScreen, #resultScreen, #colorPickerOverlay {
         display: none; /* 평소에는 숨김 */
-        position: fixed !important; 
-        top: 0; left: 0; bottom: 0; right: 0; 
-        width: 100%; height: 100%; 
-        background-color: #fff; 
-        z-index: 99999 !important; 
-        flex-direction: column; 
-        overflow-y: auto; 
-        padding-bottom: 120px !important; 
+        position: fixed !important;
+        top: 0; left: 0; bottom: 0; right: 0;
+        width: 100%; height: 100%;
+        background-color: #fff;
+        z-index: 99999 !important;
+        flex-direction: column;
+        overflow-y: auto;
+        padding-bottom: 120px !important;
     }
-    
+
     /* Select Workout 화면 레이아웃 (잘림 방지) */
     #garminSelectScreen .select-wrap {
         display: flex;
         flex-direction: column;
         height: 100%;
-        overflow: hidden; 
+        overflow: hidden;
     }
-    
+
     #garminSelectScreen .select-list {
         flex: 1;
         overflow-y: auto;
-        padding-bottom: 150px; 
+        padding-bottom: 150px;
         width: 100%;
-        -webkit-overflow-scrolling: touch; 
+        -webkit-overflow-scrolling: touch;
     }
 
     /* .show 클래스가 붙어야만 보이도록 설정 */
-    #garminLoginScreen.show, #stravaLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show { 
-        display: flex !important; 
+    #garminLoginScreen.show, #stravaLoginScreen.show, #garminSelectScreen.show, #monthPickerScreen.show, #resultScreen.show, #colorPickerOverlay.show {
+        display: flex !important;
     }
-    
+
     #garminLoginScreen { background-color: var(--garmin, #76B6FF) !important; }
     .gc-input::placeholder { color: #000 !important; opacity: 1 !important; }
     .gc-input { color: #000 !important; border-bottom: 2px solid #000 !important; }
     .gc-cta { position: fixed !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: min(360px, calc(100% - 60px)) !important; z-index: 100000 !important; background: #000 !important; color: #fff !important; cursor: pointer !important; margin: 0 !important; }
     .select-workout { background-color: #fff !important; z-index: 99999 !important; }
-    
+
     /* result-screen도 초기에는 안 보여야 합니다. */
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
     .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
@@ -153,29 +153,29 @@
     .black-btn:active { transform: scale(0.98); }
 
     /* Action Buttons Style (초기엔 숨김) */
-    .preview-actions { 
+    .preview-actions {
         display: none; /* 데이터 로드 전에는 안 보임 */
-        gap: 12px; 
-        margin-top: 30px; 
-        width: 100%; 
-        justify-content: center; 
+        gap: 12px;
+        margin-top: 30px;
+        width: 100%;
+        justify-content: center;
         position: relative;
-        z-index: 50; 
+        z-index: 50;
     }
-    .action-btn-pill { 
-        flex: 1; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        gap: 8px; 
-        height: 52px; 
-        background: #F4F4F4; 
-        border: none; 
-        border-radius: 999px; 
-        font-size: 14px; 
-        font-weight: 800; 
-        cursor: pointer; 
-        color: #000; 
+    .action-btn-pill {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 52px;
+        background: #F4F4F4;
+        border: none;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        color: #000;
         transition: background 0.2s, transform 0.1s;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
@@ -187,15 +187,14 @@
 <body>
   <div class="container">
     <header class="header">
-      <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">
-        RUNIMATE 
-      </a>
-      <span class="version" id="btnHiddenManual">v.2.2</span>
-      <div class="author">by JS @runarchive.js</div>
+      <div class="header-row">
+        <a class="title title-link" href="#" onclick="window.location.reload(); return false;" title="새로고침">RUNIMATE</a>
+        <div class="author">by JS @runarchive.js</div>
+      </div>
+      <div class="version" id="btnHiddenManual">V.2.5</div>
     </header>
 
     <section class="section">
-      <span class="section-label">RECORD TYPE</span>
       <div class="button-group wide">
         <button class="toggle-btn flex1 active" id="btnDaily" data-record="daily">Daily</button>
         <button class="toggle-btn flex1" id="btnMonthly" data-record="monthly">Monthly</button>
@@ -204,10 +203,6 @@
 
     <section class="section">
       <div class="data-panel" id="dataPanel">
-        <div class="data-panel-head" id="dataPanelHead">
-          <div class="data-panel-title">DATA TYPE</div>
-        </div>
-
         <div class="data-tabs" id="dataTabsDaily">
           <button class="data-tab garmin" id="tabGarmin" data-datatype="garmin">GARMIN</button>
           <button class="data-tab strava" id="tabStrava" data-datatype="strava">STRAVA</button>
@@ -292,7 +287,7 @@
                 <label class="manual-label">DISTANCE (Km)</label>
                 <input type="number" id="inputDistance" class="big-input" placeholder="00.00" inputmode="decimal" step="0.01">
               </div>
-              
+
               <div class="manual-col" id="manualColRuns" style="display:none;">
                 <label class="manual-label">RUNS</label>
                 <input type="number" id="inputRuns" class="big-input" placeholder="00" inputmode="numeric">
@@ -322,7 +317,7 @@
             <button class="toggle-btn font-btn font-dots" data-font="dots">DOTS</button>
             <button class="toggle-btn font-btn font-lcd" data-font="lcd">LCD</button>
             <button class="toggle-btn font-btn font-gothic" data-font="gothic">GOTHIC</button>
-            <button class="toggle-btn font-btn font-speed" data-font="speed">SPEED</button>
+            <button class="toggle-btn font-btn font-ex" data-font="ex">EX</button>
           </div>
       </div>
     </section>
@@ -331,7 +326,7 @@
       <div class="two-col">
         <div class="col">
           <span class="section-label inline">LAYOUT</span>
-          <div class="button-group two">
+          <div class="button-group two" id="layoutControlPanel">
             <button class="toggle-btn flex1 active" id="btnType1" data-layout="type1">Type 1</button>
             <button class="toggle-btn flex1" id="btnType2" data-layout="type2">Type 2</button>
           </div>
@@ -381,7 +376,7 @@
       <span class="section-label">PREVIEW</span>
 
       <div class="preview type1 bg-white font-anton align-left" id="previewDaily">
-        <div class="preview-content">
+        <div class="preview-content" id="previewDailyContent">
           <div class="result-item">
             <span class="result-label">DISTANCE</span>
             <span class="result-value"><span id="pvDistanceDaily">00.00Km</span></span>
@@ -393,6 +388,16 @@
           <div class="result-item">
             <span class="result-label">TIME</span>
             <span class="result-value"><span id="pvTimeDaily">00:00:00</span></span>
+          </div>
+        </div>
+        <div class="ex-card" id="previewDailyEx" style="display:none;">
+          <div class="ex-distance-row">
+            <span class="ex-distance-num" id="pvExDistanceNum">00.00</span>
+            <span class="ex-distance-unit">KM</span>
+          </div>
+          <div class="ex-stats-row">
+            <span class="ex-stat-left" id="pvExMid">0'00"</span>
+            <span class="ex-stat-right" id="pvExTime">0:00:00</span>
           </div>
         </div>
       </div>
@@ -442,7 +447,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="preview-actions" id="actionBtnGroup" style="display:none;">
           <button class="action-btn-pill" id="btnSaveImage">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -572,18 +577,18 @@
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
     // [포맷팅 함수]
-    function fmtKmPreview(km) { 
+    function fmtKmPreview(km) {
         if (state.recordType === 'monthly') {
             return `${Number(km || 0).toFixed(1)}Km`;
         }
-        return `${Number(km || 0).toFixed(2)}Km`; 
+        return `${Number(km || 0).toFixed(2)}Km`;
     }
     function fmtRunsPreview(r) { return pad2(Number(r || 0)); }
     function fmtPacePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
       const m = Math.floor(s / 60);
       const r = s % 60;
-      return `${m}'${pad2(r)}"`; 
+      return `${m}'${pad2(r)}"`;
     }
     function fmtTimePreview(sec) {
       const s = Math.max(0, Math.floor(sec || 0));
@@ -596,8 +601,12 @@
     function fmtPaceResult(sec) { return fmtPacePreview(sec); }
     function fmtTimeResult(sec) { return fmtTimePreview(sec); }
     function fmtElevPreview(m) { return `${Math.round(Number(m || 0))}m`; }
+    function fmtElevEx(m) {
+      const v = Math.round(Number(m || 0));
+      return `↗ ${v.toLocaleString('en-US')}M`;
+    }
     function isTrailWorkout(w) { return String((w && w.sportType) || '').toLowerCase().includes('trail'); }
-    
+
     function monthName(m) { const names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']; return names[clamp(m, 1, 12) - 1]; }
     function monthNameCap(m) { const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; return names[clamp(m, 1, 12) - 1]; }
 
@@ -612,36 +621,36 @@
           span.style.transform = `scale(${s})`;
       }
     }
-    
+
     function computeScaleForGroup(spans, minScale = 0.35) {
       const arr = (spans || []).filter(Boolean); if (!arr.length) return 1;
       let need = 1;
       arr.forEach(sp => {
         sp.style.transform = ''; sp.style.transformOrigin = 'left bottom';
-        const w = sp.parentElement?.clientWidth; const sw = span.scrollWidth;
+        const w = sp.parentElement?.clientWidth; const sw = sp.scrollWidth;
         if (w && sw > w) need = Math.min(need, w / sw);
       });
       return Math.max(minScale, Math.min(1, need));
     }
-    
+
     function applyLockedScale(spans, scale) {
       (spans || []).filter(Boolean).forEach(sp => {
         sp.style.transformOrigin = 'left bottom';
         sp.style.transform = (scale < 1) ? `scale(${scale})` : '';
       });
     }
-    
+
     // --- STATE ---
-    const today = new Date(); 
+    const today = new Date();
 
     const state = {
       recordType: 'daily',
-      dataType: null,      
-      font: 'anton',       
-      layout: 'type1',     
-      bg: 'white',         
-      align: 'left',       
-      fontColor: 'auto',   
+      dataType: null,
+      font: 'anton',
+      layout: 'type1',
+      bg: 'white',
+      align: 'left',
+      fontColor: 'auto',
       daily: { km: 0, paceSec: 0, timeSec: 0 },
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
       garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
@@ -652,7 +661,7 @@
     // [핵심 해결 2] 스트라바 리다이렉션으로 인한 가민 데이터 증발 방지 (세션 저장소 활용)
     let realGarminWorkouts = JSON.parse(sessionStorage.getItem('runimate_garmin_data') || '[]');
     let realStravaWorkouts = JSON.parse(sessionStorage.getItem('runimate_strava_data') || '[]');
-    
+
     function generateMockWorkouts() {
         const arr = [];
         const y = state.monthly.year || new Date().getFullYear();
@@ -661,7 +670,7 @@
             arr.push({
                 date: `${y}.${m}.${String(20-i).padStart(2,'0')}`,
                 km: (5 + (i * 0.7)).toFixed(2),
-                paceSec: 300 + (i * 3), 
+                paceSec: 300 + (i * 3),
                 timeSec: 1800 + (i * 100)
             });
         }
@@ -683,11 +692,14 @@
       stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
       monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
       fontGroup: $('#fontGroup'), btnType1: $('#btnType1'), btnType2: $('#btnType2'),
+      layoutControlPanel: $('#layoutControlPanel'),
       btnBgWhite: $('#btnBgWhite'), btnBgBlack: $('#btnBgBlack'),
       alignControlPanel: $('#alignControlPanel'), btnAlignLeft: $('#btnAlignLeft'), btnAlignCenter: $('#btnAlignCenter'),
       btnFontColorAuto: $('#btnFontColorAuto'), btnFontColorPicker: $('#btnFontColorPicker'),
       colorPickerOverlay: $('#colorPickerOverlay'), colorPickerClose: $('#colorPickerClose'), nativeColorInput: $('#nativeColorInput'),
       previewDaily: $('#previewDaily'), previewMonthly: $('#previewMonthly'),
+      previewDailyContent: $('#previewDailyContent'), previewDailyEx: $('#previewDailyEx'),
+      pvExDistanceNum: $('#pvExDistanceNum'), pvExMid: $('#pvExMid'), pvExTime: $('#pvExTime'),
       pvDistanceDaily: $('#pvDistanceDaily'), pvPaceDaily: $('#pvPaceDaily'), pvTimeDaily: $('#pvTimeDaily'),
       pvPaceLabelDaily: $('#pvPaceLabelDaily'),
       workoutList: $('#workoutList'), garminSelectScreen: $('#garminSelectScreen'),
@@ -707,16 +719,16 @@
     // --- Screen Control ---
     function openScreen(id) {
       const node = document.getElementById(id);
-      if(node) { 
-          node.classList.add('show'); 
+      if(node) {
+          node.classList.add('show');
           node.setAttribute('aria-hidden', 'false');
           if(el.btnRun) el.btnRun.style.display = 'none';
       }
     }
     function closeScreen(id) {
       const node = document.getElementById(id);
-      if(node) { 
-          node.classList.remove('show'); 
+      if(node) {
+          node.classList.remove('show');
           node.setAttribute('aria-hidden', 'true');
           if(el.btnRun) el.btnRun.style.display = 'block';
       }
@@ -735,7 +747,7 @@
       el.dataEmpty.style.display = 'none';
       el.contentGarmin.style.display = 'none'; el.contentStrava.style.display = 'none';
       el.contentNrc.style.display = 'none'; el.contentManual.style.display = 'none';
-      
+
       if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
       if (state.dataType === 'garmin') {
@@ -767,36 +779,38 @@
 
     let readyBlob = null;
     let debounceTimer = null;
-    
+
     async function generateBlobBackground() {
         const isDaily = state.recordType === 'daily';
         const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
         const previewEl = document.getElementById(targetId);
-        const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        const isExDaily = isDaily && state.font === 'ex';
+        const contentSelector = isExDaily ? '.ex-card' : '.preview-content';
+        const element = previewEl ? previewEl.querySelector(contentSelector) : null;
         if(!element) return;
         try {
             await document.fonts.ready;
             const canvas = await html2canvas(element, {
                 backgroundColor: null, scale: 3, logging: false, useCORS: true, allowTaint: true,
                 onclone: (clonedDoc) => {
-                    const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`);
-                    if (clonedEl) clonedEl.style.background = 'transparent';
+                    const clonedEl = clonedDoc.querySelector(`#${targetId} ${contentSelector}`);
+                    if (clonedEl && !isExDaily) clonedEl.style.background = 'transparent';
                 }
             });
             canvas.toBlob((blob) => { readyBlob = blob; }, 'image/png');
         } catch(e) {}
     }
-    
+
     function triggerPreRender() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { generateBlobBackground(); }, 1000); 
+        debounceTimer = setTimeout(() => { generateBlobBackground(); }, 1000);
     }
 
     function updatePreview() {
       // 월간 모드일 때 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
-          
+
           // [핵심] 가짜 데이터(233km) 간섭 완벽 차단!
           if (state.dataType === 'garmin') workouts = realGarminWorkouts;
           if (state.dataType === 'strava') workouts = realStravaWorkouts;
@@ -810,27 +824,27 @@
               const sportType = String(w.sportType || 'run').toLowerCase();
 
               // 🚨 1. 보행(walking, walk) 데이터는 가차 없이 버립니다!
-              if (sportType.includes('walk')) return; 
+              if (sportType.includes('walk')) return;
 
               // 🟢 2. 러닝(run)이나 트레일러닝(trail) 단어가 없으면 버립니다! (러닝/트레일러닝 합산)
-              if (!sportType.includes('run') && !sportType.includes('trail')) return; 
+              if (!sportType.includes('run') && !sportType.includes('trail')) return;
 
               // 날짜 파싱 (기호 무시하고 연/월 추출)
               const dateStr = String(w.date || '');
-              const nums = dateStr.match(/\d+/g); 
-              
+              const nums = dateStr.match(/\d+/g);
+
               if (!nums || nums.length < 2) return;
-              
-              let wYear = state.monthly.year; 
-              let wMonth = state.monthly.month; 
-              
-              if (nums[0].length === 4) { 
+
+              let wYear = state.monthly.year;
+              let wMonth = state.monthly.month;
+
+              if (nums[0].length === 4) {
                   wYear = parseInt(nums[0], 10);
                   wMonth = parseInt(nums[1], 10);
-              } else if (nums.length >= 3) { 
+              } else if (nums.length >= 3) {
                   wYear = parseInt(nums[0], 10) + 2000;
                   wMonth = parseInt(nums[1], 10);
-              } else if (nums.length === 2) { 
+              } else if (nums.length === 2) {
                   wMonth = parseInt(nums[0], 10);
               }
 
@@ -854,7 +868,7 @@
       else if (state.dataType === 'strava') d = realStravaWorkouts.length > 0 ? state.strava : (state.strava && state.strava.km > 0 ? state.strava : generateMockWorkouts()[0]);
       else if (state.dataType === 'manual') d = state.manual;
       else if (state.dataType === 'nrc' && state.daily) d = state.daily;
-      
+
       const dailyIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
       const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
       const midText = dailyIsTrail ? fmtElevPreview(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
@@ -863,17 +877,30 @@
       const elDistanceDaily = document.getElementById('pvDistanceDaily');
       const elPaceDaily = document.getElementById('pvPaceDaily');
       const elTimeDaily = document.getElementById('pvTimeDaily');
-      
+
       if(elDistanceDaily) elDistanceDaily.textContent = kmText;
       if(elPaceDaily) elPaceDaily.textContent = midText;
       if(elTimeDaily) elTimeDaily.textContent = timeText;
       if(el.pvPaceLabelDaily) el.pvPaceLabelDaily.textContent = dailyIsTrail ? 'ELEV. GAIN' : 'PACE';
 
+      // [EX 스타일] Daily + EX 폰트일 때만 전용 카드 레이아웃으로 전환
+      const isExDaily = (state.font === 'ex' && state.recordType === 'daily');
+      if (el.previewDailyContent) el.previewDailyContent.style.display = isExDaily ? 'none' : 'flex';
+      if (el.previewDailyEx) el.previewDailyEx.style.display = isExDaily ? 'flex' : 'none';
+      if (isExDaily) {
+          const exNum = (d.km > 0) ? Number(d.km).toFixed(2) : '00.00';
+          const exMid = dailyIsTrail ? fmtElevEx(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
+          const exTime = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
+          if (el.pvExDistanceNum) el.pvExDistanceNum.textContent = exNum;
+          if (el.pvExMid) el.pvExMid.textContent = exMid;
+          if (el.pvExTime) el.pvExTime.textContent = exTime;
+      }
+
       const m = state.monthly;
       if(el.btnMonthPick) el.btnMonthPick.textContent = `${monthNameCap(m.month)}. ${m.year}`;
       if(el.pvMonthType1) el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
       if(el.pvMonthType2) el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
-      
+
       if(el.pvDistanceMonthlyT1) el.pvDistanceMonthlyT1.textContent = fmtKmPreview(m.km);
       if(el.pvRunsMonthlyT1) el.pvRunsMonthlyT1.textContent = fmtRunsPreview(m.runs);
       if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = fmtPacePreview(m.paceSec);
@@ -883,7 +910,7 @@
       if(el.pvRunsMonthlyT2) el.pvRunsMonthlyT2.textContent = fmtRunsPreview(m.runs);
       if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
       if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
-      
+
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
          const cardSrc = (state.dataType === 'garmin') ? state.garmin : state.strava;
          if(cardSrc && cardSrc.date && cardSrc.date !== '-') {
@@ -902,29 +929,29 @@
              }
          }
       }
-      
+
       const hasData = (state.recordType === 'daily' ? d.km > 0 : m.km > 0 || (m.runs && m.runs > 0));
-      
+
       if(el.actionBtnGroup) {
           el.actionBtnGroup.style.display = hasData ? 'flex' : 'none';
       }
 
       applyPreviewStyles();
-      
+
       requestAnimationFrame(() => {
           applyFitPreview();
           if(hasData) triggerPreRender();
       });
     }
-    
+
     function applyPreviewStyles() {
         const pvs = [el.previewDaily, el.previewMonthly];
         pvs.forEach(pv => {
             if(!pv) return;
             pv.classList.remove('align-left', 'align-center');
-            if(state.recordType === 'monthly') pv.classList.add('align-left'); 
+            if(state.recordType === 'monthly') pv.classList.add('align-left');
             else pv.classList.add(`align-${state.align}`);
-            if(state.fontColor === 'auto') pv.style.color = ''; 
+            if(state.fontColor === 'auto') pv.style.color = '';
             else pv.style.color = state.fontColor;
         });
     }
@@ -954,10 +981,10 @@
     // --- GARMIN LOGIC ---
     el.tabGarmin.addEventListener('click', () => {
       state.dataType = 'garmin'; applyDataType(); updatePreview();
-      if (realGarminWorkouts.length > 0) { 
+      if (realGarminWorkouts.length > 0) {
           if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
           if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
-      } else { 
+      } else {
           if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'flex';
           if(el.garminCard) el.garminCard.style.display = 'none';
       }
@@ -988,15 +1015,15 @@
           // 👉 이 줄을 추가해서 진짜 데이터 형태를 확인해 보세요!
           console.log("가민 원본 데이터 확인:", realGarminWorkouts);
           sessionStorage.setItem('runimate_garmin_data', JSON.stringify(realGarminWorkouts)); // 가민 데이터 안전 보관
-          
+
           if (realGarminWorkouts.length > 0) {
              state.garmin = realGarminWorkouts[0]; state.dataType = 'garmin';
              applyDataType(); updatePreview();
-             
+
              if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.style.display = 'none';
              if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
              closeScreen('garminLoginScreen');
-             
+
              if (state.recordType === 'daily') {
                  selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('garmin'); openScreen('garminSelectScreen');
              }
@@ -1026,7 +1053,7 @@
 
     function renderWorkoutList(kind = 'garmin') {
       selectScreenKind = kind;
-      const listContainer = el.workoutList; listContainer.innerHTML = ''; 
+      const listContainer = el.workoutList; listContainer.innerHTML = '';
       const fullList = (kind === 'strava') ? (realStravaWorkouts.length > 0 ? realStravaWorkouts : generateMockWorkouts()) : (realGarminWorkouts.length > 0 ? realGarminWorkouts : generateMockWorkouts());
       const list = fullList.filter(w => {
         if (selectScreenSport === 'all') return true;
@@ -1042,23 +1069,23 @@
       list.forEach((w) => {
         const wIsTrail = isTrailWorkout(w);
         const midStat = wIsTrail ? fmtElevPreview(w.elevGain) : fmtPaceResult(w.paceSec);
-        const btn = document.createElement('div'); btn.className = 'workout-item'; 
+        const btn = document.createElement('div'); btn.className = 'workout-item';
         btn.innerHTML = `
           <div class="w-left"><div class="w-date">${w.date}</div><div class="w-stats"><span>${fmtKmPreview(w.km)}</span><span>${midStat}</span><span>${fmtTimeResult(w.timeSec)}</span></div></div>
           <div class="w-arrow-wrap"><div class="w-arrow">→</div></div>
         `;
         btn.onclick = (e) => {
             e.stopPropagation();
-            if (kind === 'strava') { 
-                state.strava = { ...w }; state.dataType = 'strava'; 
+            if (kind === 'strava') {
+                state.strava = { ...w }; state.dataType = 'strava';
                 if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
                 if(el.stravaCard) el.stravaCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
-            } else { 
-                state.garmin = { ...w }; state.dataType = 'garmin'; 
+            } else {
+                state.garmin = { ...w }; state.dataType = 'garmin';
                 if(el.garminConnectBtnWrap) el.garminConnectBtnWrap.setAttribute('style', 'display: none !important');
                 if(el.garminCard) el.garminCard.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
             }
-            applyDataType(); updatePreview(); closeScreen('garminSelectScreen'); 
+            applyDataType(); updatePreview(); closeScreen('garminSelectScreen');
         };
         listContainer.appendChild(btn);
       });
@@ -1070,8 +1097,8 @@
     if(el.btnSportTrail) el.btnSportTrail.addEventListener('click', () => { selectScreenSport = 'trail'; syncSportToggleUI(); renderWorkoutList(selectScreenKind); });
 
     // --- OTHER TABS ---
-    if(el.tabStrava) el.tabStrava.addEventListener('click', () => { 
-        state.dataType = 'strava'; applyDataType(); updatePreview(); 
+    if(el.tabStrava) el.tabStrava.addEventListener('click', () => {
+        state.dataType = 'strava'; applyDataType(); updatePreview();
         if (realStravaWorkouts.length > 0) {
              if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
              const stravaCardWrap = document.getElementById('stravaCardWrap');
@@ -1088,20 +1115,27 @@
     if(el.tabManual) el.tabManual.addEventListener('click', () => { state.dataType = 'manual'; applyDataType(); updatePreview(); });
 
     // --- APPLY HELPERS ---
+    function syncControlAvailability() {
+      const exActive = state.font === 'ex';
+      if (el.layoutControlPanel) el.layoutControlPanel.classList.toggle('disabled', exActive);
+      const alignDisabled = exActive || state.recordType === 'monthly';
+      if (el.alignControlPanel) el.alignControlPanel.classList.toggle('disabled', alignDisabled);
+    }
+
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily); el.btnMonthly.classList.toggle('active', !isDaily);
       if (el.manualColRuns) el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
-      el.dataTabsDaily.style.display = 'flex'; 
+      el.dataTabsDaily.style.display = 'flex';
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
-      
+
       const m1 = el.previewMonthly.querySelector('.monthly-type1'); const m2 = el.previewMonthly.querySelector('.monthly-type2');
-      if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
+      if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; }
       else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
 
-      if (!isDaily) el.alignControlPanel.classList.add('disabled'); else el.alignControlPanel.classList.remove('disabled');
+      syncControlAvailability();
 
       if(!isDaily) {
           el.dataEmpty.style.display = 'none';
@@ -1111,14 +1145,15 @@
       }
       applyDataType(); applyUIConfigToRoot(state); updatePreview();
     }
-    
+
     function applyFont() {
       el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
-        t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-speed');
+        t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-ex');
         t.classList.add(`font-${state.font}`);
       });
-      applyUIConfigToRoot(state); requestAnimationFrame(applyFitPreview);
+      syncControlAvailability();
+      applyUIConfigToRoot(state); updatePreview(); requestAnimationFrame(applyFitPreview);
     }
 
     function applyLayout() {
@@ -1127,40 +1162,40 @@
       el.previewDaily.classList.remove('type1', 'type2'); el.previewDaily.classList.add(state.layout);
       el.previewMonthly.classList.remove('type1', 'type2'); el.previewMonthly.classList.add(state.layout);
       el.resultWrap.classList.remove('type1', 'type2'); el.resultWrap.classList.add(state.layout);
-      
+
       if (state.recordType === 'monthly') {
         const m1 = el.previewMonthly.querySelector('.monthly-type1'); const m2 = el.previewMonthly.querySelector('.monthly-type2');
-        if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; } 
+        if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; }
         else { if (m1) m1.style.display = 'none'; if (m2) m2.style.display = 'flex'; }
       }
       applyUIConfigToRoot(state); setTimeout(() => { updatePreview(); }, 0);
     }
-    
+
     function applyBG() {
       el.btnBgWhite.classList.toggle('active', state.bg === 'white'); el.btnBgBlack.classList.toggle('active', state.bg === 'black');
       [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => { t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`); });
     }
 
     function applyAlign() { el.btnAlignLeft.classList.toggle('active', state.align === 'left'); el.btnAlignCenter.classList.toggle('active', state.align === 'center'); applyUIConfigToRoot(state); updatePreview(); }
-    
+
     function applyFontColor() {
         el.btnFontColorAuto.classList.toggle('active', state.fontColor === 'auto'); el.btnFontColorPicker.classList.toggle('active', state.fontColor !== 'auto');
-        if (state.fontColor !== 'auto') el.btnFontColorPicker.style.background = state.fontColor; else el.btnFontColorPicker.style.background = ''; 
+        if (state.fontColor !== 'auto') el.btnFontColorPicker.style.background = state.fontColor; else el.btnFontColorPicker.style.background = '';
         updatePreview();
     }
 
     // --- EVENTS ---
     el.btnDaily.addEventListener('click', () => { state.recordType='daily'; applyRecordType(); });
     el.btnMonthly.addEventListener('click', () => { state.recordType='monthly'; applyRecordType(); });
-    el.btnType1.addEventListener('click', () => { state.layout = 'type1'; applyLayout(); });
-    el.btnType2.addEventListener('click', () => { state.layout = 'type2'; applyLayout(); });
-    el.btnAlignLeft.addEventListener('click', () => { if(state.recordType === 'monthly') return; state.align = 'left'; applyAlign(); });
-    el.btnAlignCenter.addEventListener('click', () => { if(state.recordType === 'monthly') return; state.align = 'center'; applyAlign(); });
+    el.btnType1.addEventListener('click', () => { if(state.font === 'ex') return; state.layout = 'type1'; applyLayout(); });
+    el.btnType2.addEventListener('click', () => { if(state.font === 'ex') return; state.layout = 'type2'; applyLayout(); });
+    el.btnAlignLeft.addEventListener('click', () => { if(state.recordType === 'monthly' || state.font === 'ex') return; state.align = 'left'; applyAlign(); });
+    el.btnAlignCenter.addEventListener('click', () => { if(state.recordType === 'monthly' || state.font === 'ex') return; state.align = 'center'; applyAlign(); });
     el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
     el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
     el.btnFontColorAuto.addEventListener('click', () => { state.fontColor = 'auto'; applyFontColor(); });
     el.btnFontColorPicker.addEventListener('click', () => { openScreen('colorPickerOverlay'); });
-    
+
     document.querySelectorAll('.color-chip').forEach(chip => { chip.addEventListener('click', (e) => { state.fontColor = e.target.dataset.c; applyFontColor(); closeScreen('colorPickerOverlay'); }); });
     el.nativeColorInput.addEventListener('input', (e) => { state.fontColor = e.target.value; applyFontColor(); });
     el.nativeColorInput.addEventListener('change', (e) => { closeScreen('colorPickerOverlay'); });
@@ -1181,8 +1216,8 @@
                     const km = Number(result.km || 0); const pMin = Number(result.paceMin || 0); const pSec = Number(result.paceSec || 0);
                     const tH = Number(result.timeH || 0); const tM = Number(result.timeM || 0); const tS = Number(result.timeS || 0);
                     const pace = (pMin * 60) + pSec; const time = (tH * 3600) + (tM * 60) + tS;
-                    
-                    if (state.recordType === 'daily') { state.daily.km = km; state.daily.paceSec = pace; state.daily.timeSec = time; } 
+
+                    if (state.recordType === 'daily') { state.daily.km = km; state.daily.paceSec = pace; state.daily.timeSec = time; }
                     else { state.monthly.km = km; state.monthly.paceSec = pace; state.monthly.timeSec = time; if (result.runs) state.monthly.runs = result.runs; }
                     state.dataType = 'nrc'; applyDataType(); updatePreview();
                     if (el.ocrStatus) { el.ocrStatus.textContent = 'DONE!'; el.ocrStatus.style.color = '#00C800'; }
@@ -1238,13 +1273,13 @@
     // -----------------------------------------------------------
     // [STRAVA LOGIC]
     // -----------------------------------------------------------
-    const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app"; 
+    const RAILWAY_SERVER_URL = "https://runimate-production.up.railway.app";
 
     if(el.btnStravaLogin) {
         el.btnStravaLogin.addEventListener('click', () => {
             sessionStorage.setItem('runimate_restore_state', JSON.stringify({ recordType: state.recordType, dataType: state.dataType, monthly: state.monthly }));
-            const client_id = '192399'; 
-            const redirect_uri = window.location.origin; 
+            const client_id = '192399';
+            const redirect_uri = window.location.origin;
             const scope = 'activity:read_all';
             const authUrl = `https://www.strava.com/oauth/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&approval_prompt=force&scope=${scope}`;
             window.location.href = authUrl;
@@ -1253,7 +1288,7 @@
 
     function checkStravaCode() {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('code'); 
+        const code = params.get('code');
         if (code) {
             const saved = sessionStorage.getItem('runimate_restore_state');
             if (saved) {
@@ -1268,7 +1303,7 @@
             fetchStravaData(code, true); // OAuth 리다이렉트 복귀 시 자동 조회
         }
     }
-    
+
     async function fetchStravaData(code, isAuto = false) {
          if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = '<span>Importing...</span>'; el.btnStravaLogin.style.opacity = "0.7"; el.btnStravaLogin.disabled = true; }
          try {
@@ -1277,14 +1312,14 @@
              if(json.success) {
                  realStravaWorkouts = json.data;
                  sessionStorage.setItem('runimate_strava_data', JSON.stringify(realStravaWorkouts)); // 스트라바 데이터 안전 보관
-                 
+
                  if(realStravaWorkouts.length > 0) {
                       state.strava = realStravaWorkouts[0]; state.dataType = 'strava';
                       if(el.stravaConnectBtnWrap) el.stravaConnectBtnWrap.setAttribute('style', 'display: none !important');
                       const stravaCardWrap = document.getElementById('stravaCardWrap');
                       if(stravaCardWrap) stravaCardWrap.style.display = state.recordType === 'monthly' ? 'none' : 'flex';
                       closeScreen('stravaLoginScreen');
-                      
+
                       if (state.recordType === 'daily') { selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }
                       applyDataType(); updatePreview();
                  } else {
@@ -1293,7 +1328,6 @@
              } else { throw new Error(json.msg || json.message || "Server Error"); }
          } catch(err) {
              console.error("[Strava Error]", err);
-             alert("스트라바 데이터를 불러오지 못했습니다. 현재 스트라바 연동 점검 중이니 잠시 후 다시 시도해주세요.");
              resetStravaBtn();
          }
     }
@@ -1301,20 +1335,32 @@
     function resetStravaBtn() {
         if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`; el.btnStravaLogin.style.opacity = "0.6"; el.btnStravaLogin.disabled = true; }
     }
-    
+
     checkStravaCode();
-    
+
     if(el.btnStravaList) { el.btnStravaList.addEventListener('click', (e) => { e.stopPropagation(); selectScreenSport = 'all'; syncSportToggleUI(); renderWorkoutList('strava'); openScreen('garminSelectScreen'); }); }
 
     // --- RUN BUTTON: Result ---
     function buildResultDOM() {
        el.resultWrap.className = `result-wrap ${state.layout}`;
        if (state.recordType === 'daily') { el.resultWrap.classList.add(`align-${state.align}`); } else { el.resultWrap.classList.add('monthly'); }
-       
+
        let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
        if (state.recordType === 'daily') {
         const resultIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
+
+        if (state.font === 'ex') {
+          el.resultBlock.innerHTML = `
+            <div class="ex-card">
+              <div class="ex-distance-row"><span class="ex-distance-num" id="rvDistance"></span><span class="ex-distance-unit">KM</span></div>
+              <div class="ex-stats-row"><span class="ex-stat-left" id="rvMid"></span><span class="ex-stat-right" id="rvTime"></span></div>
+            </div>
+          `;
+          el.resultBlock.style.color = '';
+          return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), elevGain: +(d.elevGain || 0), timeSec: +(d.timeSec || 0), isTrail: resultIsTrail };
+        }
+
         const midLabel = resultIsTrail ? 'ELEV. GAIN' : 'PACE';
         el.resultBlock.innerHTML = `
           <div class="result-item"><span class="result-label">DISTANCE</span><span class="result-value"><span id="rvDistance"></span></span></div>
@@ -1350,14 +1396,14 @@
         return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
       }
     }
-    
+
     function lockFitResultTransforms(target, state) {
       const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
       const syncWidth = (rvEl, pvId) => {
           if (!rvEl) return;
           const pvEl = document.getElementById(pvId);
           if (pvEl) {
-              const w = pvEl.getBoundingClientRect().width; 
+              const w = pvEl.getBoundingClientRect().width;
               rvEl.style.width = w + 'px'; rvEl.style.display = 'inline-block'; rvEl.style.whiteSpace = 'nowrap';
               if(state.align === 'center' && state.recordType === 'daily') rvEl.style.textAlign = 'center'; else rvEl.style.textAlign = 'left';
           }
@@ -1375,8 +1421,31 @@
         }
       };
     }
-    
+
     function animateAll(target) {
+      const isExDaily = (state.font === 'ex' && state.recordType === 'daily');
+      if (isExDaily) {
+        const rvDistance = $('#rvDistance'); const rvMid = $('#rvMid'); const rvTime = $('#rvTime');
+        if (rvDistance) rvDistance.textContent = '0.00';
+        if (rvMid) rvMid.textContent = target.isTrail ? fmtElevEx(0) : fmtPaceResult(0);
+        if (rvTime) rvTime.textContent = fmtTimeResult(0);
+
+        const hold = 500; const dur = 2000; const t0 = performance.now();
+        const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+        function exFrame(now) {
+          const dt = now - t0;
+          if (dt < hold) { requestAnimationFrame(exFrame); return; }
+          const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
+          const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k;
+          if (rvDistance) rvDistance.textContent = km.toFixed(2);
+          if (rvMid) rvMid.textContent = target.isTrail ? fmtElevEx(mid) : fmtPaceResult(mid);
+          if (rvTime) rvTime.textContent = fmtTimeResult(time);
+          if (p < 1) requestAnimationFrame(exFrame);
+        }
+        requestAnimationFrame(exFrame);
+        return;
+      }
+
       const locker = lockFitResultTransforms(target, state); locker.resetToStart();
       const hold = 500; const dur = 2000; const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
@@ -1392,7 +1461,7 @@
       }
       requestAnimationFrame(frame);
     }
-    
+
     el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM(); openScreen('resultScreen');
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
@@ -1402,14 +1471,16 @@
 
     const btnSaveImage = document.getElementById('btnSaveImage'); const btnCopyImage = document.getElementById('btnCopyImage'); const actionBtnGroup = document.getElementById('actionBtnGroup');
     async function captureResult() {
-        if(readyBlob) return readyBlob; 
+        if(readyBlob) return readyBlob;
         const isDaily = state.recordType === 'daily'; const targetId = isDaily ? 'previewDaily' : 'previewMonthly';
-        const previewEl = document.getElementById(targetId); const element = previewEl ? previewEl.querySelector('.preview-content') : null;
+        const isExDaily = isDaily && state.font === 'ex';
+        const contentSelector = isExDaily ? '.ex-card' : '.preview-content';
+        const previewEl = document.getElementById(targetId); const element = previewEl ? previewEl.querySelector(contentSelector) : null;
         if (!element) return null;
         if(actionBtnGroup) actionBtnGroup.style.display = 'none';
         try {
             await document.fonts.ready;
-            const canvas = await html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true, allowTaint: true, onclone: (clonedDoc) => { const clonedEl = clonedDoc.querySelector(`#${targetId} .preview-content`); if (clonedEl) { clonedEl.style.background = 'transparent'; } } });
+            const canvas = await html2canvas(element, { backgroundColor: null, scale: 3, logging: false, useCORS: true, allowTaint: true, onclone: (clonedDoc) => { const clonedEl = clonedDoc.querySelector(`#${targetId} ${contentSelector}`); if (clonedEl && !isExDaily) { clonedEl.style.background = 'transparent'; } } });
             return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         } catch (err) { return null; } finally { if(actionBtnGroup) actionBtnGroup.style.display = 'flex'; }
     }
@@ -1423,7 +1494,7 @@
 
     if (btnCopyImage) {
         btnCopyImage.addEventListener('click', async () => {
-            const blob = readyBlob || await captureResult(); 
+            const blob = readyBlob || await captureResult();
             if (!blob) { alert('잠시만 기다려주세요 (이미지 생성 중...)'); return; }
             if (navigator.share) {
                 try {

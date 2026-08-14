@@ -71,9 +71,10 @@ body.no-scroll{ overflow: hidden; }
 
 /* HEADER */
 .header { margin-bottom: 22px; }
-.title{ font-size: 44px; font-weight: 900; letter-spacing: -0.9px; line-height: 1.0; }
-.version{ font-size: 26px; font-weight: 900; }
-.author{ margin-top: 6px; font-size: 13px; color:#000; }
+.header-row{ display:flex; align-items:flex-start; justify-content:space-between; gap: 10px; }
+.title{ font-family: 'RunimateEX', sans-serif; font-size: clamp(36px, 10vw, 46px); font-weight: 400; letter-spacing: -0.5px; line-height: 0.9; }
+.version{ font-family: 'RunimateEX', sans-serif; font-size: clamp(18px, 5vw, 22px); font-weight: 400; margin-top: 4px; cursor: pointer; user-select: none; }
+.author{ margin-top: 4px; font-size: 11px; font-weight: 600; color:#000; white-space: nowrap; }
 .title-link{ display: inline-flex; align-items: baseline; color: inherit; text-decoration: none; cursor: pointer; }
 .title-link:hover, .title-link:visited, .title-link:active, .title-link:focus { color: inherit; text-decoration: none; }
 
@@ -129,6 +130,7 @@ body.no-scroll{ overflow: hidden; }
 .font-lcd{ font-family:'DS-Digital', monospace; font-size: clamp(15px, 3.6vw, 20px); }
 .font-gothic{ font-family:'Special Gothic Expanded One', sans-serif; font-size: clamp(8px, 2.2vw, 10px); letter-spacing: 0.2px; }
 .font-speed{ font-family:'Quantico', sans-serif; font-size: clamp(12px, 3.1vw, 15px); }
+.font-ex{ font-family:'RunimateEX', sans-serif; font-size: clamp(13px, 3.2vw, 16px); }
 
 
 /* DATA PANEL */
@@ -147,7 +149,7 @@ body.no-scroll{ overflow: hidden; }
 .data-tab.manual-hidden { display: none !important; }
 .data-tab.manual-show { display: flex !important; }
 
-.data-content{ display:none; margin-top: 8px; }
+.data-content{ display:none; margin-top: 12px; }
 
 /* DATA CARDS & ITEMS */
 .garmin-card, .workout-item{ width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; border: 2px solid #000; border-radius: 14px; padding: 10px 12px; background:#fff; cursor:pointer; margin-bottom: 10px; }
@@ -163,12 +165,12 @@ body.no-scroll{ overflow: hidden; }
 /* LOGIN BUTTON WRAPS */
 #garminConnectBtnWrap, #stravaConnectBtnWrap {
     width: 100%;
-    padding: 14px 0 !important;
+    padding: 18px 0 !important;
     display: flex;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 14px !important;
+    gap: 16px !important;
     text-align: center !important;
 }
 #garminConnectBtnWrap > *, #stravaConnectBtnWrap > * { margin: 0 auto !important; }
@@ -201,75 +203,75 @@ body.no-scroll{ overflow: hidden; }
    ========================================= */
 
 /* --- Type 1 (Stack) --- */
-.preview.type1 .preview-content, 
-.result-wrap.type1 .result-block { 
-    display: flex; flex-direction: column; gap: var(--ui-stack-gap); 
+.preview.type1 .preview-content,
+.result-wrap.type1 .result-block {
+    display: flex; flex-direction: column; gap: var(--ui-stack-gap);
 }
 
 /* T1 Left Align */
-.preview.align-left.type1 .result-item, 
-.result-wrap.align-left.type1 .result-item { 
-    align-items: flex-start; text-align: left; 
+.preview.align-left.type1 .result-item,
+.result-wrap.align-left.type1 .result-item {
+    align-items: flex-start; text-align: left;
 }
-.preview.align-left.type1 .result-value, 
+.preview.align-left.type1 .result-value,
 .result-wrap.align-left.type1 .result-value {
-    justify-content: flex-start; 
+    justify-content: flex-start;
 }
 
 /* T1 Center Align */
-.preview.align-center.type1 .preview-content, 
-.result-wrap.align-center.type1 .result-block { 
-    align-items: center !important; 
+.preview.align-center.type1 .preview-content,
+.result-wrap.align-center.type1 .result-block {
+    align-items: center !important;
     text-align: center !important;
 }
-.preview.align-center.type1 .result-item, 
-.result-wrap.align-center.type1 .result-item { 
-    align-items: center !important; 
-    text-align: center !important; 
+.preview.align-center.type1 .result-item,
+.result-wrap.align-center.type1 .result-item {
+    align-items: center !important;
+    text-align: center !important;
     width: 100% !important;
 }
-.preview.align-center.type1 .result-value, 
+.preview.align-center.type1 .result-value,
 .result-wrap.align-center.type1 .result-value {
-    justify-content: center !important; 
+    justify-content: center !important;
     width: 100% !important;
 }
-.preview.align-center.type1 .result-value > span, 
+.preview.align-center.type1 .result-value > span,
 .result-wrap.align-center.type1 .result-value > span {
-    transform-origin: center bottom !important; 
+    transform-origin: center bottom !important;
 }
 
 /* --- Type 2 (Row) --- */
-.preview.type2 .preview-content, 
-.result-wrap.type2 .result-block { 
-    display: flex; flex-direction: row; gap: var(--ui-col-gap); 
+.preview.type2 .preview-content,
+.result-wrap.type2 .result-block {
+    display: flex; flex-direction: row; gap: var(--ui-col-gap);
 }
-.preview.type2 .result-item, 
-.result-wrap.type2 .result-item { 
-    display: flex; flex-direction: column; gap: 0; flex: 0 0 auto; 
+.preview.type2 .result-item,
+.result-wrap.type2 .result-item {
+    display: flex; flex-direction: column; gap: 0; flex: 0 0 auto;
 }
 
 /* T2 Left Align */
-.preview.align-left.type2 .preview-content, 
-.result-wrap.align-left.type2 .result-block { 
-    justify-content: flex-start; 
+.preview.align-left.type2 .preview-content,
+.result-wrap.align-left.type2 .result-block {
+    justify-content: flex-start;
 }
 .preview.align-left.type2 .result-item,
-.result-wrap.align-left.type2 .result-item { 
-    align-items: flex-start; text-align: left; 
+.result-wrap.align-left.type2 .result-item {
+    align-items: flex-start; text-align: left;
 }
 
 /* T2 Center Align */
 .preview.align-center.type2 .preview-content,
-.result-wrap.align-center.type2 .result-block { 
-    justify-content: center; 
+.result-wrap.align-center.type2 .result-block {
+    justify-content: center;
 }
 .preview.align-center.type2 .result-item,
-.result-wrap.align-center.type2 .result-item { 
-    align-items: center; text-align: center; 
+.result-wrap.align-center.type2 .result-item {
+    align-items: center; text-align: center;
 }
 .preview.align-center.type2 .result-value > span,
 .result-wrap.align-center.type2 .result-value > span {
-    transform-origin: center bottom !important; 
+    transform-origin: center bottom !important;
 }
 
 
@@ -281,27 +283,27 @@ body.no-scroll{ overflow: hidden; }
 .m1-stack { display: flex; flex-direction: column; gap: var(--ui-stack-gap); width: 100%; align-items: flex-start; }
 
 /* [M1 중요] Monthly M1: 시각적 상단 정렬 (프리뷰/결과 동일 적용) */
-.monthly-type1 .m1-item, 
+.monthly-type1 .m1-item,
 .result-wrap.type1 .m1-item {
-    display: flex !important; 
-    align-items: flex-start !important; 
-    justify-content: flex-start !important; 
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
     gap: 0 !important;
 }
-.monthly-type1 .m1-item .m-label, 
+.monthly-type1 .m1-item .m-label,
 .result-wrap.type1 .m1-item .result-label {
-    width: 60px !important; 
-    min-width: 60px !important; 
-    margin-right: var(--ui-label-to-value-gap) !important; 
-    text-align: left !important; 
-    display: block !important; 
-    padding-top: 0px !important; 
+    width: 60px !important;
+    min-width: 60px !important;
+    margin-right: var(--ui-label-to-value-gap) !important;
+    text-align: left !important;
+    display: block !important;
+    padding-top: 0px !important;
     line-height: 1 !important;
     margin-bottom: 0 !important;
 }
-.monthly-type1 .m1-item .m-value, 
+.monthly-type1 .m1-item .m-value,
 .result-wrap.type1 .m1-item .result-value {
-    line-height: 0.8 !important; 
+    line-height: 0.8 !important;
     align-items: flex-start !important;
 }
 
@@ -314,19 +316,43 @@ body.no-scroll{ overflow: hidden; }
 .m2-row { display: flex; flex-direction: row; gap: var(--ui-col-gap); width: 100%; justify-content: flex-start; }
 
 /* [M2 싱크] Monthly M2 여백/구조 동기화 */
-.result-wrap.type2.monthly .result-block { 
-    display: flex !important; 
-    flex-direction: column !important; 
-    align-items: flex-start !important; 
-    gap: 0 !important; 
+.result-wrap.type2.monthly .result-block {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
 }
-.result-wrap.type2.monthly .m2-row { 
-    display: flex !important; 
-    flex-direction: row !important; 
-    width: 100% !important; 
-    margin-top: 0 !important; 
-    gap: 24px !important; 
+.result-wrap.type2.monthly .m2-row {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    margin-top: 0 !important;
+    gap: 24px !important;
 }
+
+/* =========================================
+   [신규] EX 스타일 전용 카드 레이아웃
+   ========================================= */
+.ex-card {
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid #000;
+    border-radius: 18px;
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: 'RunimateEX', sans-serif;
+    background: #fff;
+}
+.preview.bg-white .ex-card, .result-screen.bg-white .ex-card { background: #fff; border-color: #000; }
+.preview.bg-black .ex-card, .result-screen.bg-black .ex-card { background: #000; border-color: #fff; }
+
+.ex-distance-row{ display:flex; align-items:baseline; justify-content:space-between; width:100%; }
+.ex-distance-num{ font-size: clamp(32px, 9vw, 44px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ex-distance-unit{ font-size: clamp(32px, 9vw, 44px); font-weight: 900; line-height: 1; margin-left: 4px; white-space: nowrap; }
+.ex-stats-row{ display:flex; align-items:center; justify-content:space-between; width:100%; }
+.ex-stat-left, .ex-stat-right{ font-size: clamp(15px, 4vw, 18px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* RUN Button */
 .run-btn{ position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; cursor: pointer; background: #ff9000; color: #000; width: min(360px, calc(100% - 40px)); padding: 16px; border:none; border-radius: 999px; font-size: 24px; font-weight: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -352,27 +378,27 @@ body.no-scroll{ overflow: hidden; }
 #nativeColorInput { width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; overflow: hidden; }
 
 /* =========================================================
-   [MANUAL INPUT 수정] 
+   [MANUAL INPUT 수정]
    작게 나오는 문제 해결을 위해 font-size 변수 적용 및 스타일 변경
    ========================================================= */
 .manual-form{ display:none; }
 .field-label{ display:block; font-weight:900; font-size:12px; margin-bottom: 8px; }
 
 /* 기존 field-input 스타일을 대체 */
-.field-input{ 
-    width:100%; 
+.field-input{
+    width:100%;
     /* 기존 박스형태 제거하고 밑줄 스타일로 변경 */
-    border: none; 
-    border-bottom: 2px solid #000; 
-    border-radius: 0; 
+    border: none;
+    border-bottom: 2px solid #000;
+    border-radius: 0;
     background: transparent;
-    
+
     /* 폰트 및 크기 변수 적용 (여기가 핵심) */
-    padding: 5px 0; 
+    padding: 5px 0;
     font-family: inherit; /* 현재 설정된 폰트 따라가기 */
     font-size: var(--ui-value-size); /* 설정된 폰트 크기 따라가기 */
-    font-weight: 900; 
-    outline:none; 
+    font-weight: 900;
+    outline:none;
     color: #000;
     line-height: 1.2;
 }
@@ -473,9 +499,13 @@ body.no-scroll{ overflow: hidden; }
 .preview.font-gothic .result-value, .preview.font-gothic .m1-distance-value, .preview.font-gothic .m2-distance-value, .preview.font-gothic .result-label, .preview.font-gothic .m-label, .preview.font-gothic .data-label, .preview.font-gothic .m1-month, .preview.font-gothic .m2-month-line,
 .result-screen.font-gothic .result-value, .result-screen.font-gothic .m1-distance-value, .result-screen.font-gothic .m2-distance-value, .result-screen.font-gothic .result-label, .result-screen.font-gothic .m-label, .result-screen.font-gothic .data-label, .result-screen.font-gothic .m1-month, .result-screen.font-gothic .m2-month-line { font-family: 'Special Gothic Expanded One', sans-serif !important; }
 
-/* Speed */
+/* Speed (더 이상 버튼에서 선택 불가하지만, 기존 데이터 호환을 위해 규칙 유지) */
 .preview.font-speed .result-value, .preview.font-speed .m1-distance-value, .preview.font-speed .m2-distance-value, .preview.font-speed .result-label, .preview.font-speed .m-label, .preview.font-speed .data-label, .preview.font-speed .m1-month, .preview.font-speed .m2-month-line,
 .result-screen.font-speed .result-value, .result-screen.font-speed .m1-distance-value, .result-screen.font-speed .m2-distance-value, .result-screen.font-speed .result-label, .result-screen.font-speed .m-label, .result-screen.font-speed .data-label, .result-screen.font-speed .m1-month, .result-screen.font-speed .m2-month-line { font-family: 'Quantico', sans-serif !important; }
+
+/* EX (Monthly 모드에서 EX 선택 시 사용되는 일반 라벨/값 - Daily는 .ex-card 전용 스타일 사용) */
+.preview.font-ex .result-value, .preview.font-ex .m1-distance-value, .preview.font-ex .m2-distance-value, .preview.font-ex .result-label, .preview.font-ex .m-label, .preview.font-ex .data-label, .preview.font-ex .m1-month, .preview.font-ex .m2-month-line,
+.result-screen.font-ex .result-value, .result-screen.font-ex .m1-distance-value, .result-screen.font-ex .m2-distance-value, .result-screen.font-ex .result-label, .result-screen.font-ex .m-label, .result-screen.font-ex .data-label, .result-screen.font-ex .m1-month, .result-screen.font-ex .m2-month-line { font-family: 'RunimateEX', sans-serif !important; }
 
 /* Webfonts */
 @font-face{ font-family:'Inter'; src:url('./fonts/Inter.woff2') format('woff2'); font-weight:100 900; font-style:normal; font-display:swap; }
@@ -484,13 +514,14 @@ body.no-scroll{ overflow: hidden; }
 @font-face{ font-family:'DS-Digital'; src:url('./fonts/LCD.woff2') format('woff2'); font-weight:400 900; font-style:normal; font-display:swap; }
 @font-face{ font-family:'Special Gothic Expanded One'; src:url('./fonts/Gothic.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
 @font-face{ font-family:'Quantico'; src:url('./fonts/Speed.woff2') format('woff2'); font-weight:400 900; font-style:normal; font-display:swap; }
+@font-face{ font-family:'RunimateEX'; src:url('./fonts/EX.woff2') format('woff2'); font-weight:400 900; font-style:normal; font-display:swap; }
 
 
 /* [추가 패치] 라벨 투명도 제거 (숫자와 동일한 진한 컬러 적용) */
-.result-label, 
-.data-label, 
-.m-label, 
-.m1-item .m-label, 
+.result-label,
+.data-label,
+.m-label,
+.m1-item .m-label,
 .monthly-type1 .m1-item .m-label {
     opacity: 1 !important;
 }
