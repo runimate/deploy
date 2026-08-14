@@ -369,7 +369,7 @@ body.no-scroll{ overflow: hidden; }
     padding: 20px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
     font-family: 'RunimateEX', sans-serif;
     background: #fff;
     overflow: hidden;
@@ -382,7 +382,7 @@ body.no-scroll{ overflow: hidden; }
 .ex-distance-unit{ flex: 0 0 auto; font-size: 40px; font-weight: 900; line-height: 1; margin-left: 6px; white-space: nowrap; }
 .ex-stats-row{ display:flex; align-items:center; justify-content:space-between; width:100%; }
 .ex-stat-left{ display:inline-flex; align-items:center; }
-.ex-stat-left, .ex-stat-right{ font-size: clamp(14px, 4vw, 17px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ex-stat-left, .ex-stat-right{ font-size: clamp(17px, 4.8vw, 20px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ex-elev-icon{ margin-right: 4px; flex: 0 0 auto; }
 
 /* RUN Button */
