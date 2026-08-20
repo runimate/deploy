@@ -1570,6 +1570,18 @@
       ex: "'RunimateEX', sans-serif"
     };
 
+    // 실제 @font-face에 900 굵기가 존재하는 폰트만 true.
+    // Anton/Dots/Gothic은 400 굵기 파일 하나뿐이라, 900을 요청하면 브라우저가 합성(faux) 볼드를 적용해
+    // 실제보다 두껍게 그려짐 -> 이 폰트들은 굵기 지정을 생략해서 원본 그대로 렌더링한다.
+    const FONT_HAS_BOLD = { anton: false, dots: false, lcd: true, gothic: false, speed: true, ex: true };
+
+    function fontSpec(st, size, desiredWeight) {
+      const fam = FONT_CSS_MAP[st.font] || FONT_CSS_MAP.anton;
+      const canBold = !!FONT_HAS_BOLD[st.font];
+      const w = (desiredWeight && (desiredWeight < 700 || canBold)) ? `${desiredWeight} ` : '';
+      return `${w}${size}px ${fam}`;
+    }
+
     const recordCanvas = document.getElementById('recordCanvas');
     const rctx = recordCanvas ? recordCanvas.getContext('2d') : null;
     const REC_W = recordCanvas ? recordCanvas.width : 1080;
@@ -1631,7 +1643,7 @@
         { label: 'TIME', value: fmtTimeResult(time) }
       ];
       const labelFont = getLabelFontSpec(state, labelSize);
-      const valueFont = `900 ${valueSize}px ${fontFamily}`;
+      const valueFont = fontSpec(state, valueSize, 900);
       const align = state.align === 'center' ? 'center' : 'left';
 
       if (state.layout === 'type1') {
@@ -1699,11 +1711,11 @@
       let y = (H - totalH) / 2;
       const x0 = PAD_X;
 
-      ctx.font = `700 ${monthSize}px ${fontFamily}`;
+      ctx.font = fontSpec(state, monthSize, 700);
       ctx.fillText(monthText, x0, y + monthSize);
       y += monthSize + monthGap;
 
-      ctx.font = `900 ${distSize}px ${fontFamily}`;
+      ctx.font = fontSpec(state, distSize, 900);
       ctx.fillText(distText, x0, y + distSize);
       y += distSize + distGap;
 
@@ -1711,15 +1723,16 @@
         const rowGap = cfg.statsStackGap * VIDEO_SCALE;
         const labelW = 60 * VIDEO_SCALE;
         const labelFontM1 = getLabelFontSpec(state, labelSize);
+        const valueFontM1 = fontSpec(state, valueSize, 900);
         items.forEach(item => {
           ctx.font = labelFontM1; ctx.fillText(item.label, x0, y + labelSize);
-          ctx.font = `900 ${valueSize}px ${fontFamily}`; ctx.fillText(item.value, x0 + labelW + lvGap, y + valueSize);
+          ctx.font = valueFontM1; ctx.fillText(item.value, x0 + labelW + lvGap, y + valueSize);
           y += valueSize + rowGap;
         });
       } else {
         const colGap = cfg.statsColGap * VIDEO_SCALE;
         const labelFont = getLabelFontSpec(state, labelSize);
-        const valueFont = `900 ${valueSize}px ${fontFamily}`;
+        const valueFont = fontSpec(state, valueSize, 900);
         let x = x0;
         items.forEach(item => {
           ctx.font = labelFont; ctx.fillText(item.label, x, y + labelSize);
@@ -1854,7 +1867,7 @@
 
       mediaRecorder.start();
 
-      const hold = 500; const dur = 2000; const tailBuffer = 300;
+      const hold = 500; const dur = 2000; const tailBuffer = 3000;
       const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 
@@ -1882,7 +1895,8 @@
       let shared = false;
       try {
         const videoFile = new File([blob], fileName, { type: mimeType || 'video/webm' });
-        if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+        const canShareUnknownOrTrue = !navigator.canShare || navigator.canShare({ files: [videoFile] });
+        if (navigator.share && canShareUnknownOrTrue) {
           await navigator.share({ files: [videoFile], title: 'RUNIMATE' });
           shared = true;
         }
