@@ -1607,13 +1607,25 @@
     }
 
     function drawElevIcon(ctx, x, y, size, color) {
+      // 원본 SVG path 그대로 재현 (viewBox 0 0 12 12):
+      // M9.28 0H0.03V2.72682H7.28L0 10.0251L1.9225 11.9524L9.28 4.57644V12H12V2.72682V0H9.28Z
+      const s = size / 12;
       ctx.save();
       ctx.fillStyle = color;
+      ctx.translate(x, y);
+      ctx.scale(s, s);
       ctx.beginPath();
-      ctx.moveTo(x, y + size);
-      ctx.lineTo(x + size * 0.58, y);
-      ctx.lineTo(x + size * 0.58, y + size * 0.22);
-      ctx.lineTo(x, y + size * 0.85);
+      ctx.moveTo(9.28, 0);
+      ctx.lineTo(0.03, 0);
+      ctx.lineTo(0.03, 2.72682);
+      ctx.lineTo(7.28, 2.72682);
+      ctx.lineTo(0, 10.0251);
+      ctx.lineTo(1.9225, 11.9524);
+      ctx.lineTo(9.28, 4.57644);
+      ctx.lineTo(9.28, 12);
+      ctx.lineTo(12, 12);
+      ctx.lineTo(12, 2.72682);
+      ctx.lineTo(12, 0);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
