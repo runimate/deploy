@@ -1628,6 +1628,10 @@
       ctx.lineTo(12, 0);
       ctx.closePath();
       ctx.fill();
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 0.6; // 12x12 기준 좌표계에서의 두께 (scale 적용된 상태이므로 작은 값)
+      ctx.strokeStyle = color;
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -1930,16 +1934,19 @@
       if (overlay) overlay.style.display = 'none';
     }
 
+    let lastResultTarget = null;
+
     const btnSaveVideoEl = document.getElementById('btnSaveVideo');
     if (btnSaveVideoEl) {
       btnSaveVideoEl.addEventListener('click', () => {
-        const target = buildResultDOM();
+        const target = lastResultTarget || buildResultDOM();
         startVideoRecording(target);
       });
     }
 
     el.btnRun.addEventListener('click', () => {
        const targetData = buildResultDOM(); openScreen('resultScreen');
+       lastResultTarget = targetData;
        el.resultScreen.className = `screen-overlay result-screen font-${state.font} bg-${state.bg} show ${state.layout}`;
        if(state.recordType==='daily') el.resultScreen.classList.add(`align-${state.align}`);
        requestAnimationFrame(() => { requestAnimationFrame(() => { animateAll(targetData); }); });
