@@ -388,6 +388,18 @@ body.no-scroll{ overflow: hidden; }
 .run-btn{ position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; cursor: pointer; background: #ff9000; color: #000; width: min(360px, calc(100% - 40px)); padding: 16px; border:none; border-radius: 999px; font-size: 24px; font-weight: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .run-btn:active { transform: translateX(-50%) scale(0.98); }
 
+/* SAVE VIDEO Button (Result Screen) */
+.save-video-btn{ position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 100000; cursor: pointer; background: #000; color: #fff; width: min(280px, calc(100% - 60px)); padding: 14px 20px; border: none; border-radius: 999px; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+.save-video-btn:active { transform: translateX(-50%) scale(0.97); }
+.save-video-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.result-screen.bg-white .save-video-btn { background:#000; color:#fff; }
+.result-screen.bg-black .save-video-btn { background:#fff; color:#000; }
+
+.video-recording-overlay{ position: fixed; inset: 0; z-index: 200000; background: rgba(0,0,0,0.55); display:flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.video-recording-spinner{ width: 40px; height: 40px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; animation: video-spin 0.8s linear infinite; }
+.video-recording-text{ color: #fff; font-weight: 800; font-size: 14px; }
+@keyframes video-spin{ to { transform: rotate(360deg); } }
+
 /* MODALS & OVERLAYS */
 .screen-overlay, .modal-overlay { position: fixed; inset: 0; background: #fff; z-index: 3000; display:none; }
 .modal-overlay { background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 6000; }
