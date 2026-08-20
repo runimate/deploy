@@ -243,10 +243,7 @@
 
         <div class="data-content" id="contentStrava" style="display:none;">
           <div id="stravaConnectBtnWrap">
-             <div style="font-size: 13px; color: #777; font-weight: 700; line-height: 1.5; max-width: 260px;">
-               Strava is currently under maintenance.<br>Please check back soon.
-             </div>
-             <button id="btnStravaLogin" disabled style="background: #ccc; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; opacity: 0.6;">
+             <button id="btnStravaLogin" style="background: #FC4C02; color: #fff; border: none; padding: 14px 28px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s;">
                <span>Connect with</span>
                <img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">
              </button>
@@ -281,6 +278,10 @@
 
 <div class="data-content" id="contentManual" style="display:none;">
           <div class="sub-title">Enter Your Record</div>
+          <div class="button-group two" id="manualTypeToggle" style="margin: 0 0 16px 0;">
+            <button class="toggle-btn flex1 active" id="btnManualRun" data-mtype="run">Run</button>
+            <button class="toggle-btn flex1" id="btnManualTrail" data-mtype="trail">Trail Run</button>
+          </div>
           <div id="manual-input-container" class="manual-group">
             <div class="manual-row">
               <div class="manual-col">
@@ -293,7 +294,7 @@
                 <input type="number" id="inputRuns" class="big-input" placeholder="00" inputmode="numeric">
               </div>
 
-              <div class="manual-col">
+              <div class="manual-col" id="manualColPace">
                 <label class="manual-label">PACE</label>
                 <div class="pace-wrapper">
                   <input type="number" id="inputPaceMin" class="big-input center-text" placeholder="mm" inputmode="numeric">
@@ -301,7 +302,26 @@
                   <input type="number" id="inputPaceSec" class="big-input center-text" placeholder="ss" inputmode="numeric">
                 </div>
               </div>
+
+              <div class="manual-col" id="manualColElev" style="display:none;">
+                <label class="manual-label">ELEV. GAIN (m)</label>
+                <input type="number" id="inputElevGain" class="big-input" placeholder="000" inputmode="numeric">
+              </div>
             </div>
+
+            <div class="manual-row" id="manualRowTime" style="display:none;">
+              <div class="manual-col">
+                <label class="manual-label">TIME</label>
+                <div class="pace-wrapper">
+                  <input type="number" id="inputTimeH" class="big-input center-text" placeholder="hh" inputmode="numeric">
+                  <span class="pace-colon">:</span>
+                  <input type="number" id="inputTimeM" class="big-input center-text" placeholder="mm" inputmode="numeric">
+                  <span class="pace-colon">:</span>
+                  <input type="number" id="inputTimeS" class="big-input center-text" placeholder="ss" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+
             <button id="btnManualApply" class="black-btn">APPLY RECORD</button>
           </div>
         </div>
@@ -675,7 +695,7 @@
       monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
       garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       strava: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
-      manual: { km: 0, paceSec: 0, timeSec: 0 }
+      manual: { km: 0, paceSec: 0, timeSec: 0, elevGain: 0, sportType: 'run' }
     };
 
     // [핵심 해결 2] 스트라바 리다이렉션으로 인한 가민 데이터 증발 방지 (세션 저장소 활용)
@@ -727,6 +747,9 @@
       btnSportRun: $('#btnSportRun'), btnSportTrail: $('#btnSportTrail'), btnSportAll: $('#btnSportAll'),
       inputDistance: $('#inputDistance'), inputPaceMin: $('#inputPaceMin'), inputPaceSec: $('#inputPaceSec'),
       inputRuns: $('#inputRuns'), manualColRuns: $('#manualColRuns'), btnManualApply: $('#btnManualApply'),
+      btnManualRun: $('#btnManualRun'), btnManualTrail: $('#btnManualTrail'), manualColPace: $('#manualColPace'),
+      manualColElev: $('#manualColElev'), inputElevGain: $('#inputElevGain'), manualRowTime: $('#manualRowTime'),
+      inputTimeH: $('#inputTimeH'), inputTimeM: $('#inputTimeM'), inputTimeS: $('#inputTimeS'), manualTypeToggle: $('#manualTypeToggle'),
       btnGarminList: $('#btnGarminList'), garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
       btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
@@ -890,7 +913,7 @@
       else if (state.dataType === 'manual') d = state.manual;
       else if (state.dataType === 'nrc' && state.daily) d = state.daily;
 
-      const dailyIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
+      const dailyIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava' || state.dataType === 'manual') && isTrailWorkout(d);
       const kmText = (d.km > 0) ? fmtKmPreview(d.km) : "00.00Km";
       const midText = dailyIsTrail ? fmtElevPreview(d.elevGain) : ((d.paceSec > 0) ? fmtPacePreview(d.paceSec) : "0'00\"");
       const timeText = (d.timeSec > 0) ? fmtTimePreview(d.timeSec) : "0:00:00";
@@ -1148,6 +1171,8 @@
       const isDaily = (state.recordType === 'daily');
       el.btnDaily.classList.toggle('active', isDaily); el.btnMonthly.classList.toggle('active', !isDaily);
       if (el.manualColRuns) el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
+      if (el.manualTypeToggle) el.manualTypeToggle.style.display = isDaily ? 'flex' : 'none';
+      if (!isDaily && manualType !== 'run') { manualType = 'run'; syncManualTypeUI(); }
       el.dataTabsDaily.style.display = 'flex';
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
@@ -1270,13 +1295,49 @@
     if(el.monthNextYear) el.monthNextYear.addEventListener('click', () => { state.monthly.year += 1; el.monthYearText.textContent = state.monthly.year; updatePreview(); });
 
     // [New Manual Input Logic]
+    let manualType = 'run'; // 'run' | 'trail'
+
+    function syncManualTypeUI() {
+        const isTrail = manualType === 'trail';
+        if (el.btnManualRun) el.btnManualRun.classList.toggle('active', !isTrail);
+        if (el.btnManualTrail) el.btnManualTrail.classList.toggle('active', isTrail);
+        if (el.manualColPace) el.manualColPace.style.display = isTrail ? 'none' : 'flex';
+        if (el.manualColElev) el.manualColElev.style.display = isTrail ? 'flex' : 'none';
+        if (el.manualRowTime) el.manualRowTime.style.display = isTrail ? 'flex' : 'none';
+    }
+
+    if (el.btnManualRun) el.btnManualRun.addEventListener('click', () => { manualType = 'run'; syncManualTypeUI(); });
+    if (el.btnManualTrail) el.btnManualTrail.addEventListener('click', () => { manualType = 'trail'; syncManualTypeUI(); });
+
     if (el.btnManualApply) {
         el.btnManualApply.addEventListener('click', () => {
-            const dist = parseFloat(el.inputDistance.value) || 0; const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
+            const dist = parseFloat(el.inputDistance.value) || 0;
+            const isTrail = (state.recordType === 'daily') && (manualType === 'trail');
+
             if (state.recordType === 'daily') {
-                state.manual.km = dist; state.manual.paceSec = totalPace; state.manual.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
-                updatePreview(); alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
+                if (isTrail) {
+                    const h = parseInt(el.inputTimeH.value) || 0;
+                    const m = parseInt(el.inputTimeM.value) || 0;
+                    const s = parseInt(el.inputTimeS.value) || 0;
+                    const totalTime = (h * 3600) + (m * 60) + s;
+                    const elev = parseFloat(el.inputElevGain.value) || 0;
+
+                    state.manual.km = dist;
+                    state.manual.timeSec = totalTime;
+                    state.manual.paceSec = (dist > 0 && totalTime > 0) ? Math.round(totalTime / dist) : 0;
+                    state.manual.elevGain = elev;
+                    state.manual.sportType = 'trail_running';
+                    updatePreview();
+                    alert(`[Daily - Trail Run] Record Applied!\nDist: ${dist}km, Elev. Gain: ${elev}m, Time: ${h}:${pad2(m)}:${pad2(s)}`);
+                } else {
+                    const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
+                    state.manual.km = dist; state.manual.paceSec = totalPace; state.manual.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                    state.manual.elevGain = 0;
+                    state.manual.sportType = 'run';
+                    updatePreview(); alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
+                }
             } else {
+                const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
                 const runs = parseInt(el.inputRuns.value) || 0;
                 state.monthly.km = dist; state.monthly.runs = runs; state.monthly.paceSec = totalPace; state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
                 updatePreview(); alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
@@ -1355,7 +1416,7 @@
     }
 
     function resetStravaBtn() {
-        if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`; el.btnStravaLogin.style.opacity = "0.6"; el.btnStravaLogin.disabled = true; }
+        if(el.btnStravaLogin) { el.btnStravaLogin.innerHTML = `<span>Connect with</span><img src="./img/strava_wht.png" alt="Strava" style="height: 14px; width: auto; margin-top: -1px; display: block;">`; el.btnStravaLogin.style.opacity = "1"; el.btnStravaLogin.disabled = false; }
     }
 
     checkStravaCode();
@@ -1370,7 +1431,7 @@
        let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
        if (state.recordType === 'daily') {
-        const resultIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava') && isTrailWorkout(d);
+        const resultIsTrail = (state.dataType === 'garmin' || state.dataType === 'strava' || state.dataType === 'manual') && isTrailWorkout(d);
 
         if (state.font === 'ex') {
           el.resultBlock.innerHTML = `
