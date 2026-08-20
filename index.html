@@ -1607,6 +1607,15 @@
       ctx.restore();
     }
 
+    function getLabelFontSpec(st, labelSize) {
+      // 실제 CSS 규칙 재현: 라벨은 기본적으로 font-weight 미지정(보통 굵기).
+      // 단, Anton 폰트의 Daily 모드 라벨만 예외적으로 Inter 폰트 + 900 굵기로 강제됨 (Monthly는 Anton 그대로, 굵기 미지정)
+      if (st.font === 'anton' && st.recordType === 'daily') {
+        return `900 ${labelSize}px 'Inter', sans-serif`;
+      }
+      const fontFamily = FONT_CSS_MAP[st.font] || FONT_CSS_MAP.anton;
+      return `${labelSize}px ${fontFamily}`;
+    }
     function drawDailyFrame(ctx, W, H, fontFamily, color, target, km, mid, time) {
       const cfg = getUIConfigFor(state);
       const PAD_X = 26 * VIDEO_SCALE;
@@ -1621,7 +1630,7 @@
         { label: midLabel, value: midText },
         { label: 'TIME', value: fmtTimeResult(time) }
       ];
-      const labelFont = `900 ${labelSize}px ${fontFamily}`;
+      const labelFont = getLabelFontSpec(state, labelSize);
       const valueFont = `900 ${valueSize}px ${fontFamily}`;
       const align = state.align === 'center' ? 'center' : 'left';
 
@@ -1701,14 +1710,15 @@
       if (state.layout === 'type1') {
         const rowGap = cfg.statsStackGap * VIDEO_SCALE;
         const labelW = 60 * VIDEO_SCALE;
+        const labelFontM1 = getLabelFontSpec(state, labelSize);
         items.forEach(item => {
-          ctx.font = `900 ${labelSize}px ${fontFamily}`; ctx.fillText(item.label, x0, y + labelSize);
+          ctx.font = labelFontM1; ctx.fillText(item.label, x0, y + labelSize);
           ctx.font = `900 ${valueSize}px ${fontFamily}`; ctx.fillText(item.value, x0 + labelW + lvGap, y + valueSize);
           y += valueSize + rowGap;
         });
       } else {
         const colGap = cfg.statsColGap * VIDEO_SCALE;
-        const labelFont = `900 ${labelSize}px ${fontFamily}`;
+        const labelFont = getLabelFontSpec(state, labelSize);
         const valueFont = `900 ${valueSize}px ${fontFamily}`;
         let x = x0;
         items.forEach(item => {
@@ -1867,11 +1877,27 @@
 
       const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
       const ext = (mimeType && mimeType.indexOf('mp4') !== -1) ? 'mp4' : 'webm';
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `RUNIMATE_${(state.daily && state.daily.date) || 'record'}.${ext}`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      const fileName = `RUNIMATE_${(state.daily && state.daily.date) || 'record'}.${ext}`;
+
+      let shared = false;
+      try {
+        const videoFile = new File([blob], fileName, { type: mimeType || 'video/webm' });
+        if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+          await navigator.share({ files: [videoFile], title: 'RUNIMATE' });
+          shared = true;
+        }
+      } catch (shareErr) {
+        // 사용자가 공유시트에서 취소한 경우(AbortError)에는 강제 다운로드로 재시도하지 않음
+        if (shareErr && shareErr.name === 'AbortError') shared = true;
+      }
+
+      if (!shared) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }
 
       isRecordingVideo = false;
       if (saveBtn) saveBtn.disabled = false;
