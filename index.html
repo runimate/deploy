@@ -1908,6 +1908,9 @@
       const crop = computeCropLayout(target);
       recordCanvas.width = crop.physicalW;
       recordCanvas.height = crop.physicalH;
+      // 캡처 스트림을 만들기 전에 첫 프레임(k=0)을 미리 그려서, 리사이즈 직후의 빈 캔버스가
+      // 녹화 시작 순간에 잡히는 것을 방지한다.
+      drawResultFrame(rctx, REC_W, REC_H, target, 0, crop.offsetX, crop.offsetY);
 
       const stream = recordCanvas.captureStream(30);
       const mimeType = pickVideoMimeType();
@@ -1928,7 +1931,7 @@
 
       mediaRecorder.start();
 
-      const hold = 500; const dur = 2000; const tailBuffer = 3000;
+      const hold = 1500; const dur = 2000; const tailBuffer = 5000;
       const t0 = performance.now();
       const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 
