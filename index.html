@@ -119,8 +119,12 @@
 
     /* result-screen도 초기에는 안 보여야 합니다. */
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
-    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
+    .strava-result-badge { display: none; align-items: center; justify-content: center; gap: 6px; margin-top: 28px; flex-shrink: 0; }
+    .strava-result-badge-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 12px; font-weight: 700; color: #999; line-height: 1; }
+    .result-screen.bg-black .strava-result-badge-text { color: rgba(255,255,255,0.6); }
+    .strava-result-badge-logo { height: 13px; width: auto; display: block; }
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
@@ -553,6 +557,10 @@
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
+        <div class="strava-result-badge" id="stravaResultBadge">
+            <span class="strava-result-badge-text">Powered by</span>
+            <img class="strava-result-badge-logo" id="stravaResultBadgeLogo" src="./img/strava_org.png" alt="Strava">
+        </div>
     </div>
     <button class="save-video-btn" id="btnSaveVideo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
@@ -1437,6 +1445,18 @@
     function buildResultDOM() {
        el.resultWrap.className = `result-wrap ${state.layout}`;
        if (state.recordType === 'daily') { el.resultWrap.classList.add(`align-${state.align}`); } else { el.resultWrap.classList.add('monthly'); }
+
+       // Strava 데이터일 때만 결과화면 하단에 "Powered by Strava" 배지 표시 (영상 저장에는 미포함, 별도 Canvas 렌더링이라 자동 제외됨)
+       const stravaBadgeEl = document.getElementById('stravaResultBadge');
+       const stravaBadgeLogoEl = document.getElementById('stravaResultBadgeLogo');
+       if (stravaBadgeEl) {
+         if (state.dataType === 'strava') {
+           stravaBadgeEl.style.display = 'flex';
+           if (stravaBadgeLogoEl) stravaBadgeLogoEl.src = state.bg === 'black' ? './img/strava_wht.png' : './img/strava_org.png';
+         } else {
+           stravaBadgeEl.style.display = 'none';
+         }
+       }
 
        let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
