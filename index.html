@@ -1545,12 +1545,12 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(0);
         fitExNumber(rvDistance);
 
-        const hold = 500; const dur = 2000; const t0 = performance.now();
-        const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+        const hold = 1000; const dur = 2500; const t0 = performance.now();
+        const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
         function exFrame(now) {
           const dt = now - t0;
           if (dt < hold) { requestAnimationFrame(exFrame); return; }
-          const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
+          const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutExpo(p);
           const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k;
           if (rvDistance) rvDistance.textContent = km.toFixed(2);
           if (rvMidValue) rvMidValue.textContent = target.isTrail ? fmtElevExValue(mid) : fmtPaceResult(mid);
@@ -1563,12 +1563,12 @@
       }
 
       const locker = lockFitResultTransforms(target, state); locker.resetToStart();
-      const hold = 500; const dur = 2000; const t0 = performance.now();
-      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+      const hold = 1000; const dur = 2500; const t0 = performance.now();
+      const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
       function frame(now) {
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
-        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
+        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutExpo(p);
         const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k; const runs = (target.runs == null) ? null : Math.round(target.runs * k);
         const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
         if (rvDistance) rvDistance.textContent = fmtKmPreview(km); if (rvPace) rvPace.textContent = target.isTrail ? fmtElevPreview(mid) : fmtPaceResult(mid);
@@ -1951,9 +1951,9 @@
 
       mediaRecorder.start();
 
-      const hold = 1500; const dur = 2000; const tailBuffer = 5000;
+      const hold = 1000; const dur = 2500; const tailBuffer = 5000;
       const t0 = performance.now();
-      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+      const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
 
       function frame(now) {
         const dt = now - t0;
@@ -1963,7 +1963,7 @@
           return;
         }
         const p = clamp((dt - hold) / dur, 0, 1);
-        const k = easeOutCubic(p);
+        const k = easeOutExpo(p);
         drawResultFrame(rctx, REC_W, REC_H, target, k, crop.offsetX, crop.offsetY);
         if (p < 1) { requestAnimationFrame(frame); }
         else { setTimeout(() => { mediaRecorder.stop(); }, tailBuffer); }
