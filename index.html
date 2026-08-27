@@ -119,12 +119,8 @@
 
     /* result-screen도 초기에는 안 보여야 합니다. */
     .result-screen { z-index: 2147483647 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: #fff; }
-    .result-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
+    .result-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; }
     .result-block { width: 100%; }
-    .strava-result-badge { display: none; align-items: center; justify-content: center; gap: 6px; margin-top: 28px; flex-shrink: 0; }
-    .strava-result-badge-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size: 12px; font-weight: 700; color: #999; line-height: 1; }
-    .result-screen.bg-black .strava-result-badge-text { color: rgba(255,255,255,0.6); }
-    .strava-result-badge-logo { height: 13px; width: auto; display: block; }
     .data-empty { min-height: 20px; }
     .screen-close { cursor: pointer; z-index: 999999; }
     .w-date, .garmin-date { font-size: 12px !important; font-weight: 900 !important; color: #000; }
@@ -399,11 +395,6 @@
     <section class="section">
       <span class="section-label">PREVIEW</span>
 
-      <div class="preview-tabs" id="previewTabs">
-        <button class="preview-tab active" id="tabBtnRecord" data-tab="record" type="button">Record</button>
-        <button class="preview-tab" id="tabBtnMap" data-tab="map" type="button">Map</button>
-      </div>
-
       <div class="preview type1 bg-white font-anton align-left" id="previewDaily">
         <div class="preview-content" id="previewDailyContent">
           <div class="result-item">
@@ -431,15 +422,6 @@
             <span class="ex-stat-right" id="pvExTime">0:00:00</span>
           </div>
         </div>
-      </div>
-
-      <div class="preview-map-card bg-white" id="previewMapCard" style="display:none;">
-        <svg viewBox="0 0 300 300" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" id="mapRouteSvg">
-          <path id="mapRoutePath" d="M70,240 C45,215 50,180 80,170 C105,162 95,130 70,120 C50,112 55,85 85,78 C115,71 145,85 150,112 C154,133 130,145 138,168 C146,190 178,192 188,168 C196,148 182,126 200,108 C215,93 235,95 240,75" fill="none" stroke="#FC4C02" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle id="mapRouteStart" cx="70" cy="240" r="5" fill="#FC4C02"/>
-          <circle id="mapRouteEnd" cx="240" cy="75" r="6" fill="#fff" stroke="#FC4C02" stroke-width="3" style="opacity:0; transition: opacity 0.25s;"/>
-          <circle id="mapRouteDot" cx="70" cy="240" r="5" fill="#FC4C02" style="opacity:0;"/>
-        </svg>
       </div>
 
       <div class="preview monthly type1 bg-white font-anton" id="previewMonthly" style="display:none;">
@@ -571,10 +553,6 @@
     <button class="screen-close" data-close="resultScreen" aria-label="Close">×</button>
     <div class="result-wrap type1" id="resultWrap">
         <div class="result-block" id="resultBlock"></div>
-        <div class="strava-result-badge" id="stravaResultBadge">
-            <span class="strava-result-badge-text">Powered by</span>
-            <img class="strava-result-badge-logo" id="stravaResultBadgeLogo" src="./img/strava_org.png" alt="Strava">
-        </div>
     </div>
     <button class="save-video-btn" id="btnSaveVideo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
@@ -629,92 +607,6 @@
     const safelyGet = (id) => document.getElementById(id);
     const pad2 = (n) => String(n).padStart(2, '0');
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-    // ==========================================
-    // [GPS ROUTE] 폴리라인 디코딩 & 정규화
-    // - Strava: map.summary_polyline (Google encoded polyline 문자열) → 디코딩 필요
-    // - Garmin: geoPolylineDTO 좌표 배열 ([{lat, lon}, ...]) → 백엔드에서 이미 원시 배열로 전달, 디코딩 불필요
-    // 모든 계산은 브라우저에서 처리 (Railway 부담 없음)
-    // ==========================================
-    function decodePolyline(encoded) {
-      if (!encoded || typeof encoded !== 'string') return [];
-      let points = [], index = 0, lat = 0, lng = 0;
-      while (index < encoded.length) {
-        let b, shift = 0, result = 0;
-        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-        lat += (result & 1) ? ~(result >> 1) : (result >> 1);
-        shift = 0; result = 0;
-        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-        lng += (result & 1) ? ~(result >> 1) : (result >> 1);
-        points.push([lat / 1e5, lng / 1e5]);
-      }
-      return points;
-    }
-
-    // 현재 Daily 화면에 표시 중인 소스(Garmin/Strava)의 GPS 좌표 배열 [[lat,lng], ...]을 반환.
-    // 좌표가 없거나(수동입력/NRC/폴리라인 미포함 활동) 2점 미만이면 null.
-    function getCurrentDailyRoutePoints() {
-      let src = null;
-      if (state.dataType === 'garmin') src = state.garmin;
-      else if (state.dataType === 'strava') src = state.strava;
-      if (!src || !src.polyline) return null;
-
-      if (state.dataType === 'strava') {
-        const pts = decodePolyline(src.polyline);
-        return (pts.length >= 2) ? pts : null;
-      }
-      if (state.dataType === 'garmin') {
-        if (!Array.isArray(src.polyline) || src.polyline.length < 2) return null;
-        return src.polyline.map(p => [Number(p.lat), Number(p.lon != null ? p.lon : p.lng)]).filter(p => isFinite(p[0]) && isFinite(p[1]));
-      }
-      return null;
-    }
-
-    // 위경도 좌표 배열 → 300x300 SVG viewBox 기준 path 'd' 문자열로 정규화.
-    // 경도는 위도에 따라 실제 거리가 달라지므로(고위도일수록 좁아짐) cos(lat) 보정을 적용해 실제 경로 비율에 가깝게 표현.
-    function buildRoutePath(points) {
-      const size = 300, pad = 40, MAX_PTS = 300;
-      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-      points.forEach(([lat, lng]) => {
-        if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng; if (lng > maxLng) maxLng = lng;
-      });
-      const latRange = Math.max(maxLat - minLat, 1e-6);
-      const lngRangeRaw = Math.max(maxLng - minLng, 1e-6);
-      const lngCorrection = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180) || 1;
-      const lngRange = lngRangeRaw * lngCorrection;
-      const scale = (size - pad * 2) / Math.max(latRange, lngRange);
-      const drawW = lngRange * scale, drawH = latRange * scale;
-      const offsetX = (size - drawW) / 2, offsetY = (size - drawH) / 2;
-
-      const toXY = ([lat, lng]) => [
-        offsetX + (lng - minLng) * lngCorrection * scale,
-        offsetY + (maxLat - lat) * scale // 위도가 높을수록(북쪽) 화면 위쪽(y 작음)
-      ];
-
-      let xy = points.map(toXY);
-      if (xy.length > MAX_PTS) { // 좌표가 너무 많으면 다운샘플링(렌더링 부담 방지)
-        const step = xy.length / MAX_PTS, sampled = [];
-        for (let i = 0; i < MAX_PTS; i++) sampled.push(xy[Math.floor(i * step)]);
-        sampled.push(xy[xy.length - 1]);
-        xy = sampled;
-      }
-
-      const d = xy.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ');
-      return { d, start: xy[0], end: xy[xy.length - 1] };
-    }
-
-    // 실제 GPS 데이터가 있으면 지도 SVG를 그 경로로 교체. 반영 성공 시 true.
-    function applyRealRouteIfAvailable() {
-      const pts = getCurrentDailyRoutePoints();
-      if (!pts) return false;
-      const { d, start, end } = buildRoutePath(pts);
-      if (el.mapRoutePath) el.mapRoutePath.setAttribute('d', d);
-      if (el.mapRouteStart) { el.mapRouteStart.setAttribute('cx', start[0]); el.mapRouteStart.setAttribute('cy', start[1]); }
-      if (el.mapRouteEnd) { el.mapRouteEnd.setAttribute('cx', end[0]); el.mapRouteEnd.setAttribute('cy', end[1]); }
-      if (el.mapRouteDot) { el.mapRouteDot.setAttribute('cx', start[0]); el.mapRouteDot.setAttribute('cy', start[1]); }
-      return true;
-    }
 
     // [포맷팅 함수]
     function fmtKmPreview(km) {
@@ -870,8 +762,6 @@
       inputTimeH: $('#inputTimeH'), inputTimeM: $('#inputTimeM'), inputTimeS: $('#inputTimeS'), manualTypeToggle: $('#manualTypeToggle'),
       btnGarminList: $('#btnGarminList'), garminDateText: $('#garminDateText'), garminDistanceText: $('#garminDistanceText'), garminPaceText: $('#garminPaceText'), garminTimeText: $('#garminTimeText'),
       btnRun: $('#btnRun'), resultScreen: $('#resultScreen'), resultBlock: $('#resultBlock'), resultWrap: $('#resultWrap'),
-      previewTabs: $('#previewTabs'), tabBtnRecord: $('#tabBtnRecord'), tabBtnMap: $('#tabBtnMap'),
-      previewMapCard: $('#previewMapCard'), mapRoutePath: $('#mapRoutePath'), mapRouteDot: $('#mapRouteDot'), mapRouteStart: $('#mapRouteStart'), mapRouteEnd: $('#mapRouteEnd'),
       btnUploadNrc: $('#btnUploadNrc'), fileNrc: $('#fileNrc'), ocrStatus: $('#ocrStatus'),
       monthPickerScreen: $('#monthPickerScreen'), monthGrid: $('#monthGrid'), monthYearText: $('#monthYearText'), monthPrevYear: $('#monthPrevYear'), monthNextYear: $('#monthNextYear'),
       pvMonthType1: $('#pvMonthType1'), pvDistanceMonthlyT1: $('#pvDistanceMonthlyT1'), pvRunsMonthlyT1: $('#pvRunsMonthlyT1'), pvPaceMonthlyT1: $('#pvPaceMonthlyT1'), pvTimeMonthlyT1: $('#pvTimeMonthlyT1'),
@@ -912,7 +802,7 @@
       el.contentGarmin.style.display = 'none'; el.contentStrava.style.display = 'none';
       el.contentNrc.style.display = 'none'; el.contentManual.style.display = 'none';
 
-      if (!state.dataType) { el.dataEmpty.style.display = 'block'; updateMapTabAvailability(); return; }
+      if (!state.dataType) { el.dataEmpty.style.display = 'block'; return; }
 
       if (state.dataType === 'garmin') {
           el.contentGarmin.style.display = 'block';
@@ -939,23 +829,6 @@
       }
       else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
-
-      updateMapTabAvailability();
-    }
-
-    // Map 탭은 GPS 좌표가 있는 소스(Garmin/Strava)의 Daily 기록에서만, 그리고 실제 폴리라인 데이터가
-    // 존재하는 활동에서만 노출. NRC(이미지 OCR)/Manual(직접입력)이거나 폴리라인이 없는 활동은 탭을 숨김.
-    function updateMapTabAvailability() {
-      const isDaily = (state.recordType === 'daily');
-      const hasGps = (state.dataType === 'garmin' || state.dataType === 'strava');
-      const hasRoute = isDaily && hasGps && !!getCurrentDailyRoutePoints();
-      if (el.previewTabs) el.previewTabs.style.display = isDaily ? 'flex' : 'none';
-      if (el.tabBtnMap) {
-        el.tabBtnMap.style.display = hasRoute ? 'block' : 'none';
-        el.tabBtnMap.disabled = !hasRoute;
-      }
-      if (!hasRoute) { setPreviewTab('record'); }
-      else if (el.tabBtnMap.classList.contains('active')) { applyRealRouteIfAvailable(); } // 지도 탭을 보는 중 다른 활동으로 바뀌면 경로만 조용히 갱신
     }
 
     let readyBlob = null;
@@ -988,7 +861,6 @@
     }
 
     function updatePreview() {
-      updateMapTabAvailability();
       // 월간 모드일 때 합산 로직
       if (state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava')) {
           let workouts = [];
@@ -1303,61 +1175,33 @@
       if (el.layoutControlPanel) el.layoutControlPanel.classList.toggle('disabled', exActive);
       const alignDisabled = exActive || state.recordType === 'monthly';
       if (el.alignControlPanel) el.alignControlPanel.classList.toggle('disabled', alignDisabled);
+
+      // Monthly 모드에서는 EX 폰트를 선택할 수 없음 (EX는 Daily 전용 카드 레이아웃)
+      const exFontBtn = el.fontGroup ? el.fontGroup.querySelector('[data-font="ex"]') : null;
+      if (exFontBtn) exFontBtn.classList.toggle('disabled', state.recordType === 'monthly');
     }
-
-    // Record/Map 프리뷰 탭 전환. 지도 데이터(GPS 폴리라인) 연동 전까지는 샘플 경로로 애니메이션만 우선 구현.
-    function setPreviewTab(tab) {
-      const isMap = (tab === 'map');
-      if (el.tabBtnRecord) el.tabBtnRecord.classList.toggle('active', !isMap);
-      if (el.tabBtnMap) el.tabBtnMap.classList.toggle('active', isMap);
-      if (el.previewMapCard) el.previewMapCard.style.display = isMap ? 'flex' : 'none';
-      const isDaily = (state.recordType === 'daily');
-      if (isDaily && el.previewDaily) el.previewDaily.style.display = isMap ? 'none' : 'flex';
-      if (!isDaily && el.previewMonthly) el.previewMonthly.style.display = isMap ? 'none' : 'flex';
-      if (isMap) { applyRealRouteIfAvailable(); playMapRouteAnimation(); }
-    }
-
-    function playMapRouteAnimation() {
-      const path = el.mapRoutePath; const dot = el.mapRouteDot; const endMarker = el.mapRouteEnd;
-      if (!path) return;
-      const len = path.getTotalLength();
-      path.style.transition = 'none';
-      path.style.strokeDasharray = `${len}`;
-      path.style.strokeDashoffset = `${len}`;
-      if (endMarker) endMarker.style.opacity = '0';
-      if (dot) dot.style.opacity = '1';
-      path.getBoundingClientRect(); // force reflow so the reset above takes effect before animating
-
-      const dur = 2500; const t0 = performance.now();
-      const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
-      function step(now) {
-        const p = clamp((now - t0) / dur, 0, 1); const k = easeOutExpo(p);
-        path.style.strokeDashoffset = `${len * (1 - k)}`;
-        if (dot) {
-          const pt = path.getPointAtLength(len * k);
-          dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
-        }
-        if (p < 1) { requestAnimationFrame(step); }
-        else { if (dot) dot.style.opacity = '0'; if (endMarker) endMarker.style.opacity = '1'; }
-      }
-      requestAnimationFrame(step);
-    }
-
-    if (el.tabBtnRecord) el.tabBtnRecord.addEventListener('click', () => setPreviewTab('record'));
-    if (el.tabBtnMap) el.tabBtnMap.addEventListener('click', () => setPreviewTab('map'));
 
     function applyRecordType() {
       const isDaily = (state.recordType === 'daily');
+
+      // Monthly 모드는 EX 폰트를 지원하지 않으므로, EX가 선택된 상태로 전환하면 기본 폰트(Anton)로 되돌림
+      if (!isDaily && state.font === 'ex') {
+        state.font = 'anton';
+        el.fontGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.font === state.font));
+        [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => {
+          t.classList.remove('font-anton', 'font-dots', 'font-lcd', 'font-gothic', 'font-ex');
+          t.classList.add(`font-${state.font}`);
+        });
+      }
+
       el.btnDaily.classList.toggle('active', isDaily); el.btnMonthly.classList.toggle('active', !isDaily);
       if (el.manualColRuns) el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
       if (el.manualTypeToggle) el.manualTypeToggle.style.display = isDaily ? 'flex' : 'none';
       if (!isDaily && manualType !== 'run') { manualType = 'run'; syncManualTypeUI(); }
       el.dataTabsDaily.style.display = 'flex';
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
-      setPreviewTab('record');
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
       el.previewMonthly.style.display = !isDaily ? 'flex' : 'none';
-      updateMapTabAvailability();
 
       const m1 = el.previewMonthly.querySelector('.monthly-type1'); const m2 = el.previewMonthly.querySelector('.monthly-type2');
       if (state.layout === 'type1') { if (m1) m1.style.display = 'flex'; if (m2) m2.style.display = 'none'; }
@@ -1401,7 +1245,7 @@
 
     function applyBG() {
       el.btnBgWhite.classList.toggle('active', state.bg === 'white'); el.btnBgBlack.classList.toggle('active', state.bg === 'black');
-      [el.previewDaily, el.previewMonthly, el.resultScreen, el.previewMapCard].forEach(t => { if (!t) return; t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`); });
+      [el.previewDaily, el.previewMonthly, el.resultScreen].forEach(t => { t.classList.remove('bg-white', 'bg-black'); t.classList.add(`bg-${state.bg}`); });
     }
 
     function applyAlign() { el.btnAlignLeft.classList.toggle('active', state.align === 'left'); el.btnAlignCenter.classList.toggle('active', state.align === 'center'); applyUIConfigToRoot(state); updatePreview(); }
@@ -1428,7 +1272,7 @@
     el.nativeColorInput.addEventListener('input', (e) => { state.fontColor = e.target.value; applyFontColor(); });
     el.nativeColorInput.addEventListener('change', (e) => { closeScreen('colorPickerOverlay'); });
     $('#colorPickerClose').addEventListener('click', () => closeScreen('colorPickerOverlay'));
-    el.fontGroup.querySelectorAll('[data-font]').forEach(b => { b.addEventListener('click', () => { state.font = b.dataset.font; applyFont(); }); });
+    el.fontGroup.querySelectorAll('[data-font]').forEach(b => { b.addEventListener('click', () => { if (b.dataset.font === 'ex' && state.recordType === 'monthly') return; state.font = b.dataset.font; applyFont(); }); });
 
     // NRC / OCR
     if (el.btnUploadNrc && el.fileNrc) {
@@ -1609,18 +1453,6 @@
        el.resultWrap.className = `result-wrap ${state.layout}`;
        if (state.recordType === 'daily') { el.resultWrap.classList.add(`align-${state.align}`); } else { el.resultWrap.classList.add('monthly'); }
 
-       // Strava 데이터일 때만 결과화면 하단에 "Powered by Strava" 배지 표시 (영상 저장에는 미포함, 별도 Canvas 렌더링이라 자동 제외됨)
-       const stravaBadgeEl = document.getElementById('stravaResultBadge');
-       const stravaBadgeLogoEl = document.getElementById('stravaResultBadgeLogo');
-       if (stravaBadgeEl) {
-         if (state.dataType === 'strava') {
-           stravaBadgeEl.style.display = 'flex';
-           if (stravaBadgeLogoEl) stravaBadgeLogoEl.src = state.bg === 'black' ? './img/strava_wht.png' : './img/strava_org.png';
-         } else {
-           stravaBadgeEl.style.display = 'none';
-         }
-       }
-
        let d = (state.recordType === 'daily') ? ((state.dataType==='garmin' && state.garmin) || (state.dataType==='strava' && state.strava) || (state.dataType==='nrc' && state.daily) || state.manual) : state.monthly;
 
        if (state.recordType === 'daily') {
@@ -1708,12 +1540,12 @@
         if (rvTime) rvTime.textContent = fmtTimeResult(0);
         fitExNumber(rvDistance);
 
-        const hold = 700; const dur = 2500; const t0 = performance.now();
-        const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+        const hold = 500; const dur = 2000; const t0 = performance.now();
+        const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
         function exFrame(now) {
           const dt = now - t0;
           if (dt < hold) { requestAnimationFrame(exFrame); return; }
-          const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutExpo(p);
+          const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
           const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k;
           if (rvDistance) rvDistance.textContent = km.toFixed(2);
           if (rvMidValue) rvMidValue.textContent = target.isTrail ? fmtElevExValue(mid) : fmtPaceResult(mid);
@@ -1726,12 +1558,12 @@
       }
 
       const locker = lockFitResultTransforms(target, state); locker.resetToStart();
-      const hold = 700; const dur = 2500; const t0 = performance.now();
-      const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+      const hold = 500; const dur = 2000; const t0 = performance.now();
+      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
       function frame(now) {
         const dt = now - t0;
         if (dt < hold) { requestAnimationFrame(frame); return; }
-        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutExpo(p);
+        const p = clamp((dt - hold) / dur, 0, 1); const k = easeOutCubic(p);
         const km = target.km * k; const mid = (target.isTrail ? (target.elevGain || 0) : target.paceSec) * k; const time = target.timeSec * k; const runs = (target.runs == null) ? null : Math.round(target.runs * k);
         const rvDistance = $('#rvDistance'); const rvPace = $('#rvPace'); const rvTime = $('#rvTime'); const rvRuns = $('#rvRuns');
         if (rvDistance) rvDistance.textContent = fmtKmPreview(km); if (rvPace) rvPace.textContent = target.isTrail ? fmtElevPreview(mid) : fmtPaceResult(mid);
@@ -2114,9 +1946,9 @@
 
       mediaRecorder.start();
 
-      const hold = 700; const dur = 2500; const tailBuffer = 5000;
+      const hold = 1500; const dur = 2000; const tailBuffer = 5000;
       const t0 = performance.now();
-      const easeOutExpo = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+      const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 
       function frame(now) {
         const dt = now - t0;
@@ -2126,7 +1958,7 @@
           return;
         }
         const p = clamp((dt - hold) / dur, 0, 1);
-        const k = easeOutExpo(p);
+        const k = easeOutCubic(p);
         drawResultFrame(rctx, REC_W, REC_H, target, k, crop.offsetX, crop.offsetY);
         if (p < 1) { requestAnimationFrame(frame); }
         else { setTimeout(() => { mediaRecorder.stop(); }, tailBuffer); }

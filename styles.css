@@ -122,6 +122,7 @@ body.no-scroll{ overflow: hidden; }
 /* Icon Buttons (Align) */
 .icon-btn { padding: 0; }
 .button-group.two.disabled { opacity: 0.2; pointer-events: none; filter: grayscale(100%); }
+.font-btn.disabled { opacity: 0.25; pointer-events: none; filter: grayscale(100%); }
 
 /* Rainbow Button */
 .btn-rainbow {
@@ -195,15 +196,6 @@ body.no-scroll{ overflow: hidden; }
 
 /* PREVIEW CONTAINER */
 .preview{ border: 2px solid #000; border-radius: 18px; padding: 18px 18px 16px 18px; width: min(240px, 100%); background:#fff; overflow: hidden; transition: color 0.1s; }
-
-.preview-tabs{ display:flex; gap: 10px; width: min(240px, 100%); margin-bottom: 14px; }
-.preview-tab{ flex: 1 1 0; border: 2px solid #000; border-radius: 999px; padding: 12px 10px; background:#fff; color:#000; font-family:'Inter', sans-serif; font-weight: 900; font-size: 14px; text-align:center; cursor:pointer; transition: background 0.15s, color 0.15s; }
-.preview-tab.active{ background:#000; color:#fff; }
-.preview-tab:disabled{ opacity: 0.35; cursor: not-allowed; }
-.preview-map-card{ border: 2px solid #000; border-radius: 18px; padding: 24px; width: min(240px, 100%); aspect-ratio: 1 / 1; display:flex; align-items:center; justify-content:center; box-sizing: border-box; overflow: hidden; }
-.preview-map-card.bg-white{ background:#fff !important; }
-.preview-map-card.bg-black{ background:#000 !important; }
-.preview-map-card.bg-black #mapRouteEnd{ fill:#000; }
 
 /* [수정] 컬러피커 적용을 위해 color 속성의 !important 제거 */
 .preview.bg-white, .result-screen.bg-white { background:#fff !important; color:#000; }
