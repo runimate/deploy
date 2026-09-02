@@ -213,6 +213,20 @@
         <div class="month-block" id="monthBlock" style="display:none; margin-top: 16px;">
           <div class="month-label">MONTH</div>
           <button class="month-btn" id="btnMonthPick">December. 2025</button>
+
+          <div class="button-group three" id="monthlySportToggle" style="margin-top: 14px; display:none;">
+            <button class="toggle-btn flex1 active" id="btnMonthlySportAll" data-msport="all">All</button>
+            <button class="toggle-btn flex1" id="btnMonthlySportRun" data-msport="run">Run</button>
+            <button class="toggle-btn flex1" id="btnMonthlySportTrail" data-msport="trail">Trail Run</button>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <span class="section-label inline" style="display:block; margin-bottom:8px;">3RD STAT</span>
+            <div class="button-group two" id="monthlyStatToggle">
+              <button class="toggle-btn flex1 active" id="btnMonthlyStatPace" data-mstat="pace">Pace</button>
+              <button class="toggle-btn flex1" id="btnMonthlyStatElev" data-mstat="elev">Elev. Gain</button>
+            </div>
+          </div>
         </div>
 
         <div class="data-empty" id="dataEmpty"></div>
@@ -437,7 +451,7 @@
                 <div class="m-value"><span id="pvRunsMonthlyT1">00</span></div>
               </div>
               <div class="m1-item">
-                <div class="m-label">PACE</div>
+                <div class="m-label" id="pvPaceLabelMonthlyT1">PACE</div>
                 <div class="m-value"><span id="pvPaceMonthlyT1">00'00"</span></div>
               </div>
               <div class="m1-item">
@@ -458,7 +472,7 @@
                 <span class="data-value"><span id="pvRunsMonthlyT2">00</span></span>
               </div>
               <div class="data-item">
-                <span class="data-label">PACE</span>
+                <span class="data-label" id="pvPaceLabelMonthlyT2">PACE</span>
                 <span class="data-value"><span id="pvPaceMonthlyT2">00'00"</span></span>
               </div>
               <div class="data-item">
@@ -702,7 +716,9 @@
       align: 'left',
       fontColor: 'auto',
       daily: { km: 0, paceSec: 0, timeSec: 0 },
-      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, month: today.getMonth() + 1, year: today.getFullYear() },
+      monthly: { km: 0, runs: 0, paceSec: 0, timeSec: 0, elevGain: 0, month: today.getMonth() + 1, year: today.getFullYear() },
+      monthlySportFilter: 'all', // 'all' | 'run' | 'trail' (Garmin/Strava 월간 집계 필터)
+      monthlyStatMode: 'pace', // 'pace' | 'elev' (월간 결과 3번째 항목 표시 방식)
       garmin: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       strava: { date: '-', km: 0, paceSec: 0, timeSec: 0 },
       manual: { km: 0, paceSec: 0, timeSec: 0, elevGain: 0, sportType: 'run' }
@@ -741,6 +757,9 @@
       stravaConnectBtnWrap: $('#stravaConnectBtnWrap'), btnStravaLogin: $('#btnStravaLogin'), stravaCard: $('#stravaCard'), btnStravaList: $('#btnStravaList'),
       stravaDateText: $('#stravaDateText'), stravaDistanceText: $('#stravaDistanceText'), stravaPaceText: $('#stravaPaceText'), stravaTimeText: $('#stravaTimeText'),
       monthBlock: $('#monthBlock'), btnMonthPick: $('#btnMonthPick'),
+      monthlySportToggle: $('#monthlySportToggle'), btnMonthlySportAll: $('#btnMonthlySportAll'), btnMonthlySportRun: $('#btnMonthlySportRun'), btnMonthlySportTrail: $('#btnMonthlySportTrail'),
+      monthlyStatToggle: $('#monthlyStatToggle'), btnMonthlyStatPace: $('#btnMonthlyStatPace'), btnMonthlyStatElev: $('#btnMonthlyStatElev'),
+      pvPaceLabelMonthlyT1: $('#pvPaceLabelMonthlyT1'), pvPaceLabelMonthlyT2: $('#pvPaceLabelMonthlyT2'),
       fontGroup: $('#fontGroup'), btnType1: $('#btnType1'), btnType2: $('#btnType2'),
       layoutControlPanel: $('#layoutControlPanel'),
       btnBgWhite: $('#btnBgWhite'), btnBgBlack: $('#btnBgBlack'),
@@ -829,6 +848,13 @@
       }
       else if (state.dataType === 'nrc') el.contentNrc.style.display = 'block';
       else if (state.dataType === 'manual') el.contentManual.style.display = 'block';
+
+      syncMonthlySportToggleVisibility();
+    }
+
+    function syncMonthlySportToggleVisibility() {
+      const show = state.recordType === 'monthly' && (state.dataType === 'garmin' || state.dataType === 'strava');
+      if (el.monthlySportToggle) el.monthlySportToggle.style.display = show ? 'flex' : 'none';
     }
 
     let readyBlob = null;
@@ -871,6 +897,7 @@
 
           let totalKm = 0;
           let totalTimeSec = 0;
+          let totalElevGain = 0;
           let runs = 0;
 
           workouts.forEach(w => {
@@ -882,6 +909,11 @@
 
               // 🟢 2. 러닝(run)이나 트레일러닝(trail) 단어가 없으면 버립니다! (러닝/트레일러닝 합산)
               if (!sportType.includes('run') && !sportType.includes('trail')) return;
+
+              // 사용자가 선택한 Run/Trail Run 필터 적용
+              const wIsTrail = isTrailWorkout(w);
+              if (state.monthlySportFilter === 'run' && wIsTrail) return;
+              if (state.monthlySportFilter === 'trail' && !wIsTrail) return;
 
               // 날짜 파싱 (기호 무시하고 연/월 추출)
               const dateStr = String(w.date || '');
@@ -906,6 +938,7 @@
               if (wYear === state.monthly.year && wMonth === state.monthly.month) {
                   totalKm += parseFloat(String(w.km || '0').replace(',', '.')); // 소수점 콤마 방어
                   totalTimeSec += parseInt(w.timeSec || 0, 10);
+                  totalElevGain += parseFloat(String(w.elevGain || '0').replace(',', '.'));
                   runs += 1;
               }
           });
@@ -914,6 +947,7 @@
           state.monthly.runs = runs;
           state.monthly.timeSec = totalTimeSec;
           state.monthly.paceSec = (totalKm > 0) ? Math.round(totalTimeSec / totalKm) : 0;
+          state.monthly.elevGain = totalElevGain;
       }
 
       // 화면 업데이트 로직
@@ -956,14 +990,20 @@
       if(el.pvMonthType1) el.pvMonthType1.textContent = `${monthName(m.month)} ${m.year}`;
       if(el.pvMonthType2) el.pvMonthType2.textContent = `${monthName(m.month)} ${m.year}`;
 
+      const monthlyShowElev = state.monthlyStatMode === 'elev';
+      const monthlyMidLabel = monthlyShowElev ? 'ELEV. GAIN' : 'PACE';
+      const monthlyMidText = monthlyShowElev ? fmtElevPreview(m.elevGain) : fmtPacePreview(m.paceSec);
+
       if(el.pvDistanceMonthlyT1) el.pvDistanceMonthlyT1.textContent = fmtKmPreview(m.km);
       if(el.pvRunsMonthlyT1) el.pvRunsMonthlyT1.textContent = fmtRunsPreview(m.runs);
-      if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = monthlyMidText;
+      if(el.pvPaceLabelMonthlyT1) { el.pvPaceLabelMonthlyT1.textContent = monthlyMidLabel; el.pvPaceLabelMonthlyT1.classList.toggle('wide-label', monthlyShowElev); }
       if(el.pvTimeMonthlyT1) el.pvTimeMonthlyT1.textContent = fmtTimePreview(m.timeSec);
 
       if(el.pvDistanceMonthlyT2) el.pvDistanceMonthlyT2.textContent = fmtKmPreview(m.km);
       if(el.pvRunsMonthlyT2) el.pvRunsMonthlyT2.textContent = fmtRunsPreview(m.runs);
-      if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = fmtPacePreview(m.paceSec);
+      if(el.pvPaceMonthlyT2) el.pvPaceMonthlyT2.textContent = monthlyMidText;
+      if(el.pvPaceLabelMonthlyT2) el.pvPaceLabelMonthlyT2.textContent = monthlyMidLabel;
       if(el.pvTimeMonthlyT2) el.pvTimeMonthlyT2.textContent = fmtTimePreview(m.timeSec);
 
       if(state.dataType === 'garmin' || state.dataType === 'strava') {
@@ -1196,8 +1236,7 @@
 
       el.btnDaily.classList.toggle('active', isDaily); el.btnMonthly.classList.toggle('active', !isDaily);
       if (el.manualColRuns) el.manualColRuns.style.display = !isDaily ? 'flex' : 'none';
-      if (el.manualTypeToggle) el.manualTypeToggle.style.display = isDaily ? 'flex' : 'none';
-      if (!isDaily && manualType !== 'run') { manualType = 'run'; syncManualTypeUI(); }
+      if (el.manualTypeToggle) el.manualTypeToggle.style.display = 'flex';
       el.dataTabsDaily.style.display = 'flex';
       el.monthBlock.style.display = !isDaily ? 'flex' : 'none';
       el.previewDaily.style.display = isDaily ? 'flex' : 'none';
@@ -1263,6 +1302,22 @@
     el.btnType2.addEventListener('click', () => { if(state.font === 'ex') return; state.layout = 'type2'; applyLayout(); });
     el.btnAlignLeft.addEventListener('click', () => { if(state.recordType === 'monthly' || state.font === 'ex') return; state.align = 'left'; applyAlign(); });
     el.btnAlignCenter.addEventListener('click', () => { if(state.recordType === 'monthly' || state.font === 'ex') return; state.align = 'center'; applyAlign(); });
+
+    function syncMonthlySportToggleUI() {
+      if (el.btnMonthlySportAll) el.btnMonthlySportAll.classList.toggle('active', state.monthlySportFilter === 'all');
+      if (el.btnMonthlySportRun) el.btnMonthlySportRun.classList.toggle('active', state.monthlySportFilter === 'run');
+      if (el.btnMonthlySportTrail) el.btnMonthlySportTrail.classList.toggle('active', state.monthlySportFilter === 'trail');
+    }
+    if (el.btnMonthlySportAll) el.btnMonthlySportAll.addEventListener('click', () => { state.monthlySportFilter = 'all'; syncMonthlySportToggleUI(); updatePreview(); });
+    if (el.btnMonthlySportRun) el.btnMonthlySportRun.addEventListener('click', () => { state.monthlySportFilter = 'run'; syncMonthlySportToggleUI(); updatePreview(); });
+    if (el.btnMonthlySportTrail) el.btnMonthlySportTrail.addEventListener('click', () => { state.monthlySportFilter = 'trail'; syncMonthlySportToggleUI(); updatePreview(); });
+
+    function syncMonthlyStatToggleUI() {
+      if (el.btnMonthlyStatPace) el.btnMonthlyStatPace.classList.toggle('active', state.monthlyStatMode === 'pace');
+      if (el.btnMonthlyStatElev) el.btnMonthlyStatElev.classList.toggle('active', state.monthlyStatMode === 'elev');
+    }
+    if (el.btnMonthlyStatPace) el.btnMonthlyStatPace.addEventListener('click', () => { state.monthlyStatMode = 'pace'; syncMonthlyStatToggleUI(); updatePreview(); });
+    if (el.btnMonthlyStatElev) el.btnMonthlyStatElev.addEventListener('click', () => { state.monthlyStatMode = 'elev'; syncMonthlyStatToggleUI(); updatePreview(); });
     el.btnBgWhite.addEventListener('click', () => { state.bg = 'white'; applyBG(); });
     el.btnBgBlack.addEventListener('click', () => { state.bg = 'black'; applyBG(); });
     el.btnFontColorAuto.addEventListener('click', () => { state.fontColor = 'auto'; applyFontColor(); });
@@ -1337,7 +1392,7 @@
     if (el.btnManualApply) {
         el.btnManualApply.addEventListener('click', () => {
             const dist = parseFloat(el.inputDistance.value) || 0;
-            const isTrail = (state.recordType === 'daily') && (manualType === 'trail');
+            const isTrail = (manualType === 'trail');
 
             if (state.recordType === 'daily') {
                 if (isTrail) {
@@ -1362,10 +1417,27 @@
                     updatePreview(); alert(`[Daily] Record Applied!\nDist: ${dist}km, Pace: ${pMin}'${pad2(pSec)}"`);
                 }
             } else {
-                const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
                 const runs = parseInt(el.inputRuns.value) || 0;
-                state.monthly.km = dist; state.monthly.runs = runs; state.monthly.paceSec = totalPace; state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
-                updatePreview(); alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
+                if (isTrail) {
+                    const h = parseInt(el.inputTimeH.value) || 0;
+                    const m = parseInt(el.inputTimeM.value) || 0;
+                    const s = parseInt(el.inputTimeS.value) || 0;
+                    const totalTime = (h * 3600) + (m * 60) + s;
+                    const elev = parseFloat(el.inputElevGain.value) || 0;
+
+                    state.monthly.km = dist; state.monthly.runs = runs; state.monthly.timeSec = totalTime;
+                    state.monthly.paceSec = (dist > 0 && totalTime > 0) ? Math.round(totalTime / dist) : 0;
+                    state.monthly.elevGain = elev;
+                    state.monthlyStatMode = 'elev'; syncMonthlyStatToggleUI();
+                    updatePreview();
+                    alert(`[Monthly - Trail Run] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Elev. Gain: ${elev}m, Time: ${h}:${pad2(m)}:${pad2(s)}`);
+                } else {
+                    const pMin = parseInt(el.inputPaceMin.value) || 0; const pSec = parseInt(el.inputPaceSec.value) || 0; const totalPace = (pMin * 60) + pSec;
+                    state.monthly.km = dist; state.monthly.runs = runs; state.monthly.paceSec = totalPace; state.monthly.timeSec = (dist > 0 && totalPace > 0) ? dist * totalPace : 0;
+                    state.monthly.elevGain = 0;
+                    state.monthlyStatMode = 'pace'; syncMonthlyStatToggleUI();
+                    updatePreview(); alert(`[Monthly] Record Applied!\nDist: ${dist}km, Runs: ${runs}, Pace: ${pMin}'${pad2(pSec)}"`);
+                }
             }
         });
     }
@@ -1479,13 +1551,16 @@
         return { km: +(d.km || 0), paceSec: +(d.paceSec || 0), elevGain: +(d.elevGain || 0), timeSec: +(d.timeSec || 0), isTrail: resultIsTrail };
       } else {
         const monthLine = `${monthName(d.month)} ${d.year}`;
+        const showElev = state.monthlyStatMode === 'elev';
+        const midLabel = showElev ? 'ELEV. GAIN' : 'PACE';
+        const midLabelClass = `m-label result-label${showElev ? ' wide-label' : ''}`;
         if (state.layout === 'type1') {
           el.resultBlock.innerHTML = `
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
               <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="m-label result-label">PACE</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="${midLabelClass}">${midLabel}</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
               <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
             </div>
           `;
@@ -1495,13 +1570,13 @@
             <div class="m2-distance"><span class="m2-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m2-row">
               <div class="result-item"><span class="result-label">RUNS</span><span class="result-value"><span id="rvRuns"></span></span></div>
-              <div class="result-item"><span class="result-label">PACE</span><span class="result-value"><span id="rvPace"></span></span></div>
+              <div class="result-item"><span class="result-label">${midLabel}</span><span class="result-value"><span id="rvPace"></span></span></div>
               <div class="result-item"><span class="result-label">TIME</span><span class="result-value"><span id="rvTime"></span></span></div>
             </div>
           `;
         }
         if(state.fontColor !== 'auto') el.resultBlock.style.color = state.fontColor; else el.resultBlock.style.color = '';
-        return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), timeSec: +(d.timeSec || 0) };
+        return { km: +(d.km || 0), runs: +(d.runs || 0), paceSec: +(d.paceSec || 0), elevGain: +(d.elevGain || 0), timeSec: +(d.timeSec || 0), isTrail: showElev };
       }
     }
 
@@ -1723,9 +1798,11 @@
 
       const monthText = `${monthName(state.monthly.month)} ${state.monthly.year}`;
       const distText = fmtKmPreview(km);
+      const midLabel = target.isTrail ? 'ELEV. GAIN' : 'PACE';
+      const midText = target.isTrail ? fmtElevPreview(mid) : fmtPaceResult(mid);
       const items = [
         { label: 'RUNS', value: fmtRunsPreview(runs ?? 0) },
-        { label: 'PACE', value: fmtPaceResult(mid) },
+        { label: midLabel, value: midText },
         { label: 'TIME', value: fmtTimeResult(time) }
       ];
 
@@ -1752,12 +1829,20 @@
 
       if (state.layout === 'type1') {
         const rowGap = cfg.statsStackGap * VIDEO_SCALE;
-        const labelW = 60 * VIDEO_SCALE;
         const labelFontM1 = getLabelFontSpec(state, labelSize);
         const valueFontM1 = fontSpec(state, valueSize, 900);
+        ctx.font = labelFontM1;
+        const maxLabelWidth = Math.max(...items.map(item => ctx.measureText(item.label).width));
+        const defaultLabelW = 60 * VIDEO_SCALE;
+        // 라벨이 기본 60px 폭을 넘으면(예: ELEV. GAIN), 폰트별로 튜닝된 음수 lvGap 보정을
+        // 그대로 적용하지 않는다 (그 보정은 60px 기준 여백을 당겨오기 위한 값이라, 넓어진
+        // 라벨 폭에 그대로 쓰면 값이 라벨과 겹쳐버린다). 대신 작은 고정 여백만 둔다.
+        const needsWideLabel = (maxLabelWidth + 6 * VIDEO_SCALE) > defaultLabelW;
+        const labelW = needsWideLabel ? (maxLabelWidth + 10 * VIDEO_SCALE) : defaultLabelW;
+        const valueOffset = needsWideLabel ? labelW : (labelW + lvGap);
         items.forEach(item => {
           ctx.font = labelFontM1; ctx.fillText(item.label, x0, y + labelSize);
-          ctx.font = valueFontM1; ctx.fillText(item.value, x0 + labelW + lvGap, y + valueSize);
+          ctx.font = valueFontM1; ctx.fillText(item.value, x0 + valueOffset, y + valueSize);
           y += valueSize + rowGap;
         });
       } else {

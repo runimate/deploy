@@ -310,6 +310,12 @@ body.no-scroll{ overflow: hidden; }
     line-height: 1 !important;
     margin-bottom: 0 !important;
 }
+.monthly-type1 .m1-item .m-label.wide-label,
+.result-wrap.type1 .m1-item .result-label.wide-label {
+    width: 112px !important;
+    min-width: 112px !important;
+    margin-right: 6px !important;
+}
 .monthly-type1 .m1-item .m-value,
 .result-wrap.type1 .m1-item .result-value {
     line-height: 0.8 !important;
