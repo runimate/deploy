@@ -997,7 +997,7 @@
       if(el.pvDistanceMonthlyT1) el.pvDistanceMonthlyT1.textContent = fmtKmPreview(m.km);
       if(el.pvRunsMonthlyT1) el.pvRunsMonthlyT1.textContent = fmtRunsPreview(m.runs);
       if(el.pvPaceMonthlyT1) el.pvPaceMonthlyT1.textContent = monthlyMidText;
-      if(el.pvPaceLabelMonthlyT1) { el.pvPaceLabelMonthlyT1.textContent = monthlyMidLabel; el.pvPaceLabelMonthlyT1.classList.toggle('wide-label', monthlyShowElev); }
+      if(el.pvPaceLabelMonthlyT1) { el.pvPaceLabelMonthlyT1.textContent = monthlyMidLabel; }
       if(el.pvTimeMonthlyT1) el.pvTimeMonthlyT1.textContent = fmtTimePreview(m.timeSec);
 
       if(el.pvDistanceMonthlyT2) el.pvDistanceMonthlyT2.textContent = fmtKmPreview(m.km);
@@ -1553,14 +1553,13 @@
         const monthLine = `${monthName(d.month)} ${d.year}`;
         const showElev = state.monthlyStatMode === 'elev';
         const midLabel = showElev ? 'ELEV. GAIN' : 'PACE';
-        const midLabelClass = `m-label result-label${showElev ? ' wide-label' : ''}`;
         if (state.layout === 'type1') {
           el.resultBlock.innerHTML = `
             <div class="m1-month">${monthLine}</div>
             <div class="m1-distance"><span class="m1-distance-value"><span id="rvDistance"></span></span></div>
             <div class="m1-stack">
               <div class="m1-item"><div class="m-label result-label">RUNS</div><div class="m-value result-value"><span id="rvRuns"></span></div></div>
-              <div class="m1-item"><div class="${midLabelClass}">${midLabel}</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
+              <div class="m1-item"><div class="m-label result-label">${midLabel}</div><div class="m-value result-value"><span id="rvPace"></span></div></div>
               <div class="m1-item"><div class="m-label result-label">TIME</div><div class="m-value result-value"><span id="rvTime"></span></div></div>
             </div>
           `;

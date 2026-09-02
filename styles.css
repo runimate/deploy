@@ -291,31 +291,33 @@ body.no-scroll{ overflow: hidden; }
 
 .m1-stack { display: flex; flex-direction: column; gap: var(--ui-stack-gap); width: 100%; align-items: flex-start; }
 
-/* [M1 중요] Monthly M1: 시각적 상단 정렬 (프리뷰/결과 동일 적용) */
+/* [M1 중요] Monthly M1: Grid 2칼럼 구조로 라벨/값을 정렬
+   - m1-item은 display:contents로 박스를 없애고, 그 자식(라벨/값)이 m1-stack의 grid item이 됨
+   - grid-template-columns: max-content max-content → 라벨 칼럼 폭이 "가장 긴 라벨" 기준으로 전체 행에 동일 적용
+   - 결과: RUNS/ELEV. GAIN/TIME처럼 라벨 길이가 달라도, 값(20/6985m/30:48:48)은 전부 같은 x좌표에서 시작 */
+.monthly-type1 .m1-stack,
+.result-wrap.type1 .m1-stack {
+    display: grid !important;
+    grid-template-columns: max-content max-content !important;
+    column-gap: 8px !important;
+    row-gap: var(--ui-stack-gap) !important;
+    align-items: start !important;
+}
 .monthly-type1 .m1-item,
 .result-wrap.type1 .m1-item {
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-    gap: 0 !important;
+    display: contents !important;
 }
 .monthly-type1 .m1-item .m-label,
 .result-wrap.type1 .m1-item .result-label {
-    width: 60px !important;
-    min-width: 60px !important;
-    margin-right: var(--ui-label-to-value-gap) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    margin-right: 0 !important;
     text-align: left !important;
     display: block !important;
     padding-top: 0px !important;
     line-height: 1 !important;
     margin-bottom: 0 !important;
-}
-.monthly-type1 .m1-item .m-label.wide-label,
-.result-wrap.type1 .m1-item .result-label.wide-label {
-    width: auto !important;
-    min-width: 0 !important;
-    white-space: nowrap !important;
-    margin-right: 6px !important;
 }
 .monthly-type1 .m1-item .m-value,
 .result-wrap.type1 .m1-item .result-value {
