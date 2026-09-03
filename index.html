@@ -1831,17 +1831,15 @@
         const labelFontM1 = getLabelFontSpec(state, labelSize);
         const valueFontM1 = fontSpec(state, valueSize, 900);
         ctx.font = labelFontM1;
+        // DOM(CSS Grid)과 동일한 방식: 조건 분기 없이 항상 "실제 라벨 폭 + 여유 패딩"을 사용.
+        // (예전엔 60px 기준 분기가 있었는데, measureText 측정치가 경계값 근처에서 애매하게
+        // 걸리면 옛 방식(음수 여백 보정)으로 새서 겹침이 재발할 수 있었음)
+        ctx.font = labelFontM1;
         const maxLabelWidth = Math.max(...items.map(item => ctx.measureText(item.label).width));
-        const defaultLabelW = 60 * VIDEO_SCALE;
-        // 라벨이 기본 60px 폭을 넘으면(예: ELEV. GAIN), 폰트별로 튜닝된 음수 lvGap 보정을
-        // 그대로 적용하지 않는다 (그 보정은 60px 기준 여백을 당겨오기 위한 값이라, 넓어진
-        // 라벨 폭에 그대로 쓰면 값이 라벨과 겹쳐버린다). 대신 작은 고정 여백만 둔다.
-        const needsWideLabel = (maxLabelWidth + 6 * VIDEO_SCALE) > defaultLabelW;
-        const labelW = needsWideLabel ? (maxLabelWidth + 10 * VIDEO_SCALE) : defaultLabelW;
-        const valueOffset = needsWideLabel ? labelW : (labelW + lvGap);
+        const labelW = maxLabelWidth + 10 * VIDEO_SCALE;
         items.forEach(item => {
           ctx.font = labelFontM1; ctx.fillText(item.label, x0, y + labelSize);
-          ctx.font = valueFontM1; ctx.fillText(item.value, x0 + valueOffset, y + valueSize);
+          ctx.font = valueFontM1; ctx.fillText(item.value, x0 + labelW, y + valueSize);
           y += valueSize + rowGap;
         });
       } else {
