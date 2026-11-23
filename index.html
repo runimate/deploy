@@ -693,10 +693,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.acg3 = {
     geo: function (f) {
       // 고도 데이터가 있으면 맨 아래에 고도표 칸(rowD)이 하나 더 생김
-      var gp = 6, rowB = 104, rowC = 66, rowD = elevProfileNow() ? 70 : 0;
-      var a = f.BH - rowB - rowC - gp * 2 - (rowD ? rowD + gp : 0), cw = (f.BW - gp * 2) / 3;
+      // 고도 데이터가 있으면 기록 3칸이 고도표와 합쳐진 한 칸(rowD)이 됨
+      var gp = 6, rowB = 104, ep = !!elevProfileNow(), rowC = ep ? 0 : 66, rowD = ep ? 116 : 0;
+      var a = f.BH - rowB - (ep ? rowD : rowC) - gp * 2, cw = (f.BW - gp * 2) / 3;
       var yB = f.T + a + gp, yC = yB + rowB + gp;
-      return { gp: gp, a: a, rowB: rowB, rowC: rowC, rowD: rowD, cw: cw, distW: cw * 2 + gp, yB: yB, yC: yC, yD: yC + rowC + gp };
+      return { gp: gp, a: a, rowB: rowB, rowC: rowC, rowD: rowD, cw: cw, distW: cw * 2 + gp, yB: yB, yC: yC, yD: yC };
     },
     rect: function (f) { var g = this.geo(f); return { x: f.L, y: f.T, w: f.BW, h: g.a }; },
     draw: function (c, f, t, v, d, P) {
@@ -732,7 +733,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         text(c, d.typeLabel, x + w / 2, y + g.rowB - 12, HELV(9), ink, 'center', 0.3);
       });
       var rows = acgRows(v);
-      fade(c, e3, (1 - e3) * 20, function () {
+      if (g.rowD) {
+        fade(c, e3, (1 - e3) * 20, function () { drawElevTile(c, f.L, g.yD, f.BW, g.rowD, elevProfileNow(), A, t, rows); });
+      } else fade(c, e3, (1 - e3) * 20, function () {
         for (var i = 0; i < 3; i++) {
           var x = f.L + i * (g.cw + g.gp), y = g.yC;
           c.fillStyle = '#1B1B1B'; c.fillRect(x, y, g.cw, g.rowC);
@@ -740,10 +743,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
           text(c, rows[i][1], x + 10, y + g.rowC - 14, HELV(14), '#FFFFFF', 'left', -0.2);
         }
       });
-      if (g.rowD) {
-        var e4 = ease((t - 650) / 600);
-        fade(c, e4, (1 - e4) * 20, function () { drawElevTile(c, f.L, g.yD, f.BW, g.rowD, elevProfileNow(), A, t); });
-      }
     }
   };
 
@@ -756,16 +755,24 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (md <= eps) return [a, b];
     return simplify(pts.slice(0, mi + 1), eps).slice(0, -1).concat(simplify(pts.slice(mi), eps));
   }
-  function drawElevTile(c, x, y, w, h, P, A, t) {
+  function drawElevTile(c, x, y, w, h, P, A, t, rows) {
     c.fillStyle = '#1B1B1B'; c.fillRect(x, y, w, h);
     var mn = Infinity, mx = -Infinity, pk = P[0], d0 = P[0][0], km = P[P.length - 1][0] - d0;
     P.forEach(function (p) { if (p[1] < mn) mn = p[1]; if (p[1] > mx) { mx = p[1]; pk = p; } });
     var top = mx, lo = mn;
     if (mx - mn < 20) { var mid = (mx + mn) / 2; lo = mid - 10; top = mid + 10; }
+    // 위: 기록 3개 (한 줄) / 가는 선 / 아래: 고도표
+    var cw3 = (w - 12) / 3 + 6; // 위쪽 그리드 칸과 같은 간격으로 정렬
+    rows.forEach(function (r, i) {
+      var rx = x + 10 + i * cw3;
+      c.save(); c.globalAlpha = 0.7; text(c, r[0], rx, y + 14, HELV(7.5), '#FFFFFF', 'left', 0.3); c.restore();
+      text(c, r[1], rx, y + 31, HELV(13), '#FFFFFF', 'left', -0.2);
+    });
+    c.fillStyle = 'rgba(255,255,255,0.14)'; c.fillRect(x + 10, y + 40, w - 20, 1);
     c.save(); c.globalAlpha = 0.7;
-    text(c, 'ELEVATION  ·  ' + km.toFixed(1) + ' KM', x + 10, y + 14, HELV(8), '#FFFFFF', 'left', 0.3);
+    text(c, 'ELEVATION  ·  ' + km.toFixed(1) + ' KM', x + 10, y + 54, HELV(7.5), '#FFFFFF', 'left', 0.3);
     c.restore();
-    var cx = x + 10, cy = y + 30, cw = w - 20, ch = h - 38;
+    var cx = x + 10, cy = y + 70, cw = w - 20, ch = h - 78;
     // 화면 좌표로 바꾼 뒤 단순화 — 최고점은 항상 남김
     var S = P.map(function (p) { return [cx + (km > 0 ? (p[0] - d0) / km : 0) * cw, cy + ch - (p[1] - lo) / (top - lo) * ch, p === pk]; });
     var pi = 0; S.forEach(function (q, i) { if (q[2]) pi = i; });
