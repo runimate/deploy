@@ -166,7 +166,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <p class="err hidden" id="srcErr"></p>
 
     <div class="sel" id="selInfo"></div>
-    <label class="fld" style="margin-top:10px">장소 / 제목 (결과물에 표시)<input type="text" id="inTitle" value="북한산"></label>
+    <label class="fld" style="margin-top:10px">장소 / 제목 (결과물에 표시)<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"></label>
   </div>
 
   <!-- 2. 비율·레이아웃 -->
@@ -1164,103 +1164,92 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
     if (line && n < maxLines) text(c, line, x, y + n * lh, font, color);
   }
-  function OPERA(sz) { return sz + 'px RMOpera, Georgia, serif'; }
-  function EXF(sz) { return sz + 'px RMEX, RMHelv, sans-serif'; }
+  // 글자는 Anton(큰 제목·숫자)과 Helvetica(작은 글자·숫자) 두 가지만
   Lay.mmag = {
     rect: full,
     draw: function (c, f, t, M, P) {
       var R = f.key === 'R', B = f.T + f.BH, A = P.accent, L = f.L, W = f.BW, WH = '#F4F4F0', NC = st.numColor;
       var mon = M.name.charAt(0) + M.name.slice(1).toLowerCase(), mon3 = M.name.slice(0, 3);
+      function small(s2, x, y, al, col, sz) { text(c, s2, x, y, HELV(sz || 6), col || WH, al || 'left', 0.9); }
       c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
-      var g1 = c.createLinearGradient(0, 0, 0, f.T + 150); g1.addColorStop(0, 'rgba(0,0,0,0.6)'); g1.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g1; c.fillRect(0, 0, f.W, f.T + 150);
-      var g2 = c.createLinearGradient(0, B - 200, 0, f.H); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,0.85)'); c.fillStyle = g2; c.fillRect(0, B - 200, f.W, f.H - B + 200);
+      var g1 = c.createLinearGradient(0, 0, 0, f.T + 130); g1.addColorStop(0, 'rgba(0,0,0,0.55)'); g1.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g1; c.fillRect(0, 0, f.W, f.T + 130);
+      var g2 = c.createLinearGradient(0, B - 170, 0, f.H); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,0.8)'); c.fillStyle = g2; c.fillRect(0, B - 170, f.W, f.H - B + 170);
 
       // ① 맨 위 한 줄
       var e0 = ease(t / 400);
       fade(c, e0, 0, function () {
-        text(c, 'VOL.3 · NO.' + M.m + ' · ' + monthLabel(), L, f.T + 7, MONO(7, true), WH, 'left', 1);
-        text(c, 'FOR PEOPLE WHO RUN', L + W, f.T + 7, MONO(7, true), WH, 'right', 1);
+        small('VOL.3 · NO.' + M.m + ' · ' + monthLabel(), L, f.T + 6);
+        small('FOR PEOPLE WHO RUN', L + W, f.T + 6, 'right');
       });
-      // ② 제호 RUNNING + 손글씨 Monthly
-      var mfs = Math.min(fitFont(c, 'RUNNING', 120, W + 4, ANTON), R ? 120 : 100), mb = f.T + 14 + mfs * 0.8, wipe = inout((t - 100) / 600);
-      c.save(); c.beginPath(); c.rect(L - 4, f.T + 8, (W + 8) * wipe, mfs); c.clip();
-      text(c, 'RUNNING', L - 2, mb, ANTON(mfs), A);
-      c.restore();
+      // ② 제호: Monthly(작게) + RUNNING
       var e1 = ease((t - 550) / 450);
-      fade(c, e1, (1 - e1) * -8, function () {
-        text(c, 'Monthly', L + 1, f.T + 33, OPERA(R ? 24 : 22), WH);
-      });
-      // ③ 호수: 왼쪽 ○월호 문구, 오른쪽 크게 NOV 2026
-      var bandTop = mb + 7;
+      fade(c, e1, (1 - e1) * -6, function () { text(c, 'Monthly', L, f.T + 24, HELV(13), WH, 'left', -0.2); });
+      var mfs = Math.min(fitFont(c, 'RUNNING', 100, W, ANTON), R ? 78 : 72), mt = f.T + 28, mb = mt + mfs * 0.84, wipe = inout((t - 100) / 600);
+      c.save(); c.beginPath(); c.rect(L - 4, mt - 4, (W + 8) * wipe, mfs); c.clip();
+      text(c, 'RUNNING', L - 1, mb, ANTON(mfs), A);
+      c.restore();
+      // ③ 호수 줄
+      var bandTop = mb + 8;
       fade(c, e1, 0, function () {
-        c.fillStyle = WH; c.fillRect(L, bandTop, W, 1.2);
-        text(c, 'THE ' + M.name + ' ISSUE', L, bandTop + 14, MONO(7, true), WH, 'left', 1.6);
-        var iw = measure(c, String(M.y), EXF(20)), issueW = iw + 7 + measure(c, mon3, EXF(20));
-        c.save(); c.globalAlpha *= 0.85; wrapText(c, 'All your runs in one issue.', L, bandTop + 26, W - issueW - 10, 10, SERIF(8.5), WH, 1); c.restore();
-        text(c, String(M.y), L + W, bandTop + 29, EXF(20), WH, 'right');
-        text(c, mon3, L + W - iw - 7, bandTop + 29, EXF(20), A, 'right');
-        c.fillStyle = WH; c.fillRect(L, bandTop + 38, W, 1.2);
+        c.fillStyle = WH; c.fillRect(L, bandTop, W, 1);
+        small('THE ' + M.name + ' ISSUE', L, bandTop + 12);
+        c.save(); c.globalAlpha *= 0.8; small('All your runs in one issue.', L, bandTop + 21, 'left', WH, 6.5); c.restore();
+        var iw = measure(c, String(M.y), ANTON(18));
+        text(c, String(M.y), L + W, bandTop + 22, ANTON(18), WH, 'right');
+        text(c, mon3, L + W - iw - 5, bandTop + 22, ANTON(18), A, 'right');
+        c.fillStyle = WH; c.fillRect(L, bandTop + 29, W, 1);
       });
 
-      // ④ 본문 영역 (호수 줄 아래 ~ 커버스토리 위)
-      var cs = R ? 152 : 128, top = bandTop + 50, bot = B - cs - 10, gap = (bot - top) / 3, cp = gap < 46;
-      // 왼쪽 표지 문구 3개 — 숫자마다 다른 서체
+      // ④ 본문: 왼쪽 표지 문구 3개 / 오른쪽 특집
+      var cs = R ? 122 : 108, top = bandTop + 42, bot = B - cs - 8, gap = Math.min(44, (bot - top) / 3), cp = gap < 38;
       var lines = [
-        [String(M.runs), ANTON(cp ? 22 : 26), A, 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
-        ['+' + M.elev + 'M', HELV(cp ? 16 : 19), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
-        [M.pace, OPERA(cp ? 18 : 22), WH, 'AVERAGE PACE', 'Steady is the new fast.']
+        [String(M.runs), ANTON(18), A, 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
+        ['+' + M.elev + 'M', HELV(14), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
+        [M.pace, HELV(14), WH, 'AVERAGE PACE', 'Steady is the new fast.']
       ];
       lines.forEach(function (ln, i) {
-        var e = ease((t - 700 - i * 120) / 450), y = top + i * gap, nb = y + (cp ? 17 : 20);
-        fade(c, e, (1 - e) * 12, function () {
+        var e = ease((t - 700 - i * 120) / 450), y = top + i * gap, nb = y + 14;
+        fade(c, e, (1 - e) * 10, function () {
           text(c, ln[0], L, nb, ln[1], ln[2]);
-          text(c, ln[3], L, nb + 10, MONO(6.5, true), WH, 'left', 1.2);
-          if (!cp) { c.save(); c.globalAlpha *= 0.85; text(c, ln[4], L, nb + 20, SERIF(8), WH); c.restore(); } // 좁으면 기울인 문구 생략
+          small(ln[3], L, nb + 9);
+          if (!cp) { c.save(); c.globalAlpha *= 0.75; small(ln[4], L, nb + 18, 'left', WH, 6.5); c.restore(); }
         });
       });
-      // 오른쪽 특집 기사: 이달 가장 먼 거리
       var best = M.recs.slice().sort(function (a, b) { return b.km - a.km; })[0], kk = ease((t - HOLD) / COUNT);
       var e3 = ease((t - 1000) / 500);
-      fade(c, e3, (1 - e3) * 12, function () {
+      fade(c, e3, (1 - e3) * 10, function () {
         var x = L + W, y = top;
-        text(c, 'SPECIAL FEATURE', x, y + 7, MONO(6.5, true), A, 'right', 1.4);
-        text(c, 'THE FARTHEST', x, y + 23, ANTON(15), WH, 'right');
-        text(c, 'I WENT', x, y + 39, ANTON(15), WH, 'right');
-        if (!best) { text(c, '—', x, y + 70, HELV(28), WH, 'right'); return; }
-        var kmS = (best.km * kk).toFixed(1), kw = measure(c, 'KM', HELV(10));
-        text(c, 'KM', x, y + 70, HELV(10), WH, 'right');
-        text(c, kmS, x - kw - 3, y + 70, HELV(30), NC, 'right', -0.6);
+        small('SPECIAL FEATURE', x, y + 5, 'right', A);
+        text(c, 'THE FARTHEST I WENT', x, y + 18, ANTON(11), WH, 'right');
+        if (!best) { text(c, '—', x, y + 42, HELV(20), WH, 'right'); return; }
+        var kw = measure(c, 'KM', HELV(8));
+        text(c, 'KM', x, y + 42, HELV(8), WH, 'right');
+        text(c, (best.km * kk).toFixed(1), x - kw - 2, y + 42, HELV(22), NC, 'right', -0.4);
         var dd = String(best.date).slice(8, 10);
-        text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 82, MONO(6, true), WH, 'right', 0.8);
-        text(c, fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 91, MONO(6, true), WH, 'right', 0.8);
-        c.save(); c.globalAlpha *= 0.85; text(c, 'One long day, one long story.', x, y + 103, SERIF(8), WH, 'right'); c.restore();
+        small(mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 52, 'right');
+        small(fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 60, 'right');
       });
 
-      // ⑤ 커버스토리: 이번 달 나는 얼마나 달렸나 — 합산 거리가 가장 큰 숫자
+      // ⑤ 커버스토리: 이달 합산 거리
       var e4 = ease((t - 850) / 550);
-      fade(c, e4, (1 - e4) * 16, function () {
+      fade(c, e4, (1 - e4) * 14, function () {
         var y0 = B - cs;
-        chip(c, L, y0, 'COVER STORY', A, inkOn(A), { size: 7, h: 14, padX: 6, r: 0 });
-        var hfs = fitFont(c, 'HOW FAR DID I RUN THIS MONTH?', 19, W, ANTON);
-        text(c, 'HOW FAR DID I RUN THIS MONTH?', L, y0 + 34, ANTON(hfs), WH);
-        var kmW = measure(c, 'KM', ANTON(22)), nfs = Math.min(R ? 84 : 62, fitFont(c, M.dist, 200, W - kmW - 70, ANTON)), nb = y0 + 40 + nfs * 0.8;
-        var dw = measure(c, M.dist, ANTON(nfs));
-        text(c, M.dist, L - 2, nb, ANTON(nfs), NC);
-        text(c, 'KM', L + dw + 4, nb, ANTON(22), NC);
-        var metaY = B - 20, bw = 60;
-        text(c, M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, metaY, MONO(7, true), WH, 'left', 0.8);
-        c.save(); c.globalAlpha *= 0.85;
-        wrapText(c, 'The answer to the only question that matters in ' + mon + '.', L, metaY + 12, W - bw - 8, 10, SERIF(8.5), WH, 1);
-        c.restore();
+        chip(c, L, y0, 'COVER STORY', A, inkOn(A), { size: 6, h: 12, padX: 5, r: 0 });
+        text(c, 'HOW FAR DID I RUN THIS MONTH?', L, y0 + 28, ANTON(14), WH);
+        var nfs = R ? 62 : 52, nb = y0 + 32 + nfs * 0.84, dw = measure(c, M.dist, ANTON(nfs));
+        text(c, M.dist, L - 1, nb, ANTON(nfs), NC);
+        text(c, 'KM', L + dw + 4, nb, ANTON(16), NC);
+        small(M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, B - 14);
+        c.save(); c.globalAlpha *= 0.75; small('The answer to the only question in ' + mon + '.', L, B - 5, 'left', WH, 6.5); c.restore();
       });
       // ⑥ 바코드
-      var e5 = ease((t - 1500) / 600), bx = L + W - 56, by = B - 34;
+      var e5 = ease((t - 1500) / 600), bx = L + W - 44, by = B - 26;
       if (e5 > 0) {
-        c.fillStyle = WH; c.fillRect(bx - 3, by - 3, 59, 37);
-        var seed = M.y * 13 + M.m * 7, x = bx, n = Math.floor(44 * e5);
-        for (var b = 0; b < n && x < bx + 53; b++) { seed = (seed * 9301 + 49297) % 233280; var bwid = 0.6 + (seed % 3) * 0.6; if (b % 2 === 0) { c.fillStyle = '#0B0B0B'; c.fillRect(x, by, bwid, 22); } x += bwid + 0.4; }
-        c.save(); c.globalAlpha *= e5; text(c, String(M.y).slice(2) + String(M.m).padStart(2, '0') + ' RUNIMATE', bx + 26.5, by + 30, MONO(5, true), '#0B0B0B', 'center', 0.6); c.restore();
+        c.fillStyle = WH; c.fillRect(bx - 3, by - 3, 47, 29);
+        var seed = M.y * 13 + M.m * 7, x = bx, n = Math.floor(40 * e5);
+        for (var b = 0; b < n && x < bx + 41; b++) { seed = (seed * 9301 + 49297) % 233280; var bwid = 0.5 + (seed % 3) * 0.5; if (b % 2 === 0) { c.fillStyle = '#0B0B0B'; c.fillRect(x, by, bwid, 16); } x += bwid + 0.35; }
+        c.save(); c.globalAlpha *= e5; text(c, String(M.y).slice(2) + String(M.m).padStart(2, '0') + ' RUNIMATE', bx + 20.5, by + 23, HELV(4.5), '#0B0B0B', 'center', 0.4); c.restore();
       }
     }
   };
@@ -1514,7 +1503,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       info.textContent = '선택한 기록 · ' + TYPE_KO[r.type] + ' · ' + r.date + ' · ' + r.km.toFixed(2) + ' km · ' + fmtTime(r.timeSec) +
         (r.type === 'run' ? ' · ' + fmtPace(r.paceSec) + ' /km' : ' · +' + Math.round(r.elevGain).toLocaleString('en-US') + ' m');
     }
-    if (r.name && !$('inTitle').dataset.touched) $('inTitle').value = r.name;
     ensureElev();
     loadTitleFont();
     updateAcgAvailability();
