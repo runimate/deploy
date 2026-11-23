@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" class="rm-thumbs">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -88,6 +88,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .prog{height:4px;background:#2A2A2A;border-radius:2px;overflow:hidden}
 .prog i{display:block;height:100%;width:0;background:var(--acc)}
 </style>
+<link rel="stylesheet" href="./theme.css">
+<meta name="theme-color" content="#EFEBE3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 </head>
 <body>
 <div class="wrap">
@@ -103,7 +106,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   </header>
 
   <!-- 1. 기록 불러오기 -->
-  <h2 class="step">1 · 기록 불러오기</h2>
+  <h2 class="step"><span class="n">01</span>기록 불러오기</h2>
   <div class="card">
     <div class="seg" role="group" aria-label="기록 단위">
       <button type="button" data-mode="daily" aria-pressed="true">DAILY</button>
@@ -171,7 +174,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   </div>
 
   <!-- 2. 비율·레이아웃 -->
-  <h2 class="step">2 · 비율과 레이아웃</h2>
+  <h2 class="step"><span class="n">02</span>비율과 레이아웃</h2>
   <div class="seg" role="group" aria-label="출력 비율">
     <button type="button" data-fmt="R" aria-pressed="true">릴스 9:16</button>
     <button type="button" data-fmt="F" aria-pressed="false">피드 3:4</button>
@@ -186,7 +189,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <p class="hint" id="hint">미리보기를 눌러 사진이나 영상을 넣어보세요.</p>
 
   <!-- 3. 사진·영상 -->
-  <h2 class="step">3 · 사진 / 영상</h2>
+  <h2 class="step"><span class="n">03</span>사진 / 영상</h2>
   <div class="row">
     <button type="button" class="btn primary" id="btnPick">사진/영상 넣기</button>
     <button type="button" class="btn" id="btnReset" disabled>위치 초기화</button>
@@ -209,7 +212,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   </div>
 
   <!-- 4. 스타일 -->
-  <h2 class="step">4 · 스타일</h2>
+  <h2 class="step"><span class="n">04</span>스타일</h2>
   <div class="card">
     <div id="accentWrap" style="margin-bottom:14px">
       <h3 id="accentTitle">포인트 컬러</h3>
