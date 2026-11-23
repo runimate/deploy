@@ -175,6 +175,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   </div>
   <div class="chips" role="group" aria-label="레이아웃" id="layoutChips"></div>
   <p class="small" id="acgNote" style="margin:0 0 10px">ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
+  <p class="small hidden" id="mapNote" style="margin:0 0 10px">POSTER · ROUTE + ELEV는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
   <p class="hint" id="hint">미리보기를 눌러 사진이나 영상을 넣어보세요.</p>
@@ -273,6 +274,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'tags', name: 'STICKER' },
     { id: 'big', name: 'BOLD' },
     { id: 'polaroid', name: 'POLAROID' },
+    { id: 'poster', name: 'POSTER', map: true },
+    { id: 'routeelev', name: 'ROUTE + ELEV', map: true },
     { id: 'acg2', name: 'ACG', acg: true },
     { id: 'acg3', name: 'ACG GRID', acg: true }
   ];
@@ -355,7 +358,27 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var km = num(w.km), timeSec = num(w.timeSec), paceSec = num(w.paceSec);
     if (!paceSec && km > 0) paceSec = timeSec / km;
     return { date: String(w.date || '').replace(/-/g, '.'), km: km, paceSec: paceSec, timeSec: timeSec, elevGain: num(w.elevGain), type: classify(w), name: w.name || w.title || '',
-      activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile) };
+      activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile), route: toRoute(w.polyline) };
+  }
+  // GPS 경로: 스트라바는 인코딩된 문자열, 가민은 [{lat, lon}] → 화면용 평면 좌표 [[x, y]]
+  function decodePolyline(str) {
+    var i = 0, lat = 0, lng = 0, out = [];
+    function next() { var b, sh = 0, r = 0; do { b = str.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32 && i < str.length); return (r & 1) ? ~(r >> 1) : (r >> 1); }
+    while (i < str.length) { lat += next(); lng += next(); out.push([lat / 1e5, lng / 1e5]); }
+    return out;
+  }
+  function toRoute(pl) {
+    var ll = null;
+    try {
+      if (typeof pl === 'string' && pl) ll = decodePolyline(pl);
+      else if (Array.isArray(pl)) ll = pl.map(function (q) { return [num(q.lat), num(q.lon)]; });
+    } catch (e) { ll = null; }
+    if (!ll || ll.length < 2) return null;
+    var lat0 = ll.reduce(function (a, q) { return a + q[0]; }, 0) / ll.length, k = Math.cos(lat0 * Math.PI / 180);
+    var R = ll.map(function (q) { return [q[1] * k, -q[0]]; });
+    var xs = R.map(function (q) { return q[0]; }), ys = R.map(function (q) { return q[1]; });
+    if (Math.max.apply(null, xs) - Math.min.apply(null, xs) + Math.max.apply(null, ys) - Math.min.apply(null, ys) < 1e-5) return null;
+    return R;
   }
   // 고도표 데이터: [[km, m], ...] (서버가 준 형태). 2개 지점 미만이면 없음으로 처리
   function validProfile(p) { return (Array.isArray(p) && p.length >= 2) ? p : null; }
@@ -802,6 +825,146 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   }
 
+
+  // =========================================================
+  // 지도 레이아웃 (POSTER · ROUTE + ELEV) — 배경에 사진/영상, 그 위에 GPS 경로가 그려짐
+  // =========================================================
+  // 기록을 고르기 전 미리보기용 예시 경로·고도 (북한산 루프 느낌)
+  var SAMPLE_ROUTE = [], SAMPLE_ELEV = [];
+  (function () {
+    for (var i = 0; i < 140; i++) {
+      var u = 0.15 + i / 139 * (2 * Math.PI * 0.9), q = i / 139;
+      SAMPLE_ROUTE.push([0.34 * Math.cos(u) + 0.09 * Math.cos(3 * u + 1.1) + 0.03 * Math.sin(7 * u), 0.40 * Math.sin(u) + 0.08 * Math.sin(2 * u + 0.5) + 0.025 * Math.cos(9 * u)]);
+      SAMPLE_ELEV.push([q * 21.3, 120 + 620 * Math.exp(-Math.pow((q - 0.42) / 0.16, 2)) + 260 * Math.exp(-Math.pow((q - 0.74) / 0.09, 2)) + 18 * Math.sin(q * 40)]);
+    }
+  })();
+  function routeNow() { if (mode === 'monthly') return null; if (src !== 'manual' && record) return record.route; return SAMPLE_ROUTE; }
+  function routeElevNow() { if (src !== 'manual' && record) return record.elevProfile; return SAMPLE_ELEV; }
+  function inout(r) { r = clamp(r, 0, 1); return r < 0.5 ? 2 * r * r : 1 - Math.pow(-2 * r + 2, 2) / 2; }
+  // 경로를 박스 안에 비율 유지로 맞춤 + 누적 길이 (진행률 계산용)
+  var fitCache = {};
+  function fitRoute(P, box) {
+    var key = box.join(',');
+    if (fitCache.P === P && fitCache.key === key) return fitCache.v;
+    var mnx = Infinity, mxx = -Infinity, mny = Infinity, mxy = -Infinity;
+    P.forEach(function (q) { mnx = Math.min(mnx, q[0]); mxx = Math.max(mxx, q[0]); mny = Math.min(mny, q[1]); mxy = Math.max(mxy, q[1]); });
+    var sx = mxx - mnx || 1e-9, sy = mxy - mny || 1e-9, sc = Math.min(box[2] / sx, box[3] / sy);
+    var ox = box[0] + (box[2] - sx * sc) / 2, oy = box[1] + (box[3] - sy * sc) / 2;
+    var Q = P.map(function (q) { return [ox + (q[0] - mnx) * sc, oy + (q[1] - mny) * sc]; }), cum = [0];
+    for (var i = 1; i < Q.length; i++) cum.push(cum[i - 1] + Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]));
+    fitCache = { P: P, key: key, v: { Q: Q, cum: cum, L: cum[cum.length - 1] } };
+    return fitCache.v;
+  }
+  // 경로 그리기: 흐린 전체 경로 → 진행된 만큼 포인트 컬러 → 시작점 링, 머리 점, 도착점
+  function drawRoute(c, F, p, o) {
+    var Q = F.Q, cum = F.cum, target = F.L * p, j = 1;
+    c.save(); c.lineJoin = 'round'; c.lineCap = 'round';
+    c.beginPath(); Q.forEach(function (q, i) { if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); });
+    c.strokeStyle = o.ghost; c.lineWidth = o.w; c.stroke();
+    while (j < Q.length - 1 && cum[j] < target) j++;
+    var u = (target - cum[j - 1]) / Math.max(0.001, cum[j] - cum[j - 1]);
+    var hx = Q[j - 1][0] + (Q[j][0] - Q[j - 1][0]) * clamp(u, 0, 1), hy = Q[j - 1][1] + (Q[j][1] - Q[j - 1][1]) * clamp(u, 0, 1);
+    if (p > 0) {
+      c.beginPath(); c.moveTo(Q[0][0], Q[0][1]); for (var i = 1; i < j; i++) c.lineTo(Q[i][0], Q[i][1]); c.lineTo(hx, hy);
+      if (o.shadow) { c.shadowColor = 'rgba(0,0,0,0.45)'; c.shadowBlur = 6; }
+      c.strokeStyle = o.color; c.lineWidth = o.w; c.stroke(); c.shadowBlur = 0;
+    }
+    c.restore();
+    // 시작점: 흰 링
+    c.beginPath(); c.arc(Q[0][0], Q[0][1], 4, 0, Math.PI * 2); c.fillStyle = '#0B0B0B'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#FFFFFF'; c.stroke();
+    // 머리 점 (도착하면 그대로 도착점이 됨)
+    if (p > 0) { c.beginPath(); c.arc(hx, hy, 6, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill(); c.lineWidth = 3; c.strokeStyle = o.color; c.stroke(); }
+  }
+  function mapBackground(c, f, t, gridOn) {
+    c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+    if (media) drawMedia(c, full(f), kenburns(t), true);
+    if (gridOn) {
+      c.fillStyle = media ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.06)';
+      for (var x = 0; x <= f.W; x += 24) c.fillRect(x, 0, 1, f.H);
+      for (var y = 0; y <= f.H; y += 24) c.fillRect(0, y, f.W, 1);
+    }
+  }
+  // 사진 위 글자가 잘 읽히도록 위·아래 그라데이션
+  function shadeBand(c, f, y0, y1, a0, a1) {
+    var g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(0,0,0,' + a0 + ')'); g.addColorStop(1, 'rgba(0,0,0,' + a1 + ')');
+    c.fillStyle = g; c.fillRect(0, Math.min(y0, y1), f.W, Math.abs(y1 - y0));
+  }
+  function mediaHint(c, f, y) {
+    if (media || exporting) return;
+    c.save(); c.globalAlpha = 0.55; text(c, '+ 눌러서 배경 사진/영상 추가', f.W / 2, y, '600 10px RMInter, "Apple SD Gothic Neo", sans-serif', '#F4F4F0', 'center'); c.restore();
+  }
+
+  // POSTER — 큰 거리 숫자 + 경로 + 아래 기록 3개 (배경: 그리드 + 사진/영상)
+  Lay.poster = {
+    rect: full,
+    draw: function (c, f, t, v, d, P) {
+      var B = f.T + f.BH, A = P.accent, tr = trio(d, v), p = inout((t - 500) / 3400);
+      mapBackground(c, f, t, true);
+      if (media) { shadeBand(c, f, 0, f.T + 130, 0.6, 0); shadeBand(c, f, B - 90, f.H, 0, 0.7); }
+      var e0 = ease(t / 600), e2 = ease((t - 500) / 600);
+      fade(c, e0, (1 - e0) * 20, function () {
+        var label = d.typeLabel + (d.title ? ' · ' + d.title : '');
+        text(c, label.toUpperCase(), f.L, f.T + 9, MONO(10, true), A, 'left', 2);
+        text(c, d.ymd, f.L + f.BW, f.T + 8, MONO(9, true), '#F4F4F0', 'right', 1.1);
+        var nfs = 74, nb = f.T + 76, nw = measure(c, v.dist, ANTON(nfs));
+        text(c, v.dist, f.L - 2, nb, ANTON(nfs), '#F4F4F0');
+        text(c, 'KM', f.L - 2 + nw + 6, nb, ANTON(20), '#F4F4F0');
+      });
+      var R = routeNow();
+      if (R) drawRoute(c, fitRoute(R, [f.L + 6, f.T + 108, f.BW - 12, f.BH - 108 - 12 - 70]), p, { color: A, ghost: media ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)', w: 5, shadow: !!media });
+      fade(c, e2, (1 - e2) * 20, function () {
+        c.fillStyle = 'rgba(244,244,240,0.35)'; c.fillRect(f.L, B - 54, f.BW, 1);
+        stat3(c, f.L, B - 44, f.BW, tr.labels, tr.values, 18, '#F4F4F0', 8);
+      });
+      mediaHint(c, f, B - 64);
+    }
+  };
+
+  // ROUTE + ELEV — 경로와 고도 그래프에서 같은 점이 함께 움직임 (배경: 사진/영상)
+  Lay.routeelev = {
+    rect: full,
+    draw: function (c, f, t, v, d, P) {
+      var B = f.T + f.BH, A = P.accent, p = inout((t - 500) / 3400), E = validProfile(routeElevNow());
+      mapBackground(c, f, t, false);
+      if (media) { c.fillStyle = 'rgba(0,0,0,0.18)'; c.fillRect(0, 0, f.W, f.H); shadeBand(c, f, B - 170, f.H, 0, 0.75); }
+      else { var bg = c.createLinearGradient(0, 0, 0, f.H); bg.addColorStop(0, '#1C1C1C'); bg.addColorStop(1, '#0B0B0B'); c.fillStyle = bg; c.fillRect(0, 0, f.W, f.H); }
+      var e0 = ease(t / 600), e2 = ease((t - 500) / 600);
+      fade(c, e0, 0, function () {
+        chip(c, f.L, f.T, (d.title || d.typeLabel) + ' · ' + d.mmdd, '#0B0B0B', '#F4F4F0');
+        chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
+      });
+      var eh = E ? 70 : 0, eb = [f.L, B - 62 - eh - 6, f.BW, eh];
+      var Rt = routeNow();
+      if (Rt) drawRoute(c, fitRoute(Rt, [f.L + 10, f.T + 36, f.BW - 20, f.BH - 36 - (E ? eh + 20 : 0) - 72]), p, { color: A, ghost: 'rgba(255,255,255,0.28)', w: 3, shadow: !!media });
+      if (E) drawElevArea(c, E, eb, p, A);
+      fade(c, e2, (1 - e2) * 20, function () {
+        rr(c, f.L, B - 54, f.BW, 54, 14); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
+        stat3(c, f.L + 14, B - 44, f.BW - 20, ['DIST', 'TIME', 'ELEV GAIN'], [v.dist + 'K', v.time, '+' + v.elev + 'M'], 18, '#F4F4F0', 8);
+      });
+      mediaHint(c, f, f.T + 50);
+    }
+  };
+  // 고도 그래프 (면 + 선) — 진행률 p 만큼 채워지고, 현재 고도(ALT) 표시
+  function drawElevArea(c, E, b, p, A) {
+    var mn = Infinity, mx = -Infinity, d0 = E[0][0], km = E[E.length - 1][0] - d0 || 1;
+    E.forEach(function (q) { mn = Math.min(mn, q[1]); mx = Math.max(mx, q[1]); });
+    if (mx - mn < 20) { var m = (mx + mn) / 2; mn = m - 10; mx = m + 10; }
+    function X(q) { return b[0] + (q[0] - d0) / km * b[2]; }
+    function Y(e) { return b[1] + b[3] - (e - mn) / (mx - mn) * b[3]; }
+    function path(close) { c.beginPath(); E.forEach(function (q, i) { if (i) c.lineTo(X(q), Y(q[1])); else c.moveTo(X(q), Y(q[1])); }); if (close) { c.lineTo(b[0] + b[2], b[1] + b[3]); c.lineTo(b[0], b[1] + b[3]); c.closePath(); } }
+    path(true); c.fillStyle = 'rgba(255,255,255,0.10)'; c.fill();
+    var hx = b[0] + b[2] * p;
+    c.save(); c.beginPath(); c.rect(b[0], b[1] - 10, hx - b[0], b[3] + 20); c.clip();
+    path(true); c.globalAlpha = 0.22; c.fillStyle = A; c.fill(); c.globalAlpha = 1;
+    path(false); c.lineWidth = 2; c.lineJoin = 'round'; c.strokeStyle = A; c.stroke();
+    c.restore();
+    var tk = d0 + km * p, i = 1; while (i < E.length - 1 && E[i][0] < tk) i++;
+    var a = E[i - 1], z = E[i], u = (z[0] - a[0]) ? clamp((tk - a[0]) / (z[0] - a[0]), 0, 1) : 0, e = a[1] + (z[1] - a[1]) * u;
+    c.beginPath(); c.arc(hx, Y(e), 5, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill(); c.lineWidth = 3; c.strokeStyle = A; c.stroke();
+    var lw = measure(c, 'ALT ', MONO(9, true), 1);
+    text(c, 'ALT ', b[0], b[1] - 9, MONO(9, true), '#F4F4F0', 'left', 1);
+    text(c, Math.round(e).toLocaleString('en-US') + 'M', b[0] + lw, b[1] - 9, MONO(9, true), A, 'left', 1);
+  }
 
   // =========================================================
   // 먼쓸리 모드 — 한 달 기록을 합산해서 보여줌
@@ -1330,6 +1493,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     curLayouts().forEach(function (l) {
       var b = document.createElement('button'); b.type = 'button'; b.textContent = l.name; b.dataset.id = l.id;
       if (l.acg) b.className = 'acg';
+      if (l.map) b.className = 'map';
       b.addEventListener('click', function () { setLayout(l.id); });
       chipsEl.appendChild(b);
     });
@@ -1339,7 +1503,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     st.layout = id;
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
-    var useAccent = ['bento', 'panel', 'tags', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'macg'].indexOf(id) !== -1;
+    var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'macg'].indexOf(id) !== -1;
     $('accentWrap').classList.toggle('hidden', !useAccent);
     $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
@@ -1350,6 +1514,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     buildSwatches();
     restartAnim();
   }
+  function isMap() { var m = curLayouts().filter(function (l) { return l.id === st.layout; })[0]; return !!(m && m.map); }
   function isAcg() { var m = curLayouts().filter(function (l) { return l.id === st.layout; })[0]; return !!(m && m.acg); }
   function updateAcgAvailability() {
     var ok;
@@ -1360,6 +1525,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       ? 'ACG는 TRAIL RUN, RUN + TRAIL RUN, HIKE에서 고를 수 있어요. (RUN 단독은 불가)'
       : 'ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.';
     $('acgNote').classList.toggle('hidden', ok);
+    // 지도 레이아웃: 고른 기록에 GPS 경로가 있어야 함 (기록을 고르기 전엔 예시 경로로 미리보기)
+    var mapOk = mode !== 'monthly' && !!routeNow();
+    chipsEl.querySelectorAll('.map').forEach(function (b) { b.disabled = !mapOk; });
+    $('mapNote').classList.toggle('hidden', mapOk || mode === 'monthly');
+    if (!mapOk && isMap()) setLayout('bento');
     if (!ok && isAcg()) setLayout(mode === 'monthly' ? 'mcal' : 'bento');
   }
   document.querySelectorAll('[data-fmt]').forEach(function (b) {
