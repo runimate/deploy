@@ -275,7 +275,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'big', name: 'BOLD' },
     { id: 'polaroid', name: 'POLAROID' },
     { id: 'poster', name: 'POSTER', map: true },
-    { id: 'routeelev', name: 'ROUTE + ELEV', map: true },
+    { id: 'routeelev', name: 'ROUTE', map: true, trailOnly: true },
     { id: 'acg2', name: 'ACG', acg: true },
     { id: 'acg3', name: 'ACG GRID', acg: true }
   ];
@@ -894,24 +894,24 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.save(); c.globalAlpha = 0.55; text(c, '+ 눌러서 배경 사진/영상 추가', f.W / 2, y, '600 10px RMInter, "Apple SD Gothic Neo", sans-serif', '#F4F4F0', 'center'); c.restore();
   }
 
-  // POSTER — 큰 거리 숫자 + 경로 + 아래 기록 3개 (배경: 그리드 + 사진/영상)
+  // POSTER — 큰 거리 숫자 + 경로 + 아래 기록 3개 (배경: 사진/영상)
   Lay.poster = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
       var B = f.T + f.BH, A = P.accent, tr = trio(d, v), p = inout((t - 500) / 3400);
-      mapBackground(c, f, t, true);
+      mapBackground(c, f, t, false);
       if (media) { shadeBand(c, f, 0, f.T + 130, 0.6, 0); shadeBand(c, f, B - 90, f.H, 0, 0.7); }
       var e0 = ease(t / 600), e2 = ease((t - 500) / 600);
       fade(c, e0, (1 - e0) * 20, function () {
         var label = d.typeLabel + (d.title ? ' · ' + d.title : '');
         text(c, label.toUpperCase(), f.L, f.T + 9, MONO(10, true), A, 'left', 2);
         text(c, d.ymd, f.L + f.BW, f.T + 8, MONO(9, true), '#F4F4F0', 'right', 1.1);
-        var nfs = 74, nb = f.T + 76, nw = measure(c, v.dist, ANTON(nfs));
+        var nfs = 74, nb = f.T + 88, nw = measure(c, v.dist, ANTON(nfs));
         text(c, v.dist, f.L - 2, nb, ANTON(nfs), '#F4F4F0');
         text(c, 'KM', f.L - 2 + nw + 6, nb, ANTON(20), '#F4F4F0');
       });
       var R = routeNow();
-      if (R) drawRoute(c, fitRoute(R, [f.L + 6, f.T + 108, f.BW - 12, f.BH - 108 - 12 - 70]), p, { color: A, ghost: media ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)', w: 5, shadow: !!media });
+      if (R) drawRoute(c, fitRoute(R, [f.L + 6, f.T + 120, f.BW - 12, f.BH - 120 - 12 - 70]), p, { color: A, ghost: media ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)', w: 5, shadow: !!media });
       fade(c, e2, (1 - e2) * 20, function () {
         c.fillStyle = 'rgba(244,244,240,0.35)'; c.fillRect(f.L, B - 54, f.BW, 1);
         stat3(c, f.L, B - 44, f.BW, tr.labels, tr.values, 18, '#F4F4F0', 8);
@@ -920,7 +920,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // ROUTE + ELEV — 경로와 고도 그래프에서 같은 점이 함께 움직임 (배경: 사진/영상)
+  // ROUTE (트레일러닝·하이킹 전용) — 경로와 고도 그래프에서 같은 점이 함께 움직임 (배경: 사진/영상)
   Lay.routeelev = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
@@ -1526,10 +1526,15 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       : 'ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.';
     $('acgNote').classList.toggle('hidden', ok);
     // 지도 레이아웃: 고른 기록에 GPS 경로가 있어야 함 (기록을 고르기 전엔 예시 경로로 미리보기)
-    var mapOk = mode !== 'monthly' && !!routeNow();
-    chipsEl.querySelectorAll('.map').forEach(function (b) { b.disabled = !mapOk; });
-    $('mapNote').classList.toggle('hidden', mapOk || mode === 'monthly');
-    if (!mapOk && isMap()) setLayout('bento');
+    // ROUTE는 트레일러닝·하이킹 기록에서만
+    var hasRoute = mode !== 'monthly' && !!routeNow(), ty2 = current().type, trailOk = ty2 === 'trail' || ty2 === 'hike';
+    chipsEl.querySelectorAll('.map').forEach(function (b) { b.disabled = !hasRoute || (b.dataset.id === 'routeelev' && !trailOk); });
+    var msg = !hasRoute ? 'POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)'
+      : (!trailOk ? 'ROUTE는 트레일러닝·하이킹 기록에서만 고를 수 있어요.' : '');
+    $('mapNote').textContent = msg;
+    $('mapNote').classList.toggle('hidden', !msg || mode === 'monthly');
+    var curBtn = chipsEl.querySelector('[data-id="' + st.layout + '"]');
+    if (isMap() && curBtn && curBtn.disabled) setLayout('bento');
     if (!ok && isAcg()) setLayout(mode === 'monthly' ? 'mcal' : 'bento');
   }
   document.querySelectorAll('[data-fmt]').forEach(function (b) {
