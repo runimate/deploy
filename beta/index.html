@@ -1461,6 +1461,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function restartAnim() { t0 = performance.now(); lastLoop = -1; queueThumbs(); }
   // ---- 레이아웃 썸네일 (베타: <html class="rm-thumbs">일 때만) ----
   var THUMBS = document.documentElement.classList.contains('rm-thumbs'), thumbTimer = null;
+  window.addEventListener('resize', function () { queueThumbs(); });
   function queueThumbs() { if (!THUMBS) return; clearTimeout(thumbTimer); thumbTimer = setTimeout(drawThumbs, 250); }
   function drawThumbs() {
     if (!THUMBS || !chipsEl) return;
@@ -1468,7 +1469,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var d = mode === 'monthly' ? null : readData();
     chipsEl.querySelectorAll('button').forEach(function (b) {
       var cv = b.querySelector('canvas.th'), id = b.dataset.id; if (!cv || !Lay[id]) return;
-      var w = 54, h = Math.round(w * f.H / f.W);
+      // 화면에 4개 반이 보이게 크기를 맞춤 → 오른쪽 썸네일이 반쯤 걸쳐 보여서 옆으로 더 있다는 게 보임
+      var w = Math.max(44, Math.floor((chipsEl.clientWidth - 8 * 4) / 4.5) - 13), h = Math.round(w * f.H / f.W);
       cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       var c = cv.getContext('2d'), sc = cv.width / f.W;
       c.setTransform(sc, 0, 0, sc, 0, 0); c.clearRect(0, 0, f.W, f.H); c.globalAlpha = 1;

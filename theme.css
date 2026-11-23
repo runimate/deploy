@@ -71,3 +71,5 @@ input[type=range]{accent-color:var(--fg)}
 .rm-thumbs .chips button canvas.th{display:block;background:#222}
 .rm-thumbs .chips button[aria-pressed="true"]{background:var(--pri);border-color:var(--line);color:var(--pri-fg)}
 @media (prefers-color-scheme: dark){.rm-thumbs .chips button[aria-pressed="true"]{border-color:var(--pri)}}
+/* 오른쪽에 썸네일이 더 있다는 표시: 끝을 살짝 흐리게 */
+.rm-thumbs .chips{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
