@@ -1187,12 +1187,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var e1 = ease((t - 550) / 450);
       fade(c, e1, (1 - e1) * -6, function () { text(c, 'Monthly', L, f.T + 24, HELV(13), WH, 'left', -0.2); });
       // 제호는 EX 서체로 좌우 꽉 차게 (실제 글자 높이를 재서 위치 맞춤)
-      var mfs = fitFont(c, 'RUNNING', 200, W, EXF); c.font = EXF(mfs);
-      var mm = c.measureText('RUNNING'), asc = mm.actualBoundingBoxAscent || mfs * 0.72, lft = mm.actualBoundingBoxLeft || 0;
-      var mt = f.T + 30, mb = mt + asc, wipe = inout((t - 100) / 600);
-      var gw = (mm.actualBoundingBoxRight || mm.width) + lft, sx = W / gw;
+      // 브라우저마다 글자 박스 계산이 달라서, 가운데 정렬 + 글자 폭 기준으로 좌우를 맞춤 (사파리에서 오른쪽으로 밀리던 문제)
+      var mfs = fitFont(c, 'RUNNING', 200, W, EXF), asc = mfs * 0.72;
+      var mt = f.T + 30, mb = mt + asc, wipe = inout((t - 100) / 600), sx = W / measure(c, 'RUNNING', EXF(mfs));
       c.save(); c.beginPath(); c.rect(L - 4, mt - 4, (W + 8) * wipe, asc + 10); c.clip();
-      c.translate(L, mb); c.scale(sx, 1); text(c, 'RUNNING', lft, 0, EXF(mfs), A);
+      c.translate(L + W / 2, mb); c.scale(sx, 1); text(c, 'RUNNING', 0, 0, EXF(mfs), A, 'center');
       c.restore();
       // ③ 호수 줄
       var bandTop = mb + 8;
