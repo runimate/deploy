@@ -7,6 +7,7 @@
 <title>RUNIMATE · 사진/영상 합성 테스트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <style>
 @font-face{font-family:'RMAnton';src:url('../../fonts/Anton.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMMarker';src:url('../../fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
@@ -18,7 +19,8 @@ html,body{margin:0;background:var(--bg);color:var(--fg);font-family:RMInter,-app
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
 .wrap{max-width:520px;margin:0 auto;padding:16px}
 header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-header h1{font-family:RMAnton,Impact,sans-serif;font-weight:400;font-size:26px;letter-spacing:.02em;margin:0}
+header h1{margin:0}
+.logo{font-family:RMAnton,Impact,sans-serif;font-weight:400;font-size:26px;letter-spacing:.02em;background:none;border:0;color:var(--fg);padding:0;min-height:44px;-webkit-tap-highlight-color:transparent}
 header span{font-family:"Space Mono",monospace;font-size:11px;color:var(--mute)}
 h2.step{font:700 11px "Space Mono",monospace;letter-spacing:.12em;color:var(--mute);margin:18px 0 8px}
 .seg{display:flex;background:var(--panel);border-radius:12px;padding:4px;gap:4px;margin-bottom:10px}
@@ -75,7 +77,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 </head>
 <body>
 <div class="wrap">
-  <header><h1>RUNIMATE</h1><span>사진·영상 합성 테스트 · beta 2</span></header>
+  <header><h1><button type="button" class="logo" id="logoBtn">RUNIMATE</button></h1><span>사진·영상 합성 테스트 · beta 3</span></header>
 
   <!-- 1. 기록 불러오기 -->
   <h2 class="step">1 · 기록 불러오기</h2>
@@ -83,7 +85,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <div class="seg" role="group" aria-label="데이터 소스">
       <button type="button" data-src="strava" aria-pressed="true">STRAVA</button>
       <button type="button" data-src="garmin" aria-pressed="false">GARMIN</button>
-      <button type="button" data-src="manual" aria-pressed="false">직접 입력</button>
+      <button type="button" data-src="manual" aria-pressed="false" class="hidden" id="srcManualBtn">직접 입력</button>
     </div>
 
     <div id="srcStrava">
@@ -113,10 +115,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 
     <div id="listWrap" class="hidden">
       <div class="seg" role="group" aria-label="운동 종류 필터" style="margin:12px 0 0">
-        <button type="button" data-sf="run" aria-pressed="false">러닝</button>
-        <button type="button" data-sf="trail" aria-pressed="false">트레일<br>러닝</button>
-        <button type="button" data-sf="hike" aria-pressed="false">하이킹</button>
-        <button type="button" data-sf="runtrail" aria-pressed="true">러닝+<br>트레일</button>
+        <button type="button" data-sf="all" aria-pressed="true">ALL</button>
+        <button type="button" data-sf="run" aria-pressed="false">RUN</button>
+        <button type="button" data-sf="trail" aria-pressed="false">TRAIL RUN</button>
+        <button type="button" data-sf="hike" aria-pressed="false">HIKING</button>
       </div>
       <div class="list" id="list" role="group" aria-label="기록 목록"></div>
     </div>
@@ -133,7 +135,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <button type="button" data-fmt="F" aria-pressed="false">피드 3:4</button>
   </div>
   <div class="chips" role="group" aria-label="레이아웃" id="layoutChips"></div>
-  <p class="small" id="acgNote" style="margin:0 0 10px">acg FIELD 레이아웃은 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
+  <p class="small" id="acgNote" style="margin:0 0 10px">acg 레이아웃(1·2·3)은 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
   <p class="hint" id="hint">미리보기를 눌러 사진이나 영상을 넣어보세요.</p>
@@ -183,7 +185,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <p class="small">사진과 영상은 서버로 올라가지 않고 이 기기 안에서만 합성돼요. 영상은 15초 이하, 세로 영상을 권장해요.</p>
 </div>
 
-<div class="overlay hidden" id="busy"><div class="modal" style="align-items:center;text-align:center"><div class="spinner"></div><p id="busyText" style="margin:6px 0 0">영상 만드는 중…</p><div class="prog" style="width:100%"><i id="busyProg"></i></div></div></div>
+<div class="overlay hidden" id="busy"><div class="modal" style="align-items:center;text-align:center"><div class="spinner"></div><p id="busyText" style="margin:6px 0 0">영상 만드는 중…</p><div class="prog" style="width:100%"><i id="busyProg"></i></div><button type="button" class="btn" id="btnCancel" style="width:100%;margin-top:6px">취소</button></div></div>
 
 <div class="overlay hidden" id="result"><div class="modal">
   <div id="resultMedia"></div>
@@ -221,7 +223,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'tags', name: 'TAGS' },
     { id: 'big', name: 'BIG NUMBER' },
     { id: 'polaroid', name: 'POLAROID' },
-    { id: 'acg', name: 'acg FIELD', acg: true }
+    { id: 'acg', name: 'acg 1', acg: true },
+    { id: 'acg2', name: 'acg 2', acg: true },
+    { id: 'acg3', name: 'acg 3 BENTO', acg: true }
   ];
   var TYPE_LABEL = { run: 'RUN', trail: 'TRAIL RUN', hike: 'HIKE' };
   var TYPE_KO = { run: '러닝', trail: '트레일러닝', hike: '하이킹' };
@@ -234,7 +238,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // 상태
   // =========================================================
   var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], dark: true, safe: true, dim: 0.12 };
-  var src = 'strava', sportFilter = 'runtrail', manualType = 'trail';
+  var src = 'strava', sportFilter = 'all', manualType = 'trail';
   var workouts = { strava: [], garmin: [] };
   var record = null;
   var media = null, view = { zoom: 1, px: 0, py: 0 }, trimStart = 0;
@@ -263,6 +267,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   var ANTON = function (s) { return s + 'px RMAnton, Impact, sans-serif'; };
   var MONO = function (s, b) { return (b ? '700 ' : '400 ') + s + 'px "Space Mono", "Apple SD Gothic Neo", monospace'; };
   var MARKER = function (s) { return s + 'px RMMarker, "Apple SD Gothic Neo", cursive'; };
+  var PRET = function (s, w) { return (w || 600) + ' ' + s + 'px "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif'; };
   var HELV = function (s) { return '700 ' + s + 'px RMHelv, "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", sans-serif'; };
   var HAS_LS = 'letterSpacing' in ctx;
 
@@ -495,7 +500,26 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // POLAROID
+  // 블러 배경 — 작게 줄였다가 크게 늘려서 흐리게 (사파리는 캔버스 blur 필터를 지원하지 않아서 이 방식 사용)
+  var blurA = document.createElement('canvas'), blurAx = blurA.getContext('2d');
+  var blurB = document.createElement('canvas'), blurBx = blurB.getContext('2d');
+  function drawBlurred(c, f, dim) {
+    if (!media) { c.fillStyle = '#1A1A1A'; c.fillRect(0, 0, f.W, f.H); return; }
+    var w1 = 96, h1 = Math.round(96 * f.H / f.W), w2 = 22, h2 = Math.round(22 * f.H / f.W);
+    if (blurA.width !== w1 || blurA.height !== h1) { blurA.width = w1; blurA.height = h1; }
+    if (blurB.width !== w2 || blurB.height !== h2) { blurB.width = w2; blurB.height = h2; }
+    var g = coverGeom(full(f), 1);
+    blurAx.setTransform(w1 / f.W, 0, 0, h1 / f.H, 0, 0);
+    blurAx.drawImage(media.el, g.x, g.y, g.w, g.h);
+    blurBx.imageSmoothingQuality = 'high';
+    blurBx.drawImage(blurA, 0, 0, w2, h2);
+    c.save(); c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+    c.drawImage(blurB, -12, -12, f.W + 24, f.H + 24);
+    c.restore();
+    c.fillStyle = 'rgba(0,0,0,' + dim + ')'; c.fillRect(0, 0, f.W, f.H);
+  }
+
+  // POLAROID — 배경: 선택한 사진/영상을 블러 + 어둡게
   Lay.polaroid = {
     geo: function (f) {
       var R = f.key === 'R', cw = R ? 248 : 236, ih = R ? 260 : 224, ch = 12 + ih + 96;
@@ -504,12 +528,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     rect: function (f) { var g = this.geo(f); return { x: g.cx - g.cw / 2 + 12, y: g.cy - g.ch / 2 + 12, w: g.iw, h: g.ih }; },
     draw: function (c, f, t, v, d, P) {
       var g = this.geo(f), tr = trio(d, v);
-      c.fillStyle = P.dark ? '#141414' : '#D9D8D1'; c.fillRect(0, 0, f.W, f.H);
+      drawBlurred(c, f, 0.42);
       var s = ease(t / 700), dev = ease((t - 300) / 1800);
       var rot = 2.5 * s - 6 * (1 - s), yo = (1 - s) * -90;
       c.save(); c.globalAlpha = s;
       c.translate(g.cx, g.cy + yo); c.rotate(rot * Math.PI / 180); c.translate(-g.cw / 2, -g.ch / 2);
-      c.save(); c.shadowColor = 'rgba(0,0,0,0.35)'; c.shadowBlur = 26; c.shadowOffsetY = 12;
+      c.save(); c.shadowColor = 'rgba(0,0,0,0.45)'; c.shadowBlur = 28; c.shadowOffsetY = 12;
       c.fillStyle = '#FAFAF6'; c.fillRect(0, 0, g.cw, g.ch); c.restore();
       var r = { x: 12, y: 12, w: g.iw, h: g.ih };
       c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip();
@@ -517,8 +541,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       if (media) { c.fillStyle = 'rgba(250,250,246,' + (0.85 * (1 - dev)).toFixed(3) + ')'; c.fillRect(r.x, r.y, r.w, r.h); }
       c.restore();
       var capTop = 12 + g.ih;
-      text(c, d.title || TYPE_KO[d.type], 14, capTop + 28, MARKER(19), '#0B0B0B');
-      text(c, d.mmdd, g.cw - 14, capTop + 28, MARKER(13), lum(P.accent) > 0.4 ? '#0B0B0B' : P.accent, 'right');
+      text(c, d.title || TYPE_KO[d.type], 14, capTop + 27, PRET(17, 700), '#0B0B0B', 'left', -0.2);
+      text(c, d.ymd, g.cw - 14, capTop + 27, PRET(11, 600), '#6B6B66', 'right');
       var nb = g.ch - 14, nw = measure(c, v.dist, ANTON(g.nfs));
       text(c, v.dist, 14, nb, ANTON(g.nfs), '#0B0B0B');
       text(c, 'KM', 14 + nw + 3, nb, ANTON(14), '#0B0B0B');
@@ -529,18 +553,23 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // acg FIELD — 트레일러닝·하이킹 전용. 헬베티카 볼드 + 첨부 로고 + 스펙 시트 패널 + 등고선
-  function contour(c, cx, cy, base, n, color, t) {
-    c.save(); c.strokeStyle = color; c.lineWidth = 0.8;
+  // ---------------------------------------------------------
+  // acg 공통 — 등고선, 로고
+  // ---------------------------------------------------------
+  // o: cx, cy(중심) r0(첫 고리 반지름) n(고리 수) gap(간격) sy(세로 눌림) color alpha lw t delay seed
+  function topo(c, o) {
+    c.save(); c.strokeStyle = o.color; c.lineWidth = o.lw || 1; c.lineJoin = 'round';
+    var sd = o.seed || 0, n = o.n;
     for (var j = 0; j < n; j++) {
-      var r0 = base + j * 11, grow = ease((t - 200 - j * 90) / 900);
+      var grow = ease((o.t - (o.delay || 0) - j * 60) / 900);
       if (grow <= 0) continue;
-      c.globalAlpha = 0.5 * grow;
+      c.globalAlpha = (o.alpha || 0.5) * grow * (1 - j / (n * 1.8));
+      var r0 = o.r0 + j * o.gap;
       c.beginPath();
-      for (var a = 0; a <= 72; a++) {
-        var th = a / 72 * Math.PI * 2 * grow;
-        var rad = r0 * (1 + 0.13 * Math.sin(th * 3 + j * 0.7) + 0.07 * Math.cos(th * 5 - j));
-        var x = cx + Math.cos(th) * rad, y = cy + Math.sin(th) * rad * 0.78;
+      for (var a = 0; a <= 120; a++) {
+        var th = a / 120 * Math.PI * 2 * grow + sd;
+        var rad = r0 * (1 + 0.15 * Math.sin(th * 3 + j * 0.45 + sd) + 0.08 * Math.cos(th * 5 - j * 0.7 + sd * 2) + 0.04 * Math.sin(th * 8 + j));
+        var x = o.cx + Math.cos(th) * rad, y = o.cy + Math.sin(th) * rad * (o.sy || 0.72);
         if (a === 0) c.moveTo(x, y); else c.lineTo(x, y);
       }
       c.stroke();
@@ -554,25 +583,32 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.beginPath(); c.ellipse(161.38, 137.67, 18.8, 19.4, 0, 0, Math.PI * 2); c.fill();
     c.restore();
   }
+  function acgHeader(c, f, t, d) {
+    var eL = ease(t / 600);
+    fade(c, eL, (1 - eL) * -12, function () {
+      acgLogo(c, f.L, f.T, 50, '#FFFFFF');
+      text(c, 'FIELD REPORT', f.L + f.BW, f.T + 10, HELV(9), '#FFFFFF', 'right', 0.2);
+      text(c, d.ymd, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
+      text(c, d.typeLabel, f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
+    });
+  }
+  function acgRows(v) { return [['ELEV. GAIN', '+' + v.elev + ' M'], ['MOVING TIME', v.time], ['AVG. PACE', v.pace + ' /KM']]; }
+
+  // acg 1 — 큰 스펙 시트 패널 (기존 버전 + 등고선 강화)
   Lay.acg = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
       var R = f.key === 'R', B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
       c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
-      contour(c, f.L + f.BW - 46, f.T + 84, 16, 6, '#FFFFFF', t);
-      var eL = ease(t / 600);
-      fade(c, eL, (1 - eL) * -12, function () {
-        acgLogo(c, f.L, f.T, 50, '#FFFFFF');
-        text(c, 'FIELD REPORT', f.L + f.BW, f.T + 10, HELV(9), '#FFFFFF', 'right', 0.2);
-        text(c, d.ymd, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
-        text(c, d.typeLabel, f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
-      });
-      // 스펙 시트 패널: 아래에서 위로 열림
+      topo(c, { cx: f.L + f.BW - 34, cy: f.T + 92, r0: 8, n: 9, gap: 10, color: '#FFFFFF', alpha: 0.6, lw: 1, t: t, delay: 150, seed: 0.4 });
+      topo(c, { cx: f.L + 30, cy: B + 10, r0: 22, n: 13, gap: 13, color: '#FFFFFF', alpha: 0.5, lw: 1.1, t: t, delay: 300, seed: 2.1 });
+      acgHeader(c, f, t, d);
       var ph = 206, top = B - ph, p = ease((t - 250) / 750);
       c.save();
       c.beginPath(); c.rect(f.L, top + ph * (1 - p), f.BW, ph * p + 1); c.clip();
       c.fillStyle = A; c.fillRect(f.L, top, f.BW, ph);
+      topo(c, { cx: f.L + f.BW - 40, cy: top + 70, r0: 6, n: 11, gap: 9, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 1.3 });
       var x = f.L + 14, xr = f.L + f.BW - 14, w = f.BW - 28;
       function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
       text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 22, HELV(11), ink, 'left', 0.2);
@@ -582,8 +618,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       text(c, v.dist, x - 2, nb, HELV(nfs), ink, 'left', ls);
       var nw = measure(c, v.dist, HELV(nfs), ls);
       text(c, 'KM', x - 2 + nw + 6, nb - nfs * 0.72 + 14, HELV(16), ink);
-      var rows = [['ELEV. GAIN', '+' + v.elev + ' M'], ['MOVING TIME', v.time], ['AVG. PACE', v.pace + ' /KM']];
-      var ry = nb + 14;
+      var rows = acgRows(v), ry = nb + 14;
       for (var i = 0; i < 3; i++) {
         rule(ry, 700 + i * 120);
         text(c, rows[i][0], x, ry + 17, HELV(9), ink, 'left', 0.3);
@@ -591,6 +626,99 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         ry += 26;
       }
       c.restore();
+    }
+  };
+
+  // acg 2 — 낮은 패널로 사진 영역을 넓힘 + 등고선을 사진 위에 크게
+  Lay.acg2 = {
+    rect: full,
+    draw: function (c, f, t, v, d, P) {
+      var R = f.key === 'R', B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
+      c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
+      drawMedia(c, full(f), kenburns(t), true);
+      var ph = 126, top = B - ph;
+      topo(c, { cx: f.W * 0.72, cy: top - 40, r0: 10, n: 16, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1.1, t: t, delay: 150, seed: 0.9 });
+      topo(c, { cx: f.L + 10, cy: f.T + 150, r0: 6, n: 8, gap: 10, color: '#FFFFFF', alpha: 0.45, lw: 1, t: t, delay: 400, seed: 3.3 });
+      acgHeader(c, f, t, d);
+      var p = ease((t - 250) / 750);
+      c.save();
+      c.beginPath(); c.rect(f.L, top + ph * (1 - p), f.BW, ph * p + 1); c.clip();
+      c.fillStyle = A; c.fillRect(f.L, top, f.BW, ph);
+      topo(c, { cx: f.L + f.BW - 30, cy: top + 40, r0: 5, n: 9, gap: 8, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 2.2 });
+      var x = f.L + 12, xr = f.L + f.BW - 12, w = f.BW - 24;
+      function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
+      text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 17, HELV(10), ink, 'left', 0.2);
+      text(c, d.typeLabel, xr, top + 17, HELV(10), ink, 'right', 0.2);
+      rule(top + 24, 450);
+      var nfs = 56, nb = top + 32 + nfs * 0.72, ls = -nfs * 0.04;
+      text(c, v.dist, x - 1, nb, HELV(nfs), ink, 'left', ls);
+      var nw = measure(c, v.dist, HELV(nfs), ls);
+      text(c, 'KM', x - 1 + nw + 5, nb - nfs * 0.72 + 11, HELV(13), ink);
+      rule(nb + 9, 650);
+      var rows = acgRows(v), cw = w / 3;
+      for (var i = 0; i < 3; i++) {
+        var cx = x + i * cw;
+        text(c, rows[i][0], cx, nb + 22, HELV(8), ink, 'left', 0.3);
+        text(c, rows[i][1], cx, nb + 38, HELV(13), ink, 'left', -0.2);
+      }
+      c.restore();
+    }
+  };
+
+  // acg 3 — 벤토 그리드 (사진 타일 + 거리 타일 + 로고 타일 + 기록 3칸)
+  Lay.acg3 = {
+    geo: function (f) {
+      var gp = 6, rowB = 104, rowC = 66, a = f.BH - rowB - rowC - gp * 2;
+      return { gp: gp, a: a, rowB: rowB, rowC: rowC, yB: f.T + a + gp, yC: f.T + a + gp + rowB + gp };
+    },
+    rect: function (f) { var g = this.geo(f); return { x: f.L, y: f.T, w: f.BW, h: g.a }; },
+    draw: function (c, f, t, v, d, P) {
+      var g = this.geo(f), A = st.acgAccent, ink = inkOn(A), self = this;
+      c.fillStyle = '#0E0E0E'; c.fillRect(0, 0, f.W, f.H);
+      topo(c, { cx: f.W * 0.2, cy: f.H * 0.9, r0: 20, n: 14, gap: 13, color: '#FFFFFF', alpha: 0.16, lw: 1, t: t, delay: 0, seed: 1.7 });
+      topo(c, { cx: f.W * 0.9, cy: f.H * 0.08, r0: 12, n: 10, gap: 12, color: '#FFFFFF', alpha: 0.14, lw: 1, t: t, delay: 100, seed: 0.3 });
+      var e0 = ease(t / 600), e1 = ease((t - 200) / 600), e2 = ease((t - 350) / 600), e3 = ease((t - 500) / 600);
+      // 사진 타일
+      fade(c, e0, (1 - e0) * 20, function () {
+        var r = self.rect(f);
+        c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip();
+        drawMedia(c, r, kenburns(t), true);
+        topo(c, { cx: r.x + r.w - 40, cy: r.y + r.h - 20, r0: 8, n: 12, gap: 10, color: '#FFFFFF', alpha: 0.5, lw: 1, t: t, delay: 300, seed: 2.6 });
+        c.restore();
+        text(c, 'FIELD REPORT', r.x + 10, r.y + 18, HELV(9), '#FFFFFF', 'left', 0.2);
+        text(c, d.ymd, r.x + r.w - 10, r.y + 18, HELV(9), '#FFFFFF', 'right', 0.2);
+      });
+      // 거리 타일
+      var lw = 98, dw = f.BW - g.gp - lw;
+      fade(c, e1, (1 - e1) * 20, function () {
+        var x = f.L, y = g.yB;
+        c.save(); c.beginPath(); c.rect(x, y, dw, g.rowB); c.clip();
+        c.fillStyle = A; c.fillRect(x, y, dw, g.rowB);
+        topo(c, { cx: x + dw - 20, cy: y + 30, r0: 5, n: 10, gap: 8, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
+        text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x + 12, y + 18, HELV(9), ink, 'left', 0.2);
+        var nfs = f.key === 'R' ? 52 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
+        text(c, v.dist, x + 11, nb, HELV(nfs), ink, 'left', ls);
+        var nw = measure(c, v.dist, HELV(nfs), ls);
+        text(c, 'KM', x + 11 + nw + 4, nb - nfs * 0.72 + 11, HELV(12), ink);
+        c.restore();
+      });
+      // 로고 타일
+      fade(c, e2, (1 - e2) * 20, function () {
+        var x = f.L + dw + g.gp, y = g.yB;
+        c.fillStyle = '#EDEAE2'; c.fillRect(x, y, lw, g.rowB);
+        acgLogo(c, x + (lw - 54) / 2, y + 16, 54, '#111111');
+        text(c, d.typeLabel, x + lw / 2, y + g.rowB - 12, HELV(9), '#111111', 'center', 0.3);
+      });
+      // 기록 3칸
+      var cw = (f.BW - g.gp * 2) / 3, rows = acgRows(v);
+      fade(c, e3, (1 - e3) * 20, function () {
+        for (var i = 0; i < 3; i++) {
+          var x = f.L + i * (cw + g.gp), y = g.yC;
+          c.fillStyle = '#1B1B1B'; c.fillRect(x, y, cw, g.rowC);
+          c.save(); c.globalAlpha = 0.7; text(c, rows[i][0], x + 10, y + 18, HELV(8), '#FFFFFF', 'left', 0.3); c.restore();
+          text(c, rows[i][1], x + 10, y + g.rowC - 14, HELV(14), '#FFFFFF', 'left', -0.2);
+        }
+      });
     }
   };
 
@@ -681,7 +809,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     });
   });
   ['inDate', 'inDist', 'inPace', 'inTime', 'inElev'].forEach(function (id) { $(id).addEventListener('change', onRecordChanged); });
-  $('inTitle').addEventListener('input', function () { $('inTitle').dataset.touched = '1'; });
+  function loadTitleFont() { try { document.fonts.load('600 19px "Pretendard Variable"', ($('inTitle').value || '') + '러닝트레일하이킹0123456789.'); } catch (e) {} }
+  $('inTitle').addEventListener('input', function () { $('inTitle').dataset.touched = '1'; loadTitleFont(); });
   document.querySelectorAll('[data-sf]').forEach(function (b) {
     b.addEventListener('click', function () {
       sportFilter = b.dataset.sf;
@@ -689,7 +818,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       renderList();
     });
   });
-  function passFilter(w) { return sportFilter === 'runtrail' ? (w.type === 'run' || w.type === 'trail') : w.type === sportFilter; }
+  function passFilter(w) { return sportFilter === 'all' ? true : w.type === sportFilter; }
   function renderList() {
     var list = workouts[src] || [], wrap = $('listWrap'), el = $('list');
     if (src === 'manual' || !list.length) { wrap.classList.add('hidden'); return; }
@@ -721,6 +850,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         (r.type === 'run' ? ' · ' + fmtPace(r.paceSec) + ' /km' : ' · +' + Math.round(r.elevGain).toLocaleString('en-US') + ' m');
     }
     if (r.name && !$('inTitle').dataset.touched) $('inTitle').value = r.name;
+    loadTitleFont();
     updateAcgAvailability();
     restartAnim();
   }
@@ -776,12 +906,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     buildSwatches();
     restartAnim();
   }
+  function isAcg() { return st.layout.indexOf('acg') === 0; }
   function updateAcgAvailability() {
     var ty = current().type, ok = ty === 'trail' || ty === 'hike';
-    var b = chipsEl.querySelector('[data-id="acg"]');
-    if (b) b.disabled = !ok;
+    chipsEl.querySelectorAll('.acg').forEach(function (b) { b.disabled = !ok; });
     $('acgNote').classList.toggle('hidden', ok);
-    if (!ok && st.layout === 'acg') setLayout('bento');
+    if (!ok && isAcg()) setLayout('bento');
   }
   document.querySelectorAll('[data-fmt]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -806,7 +936,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     });
   }
   function buildSwatches() {
-    var acg = st.layout === 'acg';
+    var acg = isAcg();
     $('accentTitle').textContent = acg ? 'acg 패널 컬러' : '포인트 컬러';
     if (acg) swatchRow($('swatches'), ACG_ACCENTS, function () { return st.acgAccent; }, function (a) { st.acgAccent = a; }, 'acg 패널 컬러');
     else swatchRow($('swatches'), ACCENTS, function () { return st.accent; }, function (a) { st.accent = a; }, '포인트 컬러');
@@ -942,7 +1072,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     busyText.textContent = '영상 만드는 중… 화면을 끄지 말고 8초만 기다려주세요'; busyProg.style.width = '0%';
     busy.classList.remove('hidden');
     try { await document.fonts.ready; } catch (e) {}
-    hideGuides = true; exporting = true; exportT0 = 0;
+    hideGuides = true; exporting = true; exportT0 = 0; cancelled = false;
     render(0);
     var stream = canvas.captureStream(30), isVid = media.type === 'video';
     if (isVid && $('withAudio').checked) {
@@ -958,6 +1088,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       await new Promise(function (res) { var done = false; function ok() { if (!done) { done = true; res(); } } media.el.addEventListener('seeked', ok, { once: true }); try { media.el.currentTime = trimStart; } catch (e) { ok(); } setTimeout(ok, 1500); });
       media.el.loop = true;
     }
+    if (cancelled) return;
     recMime = pickMime(); chunks = [];
     try { recorder = recMime ? new MediaRecorder(stream, { mimeType: recMime, videoBitsPerSecond: 10000000 }) : new MediaRecorder(stream); }
     catch (e) { try { recorder = new MediaRecorder(stream); recMime = ''; } catch (e2) { cleanupExport(); alert('영상 녹화를 시작할 수 없어요.'); return; } }
@@ -970,7 +1101,17 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     recorder.start();
     if (isVid) { try { await media.el.play(); } catch (e) {} }
     exportT0 = performance.now();
-    progTimer = setInterval(function () { busyProg.style.width = clamp((performance.now() - exportT0) / CLIP * 100, 0, 100) + '%'; }, 100);
+    progTimer = setInterval(function () {
+      var el = performance.now() - exportT0;
+      busyProg.style.width = clamp(el / CLIP * 100, 0, 100) + '%';
+      if (el > CLIP + 6000) busyText.textContent = '저장이 오래 걸리고 있어요. 취소하고 다시 시도해주세요.';
+    }, 100);
+  });
+  var cancelled = false;
+  $('btnCancel').addEventListener('click', function () {
+    cancelled = true;
+    if (recorder) { recorder.onstop = null; recorder.ondataavailable = null; try { recorder.stop(); } catch (e) {} }
+    cleanupExport();
   });
   function finishExport() { if (finishing || !recorder) return; finishing = true; setTimeout(function () { try { recorder.stop(); } catch (e) { cleanupExport(); } }, 120); }
   function cleanupExport() {
@@ -979,6 +1120,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (media && media.type === 'video') { media.el.muted = true; media.el.loop = false; }
     restartAnim();
   }
+
+  // 숨은 메뉴: 로고를 5번 연속 누르면 '직접 입력' 탭이 열림
+  var logoTaps = 0, logoTimer = null;
+  $('logoBtn').addEventListener('click', function () {
+    logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(function () { logoTaps = 0; }, 1500);
+    if (logoTaps >= 5) { logoTaps = 0; $('srcManualBtn').classList.remove('hidden'); setSrc('manual'); }
+  });
 
   // =========================================================
   // 시작
