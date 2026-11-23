@@ -20,10 +20,10 @@ html,body,button,a,input,label,canvas{touch-action:manipulation}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;-webkit-text-size-adjust:100%}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
 .wrap{max-width:520px;margin:0 auto;padding:16px}
-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+header{display:block;margin:0 0 10px}
 header h1{margin:0}
-.logo{font-family:RMAnton,Impact,sans-serif;font-weight:400;font-size:26px;letter-spacing:.02em;background:none;border:0;color:var(--fg);padding:0;min-height:44px;-webkit-tap-highlight-color:transparent}
-header span{font-family:"Space Mono",monospace;font-size:11px;color:var(--mute)}
+.logo{display:block;width:100%;text-align:left;font-family:RMAnton,Impact,sans-serif;font-weight:400;font-size:26px;line-height:0.86;letter-spacing:0;background:none;border:0;color:var(--fg);padding:0;margin:0;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.logo span{display:inline-block}
 h2.step{font:700 11px "Space Mono",monospace;letter-spacing:.12em;color:var(--mute);margin:18px 0 8px}
 .seg{display:flex;background:var(--panel);border-radius:12px;padding:4px;gap:4px;margin-bottom:10px}
 .seg button{flex:1;border:0;background:transparent;color:var(--mute);font:600 13px RMInter,sans-serif;padding:8px 2px;border-radius:9px;min-height:44px;line-height:1.2}
@@ -82,7 +82,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 </head>
 <body>
 <div class="wrap">
-  <header><h1><button type="button" class="logo" id="logoBtn">RUNIMATE</button></h1></header>
+  <header><h1><button type="button" class="logo" id="logoBtn"><span id="logoText">RUNIMATE</span></button></h1></header>
 
   <!-- 1. 기록 불러오기 -->
   <h2 class="step">1 · 기록 불러오기</h2>
@@ -620,7 +620,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       drawMedia(c, full(f), kenburns(t), true);
       var ph = 126, top = B - ph;
       topo(c, { cx: f.W, cy: 0, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
-      topo(c, { cx: 10, cy: top - 30, r0: 12, n: 10, gap: 16, sy: 0.6, h: [2, 4, 7, 0.22, 0.1, 0.05], color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
+      topo(c, { cx: 10, cy: f.key === 'R' ? top + 40 : top - 30, r0: 12, n: 10, gap: 16, sy: 0.6, h: [2, 4, 7, 0.22, 0.1, 0.05], color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
       acgHeader(c, f, t, d);
       var p = ease((t - 250) / 750);
       c.save();
@@ -1122,6 +1122,15 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     restartAnim();
   }
 
+  // 상단 로고: 아래 UI와 같은 좌우 여백 안에서 폭을 가득 채움
+  function fitLogo() {
+    var btn = $('logoBtn'), t = $('logoText');
+    t.style.fontSize = '100px';
+    var w = t.getBoundingClientRect().width, target = btn.clientWidth;
+    if (w > 0 && target > 0) t.style.fontSize = (100 * target / w).toFixed(2) + 'px';
+  }
+  window.addEventListener('resize', fitLogo);
+
   // 숨은 메뉴: 로고를 5번 연속 누르면 '직접 입력' 탭이 열림
   var logoTaps = 0, logoTimer = null;
   $('logoBtn').addEventListener('click', function () {
@@ -1145,7 +1154,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Promise.all([
     document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'),
     document.fonts.load('400 10px "Space Mono"'), document.fonts.load('700 10px "Space Mono"')
-  ]).catch(function () {}).then(function () { applyFormat(); requestAnimationFrame(loop); });
+  ]).catch(function () {}).then(function () { fitLogo(); applyFormat(); requestAnimationFrame(loop); });
 })();
 </script>
 </body>
