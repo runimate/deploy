@@ -102,6 +102,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <!-- 1. 기록 불러오기 -->
   <h2 class="step">1 · 기록 불러오기</h2>
   <div class="card">
+    <div class="seg" role="group" aria-label="기록 단위">
+      <button type="button" data-mode="daily" aria-pressed="true">DAILY</button>
+      <button type="button" data-mode="monthly" aria-pressed="false">MONTHLY</button>
+    </div>
     <div class="seg" role="group" aria-label="데이터 소스">
       <button type="button" data-src="strava" aria-pressed="true">STRAVA</button>
       <button type="button" data-src="garmin" aria-pressed="false">GARMIN</button>
@@ -142,6 +146,20 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         <button type="button" data-sf="hike" aria-pressed="false">HIKING</button>
       </div>
       <div class="list" id="list" role="group" aria-label="기록 목록"></div>
+    </div>
+
+    <div id="monthWrap" class="hidden">
+      <div class="row" style="margin:12px 0 10px">
+        <button type="button" class="btn" id="mPrev" aria-label="이전 달" style="flex:0 0 56px">&#8249;</button>
+        <div id="mLabel" style="flex:1;text-align:center;font:700 16px 'Space Mono',monospace">2026.10</div>
+        <button type="button" class="btn" id="mNext" aria-label="다음 달" style="flex:0 0 56px">&#8250;</button>
+      </div>
+      <div class="seg" role="group" aria-label="먼쓸리 합산 종류" style="margin:0">
+        <button type="button" data-mf="run" aria-pressed="false">RUN</button>
+        <button type="button" data-mf="trail" aria-pressed="false">TRAIL RUN</button>
+        <button type="button" data-mf="runtrail" aria-pressed="true">RUN +<br>TRAIL RUN</button>
+        <button type="button" data-mf="hike" aria-pressed="false">HIKE</button>
+      </div>
     </div>
     <p class="err hidden" id="srcErr"></p>
 
@@ -716,6 +734,289 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   };
 
   // =========================================================
+  // 먼쓸리 모드 — 한 달 기록을 합산해서 보여줌
+  // =========================================================
+  var MONTH_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+  var MFILTER_TYPES = { run: ['run'], trail: ['trail'], runtrail: ['run', 'trail'], hike: ['hike'] };
+  var MFILTER_LABEL = { run: 'RUN', trail: 'TRAIL RUN', runtrail: 'RUN + TRAIL', hike: 'HIKE' };
+  var MFILTER_KO = { run: '러닝', trail: '트레일러닝', runtrail: '러닝 + 트레일러닝', hike: '하이킹' };
+  // 기록을 불러오기 전 미리보기용 예시 달 (2026년 10월)
+  var SAMPLE_MONTH = (function () {
+    var D = { 2: [8.1, 'run', 330, 40], 4: [12.4, 'run', 342, 95], 5: [6.0, 'run', 318, 22], 8: [10.2, 'run', 326, 48], 11: [18.6, 'trail', 612, 980],
+      13: [7.5, 'run', 320, 30], 15: [10.0, 'run', 312, 41], 18: [25.3, 'trail', 655, 1420], 19: [9.8, 'hike', 1020, 760], 20: [8.0, 'run', 334, 35],
+      22: [12.0, 'run', 324, 60], 25: [21.1, 'run', 318, 110], 26: [11.2, 'hike', 980, 820], 27: [6.2, 'run', 340, 20], 29: [10.5, 'run', 322, 44], 31: [15.0, 'trail', 590, 860] };
+    return Object.keys(D).map(function (d) { var r = D[d]; return { date: '2026.10.' + String(d).padStart(2, '0'), km: r[0], type: r[1], paceSec: r[2], timeSec: r[0] * r[2], elevGain: r[3], name: '' }; });
+  })();
+  var mode = 'daily', mFilter = 'runtrail', monthKey = null;
+
+  function monthPool() { return (src !== 'manual' && workouts[src] && workouts[src].length) ? workouts[src] : SAMPLE_MONTH; }
+  function monthKeys() {
+    var seen = {}, ks = [];
+    monthPool().forEach(function (w) { var k = String(w.date).slice(0, 7); if (/^\d{4}\.\d{2}$/.test(k) && !seen[k]) { seen[k] = 1; ks.push(k); } });
+    return ks.sort().reverse();
+  }
+  function currentMonthKey() { var ks = monthKeys(); if (!monthKey || ks.indexOf(monthKey) === -1) monthKey = ks[0] || '2026.10'; return monthKey; }
+  function monthTypes() { return MFILTER_TYPES[mFilter]; }
+  function monthAgg(types, k) {
+    var key = currentMonthKey(), y = +key.slice(0, 4), m = +key.slice(5, 7);
+    var ndays = new Date(y, m, 0).getDate(), offset = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+    var recs = monthPool().filter(function (w) { return String(w.date).slice(0, 7) === key && types.indexOf(w.type) !== -1; });
+    var days = [], i;
+    for (i = 1; i <= ndays; i++) days.push({ d: i, km: 0, elev: 0, n: 0, run: false, g: clamp(k * ndays - (i - 1), 0, 1) });
+    var td = 0, ts = 0, te = 0, n = 0, maxKm = 1;
+    recs.forEach(function (w) {
+      var o = days[+String(w.date).slice(8, 10) - 1]; if (!o) return;
+      o.km += w.km; o.elev += w.elevGain; o.n++; if (w.type === 'run') o.run = true;
+      td += w.km * o.g; ts += w.timeSec * o.g; te += w.elevGain * o.g; if (o.g >= 1) n++;
+    });
+    days.forEach(function (o) { maxKm = Math.max(maxKm, o.km); });
+    return { key: key, y: y, m: m, name: MONTH_EN[m - 1], ndays: ndays, offset: offset, days: days, recs: recs, maxKm: maxKm,
+      dist: td.toFixed(1), runs: n, time: fmtTime(ts), elev: Math.round(te).toLocaleString('en-US'), pace: fmtPace(td > 0 ? ts / td : 0) };
+  }
+  function monthLabel() { return MFILTER_LABEL[mFilter]; }
+  function fitFont(c, s, maxSize, width, fontFn) { var w = measure(c, s, fontFn(100)); return Math.min(maxSize, w > 0 ? 100 * width / w : maxSize); }
+
+  // 달력 (원 = 그날 거리, ACG는 정삼각형 = 그날 획득고도)
+  function drawMonthCal(c, M, x, y, w, rowH, opt) {
+    opt = opt || {};
+    var cw = w / 7, wk = 'MTWTFSS', font = opt.helv ? HELV : function (s) { return MONO(s, true); };
+    c.save(); c.globalAlpha *= 0.7;
+    for (var i = 0; i < 7; i++) text(c, wk[i], x + (i + 0.5) * cw, y + 8, font(8), '#F4F4F0', 'center');
+    c.restore();
+    M.days.forEach(function (o) {
+      var idx = M.offset + o.d - 1, col = idx % 7, row = Math.floor(idx / 7);
+      var cx = x + (col + 0.5) * cw, cy = y + 14 + (row + 0.5) * rowH;
+      if (opt.helv) {
+        if (o.n && o.g > 0) {
+          var sd = (10 + Math.min(o.elev, 1500) / 75) * o.g, hh = sd * 0.866, ty = cy - 3;
+          c.beginPath(); c.moveTo(cx, ty - hh / 2 - 2); c.lineTo(cx + sd / 2, ty + hh / 2 - 2); c.lineTo(cx - sd / 2, ty + hh / 2 - 2); c.closePath();
+          c.fillStyle = opt.acc; c.fill();
+        }
+        c.save(); c.globalAlpha *= o.n ? 1 : 0.55; text(c, String(o.d), cx, cy + rowH * 0.42, HELV(8), '#F4F4F0', 'center'); c.restore();
+      } else {
+        if (o.n && o.g > 0) { c.beginPath(); c.arc(cx, cy, (8 + Math.min(o.km, 40) * 0.3) * o.g, 0, Math.PI * 2); c.fillStyle = opt.acc; c.fill(); }
+        c.save(); c.globalAlpha *= o.n ? 1 : 0.55;
+        text(c, String(o.d), cx, cy + 3, MONO(9, true), (o.n && o.g > 0.5) ? inkOn(opt.acc) : '#F4F4F0', 'center');
+        c.restore();
+      }
+    });
+  }
+  function monthStrip(c, f, M, y, h, a) {
+    fade(c, a, (1 - a) * 20, function () {
+      rr(c, f.L, y, f.BW, h, 16); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
+      var dw = measure(c, M.dist, ANTON(36));
+      text(c, M.dist, f.L + 14, y + 42, ANTON(36), '#F4F4F0');
+      text(c, 'KM', f.L + 14 + dw + 4, y + 42, ANTON(14), '#F4F4F0');
+      var rw = measure(c, 'RUNS', MONO(9, true), 1);
+      text(c, 'RUNS', f.L + f.BW - 14, y + 40, MONO(9, true), '#F4F4F0', 'right', 1);
+      text(c, String(M.runs), f.L + f.BW - 14 - rw - 6, y + 40, ANTON(22), '#F4F4F0', 'right');
+      stat3(c, f.L + 14, y + 52, f.BW - 20, ['TIME', 'ELEV GAIN', 'AVG PACE'], [M.time, '+' + M.elev + 'M', M.pace], 17, '#F4F4F0', 8);
+    });
+  }
+
+  var MLAYOUTS = [
+    { id: 'mcal', name: 'CALENDAR' },
+    { id: 'mbento', name: 'BENTO' },
+    { id: 'mreceipt', name: 'RECEIPT' },
+    { id: 'mbold', name: 'BOLD' },
+    { id: 'macg', name: 'ACG', acg: true }
+  ];
+
+  // CALENDAR — 달력 자체를 사진/영상 위에 겹침
+  Lay.mcal = {
+    rect: full,
+    draw: function (c, f, t, M, P) {
+      var R = f.key === 'R', B = f.T + f.BH;
+      c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+      drawMedia(c, full(f), kenburns(t), true);
+      var e0 = ease(t / 500), e1 = ease((t - 200) / 700), e2 = ease((t - 500) / 600);
+      fade(c, e0, 0, function () {
+        chip(c, f.L, f.T, monthLabel(), '#0B0B0B', '#F4F4F0');
+        chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
+      });
+      var mfs = fitFont(c, M.name, R ? 64 : 52, f.BW, ANTON), base = f.T + 34 + mfs * 0.8;
+      fade(c, e1, (1 - e1) * 20, function () {
+        text(c, M.name, f.L - 1, base, ANTON(mfs), '#F4F4F0');
+        drawMonthCal(c, M, f.L, base + 10, f.BW, R ? 34 : 28, { acc: P.accent });
+      });
+      monthStrip(c, f, M, B - 90, 90, e2);
+    }
+  };
+
+  // BENTO — 사진 칸 + 총거리 카드 + 기록 3칸 + 일별 막대
+  Lay.mbento = {
+    rect: function (f) { return { x: f.L, y: f.T, w: f.BW, h: f.BH - (92 + 8 + 60 + 8 + 64 + 8) }; },
+    draw: function (c, f, t, M, P) {
+      var r = this.rect(f), ink = inkOn(P.accent);
+      c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+      var e0 = ease(t / 600), e1 = ease((t - 250) / 600), e2 = ease((t - 450) / 600), e3 = ease((t - 650) / 600);
+      fade(c, e0, (1 - e0) * 20, function () {
+        c.save(); rr(c, r.x, r.y, r.w, r.h, 18); c.clip(); drawMedia(c, r, kenburns(t), true); c.restore();
+        chip(c, r.x + 10, r.y + 10, M.name + ' ' + M.y + ' · ' + monthLabel(), '#0B0B0B', '#F4F4F0');
+      });
+      var y1 = r.y + r.h + 8;
+      fade(c, e1, (1 - e1) * 20, function () {
+        rr(c, f.L, y1, f.BW, 92, 18); c.fillStyle = P.accent; c.fill();
+        text(c, 'TOTAL DISTANCE', f.L + 16, y1 + 20, MONO(9, true), ink, 'left', 1.2);
+        var dw = measure(c, M.dist, ANTON(54));
+        text(c, M.dist, f.L + 16, y1 + 78, ANTON(54), ink);
+        text(c, 'KM', f.L + 16 + dw + 5, y1 + 78, ANTON(18), ink);
+        text(c, String(M.runs), f.L + f.BW - 16, y1 + 58, ANTON(30), ink, 'right');
+        text(c, 'RUNS', f.L + f.BW - 16, y1 + 76, MONO(9, true), ink, 'right', 1);
+      });
+      var y2 = y1 + 100, cw = (f.BW - 16) / 3, labels = ['TIME', 'ELEV GAIN', 'AVG PACE'], vv = [M.time, '+' + M.elev + 'M', M.pace];
+      fade(c, e2, (1 - e2) * 20, function () {
+        for (var i = 0; i < 3; i++) {
+          var x = f.L + i * (cw + 8);
+          rr(c, x, y2, cw, 60, 16); c.fillStyle = '#161616'; c.fill();
+          c.save(); c.globalAlpha *= 0.75; text(c, labels[i], x + 12, y2 + 20, MONO(8), '#F4F4F0', 'left', 1); c.restore();
+          text(c, vv[i], x + 12, y2 + 48, ANTON(20), '#F4F4F0');
+        }
+      });
+      var y3 = y2 + 68;
+      fade(c, e3, (1 - e3) * 20, function () {
+        rr(c, f.L, y3, f.BW, 64, 16); c.fillStyle = '#161616'; c.fill();
+        c.save(); c.globalAlpha *= 0.75;
+        text(c, 'DAILY KM · 1–' + M.ndays, f.L + 12, y3 + 16, MONO(8), '#F4F4F0', 'left', 1);
+        c.restore();
+        var ax = f.L + 12, aw = f.BW - 24, gap = 2, bw = (aw - gap * (M.ndays - 1)) / M.ndays, base = y3 + 56, maxH = 30;
+        M.days.forEach(function (o, i) {
+          var h = o.n ? Math.max(2, o.km / M.maxKm * maxH * o.g) : 2;
+          c.fillStyle = o.n ? (o.run ? P.accent : '#F4F4F0') : '#3A3A3A';
+          c.fillRect(ax + i * (bw + gap), base - h, bw, h);
+        });
+      });
+    }
+  };
+
+  // BOLD — 사진 배경 위에 월간 총거리를 크게
+  Lay.mbold = {
+    rect: full,
+    draw: function (c, f, t, M, P) {
+      var R = f.key === 'R', B = f.T + f.BH;
+      c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+      drawMedia(c, full(f), kenburns(t), true);
+      var e0 = ease(t / 500), e1 = ease((t - 200) / 800), e2 = ease((t - 600) / 600);
+      fade(c, e0, 0, function () {
+        chip(c, f.L, f.T, monthLabel() + ' · ' + M.name, '#0B0B0B', '#F4F4F0');
+        chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
+      });
+      var stripTop = B - 60, l3 = stripTop - 20, nfs = fitFont(c, M.dist, R ? 120 : 116, f.BW, ANTON), nb = l3 - 36, lb = nb - nfs * 0.78 - 14;
+      fade(c, e1, (1 - e1) * 24, function () {
+        text(c, 'THIS MONTH I RAN', f.L, lb, MONO(11, true), P.accent, 'left', 3.3);
+        text(c, M.dist, f.L - 3, nb, ANTON(nfs), st.numColor);
+        var kw = measure(c, 'KILOMETERS · ', ANTON(26));
+        text(c, 'KILOMETERS · ', f.L, l3, ANTON(26), '#F4F4F0');
+        text(c, M.runs + ' RUNS', f.L + kw, l3, ANTON(26), P.accent);
+      });
+      fade(c, e2, (1 - e2) * 20, function () {
+        rr(c, f.L, stripTop, f.BW, 60, 14); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
+        stat3(c, f.L + 14, stripTop + 11, f.BW - 20, ['TIME', 'ELEV GAIN', 'AVG PACE'], [M.time, '+' + M.elev + 'M', M.pace], 20, '#F4F4F0');
+      });
+    }
+  };
+
+  // RECEIPT — 출력구 라인이 생기고, 그 아래로 영수증이 출력됨 (출력 후 라인은 사라짐)
+  function zigzagPaper(c, x, y, w, h, z) {
+    c.beginPath(); c.moveTo(x, y + z);
+    for (var i = 0; i < w; i += 8) { c.lineTo(x + i + 4, y); c.lineTo(x + Math.min(w, i + 8), y + z); }
+    c.lineTo(x + w, y + h - z);
+    for (var j = w; j > 0; j -= 8) { c.lineTo(x + j - 4, y + h); c.lineTo(x + Math.max(0, j - 8), y + h - z); }
+    c.closePath();
+  }
+  Lay.mreceipt = {
+    rect: full,
+    draw: function (c, f, t, M, P) {
+      var R = f.key === 'R';
+      drawBlurred(c, f, 0.35);
+      var rw = R ? 232 : 244, x = f.L + (f.BW - rw) / 2, slotY = f.T + 4, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
+      var sorted = M.recs.slice().sort(function (a, b) { return b.km - a.km; }), items = sorted.slice(0, maxN), more = Math.max(0, sorted.length - maxN);
+      var rows = items.length + (more ? 1 : 0);
+      var yItems = 74, yAfter = yItems + rows * lh + 6, H = yAfter + 26 + 8 + 4 * 11 + 10 + 16 + 18 + 10 + z;
+      var p = clamp((t - 450) / 2300, 0, 1); p = 1 - (1 - p) * (1 - p);
+      var py = slotY + 1 - H * (1 - p);
+      c.save(); c.beginPath(); c.rect(x - 4, slotY + 1, rw + 8, f.H); c.clip();
+      c.save(); c.translate(x, py);
+      c.shadowColor = 'rgba(0,0,0,0.35)'; c.shadowBlur = 18; c.shadowOffsetY = 8;
+      zigzagPaper(c, 0, 0, rw, H, z); c.fillStyle = '#FAFAF6'; c.fill();
+      c.shadowColor = 'transparent';
+      var ink = '#111111', L = 16, Rr = rw - 16;
+      text(c, M.name, rw / 2, 42, ANTON(30), ink, 'center', 1);
+      text(c, 'RUN, CREATE, SHARE. RUNIMATE', rw / 2, 56, MONO(8), ink, 'center', 1);
+      function dash(y) { c.save(); c.strokeStyle = ink; c.lineWidth = 1; c.setLineDash([3, 2]); c.beginPath(); c.moveTo(L, y + 0.5); c.lineTo(Rr, y + 0.5); c.stroke(); c.restore(); }
+      dash(64);
+      items.forEach(function (w, i) {
+        var yy = yItems + i * lh + 8;
+        text(c, String(w.date).slice(5).replace('.', '.'), L, yy, MONO(9), ink);
+        text(c, TYPE_LABEL[w.type].replace(' RUN', ''), L + 42, yy, MONO(9), ink);
+        text(c, w.km.toFixed(2) + ' KM', Rr, yy, MONO(9), ink, 'right');
+      });
+      if (more) { c.save(); c.globalAlpha *= 0.7; text(c, '... +' + more + ' MORE', L, yItems + items.length * lh + 8, MONO(9), ink); c.restore(); }
+      dash(yAfter);
+      text(c, 'TOTAL', L, yAfter + 24, MONO(10, true), ink);
+      text(c, M.dist + ' KM', Rr, yAfter + 26, ANTON(28), ink, 'right');
+      var rowsT = [['RUNS', String(M.runs)], ['TIME', M.time], ['ELEV GAIN', '+' + M.elev + ' M'], ['AVG PACE', M.pace]];
+      rowsT.forEach(function (r2, i) { var yy = yAfter + 44 + i * 11; text(c, r2[0], L, yy, MONO(9), ink); text(c, r2[1], Rr, yy, MONO(9), ink, 'right'); });
+      var yb = yAfter + 44 + 4 * 11;
+      dash(yb - 4);
+      c.fillStyle = ink;
+      for (var bx = L, bi = 0; bx < Rr; bi++) { var bwid = (bi * 7 % 5 === 0) ? 3 : (bi % 3 === 0 ? 2 : 1); c.fillRect(bx, yb + 2, bwid, 16); bx += bwid + 1 + (bi % 2); }
+      text(c, 'SEE YOU NEXT MONTH. KEEP GOING.', rw / 2, yb + 32, MONO(8), ink, 'center', 0.8);
+      c.restore(); c.restore();
+      // 출력구 라인: 가운데서 양옆으로 그어지고, 출력이 끝나면 사라짐
+      var ls = ease(t / 450), lo = 1 - ease((t - 2800) / 400);
+      if (lo > 0) {
+        c.save(); c.globalAlpha *= lo;
+        var lw2 = (rw + 28) * ls;
+        rr(c, x + rw / 2 - lw2 / 2, slotY - 2, Math.max(lw2, 0.1), 4, 2); c.fillStyle = '#F4F4F0'; c.fill();
+        c.restore();
+      }
+    }
+  };
+
+  // ACG — 고른 종류를 합산 (RUN 단독은 선택 불가, RUN + TRAIL RUN은 가능)
+  Lay.macg = {
+    rect: full,
+    draw: function (c, f, t, M, P) {
+      var R = f.key === 'R', B = f.T + f.BH, A = st.acgAccent, ink = st.acgInk;
+      c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
+      drawMedia(c, full(f), kenburns(t), true);
+      var ph = 132, top = B - ph;
+      topo(c, { cx: f.W, cy: 0, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
+      topo(c, { cx: 10, cy: R ? top + 40 : top - 30, r0: 12, n: 10, gap: 16, sy: 0.6, h: [2, 4, 7, 0.22, 0.1, 0.05], color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
+      var eL = ease(t / 600), e1 = ease((t - 200) / 700);
+      fade(c, eL, (1 - eL) * -12, function () {
+        acgLogo(c, f.L, f.T, 48, '#FFFFFF');
+        text(c, 'MONTHLY FIELD REPORT', f.L + f.BW, f.T + 10, HELV(9), '#FFFFFF', 'right', 0.2);
+        text(c, M.name + ' ' + M.y, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
+        text(c, monthLabel(), f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
+      });
+      fade(c, e1, (1 - e1) * 16, function () { drawMonthCal(c, M, f.L, f.T + 58, f.BW, R ? 30 : 24, { helv: true, acc: A }); });
+      var p = ease((t - 250) / 750);
+      c.save();
+      c.beginPath(); c.rect(f.L, top + ph * (1 - p), f.BW, ph * p + 1); c.clip();
+      c.fillStyle = A; c.fillRect(f.L, top, f.BW, ph);
+      topo(c, { cx: f.L + f.BW - 26, cy: top + 40, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 2.2 });
+      var x = f.L + 12, xr = f.L + f.BW - 12, w = f.BW - 24;
+      function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
+      text(c, M.name, x, top + 20, HELV(14), ink, 'left', 0.2);
+      var r1 = top + 28, r2 = top + 86;
+      rule(r1, 450); rule(r2, 650);
+      // 거리 숫자: 두 라인 사이 정중앙 (대문자·숫자 높이 ≈ 0.72em)
+      var nfs = 48, nb = (r1 + r2) / 2 + nfs * 0.72 / 2, ls = -nfs * 0.04;
+      text(c, M.dist, x - 1, nb, HELV(nfs), ink, 'left', ls);
+      var nw = measure(c, M.dist, HELV(nfs), ls);
+      text(c, 'KM', x - 1 + nw + 5, nb - nfs * 0.72 + 11, HELV(13), ink);
+      var rows = [['ELEV. GAIN', '+' + M.elev + ' M'], ['MOVING TIME', M.time], ['AVG. PACE', M.pace + ' /KM']], cw = w / 3;
+      for (var i = 0; i < 3; i++) {
+        text(c, rows[i][0], x + i * cw, r2 + 15, HELV(8), ink, 'left', 0.3);
+        text(c, rows[i][1], x + i * cw, r2 + 32, HELV(13), ink, 'left', -0.2);
+      }
+      c.restore();
+    }
+  };
+
+  // =========================================================
   // 인스타그램 UI 가이드
   // =========================================================
   var GUIDE_FONT = '700 8px "Space Mono", "Apple SD Gothic Neo", monospace';
@@ -759,7 +1060,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var f = st.fmt, d = readData(), k = ease((t - HOLD) / COUNT);
     ctx.setTransform(S, 0, 0, S, 0, 0);
     ctx.clearRect(0, 0, f.W, f.H); ctx.globalAlpha = 1;
-    Lay[st.layout].draw(ctx, f, t, vals(d, k), d, palette());
+    if (mode === 'monthly') Lay[st.layout].draw(ctx, f, t, monthAgg(monthTypes(), k), palette());
+    else Lay[st.layout].draw(ctx, f, t, vals(d, k), d, palette());
     drawGuides(ctx, f);
   }
   var lastLoop = -1;
@@ -814,6 +1116,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function passFilter(w) { return sportFilter === 'all' ? true : w.type === sportFilter; }
   function renderList() {
     var list = workouts[src] || [], wrap = $('listWrap'), el = $('list');
+    $('monthWrap').classList.toggle('hidden', mode !== 'monthly');
+    if (mode === 'monthly') { wrap.classList.add('hidden'); updateMonthUI(); return; }
     if (src === 'manual' || !list.length) { wrap.classList.add('hidden'); return; }
     wrap.classList.remove('hidden'); el.innerHTML = '';
     var shown = list.filter(passFilter);
@@ -836,6 +1140,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   }
   function onRecordChanged() {
     var r = current(), info = $('selInfo');
+    if (mode === 'monthly') {
+      var M = monthAgg(monthTypes(), 1), loaded = src !== 'manual' && workouts[src] && workouts[src].length;
+      info.textContent = (loaded || src === 'manual')
+        ? M.key + ' · ' + MFILTER_KO[mFilter] + ' · ' + M.runs + '회 · ' + M.dist + ' km · ' + M.time + ' · +' + M.elev + ' m'
+        : '스트라바나 가민을 연결해서 기록을 불러와주세요.';
+      updateAcgAvailability(); restartAnim(); return;
+    }
     if (src !== 'manual' && !record) {
       info.textContent = (workouts[src] && workouts[src].length) ? '위 목록에서 기록을 골라주세요.' : '스트라바나 가민을 연결해서 기록을 불러와주세요.';
     } else {
@@ -882,37 +1193,72 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     finally { btn.disabled = false; btn.textContent = '스트라바 다시 연결하기'; }
   }
 
+  // 데일리 / 먼쓸리
+  function updateMonthUI() {
+    var ks = monthKeys(), key = currentMonthKey(), i = ks.indexOf(key);
+    $('mLabel').textContent = key;
+    $('mPrev').disabled = i >= ks.length - 1;
+    $('mNext').disabled = i <= 0;
+  }
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'); });
+    buildChips();
+    setLayout(m === 'monthly' ? 'mcal' : 'bento');
+    renderList(); onRecordChanged();
+  }
+  document.querySelectorAll('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+  $('mPrev').addEventListener('click', function () { var ks = monthKeys(), i = ks.indexOf(currentMonthKey()); if (i < ks.length - 1) { monthKey = ks[i + 1]; updateMonthUI(); onRecordChanged(); } });
+  $('mNext').addEventListener('click', function () { var ks = monthKeys(), i = ks.indexOf(currentMonthKey()); if (i > 0) { monthKey = ks[i - 1]; updateMonthUI(); onRecordChanged(); } });
+  document.querySelectorAll('[data-mf]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      mFilter = b.dataset.mf;
+      document.querySelectorAll('[data-mf]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      onRecordChanged();
+    });
+  });
+
   // =========================================================
   // 2. 비율·레이아웃·스타일 UI
   // =========================================================
   var chipsEl = $('layoutChips');
-  LAYOUTS.forEach(function (l) {
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = l.name; b.dataset.id = l.id;
-    if (l.acg) b.className = 'acg';
-    b.addEventListener('click', function () { setLayout(l.id); });
-    chipsEl.appendChild(b);
-  });
+  function curLayouts() { return mode === 'monthly' ? MLAYOUTS : LAYOUTS; }
+  function buildChips() {
+    chipsEl.innerHTML = '';
+    curLayouts().forEach(function (l) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = l.name; b.dataset.id = l.id;
+      if (l.acg) b.className = 'acg';
+      b.addEventListener('click', function () { setLayout(l.id); });
+      chipsEl.appendChild(b);
+    });
+  }
+  buildChips();
   function setLayout(id) {
     st.layout = id;
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
-    var useAccent = ['bento', 'panel', 'tags', 'acg2', 'acg3'].indexOf(id) !== -1;
+    var useAccent = ['bento', 'panel', 'tags', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'macg'].indexOf(id) !== -1;
     $('accentWrap').classList.toggle('hidden', !useAccent);
-    $('numColorWrap').classList.toggle('hidden', id !== 'big');
+    $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
-    $('acgInkWrap').classList.toggle('hidden', id.indexOf('acg') !== 0);
+    $('acgInkWrap').classList.toggle('hidden', !isAcg());
     // 화면 포인트 컬러: 기본은 네온, ACG 레이아웃에서만 오렌지
-    document.documentElement.style.setProperty('--acc', id.indexOf('acg') === 0 ? '#FC4C02' : '#D7FF3A');
-    $('dimWrap').classList.toggle('hidden', id === 'polaroid');
+    document.documentElement.style.setProperty('--acc', isAcg() ? '#FC4C02' : '#D7FF3A');
+    $('dimWrap').classList.toggle('hidden', id === 'polaroid' || id === 'mreceipt');
     buildSwatches();
     restartAnim();
   }
-  function isAcg() { return st.layout.indexOf('acg') === 0; }
+  function isAcg() { var m = curLayouts().filter(function (l) { return l.id === st.layout; })[0]; return !!(m && m.acg); }
   function updateAcgAvailability() {
-    var ty = current().type, ok = ty === 'trail' || ty === 'hike';
+    var ok;
+    if (mode === 'monthly') ok = mFilter !== 'run';
+    else { var ty = current().type; ok = ty === 'trail' || ty === 'hike'; }
     chipsEl.querySelectorAll('.acg').forEach(function (b) { b.disabled = !ok; });
+    $('acgNote').textContent = mode === 'monthly'
+      ? 'ACG는 TRAIL RUN, RUN + TRAIL RUN, HIKE에서 고를 수 있어요. (RUN 단독은 불가)'
+      : 'ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.';
     $('acgNote').classList.toggle('hidden', ok);
-    if (!ok && isAcg()) setLayout('bento');
+    if (!ok && isAcg()) setLayout(mode === 'monthly' ? 'mcal' : 'bento');
   }
   document.querySelectorAll('[data-fmt]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -1058,7 +1404,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i];
     return '';
   }
-  function fileStamp() { var d = readData(); return 'RUNIMATE_' + st.layout + '_' + (st.fmt.key === 'R' ? 'reels' : 'feed') + '_' + d.mmdd.replace('.', ''); }
+  function fileStamp() { var d = readData(), tag = mode === 'monthly' ? currentMonthKey().replace('.', '') : d.mmdd.replace('.', ''); return 'RUNIMATE_' + st.layout + '_' + (st.fmt.key === 'R' ? 'reels' : 'feed') + '_' + tag; }
   function showResult(blob, name, isVideo) {
     lastBlob = blob; lastName = name;
     if (lastUrl) URL.revokeObjectURL(lastUrl);
