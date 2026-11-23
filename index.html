@@ -1164,7 +1164,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
     if (line && n < maxLines) text(c, line, x, y + n * lh, font, color);
   }
-  // 글자는 Anton(큰 제목·숫자)과 Helvetica(작은 글자·숫자) 두 가지만
+  // 글자는 Anton(큰 제목·숫자)과 Helvetica(작은 글자·숫자) — 제호 RUNNING만 EX
+  function EXF(sz) { return sz + 'px RMEX, RMHelv, sans-serif'; }
   Lay.mmag = {
     rect: full,
     draw: function (c, f, t, M, P) {
@@ -1185,9 +1186,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       // ② 제호: Monthly(작게) + RUNNING
       var e1 = ease((t - 550) / 450);
       fade(c, e1, (1 - e1) * -6, function () { text(c, 'Monthly', L, f.T + 24, HELV(13), WH, 'left', -0.2); });
-      var mfs = Math.min(fitFont(c, 'RUNNING', 100, W, ANTON), R ? 78 : 72), mt = f.T + 28, mb = mt + mfs * 0.84, wipe = inout((t - 100) / 600);
-      c.save(); c.beginPath(); c.rect(L - 4, mt - 4, (W + 8) * wipe, mfs); c.clip();
-      text(c, 'RUNNING', L - 1, mb, ANTON(mfs), A);
+      // 제호는 EX 서체로 좌우 꽉 차게 (실제 글자 높이를 재서 위치 맞춤)
+      var mfs = fitFont(c, 'RUNNING', 200, W, EXF); c.font = EXF(mfs);
+      var mm = c.measureText('RUNNING'), asc = mm.actualBoundingBoxAscent || mfs * 0.72, lft = mm.actualBoundingBoxLeft || 0;
+      var mt = f.T + 30, mb = mt + asc, wipe = inout((t - 100) / 600);
+      var gw = (mm.actualBoundingBoxRight || mm.width) + lft, sx = W / gw;
+      c.save(); c.beginPath(); c.rect(L - 4, mt - 4, (W + 8) * wipe, asc + 10); c.clip();
+      c.translate(L, mb); c.scale(sx, 1); text(c, 'RUNNING', lft, 0, EXF(mfs), A);
       c.restore();
       // ③ 호수 줄
       var bandTop = mb + 8;
