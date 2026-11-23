@@ -13,7 +13,7 @@
 @font-face{font-family:'RMMarker';src:url('../../fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMHelv';src:url('../../fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMInter';src:url('../../fonts/Inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
-:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#FC4C02}
+:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#D7FF3A}
 *{box-sizing:border-box}
 html,body,button,a,input,label,canvas{touch-action:manipulation}
 .logo{-webkit-user-select:none;user-select:none}
@@ -180,6 +180,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <h3>거리 숫자 컬러</h3>
       <div class="sw" id="numSwatches" role="group" aria-label="거리 숫자 컬러"></div>
     </div>
+    <div id="acgInkWrap" class="hidden" style="margin-bottom:14px">
+      <h3>글자 컬러</h3>
+      <div class="seg" style="margin:0" role="group" aria-label="ACG 글자 컬러">
+        <button type="button" data-ink="#FFFFFF" aria-pressed="true">화이트</button>
+        <button type="button" data-ink="#0B0B0B" aria-pressed="false">블랙</button>
+      </div>
+    </div>
     <div class="seg" style="margin:0 0 6px" role="group" aria-label="배경 톤" id="themeWrap">
       <button type="button" data-theme="dark" aria-pressed="true">다크</button>
       <button type="button" data-theme="light" aria-pressed="false">라이트</button>
@@ -223,7 +230,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     R: { key: 'R', W: 360, H: 640, L: 24, T: 84, BW: 286, BH: 422 },
     F: { key: 'F', W: 360, H: 480, L: 24, T: 40, BW: 312, BH: 400 }
   };
-  var ACCENTS = ['#FC4C02', '#D7FF3A', '#7FB2FF', '#E8352B', '#F4F4F0'];
+  var ACCENTS = ['#D7FF3A', '#FC4C02', '#7FB2FF', '#E8352B', '#F4F4F0'];
   var ACG_ACCENTS = ['#FC4C02', '#1F5BFF', '#6B3FD1', '#E0262B', '#FF1692'];
   var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FC4C02', '#7FB2FF'];
   var LAYOUTS = [
@@ -245,7 +252,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   // 상태
   // =========================================================
-  var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], dark: true, safe: true, dim: 0.12 };
+  var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12 };
   var src = 'strava', sportFilter = 'all', manualType = 'trail';
   var workouts = { strava: [], garmin: [] };
   var record = null;
@@ -607,12 +614,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.acg2 = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
-      var B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
+      var B = f.T + f.BH, A = st.acgAccent, ink = st.acgInk;
       c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
       var ph = 126, top = B - ph;
-      topo(c, { cx: f.L + f.BW + 4, cy: f.T + 46, r0: 6, n: 8, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
-      topo(c, { cx: f.L - 2, cy: top - 6, r0: 6, n: 8, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
+      topo(c, { cx: f.W, cy: 0, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
+      topo(c, { cx: 0, cy: f.H, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
       acgHeader(c, f, t, d);
       var p = ease((t - 250) / 750);
       c.save();
@@ -648,10 +655,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     },
     rect: function (f) { var g = this.geo(f); return { x: f.L, y: f.T, w: f.BW, h: g.a }; },
     draw: function (c, f, t, v, d, P) {
-      var g = this.geo(f), A = st.acgAccent, ink = inkOn(A), self = this;
+      var g = this.geo(f), A = st.acgAccent, ink = st.acgInk, self = this;
       c.fillStyle = '#0E0E0E'; c.fillRect(0, 0, f.W, f.H);
-      topo(c, { cx: f.W, cy: 0, r0: 14, n: 9, gap: 12, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 0, seed: 0.3 });
-      topo(c, { cx: 0, cy: f.H, r0: 14, n: 9, gap: 12, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 100, seed: 1.7 });
+      topo(c, { cx: f.W, cy: 0, r0: 21, n: 9, gap: 18, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 0, seed: 0.3 });
+      topo(c, { cx: 0, cy: f.H, r0: 21, n: 9, gap: 18, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 100, seed: 1.7 });
       var e0 = ease(t / 600), e1 = ease((t - 200) / 600), e2 = ease((t - 350) / 600), e3 = ease((t - 500) / 600);
       fade(c, e0, (1 - e0) * 20, function () {
         var r = self.rect(f);
@@ -677,8 +684,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e2, (1 - e2) * 20, function () {
         var x = f.L + g.distW + g.gp, y = g.yB, w = g.cw, lw = Math.min(54, w - 28);
         c.fillStyle = shade(A, -0.32); c.fillRect(x, y, w, g.rowB);
-        acgLogo(c, x + (w - lw) / 2, y + 16, lw, '#FFFFFF');
-        text(c, d.typeLabel, x + w / 2, y + g.rowB - 12, HELV(9), '#FFFFFF', 'center', 0.3);
+        acgLogo(c, x + (w - lw) / 2, y + 16, lw, ink);
+        text(c, d.typeLabel, x + w / 2, y + g.rowB - 12, HELV(9), ink, 'center', 0.3);
       });
       var rows = acgRows(v);
       fade(c, e3, (1 - e3) * 20, function () {
@@ -877,6 +884,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     $('accentWrap').classList.toggle('hidden', !useAccent);
     $('numColorWrap').classList.toggle('hidden', id !== 'big');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
+    $('acgInkWrap').classList.toggle('hidden', id.indexOf('acg') !== 0);
+    // 화면 포인트 컬러: 기본은 네온, ACG 레이아웃에서만 오렌지
+    document.documentElement.style.setProperty('--acc', id.indexOf('acg') === 0 ? '#FC4C02' : '#D7FF3A');
     $('dimWrap').classList.toggle('hidden', id === 'polaroid');
     buildSwatches();
     restartAnim();
@@ -927,6 +937,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     else swatchRow($('swatches'), ACCENTS, function () { return st.accent; }, function (a) { st.accent = a; }, '포인트 컬러');
     swatchRow($('numSwatches'), NUM_COLORS, function () { return st.numColor; }, function (a) { st.numColor = a; }, '거리 숫자 컬러');
   }
+  document.querySelectorAll('[data-ink]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      st.acgInk = b.dataset.ink;
+      document.querySelectorAll('[data-ink]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+  });
   $('safe').addEventListener('change', function (e) { st.safe = e.target.checked; });
   $('dim').addEventListener('input', function (e) { st.dim = parseFloat(e.target.value) || 0; });
 
