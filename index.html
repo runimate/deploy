@@ -1432,7 +1432,28 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (exporting && exportT0 && t >= CLIP) finishExport();
     requestAnimationFrame(loop);
   }
-  function restartAnim() { t0 = performance.now(); lastLoop = -1; }
+  function restartAnim() { t0 = performance.now(); lastLoop = -1; queueThumbs(); }
+  // ---- 레이아웃 썸네일 (베타: <html class="rm-thumbs">일 때만) ----
+  var THUMBS = document.documentElement.classList.contains('rm-thumbs'), thumbTimer = null;
+  function queueThumbs() { if (!THUMBS) return; clearTimeout(thumbTimer); thumbTimer = setTimeout(drawThumbs, 250); }
+  function drawThumbs() {
+    if (!THUMBS || !chipsEl) return;
+    var f = st.fmt, dpr = Math.min(2, window.devicePixelRatio || 1), saved = st.layout, savedEx = exporting;
+    var d = mode === 'monthly' ? null : readData();
+    chipsEl.querySelectorAll('button').forEach(function (b) {
+      var cv = b.querySelector('canvas.th'), id = b.dataset.id; if (!cv || !Lay[id]) return;
+      var w = 54, h = Math.round(w * f.H / f.W);
+      cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      var c = cv.getContext('2d'), sc = cv.width / f.W;
+      c.setTransform(sc, 0, 0, sc, 0, 0); c.clearRect(0, 0, f.W, f.H); c.globalAlpha = 1;
+      st.layout = id; exporting = true; // 안내 문구 없이 완성된 모습으로
+      try {
+        if (mode === 'monthly') Lay[id].draw(c, f, 6000, monthAgg(monthTypes(), 1), palette());
+        else Lay[id].draw(c, f, 6000, vals(d, 1), d, palette());
+      } catch (e) { console.warn('thumb', id, e); }
+      st.layout = saved; exporting = savedEx;
+    });
+  }
   function applyFormat() { canvas.width = st.fmt.W * S; canvas.height = st.fmt.H * S; updateGuideNote(); restartAnim(); }
 
   // =========================================================
@@ -1600,12 +1621,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function buildChips() {
     chipsEl.innerHTML = '';
     curLayouts().forEach(function (l) {
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = l.name; b.dataset.id = l.id;
+      var b = document.createElement('button'); b.type = 'button'; b.dataset.id = l.id;
+      if (THUMBS) {
+        // 베타: 버튼마다 실제 레이아웃을 작게 그린 썸네일
+        var cv = document.createElement('canvas'); cv.className = 'th'; cv.setAttribute('aria-hidden', 'true');
+        var nm = document.createElement('span'); nm.textContent = l.name;
+        b.appendChild(cv); b.appendChild(nm); b.setAttribute('aria-label', l.name);
+      } else b.textContent = l.name;
       if (l.acg) b.className = 'acg';
       if (l.map) b.className = 'map';
       b.addEventListener('click', function () { setLayout(l.id); });
       chipsEl.appendChild(b);
     });
+    queueThumbs();
   }
   buildChips();
   // 레이아웃별 영상 길이: MAGAZINE은 애니메이션 후 8초 정도 멈춰서 읽을 시간을 줌 (12초)
