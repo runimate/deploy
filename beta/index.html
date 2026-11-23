@@ -567,7 +567,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       drop(4, x0 + dateW / 2, y2 + dh / 2, -4, function () {
         var cx = x0 + dateW / 2, cy = y2 + dh / 2, mm = d.mmdd.split('.');
         c.beginPath(); c.arc(cx, cy, dh / 2, 0, Math.PI * 2); c.fillStyle = '#262626'; c.fill();
-        text(c, mm[0] || '', cx, cy - 3, GOTH(11), '#9A9A95', 'center');
+        var mon = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][(+mm[0] || 1) - 1];
+        text(c, mon, cx, cy - 3, GOTH(10), '#9A9A95', 'center');
         text(c, mm[1] || '', cx, cy + 15, GOTH(19), WH, 'center');
       });
       drop(5, x0 + 28 + hw / 2, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); });
