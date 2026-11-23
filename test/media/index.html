@@ -13,7 +13,7 @@
 @font-face{font-family:'RMMarker';src:url('../../fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMHelv';src:url('../../fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMInter';src:url('../../fonts/Inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
-:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#FC5E02}
+:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#FC4C02}
 *{box-sizing:border-box}
 html,body,button,a,input,label,canvas{touch-action:manipulation}
 .logo{-webkit-user-select:none;user-select:none}
@@ -53,7 +53,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .sw{display:flex;gap:10px;flex-wrap:wrap}
 .sw button{width:36px;height:36px;border-radius:50%;border:2px solid #3A3A3A;padding:0}
 .sw button[aria-pressed="true"]{border-color:var(--fg);outline:2px solid #0B0B0B;outline-offset:-5px}
-.sw .picker{position:relative;width:36px;height:36px;border-radius:50%;border:2px solid #3A3A3A;background:conic-gradient(#FC5E02,#D7FF3A,#3AD7A0,#1F5BFF,#6B3FD1,#E0262B,#FC5E02);overflow:hidden;display:block}
+.sw .picker{position:relative;width:36px;height:36px;border-radius:50%;border:2px solid #3A3A3A;background:conic-gradient(#FC4C02,#D7FF3A,#3AD7A0,#1F5BFF,#6B3FD1,#E0262B,#FC4C02);overflow:hidden;display:block}
 .sw .picker.on{border-color:var(--fg);outline:2px solid #0B0B0B;outline-offset:-5px}
 .sw .picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .check{display:flex;align-items:center;gap:8px;font-size:13px;min-height:36px}
@@ -65,7 +65,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#0E0E0E;border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--fg);min-height:56px;font:inherit}
 .item[aria-pressed="true"]{border-color:var(--acc)}
 .item .badge{flex:0 0 auto;font:700 9px "Space Mono",monospace;letter-spacing:.08em;padding:4px 7px;border-radius:6px;background:#2A2A2A;color:var(--fg)}
-.item .badge.trail{background:#FC5E02;color:#0B0B0B}
+.item .badge.trail{background:#FC4C02;color:#0B0B0B}
 .item .badge.hike{background:#7FB2FF;color:#0B0B0B}
 .item .meta{flex:1;display:flex;flex-direction:column;gap:2px}
 .item .d{font:700 12px "Space Mono",monospace}
@@ -223,9 +223,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     R: { key: 'R', W: 360, H: 640, L: 24, T: 84, BW: 286, BH: 422 },
     F: { key: 'F', W: 360, H: 480, L: 24, T: 40, BW: 312, BH: 400 }
   };
-  var ACCENTS = ['#FC5E02', '#D7FF3A', '#7FB2FF', '#E8352B', '#F4F4F0'];
-  var ACG_ACCENTS = ['#FC5E02', '#1F5BFF', '#6B3FD1', '#E0262B', '#D7FF3A'];
-  var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FC5E02', '#7FB2FF'];
+  var ACCENTS = ['#FC4C02', '#D7FF3A', '#7FB2FF', '#E8352B', '#F4F4F0'];
+  var ACG_ACCENTS = ['#FC4C02', '#1F5BFF', '#6B3FD1', '#E0262B', '#FF1692'];
+  var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FC4C02', '#7FB2FF'];
   var LAYOUTS = [
     { id: 'bento', name: 'BENTO' },
     { id: 'panel', name: 'PANEL' },
@@ -915,7 +915,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     });
     var pick = document.createElement('label'); pick.className = 'picker';
     var inp = document.createElement('input'); inp.type = 'color'; inp.setAttribute('aria-label', label + ' 직접 고르기');
-    inp.value = getter().length === 7 ? getter().toLowerCase() : '#fc5e02';
+    inp.value = getter().length === 7 ? getter().toLowerCase() : '#fc4c02';
     inp.addEventListener('input', function () { setter(inp.value.toUpperCase()); refresh(); });
     pick.appendChild(inp); el.appendChild(pick);
     refresh();
