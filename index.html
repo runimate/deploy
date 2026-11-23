@@ -932,10 +932,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     draw: function (c, f, t, M, P) {
       var R = f.key === 'R';
       drawBlurred(c, f, 0.35);
-      var rw = R ? 232 : 244, x = f.L + (f.BW - rw) / 2, slotY = f.T + 4, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
+      var rw = R ? 232 : 244, x = f.L + (f.BW - rw) / 2, slotY, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
       var sorted = M.recs.slice().sort(function (a, b) { return b.km - a.km; }), items = sorted.slice(0, maxN), more = Math.max(0, sorted.length - maxN);
       var rows = items.length + (more ? 1 : 0);
       var yItems = 74, yAfter = yItems + rows * lh + 6, H = yAfter + 34 + 8 + 4 * 11 + 10 + 16 + 18 + 10 + z;
+      // 영수증 길이와 상관없이 다 나온 종이가 콘텐츠 영역 상하 중앙에 오도록 출력구 위치를 잡음
+      slotY = f.T + Math.max(4, (f.BH - H) / 2);
       var p = clamp((t - 450) / 2300, 0, 1); p = 1 - (1 - p) * (1 - p);
       var py = slotY + 1 - H * (1 - p);
       c.save(); c.beginPath(); c.rect(x - 4, slotY + 1, rw + 8, f.H); c.clip();
