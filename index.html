@@ -693,7 +693,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.acg3 = {
     geo: function (f) {
       // 고도 데이터가 있으면 맨 아래에 고도표 칸(rowD)이 하나 더 생김
-      var gp = 6, rowB = 104, rowC = 66, rowD = elevProfileNow() ? 62 : 0;
+      var gp = 6, rowB = 104, rowC = 66, rowD = elevProfileNow() ? 70 : 0;
       var a = f.BH - rowB - rowC - gp * 2 - (rowD ? rowD + gp : 0), cw = (f.BW - gp * 2) / 3;
       var yB = f.T + a + gp, yC = yB + rowB + gp;
       return { gp: gp, a: a, rowB: rowB, rowC: rowC, rowD: rowD, cw: cw, distW: cw * 2 + gp, yB: yB, yC: yC, yD: yC + rowC + gp };
@@ -747,35 +747,54 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // 고도표 칸 — 왼쪽에서 오른쪽으로 그려지는 고도 그래프
+  // 고도표 칸 — 왼쪽에서 오른쪽으로 그려지는 고도 그래프 (직선으로 꺾이는 솔리드 라인 + 최고점 표시)
+  // 굴곡을 단순화(RDP)해서 각진 산 모양으로 그림
+  function simplify(pts, eps) {
+    if (pts.length < 3) return pts;
+    var a = pts[0], b = pts[pts.length - 1], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, mi = 0, md = 0;
+    for (var i = 1; i < pts.length - 1; i++) { var dd = Math.abs(dy * pts[i][0] - dx * pts[i][1] + b[0] * a[1] - b[1] * a[0]) / L; if (dd > md) { md = dd; mi = i; } }
+    if (md <= eps) return [a, b];
+    return simplify(pts.slice(0, mi + 1), eps).slice(0, -1).concat(simplify(pts.slice(mi), eps));
+  }
   function drawElevTile(c, x, y, w, h, P, A, t) {
     c.fillStyle = '#1B1B1B'; c.fillRect(x, y, w, h);
-    var mn = Infinity, mx = -Infinity, km = P[P.length - 1][0] - P[0][0];
-    P.forEach(function (p) { if (p[1] < mn) mn = p[1]; if (p[1] > mx) mx = p[1]; });
-    if (mx - mn < 20) { var mid = (mx + mn) / 2; mn = mid - 10; mx = mid + 10; }
+    var mn = Infinity, mx = -Infinity, pk = P[0], d0 = P[0][0], km = P[P.length - 1][0] - d0;
+    P.forEach(function (p) { if (p[1] < mn) mn = p[1]; if (p[1] > mx) { mx = p[1]; pk = p; } });
+    var top = mx, lo = mn;
+    if (mx - mn < 20) { var mid = (mx + mn) / 2; lo = mid - 10; top = mid + 10; }
     c.save(); c.globalAlpha = 0.7;
-    text(c, 'ELEVATION', x + 10, y + 14, HELV(8), '#FFFFFF', 'left', 0.3);
-    text(c, 'MAX ' + Math.round(mx).toLocaleString('en-US') + ' M', x + w - 10, y + 14, HELV(8), '#FFFFFF', 'right', 0.3);
+    text(c, 'ELEVATION  ·  ' + km.toFixed(1) + ' KM', x + 10, y + 14, HELV(8), '#FFFFFF', 'left', 0.3);
     c.restore();
-    var cx = x + 10, cy = y + 20, cw = w - 20, ch = h - 26, d0 = P[0][0];
-    function X(p) { return cx + (km > 0 ? (p[0] - d0) / km : 0) * cw; }
-    function Y(p) { return cy + ch - (p[1] - mn) / (mx - mn) * ch; }
-    var k = ease((t - 800) / 1800);
-    c.save(); c.beginPath(); c.rect(cx - 2, y, cw * k + 4, h); c.clip();
-    c.beginPath(); c.moveTo(X(P[0]), cy + ch);
-    P.forEach(function (p) { c.lineTo(X(p), Y(p)); });
-    c.lineTo(X(P[P.length - 1]), cy + ch); c.closePath();
-    c.globalAlpha = 0.35; c.fillStyle = A; c.fill(); c.globalAlpha = 1;
-    c.beginPath(); P.forEach(function (p, i) { if (i) c.lineTo(X(p), Y(p)); else c.moveTo(X(p), Y(p)); });
-    c.lineWidth = 1.6; c.lineJoin = 'round'; c.strokeStyle = A; c.stroke();
+    var cx = x + 10, cy = y + 30, cw = w - 20, ch = h - 38;
+    // 화면 좌표로 바꾼 뒤 단순화 — 최고점은 항상 남김
+    var S = P.map(function (p) { return [cx + (km > 0 ? (p[0] - d0) / km : 0) * cw, cy + ch - (p[1] - lo) / (top - lo) * ch, p === pk]; });
+    var pi = 0; S.forEach(function (q, i) { if (q[2]) pi = i; });
+    var Q = simplify(S.slice(0, pi + 1), 0.5).concat(simplify(S.slice(pi), 0.5).slice(1));
+    var k = ease((t - 800) / 1800), hx = cx + cw * k;
+    c.save(); c.beginPath(); c.rect(cx - 2, y, cw * k + 2, h); c.clip();
+    c.beginPath(); Q.forEach(function (q, i) { if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); });
+    c.lineWidth = 2; c.lineJoin = 'miter'; c.lineCap = 'butt'; c.strokeStyle = A; c.stroke();
     c.restore();
     // 그려지는 끝점
     if (k > 0 && k < 1) {
-      var hx = cx + cw * k, i = 1; while (i < P.length - 1 && X(P[i]) < hx) i++;
-      var a = P[i - 1], b = P[i], u = (X(b) - X(a)) ? (hx - X(a)) / (X(b) - X(a)) : 0, hy = Y(a) + (Y(b) - Y(a)) * u;
-      c.beginPath(); c.arc(hx, hy, 2.4, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill();
+      var i = 1; while (i < Q.length - 1 && Q[i][0] < hx) i++;
+      var a = Q[i - 1], b = Q[i], u = (b[0] - a[0]) ? (hx - a[0]) / (b[0] - a[0]) : 0;
+      c.fillStyle = '#FFFFFF'; c.fillRect(hx - 2, a[1] + (b[1] - a[1]) * u - 2, 4, 4);
+    }
+    // 최고점: 그래프가 정점을 지나면 삼각형 마커 + 최고 고도
+    var P0 = S[pi], pe = ease((hx - P0[0]) / 30);
+    if (pe > 0) {
+      c.save(); c.globalAlpha = pe;
+      var tx = P0[0], ty = P0[1] - 4, sd = 6;
+      c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx - sd / 2, ty - sd * 0.866); c.lineTo(tx + sd / 2, ty - sd * 0.866); c.closePath(); c.fillStyle = '#FFFFFF'; c.fill();
+      var lbl = Math.round(mx).toLocaleString('en-US') + ' M', lw = measure(c, lbl, HELV(9), 0.2) + 1;
+      var al = tx + lw / 2 + 6 > x + w - 4 ? 'right' : (tx - lw / 2 - 6 < x + 4 ? 'left' : 'center');
+      var lx = al === 'right' ? tx + 3 : al === 'left' ? tx - 3 : tx;
+      text(c, lbl, lx, ty - sd - 2, HELV(9), '#FFFFFF', al, 0.2);
+      c.restore();
     }
   }
+
 
   // =========================================================
   // 먼쓸리 모드 — 한 달 기록을 합산해서 보여줌
