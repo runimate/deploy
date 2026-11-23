@@ -354,8 +354,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function normalize(w) {
     var km = num(w.km), timeSec = num(w.timeSec), paceSec = num(w.paceSec);
     if (!paceSec && km > 0) paceSec = timeSec / km;
-    return { date: String(w.date || '').replace(/-/g, '.'), km: km, paceSec: paceSec, timeSec: timeSec, elevGain: num(w.elevGain), type: classify(w), name: w.name || w.title || '' };
+    return { date: String(w.date || '').replace(/-/g, '.'), km: km, paceSec: paceSec, timeSec: timeSec, elevGain: num(w.elevGain), type: classify(w), name: w.name || w.title || '',
+      activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile) };
   }
+  // 고도표 데이터: [[km, m], ...] (서버가 준 형태). 2개 지점 미만이면 없음으로 처리
+  function validProfile(p) { return (Array.isArray(p) && p.length >= 2) ? p : null; }
+  function elevProfileNow() { return (mode !== 'monthly' && src !== 'manual' && record && record.elevProfile) || null; }
   function manualRecord() {
     return { date: ($('inDate').value || '2026-11-16').replace(/-/g, '.'), km: num($('inDist').value), paceSec: parseClock($('inPace').value), timeSec: parseClock($('inTime').value), elevGain: num($('inElev').value), type: manualType, name: '' };
   }
@@ -688,8 +692,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // 거리 칸의 오른쪽 끝 = 아래 두 번째 칸(MOVING TIME)의 오른쪽 끝
   Lay.acg3 = {
     geo: function (f) {
-      var gp = 6, rowB = 104, rowC = 66, a = f.BH - rowB - rowC - gp * 2, cw = (f.BW - gp * 2) / 3;
-      return { gp: gp, a: a, rowB: rowB, rowC: rowC, cw: cw, distW: cw * 2 + gp, yB: f.T + a + gp, yC: f.T + a + gp + rowB + gp };
+      // 고도 데이터가 있으면 맨 아래에 고도표 칸(rowD)이 하나 더 생김
+      var gp = 6, rowB = 104, rowC = 66, rowD = elevProfileNow() ? 62 : 0;
+      var a = f.BH - rowB - rowC - gp * 2 - (rowD ? rowD + gp : 0), cw = (f.BW - gp * 2) / 3;
+      var yB = f.T + a + gp, yC = yB + rowB + gp;
+      return { gp: gp, a: a, rowB: rowB, rowC: rowC, rowD: rowD, cw: cw, distW: cw * 2 + gp, yB: yB, yC: yC, yD: yC + rowC + gp };
     },
     rect: function (f) { var g = this.geo(f); return { x: f.L, y: f.T, w: f.BW, h: g.a }; },
     draw: function (c, f, t, v, d, P) {
@@ -733,8 +740,42 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
           text(c, rows[i][1], x + 10, y + g.rowC - 14, HELV(14), '#FFFFFF', 'left', -0.2);
         }
       });
+      if (g.rowD) {
+        var e4 = ease((t - 650) / 600);
+        fade(c, e4, (1 - e4) * 20, function () { drawElevTile(c, f.L, g.yD, f.BW, g.rowD, elevProfileNow(), A, t); });
+      }
     }
   };
+
+  // 고도표 칸 — 왼쪽에서 오른쪽으로 그려지는 고도 그래프
+  function drawElevTile(c, x, y, w, h, P, A, t) {
+    c.fillStyle = '#1B1B1B'; c.fillRect(x, y, w, h);
+    var mn = Infinity, mx = -Infinity, km = P[P.length - 1][0] - P[0][0];
+    P.forEach(function (p) { if (p[1] < mn) mn = p[1]; if (p[1] > mx) mx = p[1]; });
+    if (mx - mn < 20) { var mid = (mx + mn) / 2; mn = mid - 10; mx = mid + 10; }
+    c.save(); c.globalAlpha = 0.7;
+    text(c, 'ELEVATION', x + 10, y + 14, HELV(8), '#FFFFFF', 'left', 0.3);
+    text(c, 'MAX ' + Math.round(mx).toLocaleString('en-US') + ' M', x + w - 10, y + 14, HELV(8), '#FFFFFF', 'right', 0.3);
+    c.restore();
+    var cx = x + 10, cy = y + 20, cw = w - 20, ch = h - 26, d0 = P[0][0];
+    function X(p) { return cx + (km > 0 ? (p[0] - d0) / km : 0) * cw; }
+    function Y(p) { return cy + ch - (p[1] - mn) / (mx - mn) * ch; }
+    var k = ease((t - 800) / 1800);
+    c.save(); c.beginPath(); c.rect(cx - 2, y, cw * k + 4, h); c.clip();
+    c.beginPath(); c.moveTo(X(P[0]), cy + ch);
+    P.forEach(function (p) { c.lineTo(X(p), Y(p)); });
+    c.lineTo(X(P[P.length - 1]), cy + ch); c.closePath();
+    c.globalAlpha = 0.35; c.fillStyle = A; c.fill(); c.globalAlpha = 1;
+    c.beginPath(); P.forEach(function (p, i) { if (i) c.lineTo(X(p), Y(p)); else c.moveTo(X(p), Y(p)); });
+    c.lineWidth = 1.6; c.lineJoin = 'round'; c.strokeStyle = A; c.stroke();
+    c.restore();
+    // 그려지는 끝점
+    if (k > 0 && k < 1) {
+      var hx = cx + cw * k, i = 1; while (i < P.length - 1 && X(P[i]) < hx) i++;
+      var a = P[i - 1], b = P[i], u = (X(b) - X(a)) ? (hx - X(a)) / (X(b) - X(a)) : 0, hy = Y(a) + (Y(b) - Y(a)) * u;
+      c.beginPath(); c.arc(hx, hy, 2.4, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill();
+    }
+  }
 
   // =========================================================
   // 먼쓸리 모드 — 한 달 기록을 합산해서 보여줌
@@ -1168,9 +1209,28 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         (r.type === 'run' ? ' · ' + fmtPace(r.paceSec) + ' /km' : ' · +' + Math.round(r.elevGain).toLocaleString('en-US') + ' m');
     }
     if (r.name && !$('inTitle').dataset.touched) $('inTitle').value = r.name;
+    ensureElev();
     loadTitleFont();
     updateAcgAvailability();
     restartAnim();
+  }
+  // 스트라바: 기록을 고를 때 그 기록의 고도 데이터만 받아옴 (가민은 목록에 같이 옴)
+  var elevTried = {};
+  function stravaToken() {
+    try { var o = JSON.parse(sessionStorage.getItem('runimate_strava_token') || 'null'); if (o && o.t && (!o.exp || o.exp * 1000 > Date.now() + 60000)) return o.t; } catch (e) {}
+    return null;
+  }
+  async function ensureElev() {
+    var w = record;
+    if (mode === 'monthly' || src !== 'strava' || !w || w.elevProfile || !w.activityId || elevTried[w.activityId]) return;
+    var tk = stravaToken(); if (!tk) return;
+    elevTried[w.activityId] = true;
+    try {
+      var res = await fetch(SERVER + '/api/strava/elevation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, activityId: w.activityId }) });
+      var json = await res.json();
+      w.elevProfile = validProfile(json && json.elevProfile);
+      if (w.elevProfile && record === w) restartAnim();
+    } catch (e) { console.error(e); }
   }
   function setWorkouts(kind, arr) {
     workouts[kind] = (arr || []).map(normalize).filter(function (w) { return w.type !== 'other'; });
@@ -1184,7 +1244,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (!email || !pw) { showErr('이메일과 비밀번호를 입력해주세요.'); return; }
     var btn = $('btnGarmin'); btn.disabled = true; btn.textContent = '불러오는 중…'; showErr('');
     try {
-      var res = await fetch(SERVER + '/api/garmin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: pw }) });
+      var res = await fetch(SERVER + '/api/garmin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: pw, includeHike: true }) });
       if (!res.ok) throw new Error('server ' + res.status);
       var json = await res.json();
       if (!json.success) { showErr('로그인에 실패했어요. 이메일·비밀번호를 확인해주세요.'); return; }
@@ -1199,9 +1259,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   async function stravaFromCode(code) {
     var btn = $('btnStrava'); btn.disabled = true; btn.textContent = '스트라바 기록 불러오는 중…';
     try {
-      var res = await fetch(SERVER + '/api/strava', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code }) });
+      var res = await fetch(SERVER + '/api/strava', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, includeHike: true, returnToken: true }) });
       var json = await res.json();
       if (!json.success) throw new Error(json.msg || json.message || 'server');
+      // 고도표용 토큰은 이 탭에서만 잠깐 보관 (6시간 후 만료)
+      try { if (json.token) sessionStorage.setItem('runimate_strava_token', JSON.stringify({ t: json.token, exp: json.tokenExpiresAt || 0 })); } catch (e) {}
       setWorkouts('strava', json.data);
     } catch (e) { console.error(e); showErr('스트라바 기록을 불러오지 못했어요. 다시 연결해주세요.'); }
     finally { btn.disabled = false; btn.textContent = '스트라바 다시 연결하기'; }
