@@ -1000,13 +1000,20 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var x = f.L + 12, xr = f.L + f.BW - 12, w = f.BW - 24;
       function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
       text(c, M.name, x, top + 20, HELV(14), ink, 'left', 0.2);
-      var r1 = top + 28, r2 = top + 86;
+      var r1 = top + 28, r2 = top + 88, mid = (r1 + r2) / 2;
       rule(r1, 450); rule(r2, 650);
-      // 거리 숫자: 두 라인 사이 정중앙 (대문자·숫자 높이 ≈ 0.72em)
-      var nfs = 48, nb = (r1 + r2) / 2 + nfs * 0.72 / 2, ls = -nfs * 0.04;
+      // 거리 숫자: 실제 글자 높이를 재서 두 라인 사이 정중앙에 (기존 48px의 120%)
+      var nfs = 58, ls = -nfs * 0.04;
+      c.font = HELV(nfs); var mt = c.measureText('0123456789'), asc = mt.actualBoundingBoxAscent || nfs * 0.72, dsc = mt.actualBoundingBoxDescent || 0;
+      var nb = mid + (asc - dsc) / 2;
       text(c, M.dist, x - 1, nb, HELV(nfs), ink, 'left', ls);
       var nw = measure(c, M.dist, HELV(nfs), ls);
-      text(c, 'KM', x - 1 + nw + 5, nb - nfs * 0.72 + 11, HELV(13), ink);
+      text(c, 'KM', x - 1 + nw + 5, nb - asc + 12, HELV(14), ink);
+      // 오른쪽: 운동 횟수 (OUTINGS), 같은 중앙선에 맞춤
+      c.font = HELV(26); var asc2 = c.measureText('0123456789').actualBoundingBoxAscent || 19;
+      var blockH = asc2 + 4 + 7, top2 = mid - blockH / 2;
+      text(c, String(M.runs), xr, top2 + asc2, HELV(26), ink, 'right', -0.5);
+      text(c, 'OUTINGS', xr, top2 + asc2 + 4 + 7, HELV(8), ink, 'right', 0.6);
       var rows = [['ELEV. GAIN', '+' + M.elev + ' M'], ['MOVING TIME', M.time], ['AVG. PACE', M.pace + ' /KM']], cw = w / 3;
       for (var i = 0; i < 3; i++) {
         text(c, rows[i][0], x + i * cw, r2 + 15, HELV(8), ink, 'left', 0.3);
