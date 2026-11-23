@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>RUNIMATE · 사진/영상 합성 테스트</title>
+<title>RUNIMATE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
@@ -13,8 +13,10 @@
 @font-face{font-family:'RMMarker';src:url('../../fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMHelv';src:url('../../fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMInter';src:url('../../fonts/Inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
-:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#D7FF3A}
+:root{--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#FC5E02}
 *{box-sizing:border-box}
+html,body,button,a,input,label,canvas{touch-action:manipulation}
+.logo{-webkit-user-select:none;user-select:none}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;-webkit-text-size-adjust:100%}
 body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
 .wrap{max-width:520px;margin:0 auto;padding:16px}
@@ -51,6 +53,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .sw{display:flex;gap:10px;flex-wrap:wrap}
 .sw button{width:36px;height:36px;border-radius:50%;border:2px solid #3A3A3A;padding:0}
 .sw button[aria-pressed="true"]{border-color:var(--fg);outline:2px solid #0B0B0B;outline-offset:-5px}
+.sw .picker{position:relative;width:36px;height:36px;border-radius:50%;border:2px solid #3A3A3A;background:conic-gradient(#FC5E02,#D7FF3A,#3AD7A0,#1F5BFF,#6B3FD1,#E0262B,#FC5E02);overflow:hidden;display:block}
+.sw .picker.on{border-color:var(--fg);outline:2px solid #0B0B0B;outline-offset:-5px}
+.sw .picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .check{display:flex;align-items:center;gap:8px;font-size:13px;min-height:36px}
 .check input{width:20px;height:20px;accent-color:var(--acc)}
 .small{font-size:12px;color:var(--mute);line-height:1.5;margin:6px 0 0}
@@ -60,7 +65,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#0E0E0E;border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--fg);min-height:56px;font:inherit}
 .item[aria-pressed="true"]{border-color:var(--acc)}
 .item .badge{flex:0 0 auto;font:700 9px "Space Mono",monospace;letter-spacing:.08em;padding:4px 7px;border-radius:6px;background:#2A2A2A;color:var(--fg)}
-.item .badge.trail{background:#FF6A1F;color:#0B0B0B}
+.item .badge.trail{background:#FC5E02;color:#0B0B0B}
 .item .badge.hike{background:#7FB2FF;color:#0B0B0B}
 .item .meta{flex:1;display:flex;flex-direction:column;gap:2px}
 .item .d{font:700 12px "Space Mono",monospace}
@@ -77,7 +82,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 </head>
 <body>
 <div class="wrap">
-  <header><h1><button type="button" class="logo" id="logoBtn">RUNIMATE</button></h1><span>사진·영상 합성 테스트 · beta 3</span></header>
+  <header><h1><button type="button" class="logo" id="logoBtn">RUNIMATE</button></h1></header>
 
   <!-- 1. 기록 불러오기 -->
   <h2 class="step">1 · 기록 불러오기</h2>
@@ -135,7 +140,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <button type="button" data-fmt="F" aria-pressed="false">피드 3:4</button>
   </div>
   <div class="chips" role="group" aria-label="레이아웃" id="layoutChips"></div>
-  <p class="small" id="acgNote" style="margin:0 0 10px">acg 레이아웃(1·2·3)은 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
+  <p class="small" id="acgNote" style="margin:0 0 10px">ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
   <p class="hint" id="hint">미리보기를 눌러 사진이나 영상을 넣어보세요.</p>
@@ -151,8 +156,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <div class="card">
     <h3>크기</h3>
     <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="사진 확대">
-    <h3 style="margin-top:12px">사진 어둡게</h3>
-    <input type="range" id="dim" min="0" max="0.6" step="0.01" value="0.12" aria-label="사진 어둡게">
+    <div id="dimWrap">
+      <h3 style="margin-top:12px">사진 어둡게</h3>
+      <input type="range" id="dim" min="0" max="0.6" step="0.01" value="0.12" aria-label="사진 어둡게">
+    </div>
     <p class="small">사진을 드래그하면 위치가, 두 손가락으로 벌리면 크기가 바뀌어요.</p>
   </div>
   <div class="card hidden" id="videoCard">
@@ -165,13 +172,15 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <!-- 4. 스타일 -->
   <h2 class="step">4 · 스타일</h2>
   <div class="card">
-    <h3 id="accentTitle">포인트 컬러</h3>
-    <div class="sw" id="swatches" role="group" aria-label="포인트 컬러"></div>
-    <div id="numColorWrap" class="hidden">
-      <h3 style="margin-top:14px">거리 숫자 컬러</h3>
+    <div id="accentWrap" style="margin-bottom:14px">
+      <h3 id="accentTitle">포인트 컬러</h3>
+      <div class="sw" id="swatches" role="group" aria-label="포인트 컬러"></div>
+    </div>
+    <div id="numColorWrap" class="hidden" style="margin-bottom:14px">
+      <h3>거리 숫자 컬러</h3>
       <div class="sw" id="numSwatches" role="group" aria-label="거리 숫자 컬러"></div>
     </div>
-    <div class="seg" style="margin:14px 0 6px" role="group" aria-label="배경 톤">
+    <div class="seg" style="margin:0 0 6px" role="group" aria-label="배경 톤" id="themeWrap">
       <button type="button" data-theme="dark" aria-pressed="true">다크</button>
       <button type="button" data-theme="light" aria-pressed="false">라이트</button>
     </div>
@@ -214,18 +223,17 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     R: { key: 'R', W: 360, H: 640, L: 24, T: 84, BW: 286, BH: 422 },
     F: { key: 'F', W: 360, H: 480, L: 24, T: 40, BW: 312, BH: 400 }
   };
-  var ACCENTS = ['#D7FF3A', '#FF6A1F', '#7FB2FF', '#E8352B', '#F4F4F0'];
-  var ACG_ACCENTS = ['#F26B1D', '#5C6B3A', '#6B4FA0', '#D9C9A8', '#111111'];
-  var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FF6A1F', '#7FB2FF'];
+  var ACCENTS = ['#FC5E02', '#D7FF3A', '#7FB2FF', '#E8352B', '#F4F4F0'];
+  var ACG_ACCENTS = ['#FC5E02', '#1F5BFF', '#6B3FD1', '#E0262B', '#D7FF3A'];
+  var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FC5E02', '#7FB2FF'];
   var LAYOUTS = [
-    { id: 'bento', name: 'BENTO + MEDIA' },
+    { id: 'bento', name: 'BENTO' },
     { id: 'panel', name: 'PANEL' },
-    { id: 'tags', name: 'TAGS' },
-    { id: 'big', name: 'BIG NUMBER' },
+    { id: 'tags', name: 'STICKER' },
+    { id: 'big', name: 'BOLD' },
     { id: 'polaroid', name: 'POLAROID' },
-    { id: 'acg', name: 'acg 1', acg: true },
-    { id: 'acg2', name: 'acg 2', acg: true },
-    { id: 'acg3', name: 'acg 3 BENTO', acg: true }
+    { id: 'acg2', name: 'ACG', acg: true },
+    { id: 'acg3', name: 'ACG GRID', acg: true }
   ];
   var TYPE_LABEL = { run: 'RUN', trail: 'TRAIL RUN', hike: 'HIKE' };
   var TYPE_KO = { run: '러닝', trail: '트레일러닝', hike: '하이킹' };
@@ -494,7 +502,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         text(c, 'KILOMETERS', f.L, b2 + 20, MONO(11, true), nc, 'left', 3.3);
       });
       fade(c, eS, (1 - eS) * 20, function () {
-        rr(c, f.L, stripTop, f.BW, stripH, 14); c.fillStyle = '#0B0B0B'; c.fill();
+        rr(c, f.L, stripTop, f.BW, stripH, 14); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
         stat3(c, f.L + 14, stripTop + 11, f.BW - 20, tr.labels, tr.values, 22, '#F4F4F0');
       });
     }
@@ -592,59 +600,25 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       text(c, d.typeLabel, f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
     });
   }
+  function shade(hex, f) { var n = parseInt(hex.slice(1), 16), k = 1 + f; function ch(x) { return Math.max(0, Math.min(255, Math.round(x * k))).toString(16).padStart(2, '0'); } return '#' + ch(n >> 16) + ch((n >> 8) & 255) + ch(n & 255); }
   function acgRows(v) { return [['ELEV. GAIN', '+' + v.elev + ' M'], ['MOVING TIME', v.time], ['AVG. PACE', v.pace + ' /KM']]; }
 
-  // acg 1 — 큰 스펙 시트 패널 (기존 버전 + 등고선 강화)
-  Lay.acg = {
-    rect: full,
-    draw: function (c, f, t, v, d, P) {
-      var R = f.key === 'R', B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
-      c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
-      drawMedia(c, full(f), kenburns(t), true);
-      topo(c, { cx: f.L + f.BW - 34, cy: f.T + 92, r0: 8, n: 9, gap: 10, color: '#FFFFFF', alpha: 0.6, lw: 1, t: t, delay: 150, seed: 0.4 });
-      topo(c, { cx: f.L + 30, cy: B + 10, r0: 22, n: 13, gap: 13, color: '#FFFFFF', alpha: 0.5, lw: 1.1, t: t, delay: 300, seed: 2.1 });
-      acgHeader(c, f, t, d);
-      var ph = 206, top = B - ph, p = ease((t - 250) / 750);
-      c.save();
-      c.beginPath(); c.rect(f.L, top + ph * (1 - p), f.BW, ph * p + 1); c.clip();
-      c.fillStyle = A; c.fillRect(f.L, top, f.BW, ph);
-      topo(c, { cx: f.L + f.BW - 40, cy: top + 70, r0: 6, n: 11, gap: 9, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 1.3 });
-      var x = f.L + 14, xr = f.L + f.BW - 14, w = f.BW - 28;
-      function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
-      text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 22, HELV(11), ink, 'left', 0.2);
-      text(c, d.typeLabel, xr, top + 22, HELV(11), ink, 'right', 0.2);
-      rule(top + 32, 500);
-      var nfs = R ? 84 : 80, nb = top + 42 + nfs * 0.72, ls = -nfs * 0.045;
-      text(c, v.dist, x - 2, nb, HELV(nfs), ink, 'left', ls);
-      var nw = measure(c, v.dist, HELV(nfs), ls);
-      text(c, 'KM', x - 2 + nw + 6, nb - nfs * 0.72 + 14, HELV(16), ink);
-      var rows = acgRows(v), ry = nb + 14;
-      for (var i = 0; i < 3; i++) {
-        rule(ry, 700 + i * 120);
-        text(c, rows[i][0], x, ry + 17, HELV(9), ink, 'left', 0.3);
-        text(c, rows[i][1], xr, ry + 18, HELV(15), ink, 'right', -0.2);
-        ry += 26;
-      }
-      c.restore();
-    }
-  };
-
-  // acg 2 — 낮은 패널로 사진 영역을 넓힘 + 등고선을 사진 위에 크게
+  // ACG — 낮은 스펙 패널로 사진 영역을 넓게. 등고선은 오른쪽 위·왼쪽 아래 모서리에만
   Lay.acg2 = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
-      var R = f.key === 'R', B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
+      var B = f.T + f.BH, A = st.acgAccent, ink = inkOn(A);
       c.fillStyle = '#111111'; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
       var ph = 126, top = B - ph;
-      topo(c, { cx: f.W * 0.72, cy: top - 40, r0: 10, n: 16, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1.1, t: t, delay: 150, seed: 0.9 });
-      topo(c, { cx: f.L + 10, cy: f.T + 150, r0: 6, n: 8, gap: 10, color: '#FFFFFF', alpha: 0.45, lw: 1, t: t, delay: 400, seed: 3.3 });
+      topo(c, { cx: f.L + f.BW + 4, cy: f.T + 46, r0: 6, n: 8, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
+      topo(c, { cx: f.L - 2, cy: top - 6, r0: 6, n: 8, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
       acgHeader(c, f, t, d);
       var p = ease((t - 250) / 750);
       c.save();
       c.beginPath(); c.rect(f.L, top + ph * (1 - p), f.BW, ph * p + 1); c.clip();
       c.fillStyle = A; c.fillRect(f.L, top, f.BW, ph);
-      topo(c, { cx: f.L + f.BW - 30, cy: top + 40, r0: 5, n: 9, gap: 8, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 2.2 });
+      topo(c, { cx: f.L + f.BW - 26, cy: top + 40, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 2.2 });
       var x = f.L + 12, xr = f.L + f.BW - 12, w = f.BW - 24;
       function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
       text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 17, HELV(10), ink, 'left', 0.2);
@@ -665,56 +639,52 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // acg 3 — 벤토 그리드 (사진 타일 + 거리 타일 + 로고 타일 + 기록 3칸)
+  // ACG GRID — 위: 사진 / 가운데: 거리(2칸 폭) + 로고(1칸 폭) / 아래: 기록 3칸
+  // 거리 칸의 오른쪽 끝 = 아래 두 번째 칸(MOVING TIME)의 오른쪽 끝
   Lay.acg3 = {
     geo: function (f) {
-      var gp = 6, rowB = 104, rowC = 66, a = f.BH - rowB - rowC - gp * 2;
-      return { gp: gp, a: a, rowB: rowB, rowC: rowC, yB: f.T + a + gp, yC: f.T + a + gp + rowB + gp };
+      var gp = 6, rowB = 104, rowC = 66, a = f.BH - rowB - rowC - gp * 2, cw = (f.BW - gp * 2) / 3;
+      return { gp: gp, a: a, rowB: rowB, rowC: rowC, cw: cw, distW: cw * 2 + gp, yB: f.T + a + gp, yC: f.T + a + gp + rowB + gp };
     },
     rect: function (f) { var g = this.geo(f); return { x: f.L, y: f.T, w: f.BW, h: g.a }; },
     draw: function (c, f, t, v, d, P) {
       var g = this.geo(f), A = st.acgAccent, ink = inkOn(A), self = this;
       c.fillStyle = '#0E0E0E'; c.fillRect(0, 0, f.W, f.H);
-      topo(c, { cx: f.W * 0.2, cy: f.H * 0.9, r0: 20, n: 14, gap: 13, color: '#FFFFFF', alpha: 0.16, lw: 1, t: t, delay: 0, seed: 1.7 });
-      topo(c, { cx: f.W * 0.9, cy: f.H * 0.08, r0: 12, n: 10, gap: 12, color: '#FFFFFF', alpha: 0.14, lw: 1, t: t, delay: 100, seed: 0.3 });
+      topo(c, { cx: f.W, cy: 0, r0: 14, n: 9, gap: 12, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 0, seed: 0.3 });
+      topo(c, { cx: 0, cy: f.H, r0: 14, n: 9, gap: 12, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 100, seed: 1.7 });
       var e0 = ease(t / 600), e1 = ease((t - 200) / 600), e2 = ease((t - 350) / 600), e3 = ease((t - 500) / 600);
-      // 사진 타일
       fade(c, e0, (1 - e0) * 20, function () {
         var r = self.rect(f);
         c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip();
         drawMedia(c, r, kenburns(t), true);
-        topo(c, { cx: r.x + r.w - 40, cy: r.y + r.h - 20, r0: 8, n: 12, gap: 10, color: '#FFFFFF', alpha: 0.5, lw: 1, t: t, delay: 300, seed: 2.6 });
+        topo(c, { cx: r.x + r.w + 2, cy: r.y - 2, r0: 5, n: 7, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 300, seed: 2.6 });
         c.restore();
         text(c, 'FIELD REPORT', r.x + 10, r.y + 18, HELV(9), '#FFFFFF', 'left', 0.2);
-        text(c, d.ymd, r.x + r.w - 10, r.y + 18, HELV(9), '#FFFFFF', 'right', 0.2);
+        text(c, d.ymd, r.x + 10, r.y + 30, HELV(9), '#FFFFFF', 'left', 0.2);
       });
-      // 거리 타일
-      var lw = 98, dw = f.BW - g.gp - lw;
       fade(c, e1, (1 - e1) * 20, function () {
-        var x = f.L, y = g.yB;
-        c.save(); c.beginPath(); c.rect(x, y, dw, g.rowB); c.clip();
-        c.fillStyle = A; c.fillRect(x, y, dw, g.rowB);
-        topo(c, { cx: x + dw - 20, cy: y + 30, r0: 5, n: 10, gap: 8, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
+        var x = f.L, y = g.yB, w = g.distW;
+        c.save(); c.beginPath(); c.rect(x, y, w, g.rowB); c.clip();
+        c.fillStyle = A; c.fillRect(x, y, w, g.rowB);
+        topo(c, { cx: x + w + 2, cy: y - 2, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
         text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x + 12, y + 18, HELV(9), ink, 'left', 0.2);
-        var nfs = f.key === 'R' ? 52 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
+        var nfs = f.key === 'R' ? 50 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
         text(c, v.dist, x + 11, nb, HELV(nfs), ink, 'left', ls);
         var nw = measure(c, v.dist, HELV(nfs), ls);
         text(c, 'KM', x + 11 + nw + 4, nb - nfs * 0.72 + 11, HELV(12), ink);
         c.restore();
       });
-      // 로고 타일
       fade(c, e2, (1 - e2) * 20, function () {
-        var x = f.L + dw + g.gp, y = g.yB;
-        c.fillStyle = '#EDEAE2'; c.fillRect(x, y, lw, g.rowB);
-        acgLogo(c, x + (lw - 54) / 2, y + 16, 54, '#111111');
-        text(c, d.typeLabel, x + lw / 2, y + g.rowB - 12, HELV(9), '#111111', 'center', 0.3);
+        var x = f.L + g.distW + g.gp, y = g.yB, w = g.cw, lw = Math.min(54, w - 28);
+        c.fillStyle = shade(A, -0.32); c.fillRect(x, y, w, g.rowB);
+        acgLogo(c, x + (w - lw) / 2, y + 16, lw, '#FFFFFF');
+        text(c, d.typeLabel, x + w / 2, y + g.rowB - 12, HELV(9), '#FFFFFF', 'center', 0.3);
       });
-      // 기록 3칸
-      var cw = (f.BW - g.gp * 2) / 3, rows = acgRows(v);
+      var rows = acgRows(v);
       fade(c, e3, (1 - e3) * 20, function () {
         for (var i = 0; i < 3; i++) {
-          var x = f.L + i * (cw + g.gp), y = g.yC;
-          c.fillStyle = '#1B1B1B'; c.fillRect(x, y, cw, g.rowC);
+          var x = f.L + i * (g.cw + g.gp), y = g.yC;
+          c.fillStyle = '#1B1B1B'; c.fillRect(x, y, g.cw, g.rowC);
           c.save(); c.globalAlpha = 0.7; text(c, rows[i][0], x + 10, y + 18, HELV(8), '#FFFFFF', 'left', 0.3); c.restore();
           text(c, rows[i][1], x + 10, y + g.rowC - 14, HELV(14), '#FFFFFF', 'left', -0.2);
         }
@@ -827,7 +797,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (!shown.length) {
       var p = document.createElement('p'); p.className = 'small';
       p.textContent = sportFilter === 'hike'
-        ? '하이킹 기록이 없어요. 지금 서버가 러닝·트레일러닝 기록만 보내고 있을 수 있어요 (서버 수정 필요).'
+        ? '하이킹 기록이 없어요.'
         : '이 종류의 기록이 없어요.';
       el.appendChild(p); return;
     }
@@ -844,7 +814,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function onRecordChanged() {
     var r = current(), info = $('selInfo');
     if (src !== 'manual' && !record) {
-      info.textContent = (workouts[src] && workouts[src].length) ? '위 목록에서 기록을 골라주세요. 고르기 전에는 샘플 기록(직접 입력 값)으로 보여줘요.' : '기록을 불러오기 전에는 샘플 기록(직접 입력 값)으로 보여줘요.';
+      info.textContent = (workouts[src] && workouts[src].length) ? '위 목록에서 기록을 골라주세요.' : '스트라바나 가민을 연결해서 기록을 불러와주세요.';
     } else {
       info.textContent = '선택한 기록 · ' + TYPE_KO[r.type] + ' · ' + r.date + ' · ' + r.km.toFixed(2) + ' km · ' + fmtTime(r.timeSec) +
         (r.type === 'run' ? ' · ' + fmtPace(r.paceSec) + ' /km' : ' · +' + Math.round(r.elevGain).toLocaleString('en-US') + ' m');
@@ -902,7 +872,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function setLayout(id) {
     st.layout = id;
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
+    // 레이아웃마다 의미 있는 설정만 보이게
+    var useAccent = ['bento', 'panel', 'tags', 'acg2', 'acg3'].indexOf(id) !== -1;
+    $('accentWrap').classList.toggle('hidden', !useAccent);
     $('numColorWrap').classList.toggle('hidden', id !== 'big');
+    $('themeWrap').classList.toggle('hidden', id !== 'bento');
+    $('dimWrap').classList.toggle('hidden', id === 'polaroid');
     buildSwatches();
     restartAnim();
   }
@@ -928,12 +903,22 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   });
   function swatchRow(el, colors, getter, setter, label) {
     el.innerHTML = '';
+    function refresh() {
+      var cur = getter().toUpperCase(), preset = colors.indexOf(cur) !== -1;
+      Array.prototype.forEach.call(el.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x.dataset.c === cur ? 'true' : 'false'); });
+      pick.classList.toggle('on', !preset); pick.style.background = preset ? '' : cur;
+    }
     colors.forEach(function (a) {
-      var b = document.createElement('button'); b.type = 'button'; b.style.background = a; b.setAttribute('aria-label', label + ' ' + a);
-      b.setAttribute('aria-pressed', a === getter() ? 'true' : 'false');
-      b.addEventListener('click', function () { setter(a); swatchRow(el, colors, getter, setter, label); });
+      var b = document.createElement('button'); b.type = 'button'; b.style.background = a; b.dataset.c = a; b.setAttribute('aria-label', label + ' ' + a);
+      b.addEventListener('click', function () { setter(a); refresh(); });
       el.appendChild(b);
     });
+    var pick = document.createElement('label'); pick.className = 'picker';
+    var inp = document.createElement('input'); inp.type = 'color'; inp.setAttribute('aria-label', label + ' 직접 고르기');
+    inp.value = getter().length === 7 ? getter().toLowerCase() : '#fc5e02';
+    inp.addEventListener('input', function () { setter(inp.value.toUpperCase()); refresh(); });
+    pick.appendChild(inp); el.appendChild(pick);
+    refresh();
   }
   function buildSwatches() {
     var acg = isAcg();
