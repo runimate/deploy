@@ -14,6 +14,7 @@
 @font-face{font-family:'RMHelv';src:url('./fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMOpera';src:url('./fonts/Opera.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMEX';src:url('./fonts/EX.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'RMGothic';src:url('./fonts/Gothic.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMInter';src:url('./fonts/Inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
 :root{--rm-fg:#F4F4F0;--rm-bg:#0B0B0B;--rm-mute:#A8A8A2;--bg:#0B0B0B;--panel:#161616;--line:#2A2A2A;--fg:#F4F4F0;--mute:#A8A8A2;--acc:#D7FF3A}
 *{box-sizing:border-box}
@@ -521,33 +522,50 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   };
 
   // TAGS
+  // STICKER — 모든 기록을 캡슐(알약) 모양 스티커에 담음. 서체: Special Gothic Expanded (한글은 Pretendard)
+  function GOTH(sz) { return sz + 'px RMGothic, "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif'; }
+  function capFont(txt, fs) { return /[가-힣]/.test(txt) ? PRET(fs * 1.08, 800) : GOTH(fs); } // 한글은 Pretendard 굵게
+  function capsule(c, x, y, txt, fs, bg, fg, h) {
+    h = h || Math.round(fs * 1.9);
+    var w = measure(c, txt, capFont(txt, fs)) + h * 0.95;
+    rr(c, x, y, w, h, h / 2); c.fillStyle = bg; c.fill();
+    text(c, txt, x + w / 2, y + h / 2 + fs * 0.36, capFont(txt, fs), fg, 'center');
+    return w;
+  }
+  function capW(c, txt, fs, h) { h = h || Math.round(fs * 1.9); return measure(c, txt, capFont(txt, fs)) + h * 0.95; }
   Lay.tags = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
-      var R = f.key === 'R';
-      c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+      var R = f.key === 'R', B = f.T + f.BH, x0 = f.L, A = P.accent, ink = inkOn(A), BK = '#0B0B0B', WH = '#F4F4F0';
+      c.fillStyle = BK; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
-      var B = f.T + f.BH, x0 = f.L, dfs = R ? 68 : 76, ink = inkOn(P.accent), tr = trio(d, v);
-      var s0 = pop(t / 450), s1 = pop((t - 300) / 450), s2 = pop((t - 520) / 450), s3 = pop((t - 680) / 450), s4 = pop((t - 840) / 450);
-      function pill(x, y, label, value, bg, fg) {
-        var lw = measure(c, label, MONO(9, true), 1), vw = measure(c, value, ANTON(21));
-        rr(c, x, y, lw + vw + 33, 35, 17.5); c.fillStyle = bg; c.fill();
-        text(c, label, x + 13, y + 22, MONO(9, true), fg, 'left', 1);
-        text(c, value, x + 13 + lw + 7, y + 26, ANTON(21), fg);
-      }
-      var y3 = B - 35, y2 = y3 - 42, hd = dfs + 14, yD = y2 - 7 - hd;
-      popAt(c, s4, x0, y3 + 17, 1, function () { pill(x0, y3, tr.labels[2], tr.values[2], '#0B0B0B', '#F4F4F0'); });
-      var w0 = measure(c, tr.labels[0], MONO(9, true), 1) + measure(c, tr.values[0], ANTON(21)) + 33;
-      popAt(c, s2, x0, y2 + 17, 2, function () { pill(x0, y2, tr.labels[0], tr.values[0], '#0B0B0B', '#F4F4F0'); });
-      popAt(c, s3, x0 + w0 + 7, y2 + 17, -1.5, function () { pill(x0 + w0 + 7, y2, tr.labels[1], tr.values[1], '#F4F4F0', '#0B0B0B'); });
-      popAt(c, s1, x0, yD + hd / 2, -3, function () {
-        var nw = measure(c, v.dist, ANTON(dfs)), kw = measure(c, 'KM', ANTON(20));
-        rr(c, x0, yD, 14 + nw + 6 + kw + 14, hd, 14); c.fillStyle = P.accent; c.fill();
-        text(c, v.dist, x0 + 14, yD + hd - 8, ANTON(dfs), ink);
-        text(c, 'KM', x0 + 14 + nw + 6, yD + hd - 8, ANTON(20), ink);
+      var s = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return pop((t - i * 150) / 450); });
+      // 거리 캡슐 크기는 화면 폭에 맞춰 (날짜 칸 + 거리 캡슐이 한 줄에 들어가게)
+      var dTxt = v.dist + ' km', dh = R ? 62 : 66, dateW = dh;
+      var dfs = Math.min(R ? 34 : 37, fitFont(c, d.D.toFixed(2) + ' km', 40, f.BW - dateW - 8 - dh * 0.95, GOTH));
+      var hS = 34, fS = 15;
+      var y4 = B - hS, y3 = y4 - hS - 8, y2 = y3 - dh - 8, y1 = y2 - hS - 8;
+      // ① 종목/제목 캡슐 (조금 들여쓰기)
+      var head = d.title || d.typeLabel.charAt(0) + d.typeLabel.slice(1).toLowerCase().replace(/ (\w)/g, function (m0, ch) { return ' ' + ch.toUpperCase(); });
+      popAt(c, s[1], x0 + 40, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); });
+      // ② 날짜 칸(둥근 네모) + 거리 캡슐
+      popAt(c, s[2], x0 + dateW / 2, y2 + dh / 2, 0, function () {
+        rr(c, x0, y2, dateW, dh, dh * 0.32); c.fillStyle = '#262626'; c.fill();
+        var mm = d.mmdd.split('.');
+        text(c, mm[0] || '', x0 + dateW / 2, y2 + dh * 0.44, GOTH(12), '#9A9A95', 'center');
+        text(c, mm[1] || '', x0 + dateW / 2, y2 + dh * 0.8, GOTH(19), WH, 'center');
       });
-      var bw = measure(c, 'RUNIMATE', MONO(9, true), 1) + 24, bx = f.L + f.BW - bw;
-      popAt(c, s0, bx + bw / 2, f.T + 11, 0, function () { chip(c, bx, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { padX: 12 }); });
+      popAt(c, s[3], x0 + dateW + 40, y2 + dh / 2, 1.5, function () { capsule(c, x0 + dateW + 8, y2, dTxt, dfs, A, ink, dh); });
+      // ③④ 나머지 기록 캡슐 (러닝은 페이스, 트레일·하이킹은 고도를 앞에)
+      var eT = '+' + v.elev + ' m', pT = v.pace + ' /km', tT = v.time;
+      var first = d.type === 'run' ? pT : eT, last = d.type === 'run' ? eT : pT;
+      popAt(c, s[4], x0 + 70, y3 + hS / 2, -1.5, function () { capsule(c, x0 + 56, y3, first, fS, BK, WH, hS); });
+      var tw = capW(c, tT, fS, hS);
+      popAt(c, s[5], x0 + tw / 2, y4 + hS / 2, 1, function () { capsule(c, x0, y4, tT, fS, WH, BK, hS); });
+      popAt(c, s[6], x0 + tw + 50, y4 + hS / 2, -1, function () { capsule(c, x0 + tw + 8, y4, last, fS, A, ink, hS); });
+      // RUNIMATE 캡슐 (오른쪽 위)
+      var rw = capW(c, 'RUNIMATE', 11, 26);
+      popAt(c, s[0], f.L + f.BW - rw / 2, f.T + 13, 0, function () { capsule(c, f.L + f.BW - rw, f.T, 'RUNIMATE', 11, BK, WH, 26); });
     }
   };
 
@@ -2071,7 +2089,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   setLayout('bento');
   updateAcgAvailability();
   Promise.all([
-    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'),
+    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMGothic'),
     document.fonts.load('400 10px "Space Mono"'), document.fonts.load('700 10px "Space Mono"')
   ]).catch(function () {}).then(function () { fitLogo(); applyFormat(); requestAnimationFrame(loop); });
 })();
