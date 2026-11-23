@@ -542,33 +542,38 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var R = f.key === 'R', B = f.T + f.BH, x0 = f.L, A = P.accent, ink = inkOn(A), BK = '#0B0B0B', WH = '#F4F4F0';
       c.fillStyle = BK; c.fillRect(0, 0, f.W, f.H);
       drawMedia(c, full(f), kenburns(t), true);
-      var s = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return pop((t - i * 150) / 450); });
-      // 거리 캡슐 크기는 화면 폭에 맞춰 (날짜 칸 + 거리 캡슐이 한 줄에 들어가게)
+      // 등장: 캡슐이 화면 위에서 떨어져 아래부터 차곡차곡 쌓임 (통통 튀며 착지)
+      function bounce(r) { r = clamp(r, 0, 1); var n = 7.5625, dd = 2.75; if (r < 1 / dd) return n * r * r; if (r < 2 / dd) return n * (r -= 1.5 / dd) * r + 0.75; if (r < 2.5 / dd) return n * (r -= 2.25 / dd) * r + 0.9375; return n * (r -= 2.625 / dd) * r + 0.984375; }
+      function drop(order, cx, cy, rot, fn) {
+        var r = (t - 150 - order * 170) / 650; if (r <= 0) return;
+        var k = bounce(r), dy = -(cy + 80) * (1 - k), spin = (1 - clamp(r * 1.6, 0, 1)) * (order % 2 ? 14 : -14);
+        c.save(); c.translate(cx, cy + dy); c.rotate((rot + spin) * Math.PI / 180); c.translate(-cx, -cy); fn(); c.restore();
+      }
+      // 거리 캡슐 크기는 화면 폭에 맞춰 (날짜 원 + 거리 캡슐이 한 줄에 들어가게)
       var dTxt = v.dist + ' km', dh = R ? 62 : 66, dateW = dh;
       var dfs = Math.min(R ? 34 : 37, fitFont(c, d.D.toFixed(2) + ' km', 40, f.BW - dateW - 8 - dh * 0.95, GOTH));
       var hS = 34, fS = 15;
       var y4 = B - hS, y3 = y4 - hS - 8, y2 = y3 - dh - 8, y1 = y2 - hS - 8;
-      // ① 종목/제목 캡슐 (조금 들여쓰기)
       var head = d.title || d.typeLabel.charAt(0) + d.typeLabel.slice(1).toLowerCase().replace(/ (\w)/g, function (m0, ch) { return ' ' + ch.toUpperCase(); });
-      popAt(c, s[1], x0 + 40, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); });
-      // ② 날짜 칸(둥근 네모) + 거리 캡슐
-      popAt(c, s[2], x0 + dateW / 2, y2 + dh / 2, 0, function () {
-        rr(c, x0, y2, dateW, dh, dh * 0.32); c.fillStyle = '#262626'; c.fill();
-        var mm = d.mmdd.split('.');
-        text(c, mm[0] || '', x0 + dateW / 2, y2 + dh * 0.44, GOTH(12), '#9A9A95', 'center');
-        text(c, mm[1] || '', x0 + dateW / 2, y2 + dh * 0.8, GOTH(19), WH, 'center');
-      });
-      popAt(c, s[3], x0 + dateW + 40, y2 + dh / 2, 1.5, function () { capsule(c, x0 + dateW + 8, y2, dTxt, dfs, A, ink, dh); });
-      // ③④ 나머지 기록 캡슐 (러닝은 페이스, 트레일·하이킹은 고도를 앞에)
       var eT = '+' + v.elev + ' m', pT = v.pace + ' /km', tT = v.time;
       var first = d.type === 'run' ? pT : eT, last = d.type === 'run' ? eT : pT;
-      popAt(c, s[4], x0 + 70, y3 + hS / 2, -1.5, function () { capsule(c, x0 + 56, y3, first, fS, BK, WH, hS); });
-      var tw = capW(c, tT, fS, hS);
-      popAt(c, s[5], x0 + tw / 2, y4 + hS / 2, 1, function () { capsule(c, x0, y4, tT, fS, WH, BK, hS); });
-      popAt(c, s[6], x0 + tw + 50, y4 + hS / 2, -1, function () { capsule(c, x0 + tw + 8, y4, last, fS, A, ink, hS); });
-      // RUNIMATE 캡슐 (오른쪽 위)
+      var tw = capW(c, tT, fS, hS), lw = capW(c, last, fS, hS), fw = capW(c, first, fS, hS), dw = capW(c, dTxt, dfs, dh), hw = capW(c, head, fS, hS);
+      // 맨 아래 줄부터 떨어짐
+      drop(0, x0 + tw / 2, y4 + hS / 2, 1, function () { capsule(c, x0, y4, tT, fS, WH, BK, hS); });
+      drop(1, x0 + tw + 8 + lw / 2, y4 + hS / 2, -1, function () { capsule(c, x0 + tw + 8, y4, last, fS, A, ink, hS); });
+      drop(2, x0 + 56 + fw / 2, y3 + hS / 2, -1.5, function () { capsule(c, x0 + 56, y3, first, fS, BK, WH, hS); });
+      drop(3, x0 + dateW + 8 + dw / 2, y2 + dh / 2, 1.5, function () { capsule(c, x0 + dateW + 8, y2, dTxt, dfs, A, ink, dh); });
+      // 날짜: 원
+      drop(4, x0 + dateW / 2, y2 + dh / 2, -4, function () {
+        var cx = x0 + dateW / 2, cy = y2 + dh / 2, mm = d.mmdd.split('.');
+        c.beginPath(); c.arc(cx, cy, dh / 2, 0, Math.PI * 2); c.fillStyle = '#262626'; c.fill();
+        text(c, mm[0] || '', cx, cy - 3, GOTH(11), '#9A9A95', 'center');
+        text(c, mm[1] || '', cx, cy + 15, GOTH(19), WH, 'center');
+      });
+      drop(5, x0 + 28 + hw / 2, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); });
+      // RUNIMATE 캡슐 (오른쪽 위) — 마지막에 떨어짐
       var rw = capW(c, 'RUNIMATE', 11, 26);
-      popAt(c, s[0], f.L + f.BW - rw / 2, f.T + 13, 0, function () { capsule(c, f.L + f.BW - rw, f.T, 'RUNIMATE', 11, BK, WH, 26); });
+      drop(6, f.L + f.BW - rw / 2, f.T + 13, 0, function () { capsule(c, f.L + f.BW - rw, f.T, 'RUNIMATE', 11, BK, WH, 26); });
     }
   };
 
