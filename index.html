@@ -1210,8 +1210,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var cs = R ? 122 : 108, top = bandTop + 42, bot = B - cs - 8, gap = Math.min(44, (bot - top) / 3), cp = gap < 38;
       var lines = [
         [String(M.runs), ANTON(18), A, 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
-        ['+' + M.elev + 'M', HELV(14), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
-        [M.pace, HELV(14), WH, 'AVERAGE PACE', 'Steady is the new fast.']
+        ['+' + M.elev + 'M', ANTON(18), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
+        [M.pace, ANTON(18), WH, 'AVERAGE PACE', 'Steady is the new fast.']
       ];
       lines.forEach(function (ln, i) {
         var e = ease((t - 700 - i * 120) / 450), y = top + i * gap, nb = y + 14;
@@ -1227,13 +1227,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var x = L + W, y = top;
         small('SPECIAL FEATURE', x, y + 5, 'right', A);
         text(c, 'THE FARTHEST I WENT', x, y + 18, ANTON(11), WH, 'right');
-        if (!best) { text(c, '—', x, y + 42, HELV(20), WH, 'right'); return; }
-        var kw = measure(c, 'KM', HELV(8));
-        text(c, 'KM', x, y + 42, HELV(8), WH, 'right');
-        text(c, (best.km * kk).toFixed(1), x - kw - 2, y + 42, HELV(22), NC, 'right', -0.4);
+        if (!best) { text(c, '—', x, y + 44, ANTON(26), WH, 'right'); return; }
+        var kw = measure(c, 'KM', ANTON(10));
+        text(c, 'KM', x, y + 44, ANTON(10), WH, 'right');
+        text(c, (best.km * kk).toFixed(1), x - kw - 3, y + 44, ANTON(26), NC, 'right');
         var dd = String(best.date).slice(8, 10);
-        small(mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 52, 'right');
-        small(fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 60, 'right');
+        text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 55, ANTON(8), WH, 'right', 0.3);
+        text(c, fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 65, ANTON(8), WH, 'right', 0.3);
       });
 
       // ⑤ 커버스토리: 이달 합산 거리
@@ -1245,7 +1245,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var nfs = R ? 62 : 52, nb = y0 + 32 + nfs * 0.84, dw = measure(c, M.dist, ANTON(nfs));
         text(c, M.dist, L - 1, nb, ANTON(nfs), NC);
         text(c, 'KM', L + dw + 4, nb, ANTON(16), NC);
-        small(M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, B - 14);
+        text(c, M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, B - 14, ANTON(8), WH, 'left', 0.3);
         c.save(); c.globalAlpha *= 0.75; small('The answer to the only question in ' + mon + '.', L, B - 5, 'left', WH, 6.5); c.restore();
       });
       // ⑥ 바코드
