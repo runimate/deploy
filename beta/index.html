@@ -528,9 +528,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // STICKER — 모든 기록을 캡슐(알약) 모양 스티커에 담음. 서체: Special Gothic Expanded (한글은 Pretendard)
   function GOTH(sz) { return sz + 'px RMGothic, "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif'; }
   function capFont(txt, fs) { return /[가-힣]/.test(txt) ? PRET(fs * 1.08, 800) : GOTH(fs); } // 한글은 Pretendard 굵게
-  function capsule(c, x, y, txt, fs, bg, fg, h) {
+  function capsule(c, x, y, txt, fs, bg, fg, h, fixedW) {
     h = h || Math.round(fs * 1.9);
-    var w = measure(c, txt, capFont(txt, fs)) + h * 0.95;
+    var w = fixedW || measure(c, txt, capFont(txt, fs)) + h * 0.95; // fixedW: 숫자가 올라가는 동안에도 캡슐 크기 고정
     rr(c, x, y, w, h, h / 2); c.fillStyle = bg; c.fill();
     text(c, txt, x + w / 2, y + h / 2 + fs * 0.36, capFont(txt, fs), fg, 'center');
     return w;
@@ -557,12 +557,14 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var head = d.title || d.typeLabel.charAt(0) + d.typeLabel.slice(1).toLowerCase().replace(/ (\w)/g, function (m0, ch) { return ' ' + ch.toUpperCase(); });
       var eT = '+' + v.elev + ' m', pT = v.pace + ' /km', tT = v.time;
       var first = d.type === 'run' ? pT : eT, last = d.type === 'run' ? eT : pT;
-      var tw = capW(c, tT, fS, hS), lw = capW(c, last, fS, hS), fw = capW(c, first, fS, hS), dw = capW(c, dTxt, dfs, dh), hw = capW(c, head, fS, hS);
+      // 캡슐 폭은 최종 숫자 기준으로 고정 (카운트업 중에 늘었다 줄었다 하지 않게)
+      var vf = vals(d, 1), eF = '+' + vf.elev + ' m', pF = vf.pace + ' /km', firstF = d.type === 'run' ? pF : eF, lastF = d.type === 'run' ? eF : pF;
+      var tw = capW(c, vf.time, fS, hS) + 4, lw = capW(c, lastF, fS, hS) + 4, fw = capW(c, firstF, fS, hS) + 4, dw = capW(c, vf.dist + ' km', dfs, dh) + 4, hw = capW(c, head, fS, hS);
       // 맨 아래 줄부터 떨어짐
-      drop(0, x0 + tw / 2, y4 + hS / 2, 1, function () { capsule(c, x0, y4, tT, fS, WH, BK, hS); });
-      drop(1, x0 + tw + 8 + lw / 2, y4 + hS / 2, -1, function () { capsule(c, x0 + tw + 8, y4, last, fS, A, ink, hS); });
-      drop(2, x0 + 56 + fw / 2, y3 + hS / 2, -1.5, function () { capsule(c, x0 + 56, y3, first, fS, BK, WH, hS); });
-      drop(3, x0 + dateW + 8 + dw / 2, y2 + dh / 2, 1.5, function () { capsule(c, x0 + dateW + 8, y2, dTxt, dfs, A, ink, dh); });
+      drop(0, x0 + tw / 2, y4 + hS / 2, 1, function () { capsule(c, x0, y4, tT, fS, WH, BK, hS, tw); });
+      drop(1, x0 + tw + 8 + lw / 2, y4 + hS / 2, -1, function () { capsule(c, x0 + tw + 8, y4, last, fS, A, ink, hS, lw); });
+      drop(2, x0 + 56 + fw / 2, y3 + hS / 2, -1.5, function () { capsule(c, x0 + 56, y3, first, fS, BK, WH, hS, fw); });
+      drop(3, x0 + dateW + 8 + dw / 2, y2 + dh / 2, 1.5, function () { capsule(c, x0 + dateW + 8, y2, dTxt, dfs, A, ink, dh, dw); });
       // 날짜: 원
       drop(4, x0 + dateW / 2, y2 + dh / 2, -4, function () {
         var cx = x0 + dateW / 2, cy = y2 + dh / 2, mm = d.mmdd.split('.');
