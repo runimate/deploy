@@ -1070,6 +1070,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   }
   function render(t) {
     var f = st.fmt, d = readData(), k = ease((t - HOLD) / COUNT);
+    // 영수증은 종이 출력(약 2.75초)이 끝난 뒤에 숫자가 올라가게
+    if (mode === 'monthly' && st.layout === 'mreceipt') k = ease((t - 2800) / 2200);
     ctx.setTransform(S, 0, 0, S, 0, 0);
     ctx.clearRect(0, 0, f.W, f.H); ctx.globalAlpha = 1;
     if (mode === 'monthly') Lay[st.layout].draw(ctx, f, t, monthAgg(monthTypes(), k), palette());
