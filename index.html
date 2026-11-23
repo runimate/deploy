@@ -788,7 +788,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var cx = x + (col + 0.5) * cw, cy = y + 14 + (row + 0.5) * rowH;
       if (opt.helv) {
         if (o.n && o.g > 0) {
-          var sd = (10 + Math.min(o.elev, 1500) / 75) * o.g, hh = sd * 0.866, ty = cy - 3;
+          var sd = 12 * o.g, hh = sd * Math.sqrt(3) / 2, ty = cy - 3;   // 정삼각형, 모두 같은 크기
           c.beginPath(); c.moveTo(cx, ty - hh / 2 - 2); c.lineTo(cx + sd / 2, ty + hh / 2 - 2); c.lineTo(cx - sd / 2, ty + hh / 2 - 2); c.closePath();
           c.fillStyle = opt.acc; c.fill();
         }
