@@ -1052,6 +1052,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'mbento', name: 'BENTO' },
     { id: 'mreceipt', name: 'RECEIPT' },
     { id: 'mbold', name: 'BOLD' },
+    { id: 'mmag', name: 'MAGAZINE' },
     { id: 'macg', name: 'ACG', acg: true }
   ];
 
@@ -1146,6 +1147,122 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         rr(c, f.L, stripTop, f.BW, 60, 14); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
         stat3(c, f.L + 14, stripTop + 11, f.BW - 20, ['TIME', 'ELEV GAIN', 'AVG PACE'], [M.time, '+' + M.elev + 'M', M.pace], 20, '#F4F4F0');
       });
+    }
+  };
+
+  // MAGAZINE — 잡지 'Monthly RUNNING' ○월호 표지. 메인 기사 = 그달 가장 길게 달린 기록
+  function SERIF(sz) { return 'italic 400 ' + sz + 'px Georgia, "Times New Roman", serif'; }
+  var TYPE_EN = { run: 'RUN', trail: 'TRAIL RUN', hike: 'HIKE' };
+  function wrapText(c, str, x, y, maxW, lh, font, color, maxLines) {
+    var words = str.split(' '), line = '', n = 0;
+    for (var i = 0; i < words.length; i++) {
+      var tryL = line ? line + ' ' + words[i] : words[i];
+      if (line && measure(c, tryL, font) > maxW) { text(c, line, x, y + n * lh, font, color); n++; line = words[i]; if (n >= maxLines) return; }
+      else line = tryL;
+    }
+    if (line && n < maxLines) text(c, line, x, y + n * lh, font, color);
+  }
+  Lay.mmag = {
+    rect: full,
+    draw: function (c, f, t, M, P) {
+      var R = f.key === 'R', B = f.T + f.BH, A = P.accent, L = f.L, W = f.BW, WH = '#F4F4F0';
+      var mon = M.name.charAt(0) + M.name.slice(1).toLowerCase(), mon3 = M.name.slice(0, 3);
+      c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H);
+      drawMedia(c, full(f), kenburns(t), true);
+      // 글자가 잘 읽히게 위·아래만 어둡게
+      var g1 = c.createLinearGradient(0, 0, 0, f.T + 120); g1.addColorStop(0, 'rgba(0,0,0,0.55)'); g1.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g1; c.fillRect(0, 0, f.W, f.T + 120);
+      var g2 = c.createLinearGradient(0, B - 170, 0, f.H); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,0.8)'); c.fillStyle = g2; c.fillRect(0, B - 170, f.W, f.H - B + 170);
+
+      // ① 맨 위 한 줄: 권호 / 종목 / 발행월
+      var e0 = ease(t / 500);
+      fade(c, e0, 0, function () {
+        text(c, 'VOL.3 · NO.' + M.m + ' · ' + monthLabel(), L, f.T + 7, MONO(7, true), WH, 'left', 1);
+        text(c, M.name + ' ' + M.y + ' · FREE', L + W, f.T + 7, MONO(7, true), WH, 'right', 1);
+      });
+      // ② 제호: RUNNING (왼쪽→오른쪽으로 드러남) + 손글씨 같은 Monthly
+      var mfs = fitFont(c, 'RUNNING', 120, W + 4, ANTON), mb = f.T + 14 + mfs * 0.8, wipe = inout((t - 150) / 700);
+      c.save(); c.beginPath(); c.rect(L - 4, f.T + 8, (W + 8) * wipe, mfs); c.clip();
+      text(c, 'RUNNING', L - 2, mb, ANTON(mfs), A);
+      c.restore();
+      var e1 = ease((t - 650) / 500);
+      fade(c, e1, (1 - e1) * -8, function () {
+        c.save(); c.translate(L + 4, f.T + 34); c.rotate(-0.08);
+        text(c, 'Monthly', 0, 0, SERIF(30), WH);
+        c.restore();
+      });
+      fade(c, e1, 0, function () {
+        c.fillStyle = WH; c.fillRect(L, mb + 6, W, 1);
+        text(c, 'THE ' + M.name + ' ISSUE', L, mb + 16, MONO(7, true), WH, 'left', 1.6);
+        text(c, 'FOR PEOPLE WHO RUN', L + W, mb + 16, MONO(7, true), WH, 'right', 1.6);
+      });
+
+      // ③ 왼쪽 표지 문구 4개 (숫자 + 대문자 제목 + 기울인 한 줄)
+      var top = mb + 32, bottomTop = B - 122, gap = Math.min(44, (bottomTop - top) / 4);
+      var lines = [
+        [String(M.runs), 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
+        ['+' + M.elev + 'M', 'TOTAL CLIMB', "Hills don't care. Neither do we."],
+        [M.pace, 'AVERAGE PACE', 'Steady is the new fast.'],
+        [M.time, 'TIME ON FEET', 'Every minute counted.']
+      ];
+      lines.forEach(function (ln, i) {
+        var e = ease((t - 800 - i * 140) / 500), y = top + i * gap;
+        // 피드(3:4)처럼 자리가 좁으면 조금 촘촘하게
+        var cp = gap < 40, nf = cp ? 17 : 21, y1 = y + (cp ? 15 : 19), y2 = y1 + (cp ? 8 : 9), y3 = y2 + (cp ? 9 : 10);
+        fade(c, e, (1 - e) * 14, function () {
+          text(c, ln[0], L, y1, ANTON(nf), i === 0 ? A : WH);
+          text(c, ln[1], L, y2, MONO(6.5, true), WH, 'left', 1.2);
+          c.save(); c.globalAlpha *= 0.85; text(c, ln[2], L, y3, SERIF(cp ? 8 : 8.5), WH); c.restore();
+        });
+      });
+
+      // ④ 오른쪽: 스티커 + ALSO INSIDE (그달 2~4번째로 긴 기록)
+      var sorted = M.recs.slice().sort(function (a, b) { return b.km - a.km; }), best = sorted[0];
+      var sp = ease((t - 1500) / 450), sx = L + W - 32, sy = top + 30;
+      if (sp > 0 && best) {
+        c.save(); c.translate(sx, sy); c.rotate(-0.22); c.scale(0.6 + 0.4 * sp, 0.6 + 0.4 * sp); c.globalAlpha *= sp;
+        c.beginPath(); for (var j = 0; j < 28; j++) { var an = j / 28 * Math.PI * 2, rr2 = j % 2 ? 27 : 31; c.lineTo(Math.cos(an) * rr2, Math.sin(an) * rr2); } c.closePath();
+        c.fillStyle = WH; c.fill();
+        text(c, 'NO.1', 0, 2, ANTON(16), '#0B0B0B', 'center');
+        text(c, 'RUN OF', 0, 11, MONO(5.5, true), '#0B0B0B', 'center', 0.6);
+        text(c, 'THE MONTH', 0, 17, MONO(5.5, true), '#0B0B0B', 'center', 0.6);
+        c.restore();
+      }
+      var e3 = ease((t - 1300) / 500);
+      if (sorted.length > 1) fade(c, e3, (1 - e3) * 14, function () {
+        var ry = sy + 52;
+        text(c, 'ALSO INSIDE', L + W, ry, MONO(6.5, true), A, 'right', 1.4);
+        sorted.slice(1, 4).forEach(function (w, i) {
+          var dd = String(w.date).slice(8, 10);
+          text(c, w.km.toFixed(1) + 'K', L + W, ry + 17 + i * 22, ANTON(13), WH, 'right');
+          c.save(); c.globalAlpha *= 0.8; text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[w.type] || 'RUN'), L + W, ry + 25 + i * 22, MONO(5.5, true), WH, 'right', 0.8); c.restore();
+        });
+      });
+
+      // ⑤ 메인 기사 (아래): COVER STORY + 가장 긴 기록
+      var e4 = ease((t - 1000) / 600), kk = ease((t - HOLD) / COUNT);
+      fade(c, e4, (1 - e4) * 18, function () {
+        var y0 = B - 118;
+        chip(c, L, y0, 'COVER STORY', A, inkOn(A), { size: 7, h: 14, padX: 6, r: 0 });
+        if (!best) { text(c, 'THE NEXT RUN IS YOURS', L, y0 + 44, ANTON(24), WH); return; }
+        var dd = String(best.date).slice(8, 10);
+        text(c, 'THE LONGEST RUN OF ' + M.name, L, y0 + 34, ANTON(R ? 17 : 18), WH);
+        var km = (best.km * kk).toFixed(2), kfs = R ? 52 : 56, kw = measure(c, km, ANTON(kfs));
+        text(c, km, L - 2, y0 + 34 + kfs * 0.86, ANTON(kfs), st.numColor);
+        text(c, 'KM', L + kw + 4, y0 + 34 + kfs * 0.86, ANTON(18), st.numColor);
+        var metaY = B - 18, bw = 56;
+        text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN') + ' · ' + fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), L, metaY, MONO(7, true), WH, 'left', 0.8);
+        c.save(); c.globalAlpha *= 0.85;
+        wrapText(c, 'Inside the run that defined ' + mon + '. One road, one story. p.26', L, metaY + 11, W - bw - 10, 10, SERIF(8.5), WH, 1);
+        c.restore();
+      });
+      // ⑥ 바코드 (오른쪽 아래) — 막대가 하나씩 찍힘
+      var e5 = ease((t - 1700) / 700), bx = L + W - 56, by = B - 34;
+      if (e5 > 0) {
+        c.fillStyle = WH; c.fillRect(bx - 3, by - 3, 59, 37);
+        var seed = M.y * 13 + M.m * 7, x = bx, n = Math.floor(44 * e5);
+        for (var b = 0; b < n && x < bx + 53; b++) { seed = (seed * 9301 + 49297) % 233280; var bwid = 0.6 + (seed % 3) * 0.6; if (b % 2 === 0) { c.fillStyle = '#0B0B0B'; c.fillRect(x, by, bwid, 22); } x += bwid + 0.4; }
+        c.save(); c.globalAlpha *= e5; text(c, String(M.y).slice(2) + String(M.m).padStart(2, '0') + ' RUNIMATE', bx + 26.5, by + 30, MONO(5, true), '#0B0B0B', 'center', 0.6); c.restore();
+      }
     }
   };
 
@@ -1504,9 +1621,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     st.layout = id;
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
-    var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'macg'].indexOf(id) !== -1;
+    var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
     $('accentWrap').classList.toggle('hidden', !useAccent);
-    $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold');
+    $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold' && id !== 'mmag');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
     $('acgInkWrap').classList.toggle('hidden', !isAcg());
     // 화면 포인트 컬러: 기본은 네온, ACG 레이아웃에서만 오렌지
