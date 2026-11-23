@@ -583,7 +583,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       c.beginPath();
       for (var a = 0; a <= 120; a++) {
         var th = a / 120 * Math.PI * 2 * grow + sd;
-        var rad = r0 * (1 + 0.15 * Math.sin(th * 3 + j * 0.45 + sd) + 0.08 * Math.cos(th * 5 - j * 0.7 + sd * 2) + 0.04 * Math.sin(th * 8 + j));
+        var hm = o.h || [3, 5, 8, 0.15, 0.08, 0.04];
+        var rad = r0 * (1 + hm[3] * Math.sin(th * hm[0] + j * 0.45 + sd) + hm[4] * Math.cos(th * hm[1] - j * 0.7 + sd * 2) + hm[5] * Math.sin(th * hm[2] + j));
         var x = o.cx + Math.cos(th) * rad, y = o.cy + Math.sin(th) * rad * (o.sy || 0.72);
         if (a === 0) c.moveTo(x, y); else c.lineTo(x, y);
       }
@@ -619,7 +620,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       drawMedia(c, full(f), kenburns(t), true);
       var ph = 126, top = B - ph;
       topo(c, { cx: f.W, cy: 0, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 150, seed: 0.9 });
-      topo(c, { cx: 0, cy: f.H, r0: 9, n: 8, gap: 12, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
+      topo(c, { cx: 10, cy: top - 30, r0: 12, n: 10, gap: 16, sy: 0.6, h: [2, 4, 7, 0.22, 0.1, 0.05], color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 350, seed: 3.3 });
       acgHeader(c, f, t, d);
       var p = ease((t - 250) / 750);
       c.save();
@@ -658,13 +659,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var g = this.geo(f), A = st.acgAccent, ink = st.acgInk, self = this;
       c.fillStyle = '#0E0E0E'; c.fillRect(0, 0, f.W, f.H);
       topo(c, { cx: f.W, cy: 0, r0: 21, n: 9, gap: 18, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 0, seed: 0.3 });
-      topo(c, { cx: 0, cy: f.H, r0: 21, n: 9, gap: 18, color: '#FFFFFF', alpha: 0.22, lw: 1, t: t, delay: 100, seed: 1.7 });
+      topo(c, { cx: 10, cy: f.H * 0.8, r0: 28, n: 10, gap: 24, sy: 0.6, h: [2, 4, 7, 0.22, 0.1, 0.05], color: '#FFFFFF', alpha: 0.24, lw: 1, t: t, delay: 100, seed: 1.7 });
       var e0 = ease(t / 600), e1 = ease((t - 200) / 600), e2 = ease((t - 350) / 600), e3 = ease((t - 500) / 600);
       fade(c, e0, (1 - e0) * 20, function () {
         var r = self.rect(f);
         c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip();
         drawMedia(c, r, kenburns(t), true);
-        topo(c, { cx: r.x + r.w + 2, cy: r.y - 2, r0: 5, n: 7, gap: 8, color: '#FFFFFF', alpha: 0.55, lw: 1, t: t, delay: 300, seed: 2.6 });
         c.restore();
         text(c, 'FIELD REPORT', r.x + 10, r.y + 18, HELV(9), '#FFFFFF', 'left', 0.2);
         text(c, d.ymd, r.x + 10, r.y + 30, HELV(9), '#FFFFFF', 'left', 0.2);
