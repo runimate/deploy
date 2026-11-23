@@ -665,17 +665,20 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
       text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 17, HELV(10), ink, 'left', 0.2);
       text(c, d.typeLabel, xr, top + 17, HELV(10), ink, 'right', 0.2);
-      rule(top + 24, 450);
-      var nfs = 56, nb = top + 32 + nfs * 0.72, ls = -nfs * 0.04;
+      var r1 = top + 24, r2 = top + 84, mid = (r1 + r2) / 2;
+      rule(r1, 450); rule(r2, 650);
+      // 거리 숫자: 실제 글자 높이를 재서 두 라인 사이 정중앙에
+      var nfs = 56, ls = -nfs * 0.04;
+      c.font = HELV(nfs); var mt = c.measureText(v.dist), asc = mt.actualBoundingBoxAscent || nfs * 0.714, dsc = Math.max(0, mt.actualBoundingBoxDescent || 0);
+      var nb = mid + (asc - dsc) / 2 + 0.5;
       text(c, v.dist, x - 1, nb, HELV(nfs), ink, 'left', ls);
       var nw = measure(c, v.dist, HELV(nfs), ls);
-      text(c, 'KM', x - 1 + nw + 5, nb - nfs * 0.72 + 11, HELV(13), ink);
-      rule(nb + 9, 650);
+      text(c, 'KM', x - 1 + nw + 5, nb - asc + 11, HELV(13), ink);
       var rows = acgRows(v), cw = w / 3;
       for (var i = 0; i < 3; i++) {
         var cx = x + i * cw;
-        text(c, rows[i][0], cx, nb + 22, HELV(8), ink, 'left', 0.3);
-        text(c, rows[i][1], cx, nb + 38, HELV(13), ink, 'left', -0.2);
+        text(c, rows[i][0], cx, r2 + 13, HELV(8), ink, 'left', 0.3);
+        text(c, rows[i][1], cx, r2 + 29, HELV(13), ink, 'left', -0.2);
       }
       c.restore();
     }
@@ -932,7 +935,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var rw = R ? 232 : 244, x = f.L + (f.BW - rw) / 2, slotY = f.T + 4, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
       var sorted = M.recs.slice().sort(function (a, b) { return b.km - a.km; }), items = sorted.slice(0, maxN), more = Math.max(0, sorted.length - maxN);
       var rows = items.length + (more ? 1 : 0);
-      var yItems = 74, yAfter = yItems + rows * lh + 6, H = yAfter + 26 + 8 + 4 * 11 + 10 + 16 + 18 + 10 + z;
+      var yItems = 74, yAfter = yItems + rows * lh + 6, H = yAfter + 34 + 8 + 4 * 11 + 10 + 16 + 18 + 10 + z;
       var p = clamp((t - 450) / 2300, 0, 1); p = 1 - (1 - p) * (1 - p);
       var py = slotY + 1 - H * (1 - p);
       c.save(); c.beginPath(); c.rect(x - 4, slotY + 1, rw + 8, f.H); c.clip();
@@ -953,11 +956,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       });
       if (more) { c.save(); c.globalAlpha *= 0.7; text(c, '... +' + more + ' MORE', L, yItems + items.length * lh + 8, MONO(9), ink); c.restore(); }
       dash(yAfter);
-      text(c, 'TOTAL', L, yAfter + 24, MONO(10, true), ink);
-      text(c, M.dist + ' KM', Rr, yAfter + 26, ANTON(28), ink, 'right');
+      text(c, 'TOTAL', L, yAfter + 32, MONO(10, true), ink);
+      text(c, M.dist + ' KM', Rr, yAfter + 34, ANTON(28), ink, 'right');
       var rowsT = [['RUNS', String(M.runs)], ['TIME', M.time], ['ELEV GAIN', '+' + M.elev + ' M'], ['AVG PACE', M.pace]];
-      rowsT.forEach(function (r2, i) { var yy = yAfter + 44 + i * 11; text(c, r2[0], L, yy, MONO(9), ink); text(c, r2[1], Rr, yy, MONO(9), ink, 'right'); });
-      var yb = yAfter + 44 + 4 * 11;
+      rowsT.forEach(function (r2, i) { var yy = yAfter + 52 + i * 11; text(c, r2[0], L, yy, MONO(9), ink); text(c, r2[1], Rr, yy, MONO(9), ink, 'right'); });
+      var yb = yAfter + 52 + 4 * 11;
       dash(yb - 4);
       c.fillStyle = ink;
       for (var bx = L, bi = 0; bx < Rr; bi++) { var bwid = (bi * 7 % 5 === 0) ? 3 : (bi % 3 === 0 ? 2 : 1); c.fillRect(bx, yb + 2, bwid, 16); bx += bwid + 1 + (bi % 2); }
@@ -1004,8 +1007,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       rule(r1, 450); rule(r2, 650);
       // 거리 숫자: 실제 글자 높이를 재서 두 라인 사이 정중앙에 (기존 48px의 120%)
       var nfs = 58, ls = -nfs * 0.04;
-      c.font = HELV(nfs); var mt = c.measureText('0123456789'), asc = mt.actualBoundingBoxAscent || nfs * 0.72, dsc = mt.actualBoundingBoxDescent || 0;
-      var nb = mid + (asc - dsc) / 2;
+      c.font = HELV(nfs); var mt = c.measureText(M.dist), asc = mt.actualBoundingBoxAscent || nfs * 0.714, dsc = Math.max(0, mt.actualBoundingBoxDescent || 0);
+      var nb = mid + (asc - dsc) / 2 + 0.3;
       text(c, M.dist, x - 1, nb, HELV(nfs), ink, 'left', ls);
       var nw = measure(c, M.dist, HELV(nfs), ls);
       text(c, 'KM', x - 1 + nw + 5, nb - asc + 12, HELV(14), ink);
