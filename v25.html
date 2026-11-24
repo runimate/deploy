@@ -674,7 +674,7 @@
       const v = Math.round(Number(m || 0));
       return `${v.toLocaleString('en-US')}M`;
     }
-    function isTrailWorkout(w) { return String((w && w.sportType) || '').toLowerCase().includes('trail'); }
+    function isTrailWorkout(w) { var s = String((w && w.sportType) || '').toLowerCase(); return s.includes('trail') || s.includes('ultra'); } // 가민 울트라 러닝도 트레일로
 
     // [EX 스타일] 거리 숫자를 박스 가로폭에 맞춰 정확히 채우기 (9.99KM이든 99.99KM이든 항상 꽉 채움)
     function fitExNumber(numEl) {
