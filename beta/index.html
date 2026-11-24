@@ -173,6 +173,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <p class="small" style="margin:0">가민 커넥트에서 2단계 인증(2FA)을 켜둔 계정은 기록을 불러올 수 없어요.</p>
     </div>
 
+    <div id="srcCoros" class="hidden stack">
+      <label class="fld">코로스 계정 이메일<input type="email" id="cEmail" autocomplete="username"></label>
+      <label class="fld">비밀번호<input type="password" id="cPw" autocomplete="current-password"></label>
+      <button type="button" class="btn primary" id="btnCoros">코로스 기록 불러오기</button>
+      <p class="small" style="margin:0">테스트 중인 기능이에요. 불러오면 코로스 웹(Training Hub)에서 로그아웃될 수 있어요.</p>
+    </div>
+
     <div id="srcManual" class="hidden stack">
       <div class="seg" role="group" aria-label="운동 종류" style="margin:0">
         <button type="button" data-mt="run" aria-pressed="false">러닝</button>
@@ -425,7 +432,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12 };
   var src = 'strava', sportFilter = 'all', manualType = 'trail';
-  var workouts = { strava: [], garmin: [] };
+  var workouts = { strava: [], garmin: [], coros: [] };
   var record = null;
   var media = null, view = { zoom: 1, px: 0, py: 0 }, trimStart = 0;
   var t0 = performance.now(), exporting = false, exportT0 = 0, hideGuides = false, offline = false;
@@ -1758,6 +1765,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     document.querySelectorAll('[data-src]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.src === s ? 'true' : 'false'); });
     $('srcStrava').classList.toggle('hidden', s !== 'strava');
     $('srcGarmin').classList.toggle('hidden', s !== 'garmin');
+    $('srcCoros').classList.toggle('hidden', s !== 'coros');
     $('srcManual').classList.toggle('hidden', s !== 'manual');
     showErr('');
     record = null;
@@ -1864,6 +1872,27 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       setWorkouts('garmin', json.data);
     } catch (e) { console.error(e); showErr('서버 연결에 실패했어요. 잠시 후 다시 시도해주세요.'); }
     finally { btn.disabled = false; btn.textContent = '가민 기록 불러오기'; }
+  });
+  // 코로스 (테스트): 주소에 ?coros=1 을 붙여 들어오면 탭이 열림. 한 번 열면 이 브라우저에선 계속 열려 있음
+  (function () {
+    var on = /[?&]coros=1/.test(location.search);
+    try { if (on) localStorage.setItem('runimate_coros_test', '1'); on = on || localStorage.getItem('runimate_coros_test') === '1'; } catch (e) {}
+    if (!on) return;
+    var b = document.querySelector('[data-src="coros"]'); if (!b) return;
+    b.disabled = false; b.removeAttribute('aria-disabled'); b.classList.remove('soon'); b.title = '';
+    var tag = b.querySelector('.soonTag'); if (tag) tag.remove();
+  })();
+  $('btnCoros').addEventListener('click', async function () {
+    var email = $('cEmail').value.trim(), pw = $('cPw').value;
+    if (!email || !pw) { showErr('이메일과 비밀번호를 입력해주세요.'); return; }
+    var btn = $('btnCoros'); btn.disabled = true; btn.textContent = '불러오는 중…'; showErr('');
+    try {
+      var res = await fetch(SERVER + '/api/coros', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: pw, includeHike: true }) });
+      var json = await res.json().catch(function () { return {}; });
+      if (!res.ok || !json.success) { showErr('불러오지 못했어요. 이메일·비밀번호를 확인해주세요.' + (json.message ? ' (' + json.message + ')' : '')); return; }
+      setWorkouts('coros', json.data);
+    } catch (e) { console.error(e); showErr('서버 연결에 실패했어요. 잠시 후 다시 시도해주세요.'); }
+    finally { btn.disabled = false; btn.textContent = '코로스 기록 불러오기'; }
   });
   $('btnStrava').addEventListener('click', function () {
     var redirect = location.origin + location.pathname;
@@ -2362,7 +2391,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   (function initRecords() {
     var q = new URLSearchParams(location.search), code = q.get('code');
-    ['strava', 'garmin'].forEach(function (k) {
+    ['strava', 'garmin', 'coros'].forEach(function (k) {
       try { var s = JSON.parse(sessionStorage.getItem('runimate_' + k + '_data') || '[]'); if (s.length) workouts[k] = s.map(normalize).filter(function (w) { return w.type !== 'other'; }); } catch (e) {}
     });
     if (code) { history.replaceState({}, document.title, location.pathname); setSrc('strava'); stravaFromCode(code); }
