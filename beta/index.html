@@ -228,7 +228,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <!-- 4. 스타일 -->
   <h2 class="step"><span class="n">03</span>스타일</h2>
   <div class="card">
-    <label class="fld" id="titleWrap" style="margin:0 0 14px">장소 / 제목<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"><span class="small" style="display:block;margin-top:6px;font-weight:500">결과물에 표시돼요. 비워두면 종목 이름(예: 트레일러닝)이 대신 들어가요.</span></label>
+    <label class="fld" id="titleWrap" style="margin:0 0 14px">장소 / 제목<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"><span class="small" style="display:block;margin-top:6px;font-weight:500">결과물에 표시돼요. 비워두면 그 자리에 기록한 날짜가 들어가요.</span></label>
     <div id="accentWrap" style="margin-bottom:14px">
       <h3 id="accentTitle">포인트 컬러</h3>
       <div class="sw" id="swatches" role="group" aria-label="포인트 컬러"></div>
@@ -300,7 +300,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <li><i class="g blue"></i><span><b>파란 선</b> 프로필 그리드(3:4)에서 보이는 범위</span></li></ul>
       <p class="note">피드 3:4는 오른쪽 위 1/N 표시와 왼쪽 아래 태그 아이콘 자리만 피하면 돼요.</p></section>
     <section><h3><b>03</b> 스타일</h3>
-      <p><b>장소/제목</b>은 제목을 쓰는 레이아웃에서만 보여요. 비워두면 종목 이름이 들어가요.</p>
+      <p><b>장소/제목</b>은 제목을 쓰는 레이아웃에서만 보여요. 비워두면 그 자리에 기록한 날짜가 들어가요.</p>
       <p>포인트 컬러는 추천 5색 또는 맨 끝 버튼으로 원하는 색을 고를 수 있어요. 일부 레이아웃은 숫자 컬러, 다크/라이트를 따로 고를 수 있어요.</p></section>
     <section><h3><b>04</b> 사진 / 영상</h3>
       <p><b>미리보기를 누르거나</b> 사진/영상 넣기 버튼으로 배경을 넣어요.</p>
@@ -709,7 +709,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         text(c, mon, cx, cy - 3, GOTH(10), '#9A9A95', 'center');
         text(c, mm[1] || '', cx, cy + 15, GOTH(19), WH, 'center');
       });
-      drop(5, x0 + 28 + hw / 2, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); });
+      if (d.title) drop(5, x0 + 28 + hw / 2, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); }); // 제목이 없으면 날짜 원만
       // RUNIMATE 캡슐 (오른쪽 위) — 마지막에 떨어짐
       var rw = capW(c, 'RUNIMATE', 11, 26);
       drop(6, f.L + f.BW - rw / 2, f.T + 13, 0, function () { capsule(c, f.L + f.BW - rw, f.T, 'RUNIMATE', 11, BK, WH, 26); });
@@ -786,8 +786,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       if (media) { c.fillStyle = 'rgba(250,250,246,' + (0.85 * (1 - dev)).toFixed(3) + ')'; c.fillRect(r.x, r.y, r.w, r.h); }
       c.restore();
       var capTop = 12 + g.ih;
-      text(c, d.title || TYPE_KO[d.type], 14, capTop + 27, PRET(17, 700), '#0B0B0B', 'left', -0.2);
-      text(c, d.ymd, g.cw - 14, capTop + 27, PRET(11, 600), '#6B6B66', 'right');
+      // 제목이 없으면 그 자리에 기록한 날짜 (오른쪽 작은 날짜는 생략)
+      text(c, d.title || d.ymd, 14, capTop + 27, PRET(17, 700), '#0B0B0B', 'left', -0.2);
+      if (d.title) text(c, d.ymd, g.cw - 14, capTop + 27, PRET(11, 600), '#6B6B66', 'right');
       var nb = g.ch - 14, nw = measure(c, v.dist, ANTON(g.nfs));
       text(c, v.dist, 14, nb, ANTON(g.nfs), '#0B0B0B');
       text(c, 'KM', 14 + nw + 3, nb, ANTON(14), '#0B0B0B');
@@ -834,7 +835,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     fade(c, eL, (1 - eL) * -12, function () {
       acgLogo(c, f.L, f.T, 50, '#FFFFFF');
       text(c, 'FIELD REPORT', f.L + f.BW, f.T + 10, HELV(9), '#FFFFFF', 'right', 0.2);
-      text(c, d.ymd, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
+      if (d.title) text(c, d.ymd, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
       text(c, d.typeLabel, f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
     });
   }
@@ -859,7 +860,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       topo(c, { cx: f.L + f.BW - 26, cy: top + 40, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.22, lw: 1, t: t, delay: 500, seed: 2.2 });
       var x = f.L + 12, xr = f.L + f.BW - 12, w = f.BW - 24;
       function rule(y, delay) { c.fillStyle = ink; c.fillRect(x, y, w * ease((t - delay) / 700), 1); }
-      text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x, top + 17, HELV(10), ink, 'left', 0.2);
+      text(c, (d.title || d.ymd).toUpperCase(), x, top + 17, HELV(10), ink, 'left', 0.2);
       text(c, d.typeLabel, xr, top + 17, HELV(10), ink, 'right', 0.2);
       var r1 = top + 24, r2 = top + 84, mid = (r1 + r2) / 2;
       rule(r1, 450); rule(r2, 650);
@@ -904,14 +905,14 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         drawMedia(c, r, kenburns(t), true);
         c.restore();
         text(c, 'FIELD REPORT', r.x + 10, r.y + 18, HELV(9), '#FFFFFF', 'left', 0.2);
-        text(c, d.ymd, r.x + 10, r.y + 30, HELV(9), '#FFFFFF', 'left', 0.2);
+        if (d.title) text(c, d.ymd, r.x + 10, r.y + 30, HELV(9), '#FFFFFF', 'left', 0.2);
       });
       fade(c, e1, (1 - e1) * 20, function () {
         var x = f.L, y = g.yB, w = g.distW;
         c.save(); c.beginPath(); c.rect(x, y, w, g.rowB); c.clip();
         c.fillStyle = A; c.fillRect(x, y, w, g.rowB);
         topo(c, { cx: x + w + 2, cy: y - 2, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
-        text(c, (d.title || TYPE_KO[d.type]).toUpperCase(), x + 12, y + 18, HELV(9), ink, 'left', 0.2);
+        text(c, (d.title || d.ymd).toUpperCase(), x + 12, y + 18, HELV(9), ink, 'left', 0.2);
         var nfs = f.key === 'R' ? 50 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
         text(c, v.dist, x + 11, nb, HELV(nfs), ink, 'left', ls);
         var nw = measure(c, v.dist, HELV(nfs), ls);
