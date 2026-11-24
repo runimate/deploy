@@ -88,6 +88,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .prog{height:4px;background:#2A2A2A;border-radius:2px;overflow:hidden}
 .prog i{display:block;height:100%;width:0;background:var(--acc)}
 </style>
+<style>
+/* 준비 중인 소스 탭: 누를 수 없고 COMING SOON 표시 */
+.seg button.soon{position:relative;cursor:not-allowed;color:var(--mute,#9C968A)}
+.seg button.soon{color:#B9B3A6}
+.seg button.soon .soonTag{position:absolute;right:-4px;top:-6px;transform:rotate(5deg);white-space:nowrap;background:#FC4C02;color:#111;padding:2px 6px;font:800 8px RMInter,-apple-system,sans-serif;letter-spacing:.08em;border:1.5px solid #111}
+</style>
 <link rel="stylesheet" href="./theme.css">
 <style>
 .authorRow{display:flex;justify-content:space-between;align-items:center;border-bottom:var(--bw) solid var(--line);padding-bottom:8px}
@@ -152,6 +158,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <div class="seg" role="group" aria-label="데이터 소스">
       <button type="button" data-src="strava" aria-pressed="true">STRAVA</button>
       <button type="button" data-src="garmin" aria-pressed="false">GARMIN</button>
+      <button type="button" data-src="coros" aria-pressed="false" class="soon" disabled aria-disabled="true" title="준비 중">COROS<span class="soonTag" aria-hidden="true">COMING SOON</span></button>
       <button type="button" data-src="manual" aria-pressed="false" class="hidden" id="srcManualBtn">직접 입력</button>
     </div>
 
