@@ -979,8 +979,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.lineTo(hw, 10); for (var j = 6; j >= 0; j--) c.lineTo(-hw + j * w / 6, 10 - (j % 2 ? 1.5 : 0));
         c.closePath(); c.fill(); c.restore();
       }
-      tape(g.x + g.pw / 2, g.y - 2, -4, 70);
-      tape(g.x + g.pw - 4, g.y + g.ph - 8, -40, 54);
+      tape(g.x + 6, g.y + 6, -45, 62);                 // 왼쪽 위 모서리
+      tape(g.x + g.pw - 6, g.y + g.ph - 6, -45, 62);   // 오른쪽 아래 모서리
       // 손글씨: 한 줄씩 왼쪽부터 써짐
       function write(i, fn) { var w = ease((t - 900 - i * 450) / 700); if (w <= 0) return; c.save(); c.beginPath(); c.rect(0, 0, f.L + f.BW * w, f.H); c.clip(); fn(); c.restore(); }
       var nx = g.x + g.pw + 12, nw = f.L + f.BW - nx, p = (d.ymd || '').split('.');
@@ -1000,15 +1000,16 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       });
       var dfs = f.id === 'S' ? 62 : (R ? 56 : 50), base = B - (R ? 64 : 58), dw = measure(c, v.dist, MARKER(dfs)), dwF = measure(c, vals(d, 1).dist, MARKER(dfs));
       write(1, function () {
+        // 마커로 그은 밑줄: 두껍고 살짝 투명하게, 숫자 아래쪽에 겹치도록 먼저 그림
+        c.save(); c.globalAlpha *= 0.6; c.strokeStyle = A; c.lineWidth = 12; c.lineCap = 'butt'; c.beginPath();
+        c.moveTo(f.L - 4, base + 5); c.quadraticCurveTo(f.L + dwF * 0.5, base + 11, f.L + dwF + 36, base + 2); c.stroke(); c.restore();
         text(c, v.dist, f.L, base, MARKER(dfs), ink);
         text(c, 'km', f.L + dw + 6, base, MARKER(dfs * 0.4), ink);
-        c.strokeStyle = A; c.lineWidth = 4.5; c.lineCap = 'round'; c.beginPath();
-        c.moveTo(f.L, base + 10); c.quadraticCurveTo(f.L + dwF * 0.5, base + 17, f.L + dwF + 34, base + 6); c.stroke();
       });
       write(1, function () {
         // 화살표: 거리 → 사진
         c.strokeStyle = ink; c.lineWidth = 1.8; c.lineCap = 'round'; c.beginPath();
-        var ax = f.L + Math.min(dwF + 60, f.BW - 24), ay = base - dfs * 0.7, bx = g.x + g.pw + 8, by = g.y + g.ph - 18;
+        var ax = f.L + Math.min(dwF + 60, f.BW - 24), ay = base - dfs * 0.7, bx = g.x + g.pw + 10, by = g.y + g.ph - 46;
         c.moveTo(ax, ay); c.quadraticCurveTo(ax + 14, (ay + by) / 2, bx, by); c.stroke();
         c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 9, by + 1); c.moveTo(bx, by); c.lineTo(bx + 2, by + 9); c.stroke();
       });
