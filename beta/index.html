@@ -501,7 +501,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function placeholder(c, r) {
     c.fillStyle = '#262626'; c.fillRect(r.x, r.y, r.w, r.h);
     if (exporting) return;
-    if (BETA) { addMediaButton(c, r.x + r.w / 2, r.y + Math.min(r.h / 2, 170), Math.min(r.w - 40, 190), false); return; }
+    if (BETA) return; // 베타: 버튼은 render()에서 화면 가운데에 한 번만 그림
     var cx = r.x + r.w / 2, cy = r.y + Math.min(r.h / 2, 150);
     c.beginPath(); c.arc(cx, cy - 12, 16, 0, Math.PI * 2); c.fillStyle = '#F4F4F0'; c.fill();
     c.fillStyle = '#0B0B0B'; c.fillRect(cx - 7, cy - 13, 14, 2); c.fillRect(cx - 1, cy - 19, 2, 14);
@@ -997,7 +997,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   }
   function mediaHint(c, f, y) {
     if (media || exporting) return;
-    if (BETA) { addMediaButton(c, f.L + f.BW / 2, f.T + f.BH * 0.5, 190, true); return; }
+    if (BETA) return;
     c.save(); c.globalAlpha = 0.55; text(c, '+ 눌러서 배경 사진/영상 추가', f.W / 2, y, '600 10px RMInter, "Apple SD Gothic Neo", sans-serif', '#F4F4F0', 'center'); c.restore();
   }
 
@@ -1520,6 +1520,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     ctx.clearRect(0, 0, f.W, f.H); ctx.globalAlpha = 1;
     if (mode === 'monthly') Lay[st.layout].draw(ctx, f, t, monthAgg(monthTypes(), k), palette());
     else Lay[st.layout].draw(ctx, f, t, vals(d, k), d, palette());
+    // 베타: 사진이 없으면 어느 레이아웃이든 화면 가운데에 큰 '사진/영상 추가' 버튼
+    if (BETA && !media && !exporting) addMediaButton(ctx, f.L + f.BW / 2, f.T + f.BH * 0.5, 190, true);
     drawGuides(ctx, f);
   }
   var lastLoop = -1;
