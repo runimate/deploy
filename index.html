@@ -419,6 +419,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'tags', name: 'STICKER' },
     { id: 'big', name: 'BOLD' },
     { id: 'polaroid', name: 'POLAROID' },
+    { id: 'scrap', name: 'SCRAP', beta: true },
     { id: 'poster', name: 'POSTER', map: true },
     { id: 'routeelev', name: 'ROUTE', map: true, trailOnly: true },
     { id: 'acg2', name: 'ACG', acg: true },
@@ -945,6 +946,82 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function acgRows(v) { return [['ELEV. GAIN', '+' + v.elev + ' M'], ['MOVING TIME', v.time], ['AVG. PACE', v.pace + ' /KM']]; }
 
   // ACG — 낮은 스펙 패널로 사진 영역을 넓게. 등고선은 오른쪽 위·왼쪽 아래 모서리에만
+  // SCRAP — 모눈 종이 위에 테이프로 붙인 3:4 사진 + 손글씨 메모
+  Lay.scrap = {
+    geo: function (f) {
+      var S = f.id === 'S', R = f.key === 'R';
+      var pw = S ? 200 : (R ? 184 : 168), ph = Math.round(pw * 4 / 3);
+      return { pw: pw, ph: ph, x: f.L + 10, y: f.T + (R ? 18 : 14) };
+    },
+    rect: function (f) { var g = this.geo(f); return { x: g.x + 5, y: g.y + 5, w: g.pw - 10, h: g.ph - 10 }; },
+    btn: function (f) { var g = this.geo(f); return { x: g.x + g.pw / 2, y: g.y + g.ph / 2, w: g.pw - 16 }; },
+    draw: function (c, f, t, v, d, P) {
+      var A = P.accent, ink = '#1C1C1C', g = this.geo(f), B = f.T + f.BH, tr = trio(d, v), R = f.key === 'R';
+      // 종이 + 모눈
+      c.fillStyle = '#EEE9DD'; c.fillRect(0, 0, f.W, f.H);
+      c.strokeStyle = 'rgba(80,120,170,0.16)'; c.lineWidth = 0.6; c.beginPath();
+      for (var gx = 0; gx <= f.W; gx += 16) { c.moveTo(gx, 0); c.lineTo(gx, f.H); }
+      for (var gy = 0; gy <= f.H; gy += 16) { c.moveTo(0, gy); c.lineTo(f.W, gy); }
+      c.stroke();
+      // 사진 (얇은 흰 테두리)
+      var s = ease(t / 600), rot = -2.5 + (1 - s) * -6;
+      c.save(); c.globalAlpha = s; c.translate(g.x + g.pw / 2, g.y + g.ph / 2 - (1 - s) * 60); c.rotate(rot * Math.PI / 180); c.translate(-g.pw / 2, -g.ph / 2);
+      c.save(); c.shadowColor = 'rgba(0,0,0,0.22)'; c.shadowBlur = 12; c.shadowOffsetY = 5; c.fillStyle = '#FBFAF6'; c.fillRect(0, 0, g.pw, g.ph); c.restore();
+      c.save(); c.beginPath(); c.rect(5, 5, g.pw - 10, g.ph - 10); c.clip();
+      drawMedia(c, { x: 5, y: 5, w: g.pw - 10, h: g.ph - 10 }, 1 + 0.06 * clamp(t / CLIP, 0, 1), false); c.restore();
+      c.restore();
+      // 마스킹 테이프 (포인트 컬러)
+      var tp = ease((t - 500) / 300);
+      function tape(tx, ty, rot2, w) {
+        c.save(); c.globalAlpha = 0.8 * tp; c.translate(tx, ty); c.rotate(rot2 * Math.PI / 180); c.fillStyle = A; c.beginPath();
+        var hw = w / 2; c.moveTo(-hw, -10);
+        for (var i = 0; i <= 6; i++) c.lineTo(-hw + i * w / 6, -10 + (i % 2 ? 1.5 : 0));
+        c.lineTo(hw, 10); for (var j = 6; j >= 0; j--) c.lineTo(-hw + j * w / 6, 10 - (j % 2 ? 1.5 : 0));
+        c.closePath(); c.fill(); c.restore();
+      }
+      tape(g.x + g.pw / 2, g.y - 2, -4, 70);
+      tape(g.x + g.pw - 4, g.y + g.ph - 8, -40, 54);
+      // 손글씨: 한 줄씩 왼쪽부터 써짐
+      function write(i, fn) { var w = ease((t - 900 - i * 450) / 700); if (w <= 0) return; c.save(); c.beginPath(); c.rect(0, 0, f.L + f.BW * w, f.H); c.clip(); fn(); c.restore(); }
+      var nx = g.x + g.pw + 12, nw = f.L + f.BW - nx, p = (d.ymd || '').split('.');
+      write(0, function () {
+        text(c, (+p[1] || '') + '/' + (+p[2] || ''), f.L + f.BW, g.y + 34, MARKER(30), ink, 'right');
+        text(c, p[0] || '', f.L + f.BW, g.y + 54, MARKER(14), '#666', 'right');
+        var head = (d.title || d.typeLabel.toLowerCase() + '!');
+        var hf = Math.max(11, Math.min(17, fitFont(c, head, 17, nw, MARKER)));
+        text(c, head, f.L + f.BW, g.y + 84, MARKER(hf), ink, 'right');
+      });
+      // RUNIMATE 라벨 스티커
+      write(0, function () {
+        c.save(); c.translate(f.L + f.BW - 40, g.y + g.ph - 52); c.rotate(6 * Math.PI / 180);
+        c.fillStyle = '#FBFAF6'; c.fillRect(-40, -12, 80, 24);
+        c.save(); c.setLineDash([3, 2]); c.strokeStyle = '#888'; c.lineWidth = 0.8; c.strokeRect(-37, -9, 74, 18); c.restore();
+        text(c, 'RUNIMATE', 0, 4, MONO(9, true), ink, 'center', 1.5); c.restore();
+      });
+      var dfs = f.id === 'S' ? 62 : (R ? 56 : 50), base = B - (R ? 64 : 58), dw = measure(c, v.dist, MARKER(dfs)), dwF = measure(c, vals(d, 1).dist, MARKER(dfs));
+      write(1, function () {
+        text(c, v.dist, f.L, base, MARKER(dfs), ink);
+        text(c, 'km', f.L + dw + 6, base, MARKER(dfs * 0.4), ink);
+        c.strokeStyle = A; c.lineWidth = 4.5; c.lineCap = 'round'; c.beginPath();
+        c.moveTo(f.L, base + 10); c.quadraticCurveTo(f.L + dwF * 0.5, base + 17, f.L + dwF + 34, base + 6); c.stroke();
+      });
+      write(1, function () {
+        // 화살표: 거리 → 사진
+        c.strokeStyle = ink; c.lineWidth = 1.8; c.lineCap = 'round'; c.beginPath();
+        var ax = f.L + Math.min(dwF + 60, f.BW - 24), ay = base - dfs * 0.7, bx = g.x + g.pw + 8, by = g.y + g.ph - 18;
+        c.moveTo(ax, ay); c.quadraticCurveTo(ax + 14, (ay + by) / 2, bx, by); c.stroke();
+        c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 9, by + 1); c.moveTo(bx, by); c.lineTo(bx + 2, by + 9); c.stroke();
+      });
+      write(2, function () {
+        var cwid = f.BW / 3;
+        for (var i = 0; i < 3; i++) {
+          text(c, tr.labels[i].toLowerCase(), f.L + i * cwid, B - 26, MARKER(12), '#666');
+          text(c, tr.values[i], f.L + i * cwid, B - 2, MARKER(20), ink);
+        }
+      });
+    }
+  };
+
   Lay.acg2 = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
@@ -1724,7 +1801,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (mode === 'monthly') Lay[st.layout].draw(ctx, f, t, monthAgg(monthTypes(), k), palette());
     else Lay[st.layout].draw(ctx, f, t, vals(d, k), d, palette());
     // 베타: 사진이 없으면 어느 레이아웃이든 화면 가운데에 큰 '사진/영상 추가' 버튼
-    if (BETA && !media && !exporting) addMediaButton(ctx, f.L + f.BW / 2, f.T + f.BH * 0.5, 190, true);
+    if (BETA && !media && !exporting) {
+      var lb = mode !== 'monthly' && Lay[st.layout].btn ? Lay[st.layout].btn(f) : null;
+      if (lb) addMediaButton(ctx, lb.x, lb.y, lb.w, true); else addMediaButton(ctx, f.L + f.BW / 2, f.T + f.BH * 0.5, 190, true);
+    }
     drawGuides(ctx, f);
   }
   var lastLoop = -1;
@@ -1943,10 +2023,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // 2. 비율·레이아웃·스타일 UI
   // =========================================================
   var chipsEl = $('layoutChips');
+  // beta: true 레이아웃은 테스트 버전(/beta/)에서만 보임
+  var LAB = document.documentElement.classList.contains('rm-lab');
   function curLayouts() { return mode === 'monthly' ? MLAYOUTS : LAYOUTS; }
   function buildChips() {
     chipsEl.innerHTML = '';
     curLayouts().forEach(function (l) {
+      if (l.beta && !LAB) return;
       var b = document.createElement('button'); b.type = 'button'; b.dataset.id = l.id;
       if (THUMBS) {
         // 베타: 버튼마다 실제 레이아웃을 작게 그린 썸네일
@@ -1972,7 +2055,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     restartAnim();
   }
   // 장소/제목을 결과물에 쓰는 레이아웃 (베타: 나머지 레이아웃에서는 제목 칸을 숨김)
-  var TITLE_LAYOUTS = ['panel', 'tags', 'polaroid', 'poster', 'routeelev', 'acg2', 'acg3'];
+  var TITLE_LAYOUTS = ['panel', 'tags', 'polaroid', 'scrap', 'poster', 'routeelev', 'acg2', 'acg3'];
   function setLayout(id) {
     st.layout = id; applyClip(id);
     if (BETA && $('titleWrap')) $('titleWrap').classList.toggle('hidden', TITLE_LAYOUTS.indexOf(id) === -1);
@@ -1981,14 +2064,14 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       : '결과물에 표시돼요. 비워두면 그 자리에 기록한 날짜가 들어가요.';
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
-    var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
+    var useAccent = ['scrap', 'bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
     $('accentWrap').classList.toggle('hidden', !useAccent);
     $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold' && id !== 'mmag');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
     $('acgInkWrap').classList.toggle('hidden', !isAcg());
     // 화면 포인트 컬러: 기본은 네온, ACG 레이아웃에서만 오렌지
     document.documentElement.style.setProperty('--acc', isAcg() ? '#FC4C02' : '#D7FF3A');
-    $('dimWrap').classList.toggle('hidden', id === 'polaroid' || id === 'mreceipt');
+    $('dimWrap').classList.toggle('hidden', id === 'polaroid' || id === 'scrap' || id === 'mreceipt');
     buildSwatches();
     restartAnim();
   }
