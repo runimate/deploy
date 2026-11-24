@@ -495,10 +495,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   // 기록 데이터 (본 앱과 같은 형태: date, km, paceSec, timeSec, elevGain, sportType)
   // =========================================================
+  var ULTRA_KM = 50;
   function classify(w) {
     var s = String((w && (w.sportType || w.type || w.sport_type)) || '').toLowerCase();
     if (s.indexOf('hik') !== -1) return 'hike';
     if (s.indexOf('trail') !== -1 || s.indexOf('ultra') !== -1) return 'trail'; // 가민 울트라 러닝(ultra_run)도 트레일러닝으로
+    // 스트라바처럼 울트라 종목이 없는 곳: 50km 이상 러닝은 울트라로 보고 트레일러닝으로
+    if (s.indexOf('run') !== -1 && num(w.km) >= ULTRA_KM) return 'trail';
     if (s.indexOf('run') !== -1 || s === '') return 'run';
     return 'other';
   }
