@@ -1,19 +1,10 @@
-/* RUNIMATE 베타 UI — 지금 앱 구조는 그대로, 겉모습만 바꿈
-   라이트(폰 라이트 모드) = 매거진 스킨: 미색 종이 + 검정 글씨 + 오렌지 주요 버튼
-   다크(폰 다크 모드)   = 계기판 스킨: 검정 + 흰 글씨 + 포인트 컬러 주요 버튼 */
+/* RUNIMATE 앱 UI — 매거진 스킨: 미색 종이 + 검정 글씨 + 오렌지 주요 버튼
+   폰이 다크 모드여도 항상 라이트로 보여줌 (다크에서는 미리보기 구분선이 잘 안 보여서) */
 :root{
   --bg:#EFEBE3;--fg:#111111;--mute:#6B665C;--line:#111111;--line2:#B9B3A6;--panel:transparent;--field:#F7F4EE;--stage:#E2DDD2;
   --pri:#FC4C02;--pri-fg:#111111;--inv-bg:#111111;--inv-fg:#EFEBE3;--bw:1.5px;
   --rm-fg:#111111;--rm-bg:#EFEBE3;--rm-mute:#6B665C;
   color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#000000;--fg:#F4F4F0;--mute:#8A8A85;--line:#3A3A3A;--line2:#222222;--panel:transparent;--field:#0B0B0B;--stage:#0B0B0B;
-    --pri:#FC4C02;--pri-fg:#000000;--inv-bg:#F4F4F0;--inv-fg:#000000;--bw:1px;
-    --rm-fg:#F4F4F0;--rm-bg:#000000;--rm-mute:#8A8A85;
-    color-scheme:dark;
-  }
 }
 html,body{background:var(--bg);color:var(--fg)}
 /* 헤더 */
@@ -34,7 +25,6 @@ h2.step .n{font:400 30px/1 RMAnton,Impact,sans-serif;color:var(--fg)}
 /* 버튼 */
 .btn{border-radius:0;background:transparent;border:var(--bw) solid var(--line);color:var(--fg);font:800 15px RMInter,sans-serif;min-height:52px}
 .btn.primary,.btn.strava{background:var(--pri);border-color:var(--line);color:var(--pri-fg)}
-@media (prefers-color-scheme: dark){.btn.primary,.btn.strava{border-color:var(--pri)}}
 /* 레이아웃 칩 */
 .chips button{border-radius:0;border:var(--bw) solid var(--line);color:var(--fg);font:700 12px RMInter,sans-serif;letter-spacing:.02em}
 .chips button[aria-pressed="true"]{background:var(--inv-bg);border-color:var(--inv-bg);color:var(--inv-fg)}
@@ -70,6 +60,5 @@ input[type=range]{accent-color:var(--fg)}
 .rm-thumbs .chips button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:5px 5px 6px;min-height:0;font-size:10px;letter-spacing:.03em}
 .rm-thumbs .chips button canvas.th{display:block;background:#222}
 .rm-thumbs .chips button[aria-pressed="true"]{background:var(--pri);border-color:var(--line);color:var(--pri-fg)}
-@media (prefers-color-scheme: dark){.rm-thumbs .chips button[aria-pressed="true"]{border-color:var(--pri)}}
 /* 오른쪽에 썸네일이 더 있다는 표시: 끝을 살짝 흐리게 */
 .rm-thumbs .chips{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
