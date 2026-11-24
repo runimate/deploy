@@ -597,7 +597,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var cw = w / 3; lfs = lfs || 9;
     for (var i = 0; i < 3; i++) {
       c.save(); c.globalAlpha *= 0.75; text(c, labels[i], x + i * cw, y + lfs, MONO(lfs), color, 'left', 1); c.restore();
-      text(c, values[i], x + i * cw, y + lfs + 4 + vfs * 0.8, ANTON(vfs), color);
+      text(c, values[i], x + i * cw, y + lfs + 7 + vfs * 0.8, ANTON(vfs), color); // 라벨과 숫자 사이 간격 7
     }
   }
 
@@ -722,7 +722,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       if (d.title) drop(5, x0 + 28 + hw / 2, y1 + hS / 2, -2, function () { capsule(c, x0 + 28, y1, head, fS, WH, BK, hS); }); // 제목이 없으면 날짜 원만
       // RUNIMATE 캡슐 (오른쪽 위) — 마지막에 떨어짐
       var rw = capW(c, 'RUNIMATE', 11, 26);
-      drop(6, f.L + f.BW - rw / 2, f.T + 13, 0, function () { capsule(c, f.L + f.BW - rw, f.T, 'RUNIMATE', 11, BK, WH, 26); });
+      drop(6, f.L + rw / 2, f.T + 13, 0, function () { capsule(c, f.L, f.T, 'RUNIMATE', 11, BK, WH, 26); }); // 왼쪽 위
     }
   };
 
@@ -1129,7 +1129,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e0, (1 - e0) * 20, function () {
         var label = d.typeLabel + (d.title ? ' · ' + d.title : '');
         text(c, label.toUpperCase(), f.L, f.T + 9, MONO(10, true), A, 'left', 2);
-        text(c, d.ymd, f.L + f.BW, f.T + 8, MONO(9, true), '#F4F4F0', 'right', 1.1);
+        text(c, 'RUNIMATE', f.L + f.BW, f.T + 8, MONO(9, true), '#F4F4F0', 'right', 1.1);
         var nfs = 74, nb = f.T + 88, nw = measure(c, v.dist, ANTON(nfs));
         text(c, v.dist, f.L - 2, nb, ANTON(nfs), '#F4F4F0');
         text(c, 'KM', f.L - 2 + nw + 6, nb, ANTON(20), '#F4F4F0');
@@ -1137,6 +1137,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var R = routeNow();
       if (R) drawRoute(c, fitRoute(R, [f.L + 6, f.T + 120, f.BW - 12, f.BH - 120 - 12 - 70]), p, { color: A, ghost: media ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)', w: 5, shadow: !!media });
       fade(c, e2, (1 - e2) * 20, function () {
+        text(c, d.ymd, f.L, B - 62, MONO(9, true), '#F4F4F0', 'left', 1.1); // 날짜: 아래 기록 줄 위
         c.fillStyle = 'rgba(244,244,240,0.35)'; c.fillRect(f.L, B - 54, f.BW, 1);
         stat3(c, f.L, B - 44, f.BW, tr.labels, tr.values, 18, '#F4F4F0', 8);
       });
@@ -1359,7 +1360,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         chip(c, f.L, f.T, monthLabel() + ' · ' + M.name, '#0B0B0B', '#F4F4F0');
         chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
       });
-      var stripTop = B - 60, l3 = stripTop - 20, nfs = fitFont(c, M.dist, R ? 120 : 116, f.BW, ANTON), nb = l3 - 36, lb = nb - nfs * 0.78 - 14;
+      var stripTop = B - 60, l3 = stripTop - 20, nfs = fitFont(c, M.dist, R ? 120 : 116, f.BW, ANTON), nb = l3 - 36, lb = nb - nfs * 0.78 - 22; // THIS MONTH I RAN을 거리 숫자에서 조금 더 위로
       fade(c, e1, (1 - e1) * 24, function () {
         text(c, 'THIS MONTH I RAN', f.L, lb, MONO(11, true), P.accent, 'left', 3.3);
         text(c, M.dist, f.L - 3, nb, ANTON(nfs), st.numColor);
