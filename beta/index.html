@@ -1079,7 +1079,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.routeelev = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
-      var B = f.T + f.BH, A = P.accent, p = inout((t - 500) / 3400), E = validProfile(routeElevNow());
+      var B = f.T + f.BH, A = P.accent, p = clamp((t - 500) / 6000, 0, 1), E = validProfile(routeElevNow()); // 경로·고도 점: 0.5초부터 6초 동안 일정한 속도로
       mapBackground(c, f, t, false);
       if (media) { c.fillStyle = 'rgba(0,0,0,0.18)'; c.fillRect(0, 0, f.W, f.H); shadeBand(c, f, B - 170, f.H, 0, 0.75); }
       else { var bg = c.createLinearGradient(0, 0, 0, f.H); bg.addColorStop(0, '#1C1C1C'); bg.addColorStop(1, '#0B0B0B'); c.fillStyle = bg; c.fillRect(0, 0, f.W, f.H); }
