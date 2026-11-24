@@ -1110,7 +1110,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         text(c, v.dist, f.L + 16, y + h - 14, ANTON(nfs), ink);
         text(c, 'KM', f.L + w1 - 14, y + h - 14, ANTON(18), ink, 'right');
         rr(c, x2, y, w2, h, 18); c.fillStyle = P.accent; c.fill();
-        wxIcon(c, WX.code, x2 + w2 / 2 - 17, y + 16, 34, ink);
+        wxIcon(c, WX.code, x2 + w2 / 2 - 20.5, y + 11, 41, ink); // 아이콘 120%
         text(c, wxTemp(), x2 + w2 / 2, y + h - 16, ANTON(24), ink, 'center');
       });
     };
@@ -1155,7 +1155,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var g = Lay.scrap.geo(f), w = ease((t - 900) / 700);
       if (w <= 0) return;
       c.save(); c.beginPath(); c.rect(0, 0, f.L + f.BW * w, f.H); c.clip();
-      wxRight(c, f.L + f.BW, g.y + 116, 24, MARKER(22), '#1C1C1C', 6);
+      wxRight(c, f.L + f.BW, g.y + 118, 32, MARKER(22), "#1C1C1C", 4); // 아이콘을 손글씨 기온 크기에 맞춤
       c.restore();
     };
   })();
