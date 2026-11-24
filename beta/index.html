@@ -1004,11 +1004,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.restore();
         // 사진 왼쪽 위: (피드) ACG FIELD REPORT + 제목/날짜, (릴스) 제목/날짜만
         // 사진 왼쪽 위: 날짜는 항상 (피드는 ACG FIELD REPORT + 날짜)
-        if (f.key === 'R') text(c, d.ymd, r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
-        else {
-          text(c, 'ACG FIELD REPORT', r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
-          text(c, d.ymd, r.x + 14, r.y + 35, HELV(12.5), '#FFFFFF', 'left', -0.2);
-        }
+        text(c, 'ACG FIELD REPORT', r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
+        text(c, d.ymd, r.x + 14, r.y + 35, HELV(12.5), '#FFFFFF', 'left', -0.2);
       });
       // 세로 좌표: 피드는 사진 안 오른쪽, 릴스는 사진 바깥 오른쪽
       var rr0 = self.rect(f);
