@@ -484,7 +484,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var km = num(w.km), timeSec = num(w.timeSec), paceSec = num(w.paceSec);
     if (!paceSec && km > 0) paceSec = timeSec / km;
     return { date: String(w.date || '').replace(/-/g, '.'), km: km, paceSec: paceSec, timeSec: timeSec, elevGain: num(w.elevGain), type: classify(w), name: w.name || w.title || '',
-      activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile), route: toRoute(w.polyline) };
+      activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile), route: toRoute(w.polyline),
+      start: validLL(w.start) || firstLL(w.polyline), summit: validLL(w.summit) };
   }
   // GPS 경로: 스트라바는 인코딩된 문자열, 가민은 [{lat, lon}] → 화면용 평면 좌표 [[x, y]]
   function decodePolyline(str) {
@@ -507,6 +508,15 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     return R;
   }
   // 고도표 데이터: [[km, m], ...] (서버가 준 형태). 2개 지점 미만이면 없음으로 처리
+  // 좌표 [위도, 경도(, 고도)] 확인
+  function validLL(a) { return (Array.isArray(a) && a.length >= 2 && isFinite(+a[0]) && isFinite(+a[1]) && !(+a[0] === 0 && +a[1] === 0)) ? [+a[0], +a[1]] : null; }
+  function firstLL(pl) {
+    try {
+      if (typeof pl === 'string' && pl) { var q = decodePolyline(pl)[0]; return q ? validLL(q) : null; }
+      if (Array.isArray(pl) && pl[0]) return validLL([pl[0].lat, pl[0].lon]);
+    } catch (e) {}
+    return null;
+  }
   function validProfile(p) { return (Array.isArray(p) && p.length >= 2) ? p : null; }
   // 고도표 데이터: 실제 기록이면 그 기록의 고도, 기록을 고르기 전(또는 직접 입력)이면 예시 고도표로 미리보기
   function elevProfileNow() {
@@ -830,14 +840,46 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.beginPath(); c.ellipse(161.38, 137.67, 18.8, 19.4, 0, 0, Math.PI * 2); c.fill();
     c.restore();
   }
+  // 글자가 붙은 ACG 로고 (사용자 SVG: 삼각형 + "All Conditions Gear", viewBox 527.92 × 467.7)
+  var ACGT_W = 527.92, ACGT_H = 467.7;
+  function acgLogoText(c, x, y, w, color) {
+    var s = w / ACGT_W;
+    acgLogo(c, x + 61.43 * s, y, 405.06 * s, color);
+    text(c, 'All Conditions Gear', x + 0.43 * s, y + 454.16 * s, HELV(62.07 * s), color, 'left', -62.07 * s * 0.04);
+  }
+  // 좌표: 정상(최고 고도 지점) → 없으면 시작 지점. 기록을 고르기 전엔 예시 좌표
+  var SAMPLE_LL = [37.470833, 127.006944];
+  function coordNow() {
+    if (mode === 'monthly') return null;
+    if (src !== 'manual' && record) return record.summit || record.start || null;
+    return SAMPLE_LL;
+  }
+  // 37°28'15"N 127°00'25"E — k(0→1)만큼 카운트업
+  function dmsText(ll, k) {
+    function one(v, pos, neg, dd) {
+      var tot = Math.round(Math.abs(v) * k * 3600), deg = Math.floor(tot / 3600), mi = Math.floor((tot % 3600) / 60), se = tot % 60; // 초 단위로 반올림 (끝값이 1초 모자라지 않게)
+      return String(deg).padStart(dd, '0') + '°' + String(mi).padStart(2, '0') + "'" + String(se).padStart(2, '0') + '"' + (v >= 0 ? pos : neg);
+    }
+    return one(ll[0], 'N', 'S', 2) + ' ' + one(ll[1], 'E', 'W', 3);
+  }
+  // 세로 좌표 (위에서 아래로 읽힘, 글자 윗부분이 오른쪽)
+  function drawCoords(c, x, y, t, size, color) {
+    var ll = coordNow(); if (!ll) return;
+    var e = ease((t - 300) / 600), k = ease((t - HOLD) / COUNT);
+    c.save(); c.globalAlpha *= e; c.translate(x, y); c.rotate(Math.PI / 2);
+    text(c, dmsText(ll, k), 0, 0, HELV(size), color || '#FFFFFF', 'left', 0.1);
+    c.restore();
+  }
   function acgHeader(c, f, t, d) {
-    var eL = ease(t / 600);
+    var eL = ease(t / 600), R = f.key === 'R';
     fade(c, eL, (1 - eL) * -12, function () {
-      acgLogo(c, f.L, f.T, 50, '#FFFFFF');
-      text(c, 'FIELD REPORT', f.L + f.BW, f.T + 10, HELV(9), '#FFFFFF', 'right', 0.2);
-      if (d.title) text(c, d.ymd, f.L + f.BW, f.T + 22, HELV(9), '#FFFFFF', 'right', 0.2);
-      text(c, d.typeLabel, f.L + f.BW, f.T + 34, HELV(9), '#FFFFFF', 'right', 0.2);
+      // 왼쪽 위: 로고 + All Conditions Gear / Field Report
+      acgLogo(c, f.L, f.T, 40, '#FFFFFF');
+      text(c, 'All Conditions Gear', f.L + 48, f.T + 14, HELV(14), '#FFFFFF', 'left', -0.4);
+      text(c, 'Field Report', f.L + 48, f.T + 31, HELV(14), '#FFFFFF', 'left', -0.4);
     });
+    // 오른쪽 끝: 세로 좌표
+    drawCoords(c, R ? f.L + f.BW + 11 : f.L + f.BW - 8, f.T + (R ? 4 : 0), t, 9.5);
   }
   function shade(hex, f) { var n = parseInt(hex.slice(1), 16), k = 1 + f; function ch(x) { return Math.max(0, Math.min(255, Math.round(x * k))).toString(16).padStart(2, '0'); } return '#' + ch(n >> 16) + ch((n >> 8) & 255) + ch(n & 255); }
   function acgRows(v) { return [['ELEV. GAIN', '+' + v.elev + ' M'], ['MOVING TIME', v.time], ['AVG. PACE', v.pace + ' /KM']]; }
@@ -904,15 +946,22 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip();
         drawMedia(c, r, kenburns(t), true);
         c.restore();
-        text(c, 'FIELD REPORT', r.x + 10, r.y + 18, HELV(9), '#FFFFFF', 'left', 0.2);
-        if (d.title) text(c, d.ymd, r.x + 10, r.y + 30, HELV(9), '#FFFFFF', 'left', 0.2);
+        // 사진 왼쪽 위: (피드) ACG FIELD REPORT + 제목/날짜, (릴스) 제목/날짜만
+        if (f.key === 'R') text(c, (d.title || d.ymd).toUpperCase(), r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
+        else {
+          text(c, 'ACG FIELD REPORT', r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
+          text(c, (d.title || d.ymd).toUpperCase(), r.x + 14, r.y + 35, HELV(12.5), '#FFFFFF', 'left', -0.2);
+        }
       });
+      // 세로 좌표: 피드는 사진 안 오른쪽, 릴스는 사진 바깥 오른쪽
+      var rr0 = self.rect(f);
+      drawCoords(c, f.key === 'R' ? f.L + f.BW + 11 : f.L + f.BW - 16, rr0.y + (f.key === 'R' ? 3 : 13), t, 9.5);
       fade(c, e1, (1 - e1) * 20, function () {
         var x = f.L, y = g.yB, w = g.distW;
         c.save(); c.beginPath(); c.rect(x, y, w, g.rowB); c.clip();
         c.fillStyle = A; c.fillRect(x, y, w, g.rowB);
         topo(c, { cx: x + w + 2, cy: y - 2, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
-        text(c, (d.title || d.ymd).toUpperCase(), x + 12, y + 18, HELV(9), ink, 'left', 0.2);
+        text(c, d.typeLabel, x + 12, y + 18, HELV(11), ink, 'left', 0.1);
         var nfs = f.key === 'R' ? 50 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
         text(c, v.dist, x + 11, nb, HELV(nfs), ink, 'left', ls);
         var nw = measure(c, v.dist, HELV(nfs), ls);
@@ -922,8 +971,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e2, (1 - e2) * 20, function () {
         var x = f.L + g.distW + g.gp, y = g.yB, w = g.cw, lw = Math.min(54, w - 28);
         c.fillStyle = shade(A, -0.32); c.fillRect(x, y, w, g.rowB);
-        acgLogo(c, x + (w - lw) / 2, y + 16, lw, ink);
-        text(c, d.typeLabel, x + w / 2, y + g.rowB - 12, HELV(9), ink, 'center', 0.3);
+        // 글자 붙은 로고 (All Conditions Gear) — 칸 가운데
+        var tw = Math.min(64, w - 14), th = tw * ACGT_H / ACGT_W;
+        acgLogoText(c, x + (w - tw) / 2, y + (g.rowB - th) / 2, tw, ink);
       });
       var rows = acgRows(v);
       if (g.rowD) {
@@ -963,7 +1013,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     });
     c.fillStyle = 'rgba(255,255,255,0.14)'; c.fillRect(x + 10, y + 40, w - 20, 1);
     c.save(); c.globalAlpha = 0.7;
-    text(c, 'ELEVATION  ·  ' + km.toFixed(1) + ' KM', x + 10, y + 54, HELV(7.5), '#FFFFFF', 'left', 0.3);
+    text(c, 'ELEVATION', x + 10, y + 54, HELV(7.5), '#FFFFFF', 'left', 0.3);
     c.restore();
     var cx = x + 10, cy = y + 70, cw = w - 20, ch = h - 78;
     // 화면 좌표로 바꾼 뒤 단순화 — 최고점은 항상 남김
@@ -1724,6 +1774,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var res = await fetch(SERVER + '/api/strava/elevation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, activityId: w.activityId }) });
       var json = await res.json();
       w.elevProfile = validProfile(json && json.elevProfile);
+      if (json && json.summit) w.summit = validLL(json.summit);
       if (w.elevProfile && record === w) restartAnim();
     } catch (e) { console.error(e); }
   }
