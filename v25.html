@@ -207,6 +207,15 @@
       </div>
       <p class="rm-author">by @runarchive.js</p>
     </header>
+  <div class="inapp hidden" id="inappBox" role="note" style="margin-bottom:14px">
+    <p class="inapp-t" id="inappTitle">앱 안의 브라우저에서는 저장이 안 될 수 있어요</p>
+    <p class="inapp-d" id="inappDesc"></p>
+    <div class="inapp-b">
+      <a class="btn primary" id="inappOpen" href="#">외부 브라우저로 열기</a>
+      <button type="button" class="btn" id="inappCopy">링크 복사</button>
+    </div>
+  </div>
+  <p id="inappResult" class="hidden"></p>
 
     <section class="section">
       <div class="button-group wide">
@@ -2166,6 +2175,41 @@
     (document.fonts && document.fonts.load ? document.fonts.load('40px Anton') : Promise.resolve()).then(fit, fit);
     fit();
   })();
+</script>
+<style>
+.inapp{border:1.5px solid #111;background:#FFF6EE;padding:12px 14px;margin:14px 0 0}
+.inapp-t{margin:0 0 4px;font:800 14px RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:#111}
+.inapp-d{margin:0 0 10px;font:500 12px/1.55 RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:#4A463F}
+.inapp-b{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+.inapp-b .btn{border:1.5px solid #111;background:#fff;color:#111;font-weight:700;min-height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.inapp-b .btn.primary{background:#FC4C02}.inapp .hidden,#inappBox.hidden,#inappResult.hidden,#inappOpen.hidden{display:none}
+</style>
+<script>
+// 앱 안 브라우저(인스타그램·페이스북·스레드·카카오톡·네이버·라인) 감지 → 외부 브라우저로 열도록 안내
+(function () {
+  var ua = navigator.userAgent || '', box = document.getElementById('inappBox');
+  var app = /Instagram/i.test(ua) ? '인스타그램' : /Barcelona|Threads/i.test(ua) ? '스레드' : /FBAN|FBAV|FB_IAB/i.test(ua) ? '페이스북'
+    : /KAKAOTALK/i.test(ua) ? '카카오톡' : /NAVER\(inapp|NAVER\//i.test(ua) ? '네이버' : /\bLine\//i.test(ua) ? '라인' : '';
+  if (!app) return;
+  window.RM_INAPP = app;
+  var android = /Android/i.test(ua), url = location.href;
+  document.getElementById('inappTitle').textContent = app + ' 앱 안에서는 저장이 안 될 수 있어요';
+  document.getElementById('inappDesc').textContent = android
+    ? '아래 버튼으로 크롬(기본 브라우저)에서 열어주세요. 안 열리면 오른쪽 위 ⋮ 메뉴 → "외부 브라우저에서 열기"를 누르거나, 링크를 복사해서 크롬에 붙여넣어 주세요.'
+    : '오른쪽 위 ··· 메뉴 → "외부 브라우저에서 열기"를 눌러 사파리에서 열어주세요. 메뉴가 없으면 링크를 복사해서 사파리에 붙여넣어 주세요.';
+  var open = document.getElementById('inappOpen');
+  if (app === '카카오톡') open.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+  else if (android) open.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  else { open.classList.add('hidden'); document.querySelector('.inapp-b').style.gridTemplateColumns = '1fr'; }
+  document.getElementById('inappCopy').addEventListener('click', function () {
+    var b = this;
+    function done() { b.textContent = '복사됐어요'; setTimeout(function () { b.textContent = '링크 복사'; }, 1800); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { prompt('이 링크를 복사해주세요', url); });
+    else prompt('이 링크를 복사해주세요', url);
+  });
+  box.classList.remove('hidden');
+  document.getElementById('inappResult').classList.remove('hidden');
+})();
 </script>
 </body>
 </html>
