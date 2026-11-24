@@ -101,6 +101,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .helpClose{width:36px;height:36px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:700 16px RMInter,sans-serif;cursor:pointer}
 .helpModal section{padding:14px 18px;border-bottom:1px solid var(--line2)}
 .helpModal section:last-child{border-bottom:0}
+.helpModal .helpIntro{background:#E2DDD2}
+.helpModal .helpIntro p{font-size:13px;line-height:1.7}
+.helpModal .helpIntro .sign{margin:8px 0 0;font-weight:700;font-size:12px;color:var(--mute)}
 .helpModal h3{margin:0 0 6px;font:700 14px RMInter,sans-serif;color:var(--fg)}
 .helpModal h3 b{font:400 18px RMAnton,Impact,sans-serif;margin-right:6px}
 .helpModal p{margin:0 0 6px;font:400 13px/1.6 RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--fg)}
@@ -279,6 +282,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 <div class="overlay hidden" id="helpBox" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="modal helpModal">
     <div class="helpHead"><h2 id="helpTitle">러니메이트 사용 매뉴얼</h2><button type="button" class="helpClose" id="helpClose" aria-label="닫기">✕</button></div>
+    <section class="helpIntro">
+      <p>러니메이트는 비영리로 만든 개인 창작물이에요.<br>제 팔로워분들과 세상의 모든 러너들에게 바치는 작은 선물이에요.</p>
+      <p>혼자 만들다 보니 가끔 오류가 있을 수 있어요. 너그럽게 봐주세요.<br>문의는 언제든 환영하지만, 답장이 조금 늦을 수 있는 점 양해 부탁드려요.</p>
+      <p class="sign">— 제이에스 (@runarchive.js)</p></section>
     <section><h3><b>01</b> 기록 불러오기</h3>
       <p><b>DAILY</b>는 기록 하나, <b>MONTHLY</b>는 한 달 기록을 합쳐서 보여줘요.</p>
       <p>스트라바는 연결 버튼, 가민은 아이디·비밀번호로 불러와요. 목록에서 기록을 고르면 바로 미리보기에 반영돼요.</p>
@@ -302,6 +309,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <section><h3><b>05</b> 저장</h3>
       <p><b>영상으로 저장</b>은 MP4, <b>이미지로 저장</b>은 PNG예요. 결과 창의 공유 버튼으로 사진 앱에 저장하거나 인스타그램에 바로 올릴 수 있어요.</p>
       <p class="note">사진과 영상은 서버로 올라가지 않고 이 기기 안에서만 합성돼요.</p></section>
+    <section><h3>저장이 안 될 때</h3>
+      <p>인스타그램, 카카오톡 같은 앱 안에서 링크를 열면 영상·이미지 저장이 막힐 수 있어요.</p>
+      <p>화면 맨 위 <b>"외부 브라우저로 열기"</b>를 누르거나, 메뉴(⋮ 또는 ···)에서 <b>"외부 브라우저에서 열기"</b>를 골라주세요. 아이폰은 사파리, 안드로이드는 크롬에서 열면 잘 저장돼요.</p></section>
   </div>
 </div>
 <script>
