@@ -998,26 +998,31 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.save(); c.setLineDash([3, 2]); c.strokeStyle = '#888'; c.lineWidth = 0.8; c.strokeRect(-37, -9, 74, 18); c.restore();
         text(c, 'RUNIMATE', 0, 4, MONO(9, true), ink, 'center', 1.5); c.restore();
       });
+      var X0 = f.L + 16; // 거리·하단 데이터: 모눈 한 칸(16) 오른쪽
       var dfs = f.id === 'S' ? 62 : (R ? 56 : 50), base = B - (R ? 64 : 58), dw = measure(c, v.dist, MARKER(dfs)), dwF = measure(c, vals(d, 1).dist, MARKER(dfs));
       write(1, function () {
         // 마커로 그은 밑줄: 두껍고 살짝 투명하게, 숫자 아래쪽에 겹치도록 먼저 그림
         c.save(); c.globalAlpha *= 0.6; c.strokeStyle = A; c.lineWidth = 12; c.lineCap = 'butt'; c.beginPath();
-        c.moveTo(f.L - 4, base + 5); c.quadraticCurveTo(f.L + dwF * 0.5, base + 11, f.L + dwF + 36, base + 2); c.stroke(); c.restore();
-        text(c, v.dist, f.L, base, MARKER(dfs), ink);
-        text(c, 'km', f.L + dw + 6, base, MARKER(dfs * 0.4), ink);
+        c.moveTo(X0 - 4, base + 5); c.quadraticCurveTo(X0 + dwF * 0.5, base + 11, X0 + dwF + 36, base + 2); c.stroke(); c.restore();
+        text(c, v.dist, X0, base, MARKER(dfs), ink);
+        text(c, 'km', X0 + dw + 6, base, MARKER(dfs * 0.4), ink);
       });
       write(1, function () {
         // 화살표: 거리 → 사진
         c.strokeStyle = ink; c.lineWidth = 1.8; c.lineCap = 'round'; c.beginPath();
-        var ax = f.L + Math.min(dwF + 60, f.BW - 24), ay = base - dfs * 0.7, bx = g.x + g.pw + 10, by = g.y + g.ph - 46;
+        var ax = X0 + Math.min(dwF + 60, f.BW - 40), ay = base - dfs * 0.7, bx = g.x + g.pw + 10, by = g.y + g.ph - 46;
         c.moveTo(ax, ay); c.quadraticCurveTo(ax + 14, (ay + by) / 2, bx, by); c.stroke();
         c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 9, by + 1); c.moveTo(bx, by); c.lineTo(bx + 2, by + 9); c.stroke();
       });
       write(2, function () {
-        var cwid = f.BW / 3;
+        // 최종 값 폭 기준으로 남는 공간을 고르게 나눠 배치 (숫자끼리 붙지 않게)
+        var trF = trio(d, vals(d, 1)), avail = f.L + f.BW - X0 - 8, vs = 20, ws, sum, gapX;
+        for (;;) { ws = trF.values.map(function (x) { return measure(c, x, MARKER(vs)); }); sum = ws[0] + ws[1] + ws[2]; gapX = (avail - sum) / 2; if (gapX >= 12 || vs <= 14) break; vs -= 1; }
+        var cx2 = X0;
         for (var i = 0; i < 3; i++) {
-          text(c, tr.labels[i].toLowerCase(), f.L + i * cwid, B - 26, MARKER(12), '#666');
-          text(c, tr.values[i], f.L + i * cwid, B - 2, MARKER(20), ink);
+          text(c, tr.labels[i].toLowerCase(), cx2, B - 26, MARKER(12), '#666');
+          text(c, tr.values[i], cx2, B - 2, MARKER(vs), ink);
+          cx2 += ws[i] + Math.min(gapX, 28);
         }
       });
     }
