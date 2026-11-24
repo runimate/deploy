@@ -466,7 +466,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function classify(w) {
     var s = String((w && (w.sportType || w.type || w.sport_type)) || '').toLowerCase();
     if (s.indexOf('hik') !== -1) return 'hike';
-    if (s.indexOf('trail') !== -1) return 'trail';
+    if (s.indexOf('trail') !== -1 || s.indexOf('ultra') !== -1) return 'trail'; // 가민 울트라 러닝(ultra_run)도 트레일러닝으로
     if (s.indexOf('run') !== -1 || s === '') return 'run';
     return 'other';
   }
