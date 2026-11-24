@@ -1134,16 +1134,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var k = bounce(r), dy = -(cy + 80) * (1 - k), spin = (1 - clamp(r * 1.6, 0, 1)) * (order % 2 ? 14 : -14);
         c.save(); c.translate(cx, cy + dy); c.rotate((rot + spin) * Math.PI / 180); c.translate(-cx, -cy); fn(); c.restore();
       }
-      // 날씨 스티커(원) 하나에 아이콘 + 기온: 페이스 캡슐 오른쪽, 아래쪽 맞춤
-      var vf = vals(d, 1), paceF = vf.pace + ' /km', timeW = capW(c, vf.time, 15, hS) + 4;
-      var run = d.type === 'run', pW = capW(c, paceF, 15, hS) + 4;
-      var pRow = run ? y3 : y4, pX = run ? f.L + 56 : f.L + timeW + 8;   // 페이스 캡슐 위치
-      var D = 42, cx = Math.min(pX + pW + 6 + D / 2, f.L + f.BW - D / 2), cy = pRow + hS - D / 2;
-      drop(7, cx, cy, 8, function () {
-        c.beginPath(); c.arc(cx, cy, D / 2, 0, Math.PI * 2); c.fillStyle = '#F4F4F0'; c.fill();
-        wxIcon(c, WX.code, cx - 8.5, cy - 16, 17, '#0B0B0B');
-        var tf = Math.min(10.5, fitFont(c, wxTemp(), 10.5, D - 10, GOTH));
-        text(c, wxTemp(), cx, cy + 14, GOTH(tf), '#0B0B0B', 'center');
+      // 날씨 캡슐: [아이콘 기온] 가로로. 페이스 캡슐 줄 오른쪽에 붙이고, 폭이 모자라면 다른 줄(고도 캡슐) 오른쪽으로
+      var vf = vals(d, 1), timeW = capW(c, vf.time, 15, hS) + 4, run = d.type === 'run';
+      var pW = capW(c, vf.pace + ' /km', 15, hS) + 4, eW = capW(c, '+' + vf.elev + ' m', 15, hS) + 4;
+      var pRow = run ? y3 : y4, pEnd = (run ? f.L + 56 : f.L + timeW + 8) + pW;   // 페이스 캡슐 끝
+      var eRow = run ? y4 : y3, eEnd = (run ? f.L + timeW + 8 : f.L + 56) + eW;   // 고도 캡슐 끝
+      var IC = 18, GAP = 5, tW = measure(c, wxTemp(), GOTH(15)), wW = hS * 0.45 + IC + GAP + tW + hS * 0.45, R0 = f.L + f.BW;
+      var wy = pRow, wx = pEnd + 8;
+      if (wx + wW > R0) { wy = eRow; wx = eEnd + 8; }
+      if (wx + wW > R0) wx = R0 - wW;
+      drop(7, wx + wW / 2, wy + hS / 2, -2, function () {
+        rr(c, wx, wy, wW, hS, hS / 2); c.fillStyle = '#F4F4F0'; c.fill();
+        wxIcon(c, WX.code, wx + hS * 0.45, wy + (hS - IC) / 2, IC, '#0B0B0B');
+        text(c, wxTemp(), wx + hS * 0.45 + IC + GAP, wy + hS / 2 + 15 * 0.36, GOTH(15), '#0B0B0B');
       });
     };
     Lay.scrap.draw = function (c, f, t, v, d, P) {
