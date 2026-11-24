@@ -158,7 +158,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <div class="seg" role="group" aria-label="데이터 소스">
       <button type="button" data-src="strava" aria-pressed="true">STRAVA</button>
       <button type="button" data-src="garmin" aria-pressed="false">GARMIN</button>
-      <button type="button" data-src="coros" aria-pressed="false" class="soon" disabled aria-disabled="true" title="준비 중">COROS<span class="soonTag" aria-hidden="true">COMING SOON</span></button>
+      <button type="button" data-src="coros" aria-pressed="false">COROS</button>
       <button type="button" data-src="manual" aria-pressed="false" class="hidden" id="srcManualBtn">직접 입력</button>
     </div>
 
@@ -177,7 +177,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <label class="fld">코로스 계정 이메일<input type="email" id="cEmail" autocomplete="username"></label>
       <label class="fld">비밀번호<input type="password" id="cPw" autocomplete="current-password"></label>
       <button type="button" class="btn primary" id="btnCoros">코로스 기록 불러오기</button>
-      <p class="small" style="margin:0">테스트 중인 기능이에요. 불러오면 코로스 웹(Training Hub)에서 로그아웃될 수 있어요.</p>
+      <p class="small" style="margin:0;word-break:keep-all">불러오면 코로스 웹(Training Hub)에서<br>로그아웃될 수 있어요. 다시 로그인하면 돼요.</p>
     </div>
 
     <div id="srcManual" class="hidden stack">
@@ -231,7 +231,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   </div>
   <div class="chips" role="group" aria-label="레이아웃" id="layoutChips"></div>
   <p class="small" id="acgNote" style="margin:0 0 10px">ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
-  <p class="small hidden" id="mapNote" style="margin:0 0 10px">POSTER · ROUTE + ELEV는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p>
+  <p class="small hidden" id="mapNote" style="margin:0 0 10px">POSTER · ROUTE + ELEV는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민·코로스는 최근 8개 기록)</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
   <div class="guideRow"><label class="check"><input type="checkbox" id="safe" checked>인스타그램 UI 가이드 보기</label><button type="button" class="helpBtn" data-help="guide">사용 매뉴얼</button></div>
@@ -303,11 +303,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <p class="sign">— 제이에스 (@runarchive.js)</p></section>
     <section><h3><b>01</b> 기록 불러오기</h3>
       <p><b>DAILY</b>는 기록 하나, <b>MONTHLY</b>는 한 달 기록을 합쳐서 보여줘요.</p>
-      <p>스트라바는 연결 버튼, 가민은 아이디·비밀번호로 불러와요. 목록에서 기록을 고르면 바로 미리보기에 반영돼요.</p>
-      <p class="note">가민 커넥트에서 2단계 인증(2FA)을 켜둔 계정은 기록을 불러올 수 없어요.</p></section>
+      <p>스트라바는 연결 버튼, 가민·코로스는 아이디·비밀번호로 불러와요. 목록에서 기록을 고르면 바로 미리보기에 반영돼요.</p>
+      <p class="note">가민 커넥트에서 2단계 인증(2FA)을 켜둔 계정은 기록을 불러올 수 없어요. 코로스는 불러올 때 코로스 웹(Training Hub)에서 로그아웃될 수 있어요.</p></section>
     <section><h3><b>02</b> 비율과 레이아웃</h3>
       <p><b>릴스/스토리 9:16</b> 또는 <b>피드 3:4</b>를 고르고, 썸네일을 눌러 레이아웃을 골라요. 옆으로 넘기면 더 있어요.</p>
-      <p class="note">ACG · ACG GRID · ROUTE는 트레일러닝·하이킹 기록에서만, POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p></section>
+      <p class="note">ACG · ACG GRID · ROUTE는 트레일러닝·하이킹 기록에서만, POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민·코로스는 최근 8개 기록)</p></section>
     <section id="helpGuide"><h3>인스타그램 UI 가이드</h3>
       <p>미리보기 위에만 보이고, 저장한 결과물에는 나오지 않아요.</p>
       <ul><li><i class="g red"></i><span><b>빨간 영역</b> 릴스 화면에서 버튼·캡션이 덮는 곳</span></li>
@@ -1820,11 +1820,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var M = monthAgg(monthTypes(), 1), loaded = src !== 'manual' && workouts[src] && workouts[src].length;
       info.textContent = (loaded || src === 'manual')
         ? M.key + ' · ' + MFILTER_KO[mFilter] + ' · ' + M.runs + '회 · ' + M.dist + ' km · ' + M.time + ' · +' + M.elev + ' m'
-        : '스트라바나 가민을 연결해서 기록을 불러와주세요.';
+        : '스트라바·가민·코로스를 연결해서 기록을 불러와주세요.';
       updateAcgAvailability(); restartAnim(); return;
     }
     if (src !== 'manual' && !record) {
-      info.textContent = (workouts[src] && workouts[src].length) ? '위 목록에서 기록을 골라주세요.' : '스트라바나 가민을 연결해서 기록을 불러와주세요.';
+      info.textContent = (workouts[src] && workouts[src].length) ? '위 목록에서 기록을 골라주세요.' : '스트라바·가민·코로스를 연결해서 기록을 불러와주세요.';
     } else {
       info.textContent = '선택한 기록 · ' + TYPE_KO[r.type] + ' · ' + r.date + ' · ' + r.km.toFixed(2) + ' km · ' + fmtTime(r.timeSec) +
         (r.type === 'run' ? ' · ' + fmtPace(r.paceSec) + ' /km' : ' · +' + Math.round(r.elevGain).toLocaleString('en-US') + ' m');
@@ -1873,15 +1873,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     } catch (e) { console.error(e); showErr('서버 연결에 실패했어요. 잠시 후 다시 시도해주세요.'); }
     finally { btn.disabled = false; btn.textContent = '가민 기록 불러오기'; }
   });
-  // 코로스 (테스트): 주소에 ?coros=1 을 붙여 들어오면 탭이 열림. 한 번 열면 이 브라우저에선 계속 열려 있음
-  (function () {
-    var on = /[?&]coros=1/.test(location.search);
-    try { if (on) localStorage.setItem('runimate_coros_test', '1'); on = on || localStorage.getItem('runimate_coros_test') === '1'; } catch (e) {}
-    if (!on) return;
-    var b = document.querySelector('[data-src="coros"]'); if (!b) return;
-    b.disabled = false; b.removeAttribute('aria-disabled'); b.classList.remove('soon'); b.title = '';
-    var tag = b.querySelector('.soonTag'); if (tag) tag.remove();
-  })();
   $('btnCoros').addEventListener('click', async function () {
     var email = $('cEmail').value.trim(), pw = $('cPw').value;
     if (!email || !pw) { showErr('이메일과 비밀번호를 입력해주세요.'); return; }
@@ -2004,7 +1995,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     // ROUTE는 트레일러닝·하이킹 기록에서만
     var hasRoute = mode !== 'monthly' && !!routeNow(), ty2 = current().type, trailOk = ty2 === 'trail' || ty2 === 'hike';
     chipsEl.querySelectorAll('.map').forEach(function (b) { b.disabled = !hasRoute || (b.dataset.id === 'routeelev' && !trailOk); });
-    var msg = !hasRoute ? 'POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)'
+    var msg = !hasRoute ? 'POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민·코로스는 최근 8개 기록)'
       : (!trailOk ? 'ROUTE는 트레일러닝·하이킹 기록에서만 고를 수 있어요.' : '');
     $('mapNote').textContent = msg;
     $('mapNote').classList.toggle('hidden', !msg || mode === 'monthly');
