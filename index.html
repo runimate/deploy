@@ -641,7 +641,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.polaroid = {
     geo: function (f) {
       var R = f.key === 'R', cw = R ? 248 : 236, ih = R ? 260 : 224, ch = 12 + ih + 96;
-      return { R: R, cw: cw, iw: cw - 24, ih: ih, ch: ch, cx: f.L + f.BW / 2, cy: f.T + f.BH / 2, nfs: 46 };
+      // 화면 정중앙에 두되, 글자 영역(세이프존) 밖으로 나가지 않게
+      var cx = clamp(f.W / 2, f.L + cw / 2, f.L + f.BW - cw / 2), cy = clamp(f.H / 2, f.T + ch / 2, f.T + f.BH - ch / 2);
+      return { R: R, cw: cw, iw: cw - 24, ih: ih, ch: ch, cx: cx, cy: cy, nfs: 46 };
     },
     rect: function (f) { var g = this.geo(f); return { x: g.cx - g.cw / 2 + 12, y: g.cy - g.ch / 2 + 12, w: g.iw, h: g.ih }; },
     draw: function (c, f, t, v, d, P) {
@@ -1312,12 +1314,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     draw: function (c, f, t, M, P) {
       var R = f.key === 'R';
       drawBlurred(c, f, 0.35);
-      var rw = R ? 232 : 244, x = f.L + (f.BW - rw) / 2, slotY, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
+      var rw = R ? 232 : 244, x = clamp(f.W / 2 - rw / 2, f.L, f.L + f.BW - rw), slotY, lh = R ? 12 : 11, maxN = R ? 10 : 9, z = 6;
       var sorted = M.recs.slice().sort(function (a, b) { return b.km - a.km; }), items = sorted.slice(0, maxN), more = Math.max(0, sorted.length - maxN);
       var rows = items.length + (more ? 1 : 0);
       var yItems = 74, yAfter = yItems + rows * lh + 6, H = yAfter + 34 + 8 + 4 * 11 + 10 + 16 + 18 + 10 + z;
       // 영수증 길이와 상관없이 다 나온 종이가 콘텐츠 영역 상하 중앙에 오도록 출력구 위치를 잡음
-      slotY = f.T + Math.max(4, (f.BH - H) / 2);
+      // 화면 정중앙에 두되, 글자 영역(세이프존) 밖으로 나가지 않게
+      slotY = clamp(f.H / 2 - H / 2, f.T + 4, Math.max(f.T + 4, f.T + f.BH - H));
       var p = clamp((t - 450) / 2300, 0, 1); p = 1 - (1 - p) * (1 - p);
       var py = slotY + 1 - H * (1 - p);
       c.save(); c.beginPath(); c.rect(x - 4, slotY + 1, rw + 8, f.H); c.clip();
