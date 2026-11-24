@@ -94,7 +94,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .authorRow .rm-author{border:0;padding:0;margin:0}
 .helpLink{background:none;border:0;padding:4px 0;font:700 12px RMInter,sans-serif;color:var(--fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .guideRow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-.helpBtn{width:28px;height:28px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:800 14px RMInter,sans-serif;cursor:pointer;border-radius:0}
+.helpBtn{height:30px;padding:0 10px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:700 12px RMInter,sans-serif;cursor:pointer;border-radius:0;white-space:nowrap}
 .helpModal{gap:0;padding:0;max-height:86vh;position:relative;display:block}
 .helpHead{position:sticky;top:0;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;border-bottom:var(--bw) solid var(--line)}
 .helpHead h2{margin:0;font:800 19px RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif}
@@ -126,7 +126,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         <a class="rm-v" href="/v25.html">V2.5</a>
       </nav>
     </div>
-    <div class="authorRow"><p class="rm-author">by @runarchive.js</p><button type="button" class="helpLink" data-help="top">사용법 ?</button></div>
+    <div class="authorRow"><p class="rm-author">by @runarchive.js</p><button type="button" class="helpLink" data-help="top">사용 매뉴얼</button></div>
   </header>
 
   <!-- 1. 기록 불러오기 -->
@@ -207,7 +207,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <p class="small hidden" id="mapNote" style="margin:0 0 10px">POSTER · ROUTE + ELEV는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
-  <div class="guideRow"><label class="check"><input type="checkbox" id="safe" checked>인스타그램 UI 가이드 보기</label><button type="button" class="helpBtn" data-help="guide" aria-label="가이드 설명 보기">?</button></div>
+  <div class="guideRow"><label class="check"><input type="checkbox" id="safe" checked>인스타그램 UI 가이드 보기</label><button type="button" class="helpBtn" data-help="guide">사용 매뉴얼</button></div>
   <p class="hint hidden" id="guideNote"></p>
   <p class="hint hidden" id="hint"></p>
 
@@ -268,7 +268,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 
 <div class="overlay hidden" id="helpBox" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="modal helpModal">
-    <div class="helpHead"><h2 id="helpTitle">러니메이트 사용법</h2><button type="button" class="helpClose" id="helpClose" aria-label="닫기">✕</button></div>
+    <div class="helpHead"><h2 id="helpTitle">러니메이트 사용 매뉴얼</h2><button type="button" class="helpClose" id="helpClose" aria-label="닫기">✕</button></div>
     <section><h3><b>01</b> 기록 불러오기</h3>
       <p><b>DAILY</b>는 기록 하나, <b>MONTHLY</b>는 한 달 기록을 합쳐서 보여줘요.</p>
       <p>스트라바는 연결 버튼, 가민은 아이디·비밀번호로 불러와요. 목록에서 기록을 고르면 바로 미리보기에 반영돼요.</p>
