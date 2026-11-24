@@ -1487,7 +1487,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         fade(c, e, (1 - e) * 10, function () {
           text(c, ln[0], L, nb, ln[1], ln[2]);
           small(ln[3], L, nb + 9);
-          if (!cp) { c.save(); c.globalAlpha *= 0.75; small(ln[4], L, nb + 17, 'left', WH, 5.5); c.restore(); }
+          if (!cp) { c.save(); c.globalAlpha *= 0.75; text(c, ln[4], L, nb + 17, '400 5.8px "Helvetica Neue", Helvetica, Arial, sans-serif', WH, 'left', -0.05); /* 서브카피: 보통 굵기, 자간 좁게 */ c.restore(); }
         });
       });
       var best = M.recs.slice().sort(function (a, b) { return b.km - a.km; })[0], kk = ease((t - HOLD) / COUNT);
