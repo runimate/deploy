@@ -1053,7 +1053,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   Lay.poster = {
     rect: full,
     draw: function (c, f, t, v, d, P) {
-      var B = f.T + f.BH, A = P.accent, tr = trio(d, v), p = inout((t - 500) / 3400);
+      var B = f.T + f.BH, A = P.accent, tr = trio(d, v), p = clamp((t - 500) / 6000, 0, 1); // 경로: 0.5초부터 6초 동안 일정한 속도로
       mapBackground(c, f, t, false);
       if (media) { shadeBand(c, f, 0, f.T + 130, 0.6, 0); shadeBand(c, f, B - 90, f.H, 0, 0.7); }
       var e0 = ease(t / 600), e2 = ease((t - 500) / 600);
