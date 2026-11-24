@@ -1495,7 +1495,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e3, (1 - e3) * 10, function () {
         var x = L + W, y = top;
         small('SPECIAL FEATURE', x, y + 5, 'right', A);
-        text(c, 'THE FARTHEST I WENT', x, y + 18, ANTON(11), WH, 'right');
+        text(c, 'THE LONGEST RUN', x, y + 18, ANTON(11), WH, 'right');
         if (!best) { text(c, '—', x, y + 44, ANTON(26), WH, 'right'); return; }
         var kw = measure(c, 'KM', ANTON(10));
         text(c, 'KM', x, y + 44, ANTON(10), WH, 'right');
@@ -1510,7 +1510,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e4, (1 - e4) * 14, function () {
         var y0 = B - cs;
         chip(c, L, y0 - 5, 'COVER STORY', A, inkOn(A), { size: 6, h: 12, padX: 5, r: 0 });
-        text(c, 'HOW FAR DID I RUN THIS MONTH?', L, y0 + 22, ANTON(14), WH); // 거리 숫자와 간격을 조금 더
+        text(c, 'HOW FAR, ' + M.name + '?', L, y0 + 22, ANTON(14), WH); // 거리 숫자와 간격을 조금 더
         var nfs = R ? 62 : 52, nb = y0 + 32 + nfs * 0.84, dw = measure(c, M.dist, ANTON(nfs));
         text(c, M.dist, L - 1, nb, ANTON(nfs), NC);
         text(c, 'KM', L + dw + 4, nb, ANTON(16), NC);
