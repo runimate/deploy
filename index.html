@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" class="rm-thumbs">
+<html lang="ko" class="rm-thumbs rm-beta">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -89,6 +89,30 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .prog i{display:block;height:100%;width:0;background:var(--acc)}
 </style>
 <link rel="stylesheet" href="./theme.css">
+<style>
+.authorRow{display:flex;justify-content:space-between;align-items:center;border-bottom:var(--bw) solid var(--line);padding-bottom:8px}
+.authorRow .rm-author{border:0;padding:0;margin:0}
+.helpLink{background:none;border:0;padding:4px 0;font:700 12px RMInter,sans-serif;color:var(--fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.guideRow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.helpBtn{height:30px;padding:0 10px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:700 12px RMInter,sans-serif;cursor:pointer;border-radius:0;white-space:nowrap}
+.helpModal{gap:0;padding:0;max-height:86vh;position:relative;display:block}
+.helpHead{position:sticky;top:0;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;border-bottom:var(--bw) solid var(--line)}
+.helpHead h2{margin:0;font:800 19px RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif}
+.helpClose{width:36px;height:36px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:700 16px RMInter,sans-serif;cursor:pointer}
+.helpModal section{padding:14px 18px;border-bottom:1px solid var(--line2)}
+.helpModal section:last-child{border-bottom:0}
+.helpModal h3{margin:0 0 6px;font:700 14px RMInter,sans-serif;color:var(--fg)}
+.helpModal h3 b{font:400 18px RMAnton,Impact,sans-serif;margin-right:6px}
+.helpModal p{margin:0 0 6px;font:400 13px/1.6 RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--fg)}
+.helpModal p.note{color:var(--mute);font-size:12px}
+.helpModal ul{list-style:none;margin:6px 0 8px;padding:0;display:flex;flex-direction:column;gap:8px}
+.helpModal li{display:flex;gap:10px;align-items:center;font:400 13px RMInter,sans-serif}
+.helpModal li b{margin-right:4px}
+.g{flex:0 0 26px;height:16px;display:block}
+.g.red{background:rgba(232,53,43,.45)}
+.g.dash{border:1.5px dashed #6B665C}
+.g.blue{border-top:2px dashed #3D7BFF;height:0;margin:8px 0}
+</style>
 <meta name="theme-color" content="#EFEBE3">
 <meta name="color-scheme" content="light only">
 </head>
@@ -102,7 +126,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         <a class="rm-v" href="/v25.html">V2.5</a>
       </nav>
     </div>
-    <p class="rm-author">by @runarchive.js</p>
+    <div class="authorRow"><p class="rm-author">by @runarchive.js</p><button type="button" class="helpLink" data-help="top">사용 매뉴얼</button></div>
   </header>
 
   <!-- 인스타그램·카카오톡 등 앱 안 브라우저 안내 (저장이 막히는 경우가 많음) -->
@@ -180,7 +204,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <p class="err hidden" id="srcErr"></p>
 
     <div class="sel" id="selInfo"></div>
-    <label class="fld" style="margin-top:10px">장소 / 제목 (결과물에 표시)<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"></label>
   </div>
 
   <!-- 2. 비율·레이아웃 -->
@@ -194,36 +217,15 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <p class="small hidden" id="mapNote" style="margin:0 0 10px">POSTER · ROUTE + ELEV는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p>
 
   <div class="stage"><canvas id="view" width="1080" height="1920" aria-label="결과 미리보기. 사진이 없으면 눌러서 사진이나 영상을 넣을 수 있어요"></canvas></div>
-  <label class="check" style="margin-top:10px"><input type="checkbox" id="safe" checked>인스타그램 UI 가이드 보기 (저장할 땐 안 보여요)</label>
-  <p class="hint" id="guideNote"></p>
-  <p class="hint" id="hint">미리보기를 눌러 사진이나 영상을 넣어보세요.</p>
+  <div class="guideRow"><label class="check"><input type="checkbox" id="safe" checked>인스타그램 UI 가이드 보기</label><button type="button" class="helpBtn" data-help="guide">사용 매뉴얼</button></div>
+  <p class="hint hidden" id="guideNote"></p>
+  <p class="hint hidden" id="hint"></p>
 
-  <!-- 3. 사진·영상 -->
-  <h2 class="step"><span class="n">03</span>사진 / 영상</h2>
-  <div class="row">
-    <button type="button" class="btn primary" id="btnPick">사진/영상 넣기</button>
-    <button type="button" class="btn" id="btnReset" disabled>위치 초기화</button>
-  </div>
-  <input type="file" id="file" accept="image/*,video/*" class="hidden">
-  <div class="card">
-    <h3>크기</h3>
-    <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="사진 확대">
-    <div id="dimWrap">
-      <h3 style="margin-top:12px">사진 어둡게</h3>
-      <input type="range" id="dim" min="0" max="0.6" step="0.01" value="0.12" aria-label="사진 어둡게">
-    </div>
-    <p class="small">사진을 드래그하면 위치가, 두 손가락으로 벌리면 크기가 바뀌어요.</p>
-  </div>
-  <div class="card hidden" id="videoCard">
-    <h3 id="trimTitle">영상 구간 (10초)</h3>
-    <input type="range" id="trim" min="0" max="0" step="0.1" value="0" aria-label="영상 시작 지점">
-    <p class="small" id="trimLabel">0.0초 ~ 10.0초</p>
-    <label class="check"><input type="checkbox" id="withAudio" checked>영상 원본 소리 포함</label>
-  </div>
 
   <!-- 4. 스타일 -->
-  <h2 class="step"><span class="n">04</span>스타일</h2>
+  <h2 class="step"><span class="n">03</span>스타일</h2>
   <div class="card">
+    <label class="fld" id="titleWrap" style="margin:0 0 14px">장소 / 제목 (결과물에 표시)<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"></label>
     <div id="accentWrap" style="margin-bottom:14px">
       <h3 id="accentTitle">포인트 컬러</h3>
       <div class="sw" id="swatches" role="group" aria-label="포인트 컬러"></div>
@@ -245,12 +247,74 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     </div>
   </div>
 
+  <!-- 3. 사진·영상 -->
+  <h2 class="step"><span class="n">04</span>사진 / 영상</h2>
+  <div class="row">
+    <button type="button" class="btn primary" id="btnPick">사진/영상 넣기</button>
+    <button type="button" class="btn" id="btnReset" disabled>위치 초기화</button>
+  </div>
+  <input type="file" id="file" accept="image/*,video/*" class="hidden">
+  <div class="card">
+    <h3 class="hidden">크기</h3>
+    <input type="range" class="hidden" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="사진 확대">
+    <div id="dimWrap">
+      <h3>사진 어둡게</h3>
+      <input type="range" id="dim" min="0" max="0.6" step="0.01" value="0.12" aria-label="사진 어둡게">
+    </div>
+  </div>
+  <div class="card hidden" id="videoCard">
+    <h3 id="trimTitle">영상 구간 (10초)</h3>
+    <input type="range" id="trim" min="0" max="0" step="0.1" value="0" aria-label="영상 시작 지점">
+    <p class="small" id="trimLabel">0.0초 ~ 10.0초</p>
+    <label class="check"><input type="checkbox" id="withAudio" checked>영상 원본 소리 포함</label>
+  </div>
+
   <div class="row" style="margin-top:6px">
     <button type="button" class="btn primary" id="btnVideo">영상으로 저장</button>
     <button type="button" class="btn" id="btnImage">이미지로 저장</button>
   </div>
-  <p class="small">사진과 영상은 서버로 올라가지 않고 이 기기 안에서만 합성돼요. 영상은 15초 이하, 세로 영상을 권장해요.</p>
+  <p class="small">사진과 영상은 서버로 올라가지 않고 이 기기 안에서만 합성돼요.</p>
 </div>
+
+<div class="overlay hidden" id="helpBox" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal helpModal">
+    <div class="helpHead"><h2 id="helpTitle">러니메이트 사용 매뉴얼</h2><button type="button" class="helpClose" id="helpClose" aria-label="닫기">✕</button></div>
+    <section><h3><b>01</b> 기록 불러오기</h3>
+      <p><b>DAILY</b>는 기록 하나, <b>MONTHLY</b>는 한 달 기록을 합쳐서 보여줘요.</p>
+      <p>스트라바는 연결 버튼, 가민은 아이디·비밀번호로 불러와요. 목록에서 기록을 고르면 바로 미리보기에 반영돼요.</p>
+      <p class="note">가민 커넥트에서 2단계 인증(2FA)을 켜둔 계정은 기록을 불러올 수 없어요.</p></section>
+    <section><h3><b>02</b> 비율과 레이아웃</h3>
+      <p><b>릴스/스토리 9:16</b> 또는 <b>피드 3:4</b>를 고르고, 썸네일을 눌러 레이아웃을 골라요. 옆으로 넘기면 더 있어요.</p>
+      <p class="note">ACG · ACG GRID · ROUTE는 트레일러닝·하이킹 기록에서만, POSTER · ROUTE는 GPS 경로가 있는 기록에서만 고를 수 있어요. (가민은 최근 8개 기록)</p></section>
+    <section id="helpGuide"><h3>인스타그램 UI 가이드</h3>
+      <p>미리보기 위에만 보이고, 저장한 결과물에는 나오지 않아요.</p>
+      <ul><li><i class="g red"></i><span><b>빨간 영역</b> 릴스 화면에서 버튼·캡션이 덮는 곳</span></li>
+      <li><i class="g dash"></i><span><b>점선 박스</b> 글자와 숫자가 들어가는 안전한 영역</span></li>
+      <li><i class="g blue"></i><span><b>파란 선</b> 프로필 그리드(3:4)에서 보이는 범위</span></li></ul>
+      <p class="note">피드 3:4는 오른쪽 위 1/N 표시와 왼쪽 아래 태그 아이콘 자리만 피하면 돼요.</p></section>
+    <section><h3><b>03</b> 스타일</h3>
+      <p><b>장소/제목</b>은 제목을 쓰는 레이아웃에서만 보여요. 비워두면 종목 이름이 들어가요.</p>
+      <p>포인트 컬러는 추천 5색 또는 맨 끝 버튼으로 원하는 색을 고를 수 있어요. 일부 레이아웃은 숫자 컬러, 다크/라이트를 따로 고를 수 있어요.</p></section>
+    <section><h3><b>04</b> 사진 / 영상</h3>
+      <p><b>미리보기를 누르거나</b> 사진/영상 넣기 버튼으로 배경을 넣어요.</p>
+      <p>미리보기에서 <b>드래그하면 위치</b>, <b>두 손가락으로 벌리면 크기</b>가 바뀌어요. 위치 초기화로 처음 상태로 돌아가요.</p>
+      <p>영상은 쓸 구간을 고르고, 원본 소리를 넣을지 정할 수 있어요. 15초 이하 세로 영상을 권장해요.</p></section>
+    <section><h3><b>05</b> 저장</h3>
+      <p><b>영상으로 저장</b>은 MP4, <b>이미지로 저장</b>은 PNG예요. 결과 창의 공유 버튼으로 사진 앱에 저장하거나 인스타그램에 바로 올릴 수 있어요.</p>
+      <p class="note">사진과 영상은 서버로 올라가지 않고 이 기기 안에서만 합성돼요.</p></section>
+  </div>
+</div>
+<script>
+(function () {
+  var box = document.getElementById('helpBox');
+  function open(where) { box.classList.remove('hidden'); var m = box.querySelector('.modal'); m.scrollTop = 0; if (where === 'guide') { var g = document.getElementById('helpGuide'), hd = m.querySelector('.helpHead'); m.scrollTop = g.offsetTop - hd.offsetHeight; } }
+  function close() { box.classList.add('hidden'); }
+  document.querySelectorAll('[data-help]').forEach(function (b) { b.addEventListener('click', function () { open(b.dataset.help); }); });
+  document.getElementById('helpClose').addEventListener('click', close);
+  box.addEventListener('click', function (e) { if (e.target === box) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>
 
 <div class="overlay hidden" id="busy"><div class="modal" style="align-items:center;text-align:center"><div class="spinner"></div><p id="busyText" style="margin:6px 0 0">영상 만드는 중…</p><div class="prog" style="width:100%"><i id="busyProg"></i></div><button type="button" class="btn" id="btnCancel" style="width:100%;margin-top:6px">취소</button></div></div>
 
