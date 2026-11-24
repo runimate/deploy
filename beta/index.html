@@ -1294,7 +1294,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         }
         c.save(); c.globalAlpha *= o.n ? 1 : 0.55; text(c, String(o.d), cx, cy + rowH * 0.42, HELV(8), '#F4F4F0', 'center'); c.restore();
       } else {
-        if (o.n && o.g > 0) { c.beginPath(); c.arc(cx, cy, (8 + Math.min(o.km, 40) * 0.3) * o.g, 0, Math.PI * 2); c.fillStyle = opt.acc; c.fill(); }
+        // 원 크기 = 그날 거리. 이웃한 원과 겹치지 않게 칸 크기의 절반을 넘지 않음
+        var maxR = Math.min(rowH, cw) / 2 - 1.5;
+        if (o.n && o.g > 0) { c.beginPath(); c.arc(cx, cy, Math.min(maxR, 8 + Math.min(o.km, 40) * 0.3) * o.g, 0, Math.PI * 2); c.fillStyle = opt.acc; c.fill(); }
         c.save(); c.globalAlpha *= o.n ? 1 : 0.55;
         text(c, String(o.d), cx, cy + 3, MONO(9, true), (o.n && o.g > 0.5) ? inkOn(opt.acc) : '#F4F4F0', 'center');
         c.restore();
@@ -1338,7 +1340,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var mfs = fitFont(c, M.name, R ? 64 : 52, f.BW, ANTON), base = f.T + 34 + mfs * 0.8;
       fade(c, e1, (1 - e1) * 20, function () {
         text(c, M.name, f.L - 1, base, ANTON(mfs), '#F4F4F0');
-        drawMonthCal(c, M, f.L, base + 10, f.BW, R ? 34 : 28, { acc: P.accent });
+        // 달력을 월 이름과 아래 기록 줄 사이 정가운데에 (피드도 원이 겹치지 않게 행간 34)
+        var rows = Math.ceil((M.offset + M.ndays) / 7), gapTop = base + 6, gapBot = B - 90;
+        var rowH = clamp((gapBot - gapTop - 14 - 8) / rows, 30, 40), calH = 14 + rows * rowH;
+        drawMonthCal(c, M, f.L, gapTop + Math.max(0, (gapBot - gapTop - calH) / 2), f.BW, rowH, { acc: P.accent });
       });
       monthStrip(c, f, M, B - 90, 90, e2);
     }
@@ -1504,8 +1509,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var e4 = ease((t - 850) / 550);
       fade(c, e4, (1 - e4) * 14, function () {
         var y0 = B - cs;
-        chip(c, L, y0, 'COVER STORY', A, inkOn(A), { size: 6, h: 12, padX: 5, r: 0 });
-        text(c, 'HOW FAR DID I RUN THIS MONTH?', L, y0 + 28, ANTON(14), WH);
+        chip(c, L, y0 - 5, 'COVER STORY', A, inkOn(A), { size: 6, h: 12, padX: 5, r: 0 });
+        text(c, 'HOW FAR DID I RUN THIS MONTH?', L, y0 + 22, ANTON(14), WH); // 거리 숫자와 간격을 조금 더
         var nfs = R ? 62 : 52, nb = y0 + 32 + nfs * 0.84, dw = measure(c, M.dist, ANTON(nfs));
         text(c, M.dist, L - 1, nb, ANTON(nfs), NC);
         text(c, 'KM', L + dw + 4, nb, ANTON(16), NC);
