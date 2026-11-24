@@ -456,15 +456,22 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
     c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
   }
+  // 글꼴 설정은 브라우저가 매번 해석해서 무거움 → 이미 같은 값이면 다시 설정하지 않음
+  var FONT_NORM = {};
+  function setFont(c, font) {
+    var n = FONT_NORM[font];
+    if (n === undefined) { c.font = font; FONT_NORM[font] = n = c.font; return; }
+    if (c.font !== n) c.font = font;
+  }
+  function setLS(c, ls) { if (!HAS_LS) return; var v = (ls || 0) + 'px'; if (c.letterSpacing !== v) c.letterSpacing = v; }
   function text(c, s, x, y, font, color, align, ls) {
-    c.font = font; c.fillStyle = color; c.textAlign = align || 'left'; c.textBaseline = 'alphabetic';
-    if (HAS_LS) c.letterSpacing = (ls || 0) + 'px';
+    setFont(c, font); c.fillStyle = color; c.textAlign = align || 'left'; c.textBaseline = 'alphabetic';
+    setLS(c, ls);
     c.fillText(s, x, y);
-    if (HAS_LS) c.letterSpacing = '0px';
   }
   function measure(c, s, font, ls) {
-    c.font = font; if (HAS_LS) c.letterSpacing = (ls || 0) + 'px';
-    var w = c.measureText(s).width; if (HAS_LS) c.letterSpacing = '0px'; return w;
+    setFont(c, font); setLS(c, ls);
+    return c.measureText(s).width;
   }
   function fade(c, a, dy, fn) { c.save(); c.globalAlpha *= clamp(a, 0, 1); c.translate(0, dy || 0); fn(); c.restore(); }
   function popAt(c, s, ox, oy, rot, fn) {
@@ -1257,11 +1264,14 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     recs.forEach(function (w) {
       var o = days[+String(w.date).slice(8, 10) - 1]; if (!o) return;
       o.km += w.km; o.elev += w.elevGain; o.n++; if (w.type === 'run') o.run = true;
-      td += w.km * o.g; ts += w.timeSec * o.g; te += w.elevGain * o.g; if (o.g >= 1) n++;
+      td += w.km; ts += w.timeSec; te += w.elevGain; n++;
     });
+    // 합계는 데일리와 같은 곡선(k)으로 부드럽게 카운트업 (달력 칸은 날짜 순서대로 켜짐)
+    var pace0 = td > 0 ? ts / td : 0;
+    td *= k; ts *= k; te *= k; n = Math.round(n * k);
     days.forEach(function (o) { maxKm = Math.max(maxKm, o.km); });
     return { key: key, y: y, m: m, name: MONTH_EN[m - 1], ndays: ndays, offset: offset, days: days, recs: recs, maxKm: maxKm,
-      dist: td.toFixed(1), runs: n, time: fmtTime(ts), elev: Math.round(te).toLocaleString('en-US'), pace: fmtPace(td > 0 ? ts / td : 0) };
+      dist: td.toFixed(1), runs: n, time: fmtTime(ts), elev: Math.round(te).toLocaleString('en-US'), pace: fmtPace(pace0 * k) };
   }
   function monthLabel() { return MFILTER_LABEL[mFilter]; }
   function fitFont(c, s, maxSize, width, fontFn) { var w = measure(c, s, fontFn(100)); return Math.min(maxSize, w > 0 ? 100 * width / w : maxSize); }
@@ -1514,6 +1524,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   };
 
   // RECEIPT — 출력구 라인이 생기고, 그 아래로 영수증이 출력됨 (출력 후 라인은 사라짐)
+  // 영수증 종이 + 그림자를 한 번만 그려 두고 재사용 (매 프레임 그림자 흐림 계산이 무거워서)
+  var paperCache = { key: '', cv: null };
+  function paperImage(w, h, z) {
+    var key = w + 'x' + h + 'x' + z;
+    if (paperCache.key === key) return paperCache.cv;
+    var cv = document.createElement('canvas'), pc = cv.getContext('2d');
+    cv.width = Math.round((w + 60) * S); cv.height = Math.round((h + 60) * S);
+    pc.setTransform(S, 0, 0, S, 30 * S, 30 * S);
+    pc.shadowColor = 'rgba(0,0,0,0.35)'; pc.shadowBlur = 18 * S; pc.shadowOffsetY = 8 * S;
+    zigzagPaper(pc, 0, 0, w, h, z); pc.fillStyle = '#FAFAF6'; pc.fill();
+    paperCache = { key: key, cv: cv };
+    return cv;
+  }
   function zigzagPaper(c, x, y, w, h, z) {
     c.beginPath(); c.moveTo(x, y + z);
     for (var i = 0; i < w; i += 8) { c.lineTo(x + i + 4, y); c.lineTo(x + Math.min(w, i + 8), y + z); }
@@ -1537,9 +1560,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var py = slotY + 1 - H * (1 - p);
       c.save(); c.beginPath(); c.rect(x - 4, slotY + 1, rw + 8, f.H); c.clip();
       c.save(); c.translate(x, py);
-      c.shadowColor = 'rgba(0,0,0,0.35)'; c.shadowBlur = 18; c.shadowOffsetY = 8;
-      zigzagPaper(c, 0, 0, rw, H, z); c.fillStyle = '#FAFAF6'; c.fill();
-      c.shadowColor = 'transparent';
+      c.drawImage(paperImage(rw, H, z), -30, -30, rw + 60, H + 60); // 그림자 포함 종이 (캐시)
       var ink = '#111111', L = 16, Rr = rw - 16;
       text(c, M.name, rw / 2, 42, ANTON(30), ink, 'center', 1);
       text(c, 'RUN, CREATE, SHARE. RUNIMATE', rw / 2, 56, MONO(8), ink, 'center', 1);
