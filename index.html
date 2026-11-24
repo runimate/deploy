@@ -424,9 +424,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.drawImage(media.el, g.x, g.y, g.w, g.h);
     if (dim && st.dim > 0) { c.fillStyle = 'rgba(0,0,0,' + st.dim + ')'; c.fillRect(r.x, r.y, r.w, r.h); }
   }
+  var BETA = document.documentElement.classList.contains('rm-beta');
   function placeholder(c, r) {
     c.fillStyle = '#262626'; c.fillRect(r.x, r.y, r.w, r.h);
     if (exporting) return;
+    if (BETA) {
+      // 베타: 더 크고 잘 보이는 '사진/영상 추가' 버튼
+      var bx = r.x + r.w / 2, by = r.y + Math.min(r.h / 2, 170), bw = Math.min(r.w - 40, 190), bh = 84;
+      c.save(); c.setLineDash([6, 5]); c.lineWidth = 1.5; c.strokeStyle = 'rgba(244,244,240,0.55)'; c.strokeRect(bx - bw / 2, by - bh / 2, bw, bh); c.restore();
+      c.beginPath(); c.arc(bx, by - 12, 20, 0, Math.PI * 2); c.fillStyle = '#FC4C02'; c.fill();
+      c.fillStyle = '#0B0B0B'; c.fillRect(bx - 9, by - 13.5, 18, 3); c.fillRect(bx - 1.5, by - 21, 3, 18);
+      text(c, '눌러서 사진/영상 추가', bx, by + 28, '700 15px RMInter, "Apple SD Gothic Neo", sans-serif', '#F4F4F0', 'center');
+      return;
+    }
     var cx = r.x + r.w / 2, cy = r.y + Math.min(r.h / 2, 150);
     c.beginPath(); c.arc(cx, cy - 12, 16, 0, Math.PI * 2); c.fillStyle = '#F4F4F0'; c.fill();
     c.fillStyle = '#0B0B0B'; c.fillRect(cx - 7, cy - 13, 14, 2); c.fillRect(cx - 1, cy - 19, 2, 14);
@@ -1676,8 +1686,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (media && media.type === 'video') { var d = media.el.duration || 0, tr = $('trim'); tr.max = Math.max(0, d - sec).toFixed(1); tr.disabled = d <= sec; if (trimStart > +tr.max) { trimStart = +tr.max; tr.value = trimStart; } updateTrimLabel(d); }
     restartAnim();
   }
+  // 장소/제목을 결과물에 쓰는 레이아웃 (베타: 나머지 레이아웃에서는 제목 칸을 숨김)
+  var TITLE_LAYOUTS = ['panel', 'tags', 'polaroid', 'poster', 'routeelev', 'acg2', 'acg3'];
   function setLayout(id) {
     st.layout = id; applyClip(id);
+    if (BETA && $('titleWrap')) $('titleWrap').classList.toggle('hidden', TITLE_LAYOUTS.indexOf(id) === -1);
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
     var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
