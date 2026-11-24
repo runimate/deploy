@@ -317,7 +317,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       <p class="note">스토리는 오른쪽 버튼이 없어서 릴스보다 글자 영역이 넓어요. 피드 3:4는 오른쪽 위 1/N 표시와 왼쪽 아래 태그 아이콘 자리만 피하면 돼요.</p></section>
     <section><h3><b>03</b> 스타일</h3>
       <p><b>장소/제목</b>은 제목을 쓰는 레이아웃에서만 보여요. 비워두면 그 자리에 기록한 날짜가 들어가요.</p>
-      <p>포인트 컬러는 추천 5색 또는 맨 끝 버튼으로 원하는 색을 고를 수 있어요. 일부 레이아웃은 숫자 컬러, 다크/라이트를 따로 고를 수 있어요.</p></section>
+      <p>포인트 컬러는 추천 5색 또는 맨 끝 버튼으로 원하는 색을 고를 수 있어요. 일부 레이아웃은 숫자 컬러, 다크/라이트를 따로 고를 수 있어요.</p>
+      <p class="note">BENTO · PANEL · STICKER에는 운동한 시간·장소의 날씨와 기온이 자동으로 들어가요. 시작 위치(GPS)가 없는 기록이나 직접 입력한 기록에는 표시되지 않아요.</p></section>
     <section><h3><b>04</b> 사진 / 영상</h3>
       <p><b>미리보기를 누르거나</b> 사진/영상 넣기 버튼으로 배경을 넣어요.</p>
       <p>미리보기에서 <b>드래그하면 위치</b>, <b>두 손가락으로 벌리면 크기</b>가 바뀌어요. 위치 초기화로 처음 상태로 돌아가요.</p>
@@ -1029,7 +1030,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   };
 
   // ===== 날씨 (테스트 버전) — 기록 시작 좌표 + 시각으로 Open-Meteo에서 그때 날씨 조회 =====
-  var LAB_WX = document.documentElement.classList.contains('rm-lab');
+  var LAB_WX = true; // 날씨: 정식 적용
   var WX = null, wxCache = {}, WX_SAMPLE = { code: 'sun', temp: 12 };
   // 아이콘 5가지: 맑음 · 구름조금 · 흐림(안개 포함) · 비(이슬비·소나기·뇌우 포함) · 눈
   function wxCode(c) {
