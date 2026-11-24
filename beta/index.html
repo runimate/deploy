@@ -658,10 +658,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       var ink = inkOn(P.accent);
       fade(c, e1, (1 - e1) * 24, function () {
         var x = f.L, w = f.BW, y = distTop, h = distH;
-        rr(c, x, y, w, h, 18); c.fillStyle = P.accent; c.fill();
-        text(c, 'DISTANCE', x + 16, y + 22, MONO(9, true), ink, 'left', 1.3);
-        text(c, v.dist, x + 16, y + h - 14, ANTON(R ? 62 : 64), ink);
-        text(c, 'KM', x + w - 16, y + h - 14, ANTON(20), ink, 'right');
+        rr(c, x, y, w, h, 16); c.fillStyle = P.accent; c.fill();
+        text(c, 'DISTANCE', x + 14, y + 22, MONO(9, true), ink, 'left', 1.3);
+        text(c, v.dist, x + 14, y + h - 14, ANTON(R ? 62 : 64), ink);
+        text(c, 'KM', x + w - 14, y + h - 14, ANTON(20), ink, 'right');
       });
       var cw = (f.BW - 16) / 3, tr = trio(d, v);
       for (var i = 0; i < 3; i++) (function (i) {
@@ -669,8 +669,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         fade(c, e, (1 - e) * 24, function () {
           var x = f.L + i * (cw + 8);
           rr(c, x, statTop, cw, 64, 16); c.fillStyle = P.card; c.fill();
-          c.save(); c.globalAlpha *= 0.75; text(c, tr.labels[i], x + 12, statTop + 21, MONO(9), P.fg, 'left', 1); c.restore();
-          text(c, tr.values[i], x + 12, statTop + 52, ANTON(22), P.fg);
+          c.save(); c.globalAlpha *= 0.75; text(c, tr.labels[i], x + 14, statTop + 22, MONO(9), P.fg, 'left', 1); c.restore();
+          text(c, tr.values[i], x + 14, statTop + 52, ANTON(22), P.fg);
         });
       })(i);
     }
@@ -1098,19 +1098,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       b0.apply(this, arguments);
       if (!(WX = wxNow())) return;
       var R = f.key === 'R', B = f.T + f.BH, statTop = B - 64, h = 101, y = statTop - 8 - h, e1 = ease((t - 250) / 600), ink = inkOn(P.accent);
-      var w1 = Math.round((f.BW - 8) * 2 / 3), w2 = f.BW - 8 - w1, x2 = f.L + w1 + 8;
+      var cw = (f.BW - 16) / 3, w1 = cw * 2 + 8, w2 = cw, x2 = f.L + (cw + 8) * 2;
       // 원래 거리 칸 지우기: 배경 다시 칠하기 대신 같은 자리에 덮어 그림
       c.save(); rr(c, f.L - 1, y - 1, f.BW + 2, h + 2, 19); c.clip();
       if (R) { c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H); drawMedia(c, full(f), kenburns(t), true); }
       else { c.fillStyle = P.bg; c.fillRect(0, 0, f.W, f.H); }
       c.restore();
       fade(c, e1, (1 - e1) * 24, function () {
-        rr(c, f.L, y, w1, h, 18); c.fillStyle = P.accent; c.fill();
-        text(c, 'DISTANCE', f.L + 16, y + 22, MONO(9, true), ink, 'left', 1.3);
-        var nfs = Math.min(R ? 62 : 64, fitFont(c, vals(d, 1).dist, 64, w1 - 32 - 30, ANTON));
-        text(c, v.dist, f.L + 16, y + h - 14, ANTON(nfs), ink);
+        rr(c, f.L, y, w1, h, 16); c.fillStyle = P.accent; c.fill();
+        text(c, 'DISTANCE', f.L + 14, y + 22, MONO(9, true), ink, 'left', 1.3);
+        var nfs = Math.min(R ? 62 : 64, fitFont(c, vals(d, 1).dist, 64, w1 - 28 - 30, ANTON));
+        text(c, v.dist, f.L + 14, y + h - 14, ANTON(nfs), ink);
         text(c, 'KM', f.L + w1 - 14, y + h - 14, ANTON(18), ink, 'right');
-        rr(c, x2, y, w2, h, 18); c.fillStyle = P.accent; c.fill();
+        rr(c, x2, y, w2, h, 16); c.fillStyle = P.accent; c.fill();
         wxIcon(c, WX.code, x2 + w2 / 2 - 20.5, y + 11, 41, ink); // 아이콘 120%
         text(c, wxTemp(), x2 + w2 / 2, y + h - 16, ANTON(24), ink, 'center');
       });
