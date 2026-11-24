@@ -228,7 +228,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <!-- 4. 스타일 -->
   <h2 class="step"><span class="n">03</span>스타일</h2>
   <div class="card">
-    <label class="fld" id="titleWrap" style="margin:0 0 14px">장소 / 제목<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"><span class="small" style="display:block;margin-top:6px;font-weight:500">결과물에 표시돼요. 비워두면 그 자리에 기록한 날짜가 들어가요.</span></label>
+    <label class="fld" id="titleWrap" style="margin:0 0 14px">장소 / 제목<input type="text" id="inTitle" placeholder="예: 북한산 둘레길, 한강 러닝"><span class="small" id="titleHint" style="display:block;margin-top:6px;font-weight:500">결과물에 표시돼요. 비워두면 그 자리에 기록한 날짜가 들어가요.</span></label>
     <div id="accentWrap" style="margin-bottom:14px">
       <h3 id="accentTitle">포인트 컬러</h3>
       <div class="sw" id="swatches" role="group" aria-label="포인트 컬러"></div>
@@ -947,10 +947,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         drawMedia(c, r, kenburns(t), true);
         c.restore();
         // 사진 왼쪽 위: (피드) ACG FIELD REPORT + 제목/날짜, (릴스) 제목/날짜만
-        if (f.key === 'R') text(c, (d.title || d.ymd).toUpperCase(), r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
+        // 사진 왼쪽 위: 날짜는 항상 (피드는 ACG FIELD REPORT + 날짜)
+        if (f.key === 'R') text(c, d.ymd, r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
         else {
           text(c, 'ACG FIELD REPORT', r.x + 14, r.y + 22, HELV(12.5), '#FFFFFF', 'left', -0.2);
-          text(c, (d.title || d.ymd).toUpperCase(), r.x + 14, r.y + 35, HELV(12.5), '#FFFFFF', 'left', -0.2);
+          text(c, d.ymd, r.x + 14, r.y + 35, HELV(12.5), '#FFFFFF', 'left', -0.2);
         }
       });
       // 세로 좌표: 피드는 사진 안 오른쪽, 릴스는 사진 바깥 오른쪽
@@ -961,7 +962,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.save(); c.beginPath(); c.rect(x, y, w, g.rowB); c.clip();
         c.fillStyle = A; c.fillRect(x, y, w, g.rowB);
         topo(c, { cx: x + w + 2, cy: y - 2, r0: 5, n: 8, gap: 7, color: ink, alpha: 0.24, lw: 1, t: t, delay: 400, seed: 1.1 });
-        text(c, d.typeLabel, x + 12, y + 18, HELV(11), ink, 'left', 0.1);
+        text(c, (d.title || d.typeLabel).toUpperCase(), x + 12, y + 18, HELV(11), ink, 'left', 0.1); // 제목이 없으면 운동 종목
         var nfs = f.key === 'R' ? 50 : 56, nb = y + g.rowB - 14, ls = -nfs * 0.04;
         text(c, v.dist, x + 11, nb, HELV(nfs), ink, 'left', ls);
         var nw = measure(c, v.dist, HELV(nfs), ls);
@@ -1877,6 +1878,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function setLayout(id) {
     st.layout = id; applyClip(id);
     if (BETA && $('titleWrap')) $('titleWrap').classList.toggle('hidden', TITLE_LAYOUTS.indexOf(id) === -1);
+    if ($('titleHint')) $('titleHint').textContent = id === 'acg3'
+      ? '결과물에 표시돼요. 비워두면 운동 종목(예: TRAIL RUN)이 들어가요.'
+      : '결과물에 표시돼요. 비워두면 그 자리에 기록한 날짜가 들어가요.';
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
     var useAccent = ['bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
