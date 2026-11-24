@@ -215,9 +215,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <p class="small">사진을 드래그하면 위치가, 두 손가락으로 벌리면 크기가 바뀌어요.</p>
   </div>
   <div class="card hidden" id="videoCard">
-    <h3 id="trimTitle">영상 구간 (8초)</h3>
+    <h3 id="trimTitle">영상 구간 (10초)</h3>
     <input type="range" id="trim" min="0" max="0" step="0.1" value="0" aria-label="영상 시작 지점">
-    <p class="small" id="trimLabel">0.0초 ~ 8.0초</p>
+    <p class="small" id="trimLabel">0.0초 ~ 10.0초</p>
     <label class="check"><input type="checkbox" id="withAudio" checked>영상 원본 소리 포함</label>
   </div>
 
@@ -305,7 +305,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // 상수
   // =========================================================
   var S = 3;                 // 디자인 단위(360폭) × 3 = 실제 픽셀(1080폭)
-  var CLIP = 8000, HOLD = 700, COUNT = 2500;
+  var CLIP = 10000, HOLD = 700, COUNT = 2500;
   var SERVER = 'https://runimate-production.up.railway.app';
   var STRAVA_CLIENT_ID = '192399';
 
@@ -1730,8 +1730,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     queueThumbs();
   }
   buildChips();
-  // 레이아웃별 영상 길이: MAGAZINE은 애니메이션 후 8초 정도 멈춰서 읽을 시간을 줌 (12초)
-  function clipFor(id) { return id === 'mmag' ? 12000 : 8000; }
+  // 레이아웃별 영상 길이: 기본 10초, MAGAZINE은 애니메이션 후 8초 정도 멈춰서 읽을 시간을 줌 (12초)
+  function clipFor(id) { return id === 'mmag' ? 12000 : 10000; }
   function applyClip(id) {
     var c2 = clipFor(id); if (c2 === CLIP) return;
     CLIP = c2; var sec = CLIP / 1000;
@@ -1968,7 +1968,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
     return null;
   }
-  // 영상 원본 소리: 파일에서 소리만 꺼내서(8초 구간) AAC로 인코딩. 안 되면 null → 실시간 녹화로 넘어감
+  // 영상 원본 소리: 파일에서 소리만 꺼내서(영상 길이만큼) AAC로 인코딩. 안 되면 null → 실시간 녹화로 넘어감
   async function prepAudio() {
     if (!window.AudioEncoder || !window.AudioData) return null;
     var AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
