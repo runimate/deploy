@@ -515,7 +515,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (!paceSec && km > 0) paceSec = timeSec / km;
     return { date: String(w.date || '').replace(/-/g, '.'), km: km, paceSec: paceSec, timeSec: timeSec, elevGain: num(w.elevGain), type: classify(w), name: w.name || w.title || '',
       activityId: w.activityId || null, elevProfile: validProfile(w.elevProfile), route: toRoute(w.polyline),
-      start: validLL(w.start) || firstLL(w.polyline), summit: validLL(w.summit) };
+      start: validLL(w.start) || firstLL(w.polyline), summit: validLL(w.summit), startTime: w.startTime || '' };
   }
   // GPS 경로: 스트라바는 인코딩된 문자열, 가민은 [{lat, lon}] → 화면용 평면 좌표 [[x, y]]
   function decodePolyline(str) {
@@ -1027,6 +1027,159 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       });
     }
   };
+
+  // ===== 날씨 (테스트 버전) — 기록 시작 좌표 + 시각으로 Open-Meteo에서 그때 날씨 조회 =====
+  var LAB_WX = document.documentElement.classList.contains('rm-lab');
+  var WX = null, wxCache = {}, WX_SAMPLE = { code: 'sun', temp: 12 };
+  function wxCode(c, wind, day) {
+    var k;
+    if (c === 0 || c === 1) k = day ? 'sun' : 'night';
+    else if (c === 2) k = day ? 'partly' : 'cloud';
+    else if (c === 3) k = 'cloud';
+    else if (c === 45 || c === 48) k = 'fog';
+    else if ((c >= 71 && c <= 77) || c === 85 || c === 86) k = 'snow';
+    else k = 'rain'; // 이슬비·비·소나기·뇌우
+    if (wind >= 30 && (k === 'sun' || k === 'partly' || k === 'cloud' || k === 'night')) k = 'wind'; // 초속 8m 이상이면 바람
+    return k;
+  }
+  function wxKey(r) { return (r.activityId || '') + '|' + r.date + '|' + r.km; }
+  function wxFetch(r, key) {
+    wxCache[key] = 'loading';
+    var ll = r.start || r.summit, ymd = String(r.date || '').replace(/\./g, '-');
+    if (!ll || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) { wxCache[key] = false; return; }
+    // 운동 중간 시각의 날씨 (시작 시각을 모르면 오전 8시로 가정)
+    var hm = /^(\d{1,2}):(\d{2})/.exec(r.startTime || ''), h0 = hm ? +hm[1] + (+hm[2]) / 60 : 8;
+    var hour = clamp(Math.round(h0 + (r.timeSec || 0) / 7200), 0, 23);
+    var days = (Date.now() - new Date(ymd + 'T12:00:00').getTime()) / 864e5;
+    var base = days > 6 ? 'https://archive-api.open-meteo.com/v1/archive' : 'https://api.open-meteo.com/v1/forecast';
+    var url = base + '?latitude=' + ll[0].toFixed(4) + '&longitude=' + ll[1].toFixed(4) + '&start_date=' + ymd + '&end_date=' + ymd +
+      '&hourly=temperature_2m,weather_code,wind_speed_10m,is_day&timezone=auto';
+    fetch(url).then(function (res) { return res.json(); }).then(function (j) {
+      var H = j && j.hourly; if (!H || !H.temperature_2m || H.temperature_2m[hour] == null) { wxCache[key] = false; return; }
+      wxCache[key] = { code: wxCode(H.weather_code[hour], H.wind_speed_10m[hour] || 0, H.is_day ? H.is_day[hour] === 1 : true), temp: Math.round(H.temperature_2m[hour]) };
+    }).catch(function () { wxCache[key] = false; });
+  }
+  // 지금 기록의 날씨: 기록을 고르기 전엔 예시(맑음 12°C), 직접 입력·월간·GPS 없는 기록은 표시 안 함
+  function wxNow() {
+    if (mode === 'monthly' || src === 'manual') return null;
+    if (!record) return WX_SAMPLE;
+    var key = wxKey(record), w = wxCache[key];
+    if (w === undefined) { wxFetch(record, key); return null; }
+    return (w && w !== 'loading') ? w : null;
+  }
+  var WX_EMOJI = { sun: '☀️', partly: '⛅', cloud: '☁️', rain: '🌧️', snow: '❄️', fog: '🌫️', wind: '💨', night: '🌙' };
+  function wxCloud(c, x, y, s) {
+    c.beginPath();
+    c.moveTo(x + s * 0.22, y + s * 0.78);
+    c.arc(x + s * 0.24, y + s * 0.62, s * 0.16, Math.PI * 0.5, Math.PI * 1.45);
+    c.arc(x + s * 0.46, y + s * 0.44, s * 0.22, Math.PI * 1.1, Math.PI * 1.95);
+    c.arc(x + s * 0.74, y + s * 0.6, s * 0.18, Math.PI * 1.4, Math.PI * 0.5);
+    c.closePath(); c.stroke();
+  }
+  function wxIcon(c, code, x, y, s, color, lw) {
+    c.save(); c.strokeStyle = color; c.fillStyle = color; c.lineWidth = lw || Math.max(1.4, s * 0.085); c.lineCap = 'round'; c.lineJoin = 'round';
+    function sun(cx, cy, r, rays) {
+      c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+      for (var i = 0; i < rays; i++) { var a = i * Math.PI * 2 / rays; c.beginPath(); c.moveTo(cx + Math.cos(a) * r * 1.55, cy + Math.sin(a) * r * 1.55); c.lineTo(cx + Math.cos(a) * r * 2.05, cy + Math.sin(a) * r * 2.05); c.stroke(); }
+    }
+    if (code === 'sun') sun(x + s / 2, y + s / 2, s * 0.2, 8);
+    else if (code === 'night') { c.beginPath(); c.arc(x + s * 0.5, y + s * 0.5, s * 0.32, Math.PI * 0.35, Math.PI * 1.65); c.arc(x + s * 0.64, y + s * 0.4, s * 0.24, Math.PI * 1.35, Math.PI * 0.55, true); c.stroke(); }
+    else if (code === 'partly') {
+      c.save(); c.beginPath(); c.rect(x, y, s, s * 0.42); c.rect(x + s * 0.62, y, s * 0.38, s); c.clip(); sun(x + s * 0.62, y + s * 0.36, s * 0.14, 8); c.restore();
+      wxCloud(c, x - s * 0.04, y + s * 0.12, s * 0.86);
+    }
+    else if (code === 'cloud') wxCloud(c, x, y + s * 0.02, s);
+    else if (code === 'rain' || code === 'snow') {
+      wxCloud(c, x, y - s * 0.16, s);
+      for (var i = 0; i < 3; i++) {
+        var px = x + s * (0.3 + i * 0.2), py = y + s * 0.74;
+        if (code === 'rain') { c.beginPath(); c.moveTo(px + s * 0.05, py); c.lineTo(px - s * 0.03, py + s * 0.18); c.stroke(); }
+        else { c.beginPath(); c.arc(px, py + s * 0.1, s * 0.035, 0, Math.PI * 2); c.fill(); }
+      }
+    }
+    else if (code === 'fog') { for (var j = 0; j < 4; j++) { c.beginPath(); c.moveTo(x + s * (0.12 + (j % 2) * 0.1), y + s * (0.28 + j * 0.15)); c.lineTo(x + s * (0.88 - (j % 2 ? 0 : 0.1)), y + s * (0.28 + j * 0.15)); c.stroke(); } }
+    else if (code === 'wind') {
+      c.beginPath(); c.moveTo(x + s * 0.1, y + s * 0.38); c.lineTo(x + s * 0.62, y + s * 0.38); c.arc(x + s * 0.62, y + s * 0.28, s * 0.1, Math.PI * 0.5, -Math.PI * 0.6, true); c.stroke();
+      c.beginPath(); c.moveTo(x + s * 0.1, y + s * 0.56); c.lineTo(x + s * 0.76, y + s * 0.56); c.arc(x + s * 0.76, y + s * 0.67, s * 0.11, -Math.PI * 0.5, Math.PI * 0.6); c.stroke();
+      c.beginPath(); c.moveTo(x + s * 0.1, y + s * 0.74); c.lineTo(x + s * 0.44, y + s * 0.74); c.stroke();
+    }
+    c.restore();
+  }
+  function wxTemp() { return WX.temp + '°C'; }
+  // 아이콘 + 기온 (오른쪽 정렬). 폭 반환
+  function wxRight(c, xr, base, size, font, color, gap) {
+    var tw = measure(c, wxTemp(), font); text(c, wxTemp(), xr, base, font, color, 'right');
+    wxIcon(c, WX.code, xr - tw - (gap || 5) - size, base - size * 0.82, size, color);
+    return tw + (gap || 5) + size;
+  }
+  if (LAB_WX) (function () {
+    var b0 = Lay.bento.draw, p0 = Lay.panel.draw, t0x = Lay.tags.draw, s0 = Lay.scrap.draw;
+    Lay.bento.draw = function (c, f, t, v, d, P) {
+      // 원래 BENTO를 그리고, 거리 칸 자리만 2:1로 다시 그림
+      b0.apply(this, arguments);
+      if (!(WX = wxNow())) return;
+      var R = f.key === 'R', B = f.T + f.BH, statTop = B - 64, h = 101, y = statTop - 8 - h, e1 = ease((t - 250) / 600), ink = inkOn(P.accent);
+      var w1 = Math.round((f.BW - 8) * 2 / 3), w2 = f.BW - 8 - w1, x2 = f.L + w1 + 8;
+      // 원래 거리 칸 지우기: 배경 다시 칠하기 대신 같은 자리에 덮어 그림
+      c.save(); rr(c, f.L - 1, y - 1, f.BW + 2, h + 2, 19); c.clip();
+      if (R) { c.fillStyle = '#0B0B0B'; c.fillRect(0, 0, f.W, f.H); drawMedia(c, full(f), kenburns(t), true); }
+      else { c.fillStyle = P.bg; c.fillRect(0, 0, f.W, f.H); }
+      c.restore();
+      fade(c, e1, (1 - e1) * 24, function () {
+        rr(c, f.L, y, w1, h, 18); c.fillStyle = P.accent; c.fill();
+        text(c, 'DISTANCE', f.L + 16, y + 22, MONO(9, true), ink, 'left', 1.3);
+        var nfs = Math.min(R ? 62 : 64, fitFont(c, vals(d, 1).dist, 64, w1 - 32 - 30, ANTON));
+        text(c, v.dist, f.L + 16, y + h - 14, ANTON(nfs), ink);
+        text(c, 'KM', f.L + w1 - 14, y + h - 14, ANTON(18), ink, 'right');
+        rr(c, x2, y, w2, h, 18); c.fillStyle = P.accent; c.fill();
+        wxIcon(c, WX.code, x2 + w2 / 2 - 17, y + 16, 34, ink);
+        text(c, wxTemp(), x2 + w2 / 2, y + h - 16, ANTON(24), ink, 'center');
+      });
+    };
+    Lay.panel.draw = function (c, f, t, v, d, P) {
+      p0.apply(this, arguments);
+      if (!(WX = wxNow())) return;
+      // PANEL 띠와 같은 움직임으로: KM 위쪽에 아이콘 + 기온
+      var R = f.key === 'R', B = f.T + f.BH, top = B - 158, p = ease((t - 200) / 700), ink = inkOn(P.accent);
+      c.save();
+      if (R) c.translate((p - 1) * f.W, 0); else c.translate(0, (1 - p) * (f.H - top + 20));
+      wxRight(c, f.L + f.BW, top + 24, 20, MONO(14, true), ink, 6);
+      c.restore();
+    };
+    Lay.tags.draw = function (c, f, t, v, d, P) {
+      t0x.apply(this, arguments);
+      if (!(WX = wxNow())) return;
+      var R = f.key === 'R', B = f.T + f.BH, hS = 34, dh = R ? 62 : 66, y4 = B - hS, y3 = y4 - hS - 8, y2 = y3 - dh - 8, y1 = y2 - hS - 8;
+      function bounce(r) { r = clamp(r, 0, 1); var n = 7.5625, dd = 2.75; if (r < 1 / dd) return n * r * r; if (r < 2 / dd) return n * (r -= 1.5 / dd) * r + 0.75; if (r < 2.5 / dd) return n * (r -= 2.25 / dd) * r + 0.9375; return n * (r -= 2.625 / dd) * r + 0.984375; }
+      function drop(order, cx, cy, rot, fn) {
+        var r = (t - 150 - order * 170) / 650; if (r <= 0) return;
+        var k = bounce(r), dy = -(cy + 80) * (1 - k), spin = (1 - clamp(r * 1.6, 0, 1)) * (order % 2 ? 14 : -14);
+        c.save(); c.translate(cx, cy + dy); c.rotate((rot + spin) * Math.PI / 180); c.translate(-cx, -cy); fn(); c.restore();
+      }
+      // 이모지 원: 페이스 캡슐 오른쪽, 아래쪽 맞춤 / 기온 캡슐: 다른 줄(고도 캡슐) 오른쪽
+      var vf = vals(d, 1), paceF = vf.pace + ' /km', eF = '+' + vf.elev + ' m', timeW = capW(c, vf.time, 15, hS) + 4;
+      var run = d.type === 'run', pW = capW(c, paceF, 15, hS) + 4, eW = capW(c, eF, 15, hS) + 4;
+      var pRow = run ? y3 : y4, pX = run ? f.L + 56 : f.L + timeW + 8;   // 페이스 캡슐 위치
+      var eRow = run ? y4 : y3, eX = run ? f.L + timeW + 8 : f.L + 56;   // 고도 캡슐 위치
+      var D = 40, cx = Math.min(pX + pW + 6 + D / 2, f.L + f.BW - D / 2), cy = pRow + hS - D / 2;
+      var tw = capW(c, wxTemp(), 15, hS), tx = Math.min(eX + eW + 8, f.L + f.BW - tw);
+      drop(7, tx + tw / 2, eRow + hS / 2, 2, function () { capsule(c, tx, eRow, wxTemp(), 15, '#F4F4F0', '#0B0B0B', hS, tw); });
+      drop(8, cx, cy, 8, function () {
+        c.save(); c.shadowColor = 'rgba(0,0,0,0.25)'; c.shadowBlur = 6; c.shadowOffsetY = 2;
+        c.beginPath(); c.arc(cx, cy, D / 2, 0, Math.PI * 2); c.fillStyle = '#F4F4F0'; c.fill(); c.restore();
+        c.fillStyle = '#000'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '24px "Apple Color Emoji","Noto Color Emoji",sans-serif'; c.fillText(WX_EMOJI[WX.code], cx, cy + 2); c.textBaseline = 'alphabetic';
+      });
+    };
+    Lay.scrap.draw = function (c, f, t, v, d, P) {
+      s0.apply(this, arguments);
+      if (!(WX = wxNow())) return;
+      var g = Lay.scrap.geo(f), w = ease((t - 900) / 700);
+      if (w <= 0) return;
+      c.save(); c.beginPath(); c.rect(0, 0, f.L + f.BW * w, f.H); c.clip();
+      wxRight(c, f.L + f.BW, g.y + 116, 24, MARKER(22), '#1C1C1C', 6);
+      c.restore();
+    };
+  })();
 
   Lay.acg2 = {
     rect: full,
