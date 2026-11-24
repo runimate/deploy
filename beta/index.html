@@ -2107,5 +2107,16 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   ]).catch(function () {}).then(function () { fitLogo(); applyFormat(); requestAnimationFrame(loop); });
 })();
 </script>
+<script>
+// 슬라이더: 손잡이 왼쪽(채워진 부분)을 검정 선으로 표시
+(function () {
+  function paint(el) { var mn = +el.min || 0, mx = +el.max || 100, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', p + '%'); }
+  document.querySelectorAll('input[type=range]').forEach(function (el) {
+    paint(el); el.addEventListener('input', function () { paint(el); });
+    new MutationObserver(function () { paint(el); }).observe(el, { attributes: true, attributeFilter: ['max', 'min', 'value'] });
+  });
+  setInterval(function () { document.querySelectorAll('input[type=range]').forEach(paint); }, 500); // 코드가 값을 바꿀 때도 맞춤
+})();
+</script>
 </body>
 </html>

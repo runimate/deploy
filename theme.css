@@ -62,3 +62,21 @@ input[type=range]{accent-color:var(--fg)}
 .rm-thumbs .chips button[aria-pressed="true"]{background:var(--pri);border-color:var(--line);color:var(--pri-fg)}
 /* 오른쪽에 썸네일이 더 있다는 표시: 끝을 살짝 흐리게 */
 .rm-thumbs .chips{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
+/* ---- 설명 문구·컨트롤: 시안과 같은 모양으로 ---- */
+/* 설명 문구: 왼쪽 정렬, 작은 회색 */
+.hint,.small,#guideNote{text-align:left;font:500 12px/1.55 RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--mute)}
+/* 슬라이더: 2px 선 + 네모 손잡이 */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;margin:6px 0 2px}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--fg) var(--p,0%),var(--line2) var(--p,0%))}
+input[type=range]::-moz-range-track{height:2px;background:var(--line2)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--fg)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:-8px;background:var(--bg);border:var(--bw) solid var(--fg);border-radius:0}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--bg);border:var(--bw) solid var(--fg);border-radius:0}
+input[type=range]:disabled{opacity:.4}
+/* 체크박스: 검정 네모 + 체크 */
+.check{display:flex;align-items:center;gap:10px;font:500 14px RMInter,-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--fg)}
+.check input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:0 0 20px;width:20px;height:20px;margin:0;border:var(--bw) solid var(--fg);border-radius:0;background:var(--bg);display:grid;place-content:center}
+.check input[type=checkbox]:checked{background:var(--fg)}
+.check input[type=checkbox]:checked::after{content:"";width:10px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:translateY(-1px) rotate(-45deg)}
+/* 정보 상자(연결 상태 등): 얇은 선, 채우기 없음 */
+.status,#status,.info{background:transparent;border:1px solid var(--line2);border-radius:0;color:var(--fg)}
