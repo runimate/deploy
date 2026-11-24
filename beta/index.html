@@ -954,7 +954,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var S = P.map(function (p) { return [cx + (km > 0 ? (p[0] - d0) / km : 0) * cw, cy + ch - (p[1] - lo) / (top - lo) * ch, p === pk]; });
     var pi = 0; S.forEach(function (q, i) { if (q[2]) pi = i; });
     var Q = simplify(S.slice(0, pi + 1), 0.5).concat(simplify(S.slice(pi), 0.5).slice(1));
-    var k = ease((t - 800) / 1800), hx = cx + cw * k;
+    var k = clamp((t - 800) / 6000, 0, 1), hx = cx + cw * k; // 0.8초부터 6초 동안 일정한 속도로
     c.save(); c.beginPath(); c.rect(cx - 2, y, cw * k + 2, h); c.clip();
     c.beginPath(); Q.forEach(function (q, i) { if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); });
     c.lineWidth = 2; c.lineJoin = 'miter'; c.lineCap = 'butt'; c.strokeStyle = A; c.stroke();
