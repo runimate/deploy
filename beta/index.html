@@ -814,26 +814,54 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // acg 공통 — 등고선, 로고
   // ---------------------------------------------------------
   // o: cx, cy(중심) r0(첫 고리 반지름) n(고리 수) gap(간격) sy(세로 눌림) color alpha lw t delay seed
-  function topo(c, o) {
-    c.save(); c.strokeStyle = o.color; c.lineWidth = o.lw || 1; c.lineJoin = 'round';
-    var sd = o.seed || 0, n = o.n;
-    for (var j = 0; j < n; j++) {
-      var grow = ease((o.t - (o.delay || 0) - j * 60) / 900);
-      if (grow <= 0) continue;
-      c.globalAlpha = (o.alpha || 0.5) * grow * (1 - j / (n * 1.8));
-      var r0 = o.r0 + j * o.gap;
-      c.beginPath();
-      for (var a = 0; a <= 120; a++) {
-        var th = a / 120 * Math.PI * 2 * grow + sd;
-        var hm = o.h || [3, 5, 8, 0.15, 0.08, 0.04];
-        // 모든 링이 같은 모양을 크기만 키운 것이라 서로 교차하지 않음.
-        // 자연스럽게 보이도록 링마다 아주 작은 흔들림만 더함 (간격의 30% 이하라 겹치지 않음)
-        var shape = hm[3] * Math.sin(th * hm[0] + sd) + hm[4] * Math.cos(th * hm[1] + sd * 2) + hm[5] * Math.sin(th * hm[2]);
-        var rad = r0 * (1 + shape) + o.gap * 0.3 * Math.sin(th * 2 + j * 0.5 + sd);
-        var x = o.cx + Math.cos(th) * rad, y = o.cy + Math.sin(th) * rad * (o.sy || 0.72);
-        if (a === 0) c.moveTo(x, y); else c.lineTo(x, y);
+  // 등고선: 가상의 지형(봉우리 여러 개 + 잔물결)을 만들고 높이가 같은 선을 따라 그림.
+  // 같은 높이의 선끼리는 절대 교차하지 않아서, 겹침 없이 실제 지형도처럼 불규칙한 모양이 나옴.
+  var topoCache = {};
+  function topoPaths(o) {
+    var key = [o.cx, o.cy, o.r0, o.n, o.gap, o.sy || 0.72, o.seed || 0].join(',');
+    if (topoCache[key]) return topoCache[key];
+    var R = o.r0 + o.n * o.gap, sy = o.sy || 0.72, sd = o.seed || 0;
+    function rnd(i) { var x = Math.sin(sd * 97.13 + i * 12.9898) * 43758.5453; return x - Math.floor(x); }
+    // 봉우리: 가운데 큰 봉우리 1개 + 주변 작은 봉우리 3~4개
+    var peaks = [[0, 0, 1, 0.55]];
+    var np = 3 + Math.floor(rnd(1) * 2);
+    for (var i = 0; i < np; i++) {
+      var an = rnd(i + 2) * Math.PI * 2, di = 0.25 + rnd(i + 9) * 0.45;
+      peaks.push([Math.cos(an) * di, Math.sin(an) * di, 0.35 + rnd(i + 17) * 0.45, 0.16 + rnd(i + 23) * 0.18]);
+    }
+    function h(u, v) { // u, v: 중심 기준, R로 나눈 좌표
+      var z = 0;
+      for (var k = 0; k < peaks.length; k++) { var p = peaks[k], dx = u - p[0], dy = v - p[1]; z += p[2] * Math.exp(-(dx * dx + dy * dy) / (p[3] * p[3])); }
+      return z + 0.04 * Math.sin(u * 9 + sd) * Math.cos(v * 7 - sd) + 0.025 * Math.sin((u + v) * 17 + sd * 3);
+    }
+    var N = 110, vals = [], zmax = -1e9;
+    for (var gy = 0; gy <= N; gy++) { vals.push([]); for (var gx = 0; gx <= N; gx++) { var z = h(gx / N * 2.4 - 1.2, gy / N * 2.4 - 1.2); vals[gy].push(z); if (z > zmax) zmax = z; } }
+    function X(gx) { return o.cx + (gx / N * 2.4 - 1.2) * R; }
+    function Y(gy) { return o.cy + (gy / N * 2.4 - 1.2) * R * sy; }
+    var paths = [];
+    for (var j = 0; j < o.n; j++) {
+      var lv = zmax * (0.9 - j * (0.84 / o.n)), path = new Path2D();
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        var a = vals[y][x], b = vals[y][x + 1], c2 = vals[y + 1][x + 1], d = vals[y + 1][x];
+        var idx = (a > lv ? 8 : 0) | (b > lv ? 4 : 0) | (c2 > lv ? 2 : 0) | (d > lv ? 1 : 0);
+        if (idx === 0 || idx === 15) continue;
+        function ip(p1, p2, x1, y1, x2, y2) { var t = (lv - p1) / (p2 - p1); return [X(x1 + (x2 - x1) * t), Y(y1 + (y2 - y1) * t)]; }
+        var T = ip(a, b, x, y, x + 1, y), Rr = ip(b, c2, x + 1, y, x + 1, y + 1), Bm = ip(d, c2, x, y + 1, x + 1, y + 1), Lf = ip(a, d, x, y, x, y + 1);
+        var segs = { 1: [Lf, Bm], 2: [Bm, Rr], 3: [Lf, Rr], 4: [T, Rr], 5: [Lf, T, Bm, Rr], 6: [T, Bm], 7: [Lf, T], 8: [Lf, T], 9: [T, Bm], 10: [Lf, Bm, T, Rr], 11: [T, Rr], 12: [Lf, Rr], 13: [Bm, Rr], 14: [Lf, Bm] }[idx];
+        for (var q = 0; q < segs.length; q += 2) { path.moveTo(segs[q][0], segs[q][1]); path.lineTo(segs[q + 1][0], segs[q + 1][1]); }
       }
-      c.stroke();
+      paths.push(path);
+    }
+    return (topoCache[key] = paths);
+  }
+  function topo(c, o) {
+    var paths = topoPaths(o);
+    c.save(); c.strokeStyle = o.color; c.lineWidth = o.lw || 1; c.lineJoin = 'round'; c.lineCap = 'round';
+    for (var j = 0; j < paths.length; j++) {
+      var grow = ease((o.t - (o.delay || 0) - j * 60) / 900); // 정상(안쪽)부터 바깥으로 차례로 나타남
+      if (grow <= 0) continue;
+      c.globalAlpha = (o.alpha || 0.5) * grow * (1 - j / (paths.length * 1.8));
+      c.stroke(paths[j]);
     }
     c.restore();
   }
