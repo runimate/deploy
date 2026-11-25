@@ -13,6 +13,8 @@
 @font-face{font-family:'RMMarker';src:url('../fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMHelv';src:url('../fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMOpera';src:url('../fonts/Opera.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'RMMegan';src:url('../fonts/megan.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'RMImprint';src:url('../fonts/imprint.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMEX';src:url('../fonts/EX.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMGothic';src:url('../fonts/Gothic.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMInter';src:url('../fonts/Inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
@@ -1670,6 +1672,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   }
   // 글자는 Anton(큰 제목·숫자)과 Helvetica(작은 글자·숫자) — 제호 RUNNING만 EX
   function EXF(sz) { return sz + 'px RMEX, RMHelv, sans-serif'; }
+  // MAGAZINE: 총거리 Megan Cloudy / 타이틀·나머지 숫자 Imprint (Imprint는 대문자 높이를 Anton과 맞추려고 1.26배)
+  function MEGAN(sz) { return sz + 'px RMMegan, RMAnton, sans-serif'; }
+  function IMPRINT(sz) { return (sz * 1.26).toFixed(2) + 'px RMImprint, RMAnton, sans-serif'; }
   Lay.mmag = {
     rect: full,
     draw: function (c, f, t, M, P) {
@@ -1692,10 +1697,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       fade(c, e1, (1 - e1) * -6, function () { text(c, 'Monthly', L, f.T + 24, HELV(13), WH, 'left', -0.2); });
       // 제호는 EX 서체로 좌우 꽉 차게 (실제 글자 높이를 재서 위치 맞춤)
       // 브라우저마다 글자 박스 계산이 달라서, 가운데 정렬 + 글자 폭 기준으로 좌우를 맞춤 (사파리에서 오른쪽으로 밀리던 문제)
-      var mfs = fitFont(c, 'RUNNING', 200, W, EXF), asc = mfs * 0.72;
-      var mt = f.T + 30, mb = mt + asc, wipe = inout((t - 100) / 600), sx = W / measure(c, 'RUNNING', EXF(mfs));
+      var mfs = fitFont(c, 'RUNNING', 200, W, IMPRINT), asc = mfs * 0.857;
+      var mt = f.T + 30, mb = mt + asc, wipe = inout((t - 100) / 600), sx = W / measure(c, 'RUNNING', IMPRINT(mfs));
       c.save(); c.beginPath(); c.rect(L - 4, mt - 4, (W + 8) * wipe, asc + 10); c.clip();
-      c.translate(L + W / 2, mb); c.scale(sx, 1); text(c, 'RUNNING', 0, 0, EXF(mfs), A, 'center');
+      c.translate(L + W / 2, mb); c.scale(sx, 1); text(c, 'RUNNING', 0, 0, IMPRINT(mfs), A, 'center');
       c.restore();
       // ③ 호수 줄
       var bandTop = mb + 8;
@@ -1703,18 +1708,18 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         c.fillStyle = WH; c.fillRect(L, bandTop, W, 1);
         small('THE ' + M.name + ' ISSUE', L, bandTop + 12);
         c.save(); c.globalAlpha *= 0.8; small('All your runs in one issue.', L, bandTop + 21, 'left', WH, 6.5); c.restore();
-        var iw = measure(c, String(M.y), ANTON(18));
-        text(c, String(M.y), L + W, bandTop + 22, ANTON(18), WH, 'right');
-        text(c, mon3, L + W - iw - 5, bandTop + 22, ANTON(18), A, 'right');
+        var iw = measure(c, String(M.y), IMPRINT(18));
+        text(c, String(M.y), L + W, bandTop + 22, IMPRINT(18), WH, 'right');
+        text(c, mon3, L + W - iw - 5, bandTop + 22, IMPRINT(18), A, 'right');
         c.fillStyle = WH; c.fillRect(L, bandTop + 29, W, 1);
       });
 
       // ④ 본문: 왼쪽 표지 문구 3개 / 오른쪽 특집
       var cs = R ? 122 : 108, top = bandTop + 42, bot = B - cs - 8, gap = Math.min(44, (bot - top) / 3), cp = gap < 38;
       var lines = [
-        [String(M.runs), ANTON(18), A, 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
-        ['+' + M.elev + 'M', ANTON(18), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
-        [M.pace, ANTON(18), WH, 'AVERAGE PACE', 'Steady is the new fast.']
+        [String(M.runs), IMPRINT(18), A, 'RUNS IN ONE MONTH', 'Showing up is the whole secret.'],
+        ['+' + M.elev + 'M', IMPRINT(18), WH, 'TOTAL CLIMB', "Hills don't care. Neither do we."],
+        [M.pace, IMPRINT(18), WH, 'AVERAGE PACE', 'Steady is the new fast.']
       ];
       lines.forEach(function (ln, i) {
         var e = ease((t - 700 - i * 120) / 450), y = top + i * gap, nb = y + 14;
@@ -1730,13 +1735,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var x = L + W, y = top;
         small('SPECIAL FEATURE', x, y + 5, 'right', A);
         text(c, 'THE LONGEST RUN', x, y + 18, ANTON(11), WH, 'right');
-        if (!best) { text(c, '—', x, y + 44, ANTON(26), WH, 'right'); return; }
-        var kw = measure(c, 'KM', ANTON(10));
-        text(c, 'KM', x, y + 44, ANTON(10), WH, 'right');
-        text(c, (best.km * kk).toFixed(1), x - kw - 3, y + 44, ANTON(26), NC, 'right');
+        if (!best) { text(c, '—', x, y + 44, IMPRINT(26), WH, 'right'); return; }
+        var kw = measure(c, 'KM', IMPRINT(10));
+        text(c, 'KM', x, y + 44, IMPRINT(10), WH, 'right');
+        text(c, (best.km * kk).toFixed(1), x - kw - 3, y + 44, IMPRINT(26), NC, 'right');
         var dd = String(best.date).slice(8, 10);
-        text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 55, ANTON(8), WH, 'right', 0.3);
-        text(c, fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 65, ANTON(8), WH, 'right', 0.3);
+        text(c, mon3 + ' ' + dd + ' · ' + (TYPE_EN[best.type] || 'RUN'), x, y + 55, IMPRINT(8), WH, 'right', 0.3);
+        text(c, fmtTime(best.timeSec) + (best.elevGain ? ' · +' + Math.round(best.elevGain).toLocaleString('en-US') + 'M' : ''), x, y + 65, IMPRINT(8), WH, 'right', 0.3);
       });
 
       // ⑤ 커버스토리: 이달 합산 거리
@@ -1745,10 +1750,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var y0 = B - cs;
         chip(c, L, y0 - 5, 'COVER STORY', A, inkOn(A), { size: 6, h: 12, padX: 5, r: 0 });
         text(c, 'HOW FAR, ' + M.name + '?', L, y0 + 22, ANTON(14), WH); // 거리 숫자와 간격을 조금 더
-        var nfs = R ? 62 : 52, nb = y0 + 32 + nfs * 0.84, dw = measure(c, M.dist, ANTON(nfs));
-        text(c, M.dist, L - 1, nb, ANTON(nfs), NC);
-        text(c, 'KM', L + dw + 4, nb, ANTON(16), NC);
-        text(c, M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, B - 14, ANTON(8), WH, 'left', 0.3);
+        var nfs = Math.min(R ? 84 : 72, fitFont(c, M.dist, R ? 84 : 72, W - 44, MEGAN)), nb = y0 + 32 + nfs * 0.66, dw = measure(c, M.dist, MEGAN(nfs));
+        text(c, M.dist, L - 1, nb, MEGAN(nfs), NC);
+        text(c, 'KM', L + dw + 4, nb, MEGAN(16), NC);
+        text(c, M.runs + ' RUNS · ' + M.time + ' ON FEET · ' + M.ndays + ' DAYS', L, B - 14, IMPRINT(8), WH, 'left', 0.3);
         c.save(); c.globalAlpha *= 0.75; small('The answer to the only question in ' + mon + '.', L, B - 5, 'left', WH, 6.5); c.restore();
       });
       // ⑥ 바코드
@@ -2625,7 +2630,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   setLayout('bento');
   updateAcgAvailability();
   Promise.all([
-    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMGothic'),
+    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMMegan'), document.fonts.load('20px RMImprint'), document.fonts.load('20px RMGothic'),
     document.fonts.load('400 10px "Space Mono"'), document.fonts.load('700 10px "Space Mono"')
   ]).catch(function () {}).then(function () { fitLogo(); applyFormat(); requestAnimationFrame(loop); });
 })();
