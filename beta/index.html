@@ -2142,6 +2142,11 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
     c.strokeStyle = 'rgba(255,70,70,0.95)'; c.lineWidth = 1; c.setLineDash([4, 3]);
     c.strokeRect(f.L - 0.5, f.T - 0.5, f.BW + 1, f.BH + 1);
+    if (LAB) { // 점선 박스 안쪽 왼쪽 위 라벨
+      c.setLineDash([]); var lw = measure(c, 'Safezone.', GUIDE_FONT) + 8;
+      c.fillStyle = 'rgba(255,40,40,0.95)'; c.fillRect(f.L, f.T, lw, 11);
+      text(c, 'Safezone.', f.L + 4, f.T + 8, GUIDE_FONT, '#FFFFFF');
+    }
     c.restore();
   }
   function updateGuideNote() {
