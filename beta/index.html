@@ -2114,41 +2114,38 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   var GUIDE_FONT = '700 8px "Space Mono", "Apple SD Gothic Neo", monospace';
   function drawGuides(c, f) {
     if (!st.safe || hideGuides) return;
-    c.save(); c.fillStyle = 'rgba(255,40,40,0.24)';
-    if (LAB) {
-      // 테스트 버전: 빨간 딤 영역 없이 점선만 (글자 영역 박스 + 릴스 프로필 그리드 선)
-      if (f.key === 'R' && f.id !== 'S') {
-        c.strokeStyle = 'rgba(80,170,255,0.95)'; c.lineWidth = 1; c.setLineDash([5, 4]);
-        c.beginPath(); c.moveTo(0, 80.5); c.lineTo(360, 80.5); c.moveTo(0, 559.5); c.lineTo(360, 559.5); c.stroke();
-      }
-    } else if (f.id === 'S') {
+    // 테스트 버전: 빨간 딤 영역은 칠하지 않고 점선과 글자만
+    c.save(); c.fillStyle = LAB ? 'rgba(0,0,0,0)' : 'rgba(255,40,40,0.24)';
+    if (f.id === 'S') {
       c.fillRect(0, 0, 360, 73);                                   // 위: 진행바 · 프로필
       c.fillRect(0, 567, 360, 73);                                 // 아래: 메시지 보내기 · 공유
       c.fillRect(0, 73, 16, 494); c.fillRect(344, 73, 16, 494);    // 좌우 여백
-      text(c, '진행바 · 프로필', 6, 66, GUIDE_FONT, '#FFFFFF');
-      text(c, '메시지 보내기 · 공유', 6, 580, GUIDE_FONT, '#FFFFFF');
+      text(c, LAB ? '↑ 스토리 진행바·프로필에 가려지는 영역' : '진행바 · 프로필', 6, 66, GUIDE_FONT, '#FFFFFF');
+      text(c, LAB ? '↓ 메시지 보내기·공유 버튼에 가려지는 영역' : '메시지 보내기 · 공유', 6, 580, GUIDE_FONT, '#FFFFFF');
     } else if (f.key === 'R') {
       c.fillRect(0, 0, 360, 73);                                   // 위 220px: 릴스 헤더
       c.fillRect(0, 513, 360, 127);                                // 아래 380px: 프로필·캡션·오디오
       c.fillRect(310, 333, 50, 180);                               // 오른쪽 버튼 열 (y 1000px 아래)
       c.fillRect(0, 73, 20, 440); c.fillRect(340, 73, 20, 260);    // 좌우 60px
-      text(c, '릴스 헤더', 6, 66, GUIDE_FONT, '#FFFFFF');
-      text(c, '프로필 · 캡션 · 오디오', 6, 526, GUIDE_FONT, '#FFFFFF');
-      text(c, '버튼', 318, 346, GUIDE_FONT, '#FFFFFF');
+      text(c, LAB ? '↑ 릴스 상단 메뉴에 가려지는 영역' : '릴스 헤더', 6, 66, GUIDE_FONT, '#FFFFFF');
+      text(c, LAB ? '↓ 프로필·캡션·오디오 정보에 가려지는 영역' : '프로필 · 캡션 · 오디오', 6, 526, GUIDE_FONT, '#FFFFFF');
+      if (LAB) { text(c, '→ 좋아요·댓글', 354, 346, GUIDE_FONT, '#FFFFFF', 'right'); text(c, '버튼 영역', 354, 356, GUIDE_FONT, '#FFFFFF', 'right'); }
+      else text(c, '버튼', 318, 346, GUIDE_FONT, '#FFFFFF');
       c.strokeStyle = 'rgba(80,170,255,0.95)'; c.lineWidth = 1; c.setLineDash([5, 4]);
       c.beginPath(); c.moveTo(0, 80.5); c.lineTo(360, 80.5); c.moveTo(0, 559.5); c.lineTo(360, 559.5); c.stroke();
-      text(c, '프로필 그리드 3:4 표시 영역', 354, 572, GUIDE_FONT, '#9CCBFF', 'right');
+      text(c, LAB ? '파란 점선 사이: 프로필 그리드(3:4)에서 보이는 범위' : '프로필 그리드 3:4 표시 영역', 354, 572, GUIDE_FONT, '#9CCBFF', 'right');
     } else {
       c.fillRect(296, 12, 52, 24);                                  // 오른쪽 위 1/N 카운터
       c.fillRect(10, 444, 28, 28);                                  // 왼쪽 아래 태그 아이콘
-      text(c, '1/N', 312, 28, GUIDE_FONT, '#FFFFFF');
+      if (LAB) { text(c, '1/N 표시에 가려짐 →', 292, 28, GUIDE_FONT, '#FFFFFF', 'right'); text(c, '← 태그 아이콘에 가려짐', 42, 462, GUIDE_FONT, '#FFFFFF'); }
+      else text(c, '1/N', 312, 28, GUIDE_FONT, '#FFFFFF');
     }
     c.strokeStyle = 'rgba(255,70,70,0.95)'; c.lineWidth = 1; c.setLineDash([4, 3]);
     c.strokeRect(f.L - 0.5, f.T - 0.5, f.BW + 1, f.BH + 1);
     c.restore();
   }
   function updateGuideNote() {
-    if (LAB) { $('guideNote').textContent = '빨간 점선 박스: 글자를 넣는 영역' + (st.fmt.key === 'R' && st.fmt.id !== 'S' ? ' · 파란 점선: 프로필 그리드(3:4)에서 보이는 범위' : ''); return; }
+    if (LAB) { $('guideNote').textContent = '흰 글자: 인스타그램 화면에서 가려지는 곳 · 빨간 점선 박스: 글자가 안전하게 보이는 영역' + (st.fmt.key === 'R' && st.fmt.id !== 'S' ? ' · 파란 점선: 프로필 그리드(3:4)에서 보이는 범위' : ''); return; }
     $('guideNote').textContent = st.fmt.id === 'S'
       ? '빨간 영역: 스토리의 진행바·프로필과 메시지 창이 덮는 곳 · 점선 박스: 글자를 넣는 영역'
       : st.fmt.key === 'R'
