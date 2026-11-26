@@ -230,9 +230,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   <!-- 2. 비율·레이아웃 -->
   <h2 class="step"><span class="n">02</span>비율과 레이아웃</h2>
   <div class="seg" role="group" aria-label="출력 비율">
-    <button type="button" data-fmt="F" aria-pressed="false">피드 3:4</button>
+    <button type="button" data-fmt="F" aria-pressed="true">피드 3:4</button>
     <button type="button" data-fmt="S" aria-pressed="false">스토리 9:16</button>
-    <button type="button" data-fmt="R" aria-pressed="true">릴스 9:16</button>
+    <button type="button" data-fmt="R" aria-pressed="false">릴스 9:16</button>
   </div>
   <div class="chips" role="group" aria-label="레이아웃" id="layoutChips"></div>
   <p class="small" id="acgNote" style="margin:0 0 10px">ACG · ACG GRID는 트레일러닝·하이킹 기록에서만 고를 수 있어요.</p>
@@ -450,7 +450,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   // 상태
   // =========================================================
-  var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12, nk: 0, n1c: '#F4F4F0', nkMap: true };
+  var st = { fmt: FMT.F, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12, nk: 0, n1c: '#F4F4F0', nkMap: true };
   var src = 'strava', sportFilter = 'all', manualType = 'trail';
   var workouts = { strava: [], garmin: [], coros: [] };
   var record = null;
