@@ -11,7 +11,9 @@
 <style>
 @font-face{font-family:'RMAnton';src:url('./fonts/Anton.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMMarker';src:url('./fonts/Marker.woff2') format('woff2');font-weight:400;font-display:block}
-@font-face{font-family:'RMHelv';src:url('./fonts/helv.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'RMHelv';src:url('./fonts/heros-bold.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'RMHelv';src:url('./fonts/heros-regular.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'RMHerosCn';src:url('./fonts/heroscn-bold.woff2') format('woff2');font-weight:700;font-display:block}
 @font-face{font-family:'RMOpera';src:url('./fonts/Opera.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMMegan';src:url('./fonts/megan.woff2') format('woff2');font-weight:400;font-display:block}
 @font-face{font-family:'RMImprint';src:url('./fonts/imprint.woff2') format('woff2');font-weight:400;font-display:block}
@@ -45,7 +47,7 @@ h2.step{font:700 11px "Space Mono",monospace;letter-spacing:.12em;color:var(--mu
 .chips button{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--fg);font:700 11px "Space Mono",monospace;letter-spacing:.06em;padding:0 14px;min-height:40px;border-radius:999px}
 .chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#0B0B0B}
 .chips button:disabled{opacity:.35}
-.chips button.acg{font-family:RMHelv,"Helvetica Neue",Arial,sans-serif;letter-spacing:0;font-size:12px}
+.chips button.acg{font-family:RMHelv,Arial,sans-serif;letter-spacing:0;font-size:12px}
 .stage{display:flex;justify-content:center;background:#050505;border-radius:16px;padding:12px;margin-bottom:8px}
 canvas#view{display:block;width:auto;max-width:100%;max-height:62vh;height:auto;border-radius:6px;touch-action:none;cursor:grab;background:#000}
 .hint{font-size:12px;color:var(--mute);text-align:center;margin:6px 0 4px;line-height:1.5}
@@ -469,7 +471,9 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   var MONO = function (s, b) { return (b ? '700 ' : '400 ') + s + 'px "Space Mono", "Apple SD Gothic Neo", monospace'; };
   var MARKER = function (s) { return s + 'px RMMarker, "Apple SD Gothic Neo", cursive'; };
   var PRET = function (s, w) { return (w || 600) + ' ' + s + 'px "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif'; };
-  var HELV = function (s) { return '700 ' + s + 'px RMHelv, "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", sans-serif'; };
+  // 헬베티카 계열은 모두 TeX Gyre Heros (무료 라이선스)로 통일
+  var HELV = function (s) { return '700 ' + s + 'px RMHelv, Arial, "Apple SD Gothic Neo", sans-serif'; };
+  var HCN = function (s) { return '700 ' + s + 'px RMHerosCn, RMHelv, Arial, sans-serif'; }; // 좁은 폭 (Heros Condensed)
   var HAS_LS = 'letterSpacing' in ctx;
 
   function rr(c, x, y, w, h, r) {
@@ -1727,7 +1731,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         fade(c, e, (1 - e) * 10, function () {
           text(c, ln[0], L, nb, ln[1], ln[2]);
           small(ln[3], L, nb + 9);
-          if (!cp) { c.save(); c.globalAlpha *= 0.75; text(c, ln[4], L, nb + 17, '400 5.8px "Helvetica Neue", Helvetica, Arial, sans-serif', WH, 'left', -0.05); /* 서브카피: 보통 굵기, 자간 좁게 */ c.restore(); }
+          if (!cp) { c.save(); c.globalAlpha *= 0.75; text(c, ln[4], L, nb + 17, '400 5.8px RMHelv, Arial, sans-serif', WH, 'left', -0.05); /* 서브카피: 보통 굵기, 자간 좁게 */ c.restore(); }
         });
       });
       var best = M.recs.slice().sort(function (a, b) { return b.km - a.km; })[0], kk = ease((t - HOLD) / COUNT);
@@ -2744,7 +2748,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   setLayout('bento');
   updateAcgAvailability();
   Promise.all([
-    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMMegan'), document.fonts.load('20px RMImprint'), document.fonts.load('20px RMGothic'),
+    document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('700 20px RMHerosCn'), document.fonts.load('400 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMMegan'), document.fonts.load('20px RMImprint'), document.fonts.load('20px RMGothic'),
     document.fonts.load('400 10px "Space Mono"'), document.fonts.load('700 10px "Space Mono"')
   ]).catch(function () {}).then(function () { fitLogo(); applyFormat(); requestAnimationFrame(loop); });
 })();
