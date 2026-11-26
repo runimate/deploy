@@ -1319,7 +1319,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       });
       // 오른쪽 세로 글자: 날짜 · 제목 (시계방향 90°)
       var side = nkDate(d).toUpperCase() + (d.title ? '  ·  ' + d.title.toUpperCase() : ''), es = ease((t - 700) / 600);
-      c.save(); c.globalAlpha *= es; c.translate(L + W - 6, f.T); c.rotate(Math.PI / 2); text(c, side, 0, 0, HELV(8), K.fg, 'left', 0.4); c.restore();
+      c.save(); c.globalAlpha *= es; c.translate(f.W - f.L - 7, f.T); c.rotate(Math.PI / 2); /* 릴스 가이드와 상관없이 화면 오른쪽 여백(24)에 맞춤 */ text(c, side, 0, 0, HELV(8), K.fg, 'left', 0.4); c.restore();
       var my = ys[2] + rh + s * 0.2 + gap * 2, e = ease((t - 900) / 700);
       if (f.H - my > 20) { c.save(); c.beginPath(); c.rect(0, my + (f.H - my) * (1 - e), f.W, (f.H - my) * e); c.clip(); drawMedia(c, { x: 0, y: my, w: f.W, h: f.H - my }, kenburns(t), false); c.restore(); }
     }
