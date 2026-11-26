@@ -255,6 +255,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     <div id="nkComboWrap" class="hidden" style="margin-bottom:14px">
       <h3>컬러 조합</h3>
       <div class="sw" id="nkCombos" role="group" aria-label="RUN 컬러 조합"></div>
+      <label class="check hidden" id="nkMapWrap" style="margin-top:12px"><input type="checkbox" id="nkMap" checked>러닝 코스맵</label>
     </div>
     <div id="numColorWrap" class="hidden" style="margin-bottom:14px">
       <h3>거리 숫자 컬러</h3>
@@ -423,18 +424,17 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   var ACG_ACCENTS = ['#FC4C02', '#1F5BFF', '#6B3FD1', '#E0262B', '#FF1692'];
   var NUM_COLORS = ['#FFFFFF', '#0B0B0B', '#D7FF3A', '#FC4C02', '#7FB2FF'];
   var LAYOUTS = [
+    { id: 'nkN1', name: 'NIKE RUN 1', beta: true, run: true },
+    { id: 'nkN2', name: 'NIKE RUN 2', beta: true, run: true },
+    { id: 'nkN3', name: 'NIKE RUN 3', beta: true, run: true },
+    { id: 'nkN4', name: 'NIKE RUN 4', beta: true, run: true },
+    { id: 'nkC2', name: 'NIKE RUN 5', beta: true, run: true },
     { id: 'bento', name: 'BENTO' },
     { id: 'panel', name: 'PANEL' },
     { id: 'tags', name: 'STICKER' },
     { id: 'big', name: 'BOLD' },
     { id: 'polaroid', name: 'POLAROID' },
     { id: 'scrap', name: 'SCRAP' },
-    { id: 'nkN1', name: 'RUN 1', beta: true, run: true },
-    { id: 'nkN2', name: 'RUN 2', beta: true, run: true },
-    { id: 'nkN3', name: 'RUN 3', beta: true, run: true },
-    { id: 'nkN4', name: 'RUN 4', beta: true, run: true },
-    { id: 'nkC1', name: 'RUN C1', beta: true, run: true },
-    { id: 'nkC2', name: 'RUN C2', beta: true, run: true },
     { id: 'poster', name: 'POSTER', map: true },
     { id: 'routeelev', name: 'ROUTE', map: true, trailOnly: true },
     { id: 'acg2', name: 'ACG', acg: true },
@@ -450,7 +450,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // =========================================================
   // 상태
   // =========================================================
-  var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12, nk: 0, n1c: '#F4F4F0' };
+  var st = { fmt: FMT.R, layout: 'bento', accent: ACCENTS[0], acgAccent: ACG_ACCENTS[0], numColor: NUM_COLORS[0], acgInk: '#FFFFFF', dark: true, safe: true, dim: 0.12, nk: 0, n1c: '#F4F4F0', nkMap: true };
   var src = 'strava', sportFilter = 'all', manualType = 'trail';
   var workouts = { strava: [], garmin: [], coros: [] };
   var record = null;
@@ -783,8 +783,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       drawMedia(c, full(f), kenburns(t), true);
       var e0 = ease(t / 500), eN = ease((t - 200) / 800), eS = ease((t - 600) / 600);
       fade(c, e0, 0, function () {
-        chip(c, f.L, f.T, d.typeLabel + ' · ' + d.mmdd, '#0B0B0B', '#F4F4F0');
-        chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
+        if (LAB) {
+          text(c, (d.typeLabel + ' · ' + d.mmdd).toUpperCase(), f.L, f.T + 12, MONO(9, true), '#F4F4F0', 'left', 1.2);
+          text(c, 'RUNIMATE', f.W - f.L, f.T + 12, MONO(9, true), '#F4F4F0', 'right', 1.2);
+        } else {
+          chip(c, f.L, f.T, d.typeLabel + ' · ' + d.mmdd, '#0B0B0B', '#F4F4F0');
+          chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
+        }
       });
       var nfs = R ? 156 : 150, lh = nfs * 0.86, stripH = LAB ? 30 : 60, stripTop = B - stripH;
       var b2 = stripTop - 34, b1 = b2 - lh;
@@ -1369,7 +1374,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         var pw = Math.max(measure(c, vals(d, 1).pace, HELV(13)), 30); mini(c, L + W - pw - 16, f.T + 2, 'TIME', v.time, K, 'right');
         mini(c, L + W, f.T + 2, 'PACE', v.pace, K, 'right');
       });
-      var R = f.key === 'R'; nkDist(c, f, t, v, d, K, 80, 66, R ? 96 : 104);
+      var R = f.key === 'R'; nkDist(c, f, t, v, d, K, 80, 66, st.nkMap ? (R ? 96 : 104) : 0);
+      if (!st.nkMap) return;
       // 오른쪽 아래: 경로 (글씨 색 선)
       var ms = R ? 86 : 92, B = f.T + f.BH, Rt = routeNow() || SAMPLE_ROUTE, F = fitRoute(Rt, [L + W - ms, B - ms, ms, ms]);
       drawRoute(c, F, clamp((t - 1200) / 3000, 0, 1), { color: K.fg, ghost: 'rgba(128,128,128,0.25)', w: 2 });
@@ -2427,6 +2433,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var nkCombo = /^nk(N[2-4]|C[12])$/.test(id); // RUN 레이아웃: 정해진 컬러 조합만 / RUN 1은 단색 (기본 흰색)
     $('accentWrap').classList.toggle('hidden', !useAccent && id !== 'nkN1');
     $('nkComboWrap').classList.toggle('hidden', !nkCombo);
+    $('nkMapWrap').classList.toggle('hidden', id !== 'nkC2');
     $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold' && id !== 'mmag');
     $('themeWrap').classList.toggle('hidden', id !== 'bento');
     $('acgInkWrap').classList.toggle('hidden', !isAcg());
@@ -2517,6 +2524,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     });
   });
   $('safe').addEventListener('change', function (e) { st.safe = e.target.checked; });
+  $('nkMap').addEventListener('change', function (e) { st.nkMap = e.target.checked; });
   $('dim').addEventListener('input', function (e) { st.dim = parseFloat(e.target.value) || 0; });
 
   // =========================================================
