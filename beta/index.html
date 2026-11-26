@@ -2115,7 +2115,13 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   function drawGuides(c, f) {
     if (!st.safe || hideGuides) return;
     c.save(); c.fillStyle = 'rgba(255,40,40,0.24)';
-    if (f.id === 'S') {
+    if (LAB) {
+      // 테스트 버전: 빨간 딤 영역 없이 점선만 (글자 영역 박스 + 릴스 프로필 그리드 선)
+      if (f.key === 'R' && f.id !== 'S') {
+        c.strokeStyle = 'rgba(80,170,255,0.95)'; c.lineWidth = 1; c.setLineDash([5, 4]);
+        c.beginPath(); c.moveTo(0, 80.5); c.lineTo(360, 80.5); c.moveTo(0, 559.5); c.lineTo(360, 559.5); c.stroke();
+      }
+    } else if (f.id === 'S') {
       c.fillRect(0, 0, 360, 73);                                   // 위: 진행바 · 프로필
       c.fillRect(0, 567, 360, 73);                                 // 아래: 메시지 보내기 · 공유
       c.fillRect(0, 73, 16, 494); c.fillRect(344, 73, 16, 494);    // 좌우 여백
@@ -2142,6 +2148,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.restore();
   }
   function updateGuideNote() {
+    if (LAB) { $('guideNote').textContent = '빨간 점선 박스: 글자를 넣는 영역' + (st.fmt.key === 'R' && st.fmt.id !== 'S' ? ' · 파란 점선: 프로필 그리드(3:4)에서 보이는 범위' : ''); return; }
     $('guideNote').textContent = st.fmt.id === 'S'
       ? '빨간 영역: 스토리의 진행바·프로필과 메시지 창이 덮는 곳 · 점선 박스: 글자를 넣는 영역'
       : st.fmt.key === 'R'
@@ -2369,7 +2376,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     mode = m;
     document.querySelectorAll('[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'); });
     buildChips();
-    setLayout(m === 'monthly' ? 'mcal' : 'bento');
+    setLayout(m === 'monthly' ? 'mcal' : (LAB ? 'nkN1' : 'bento'));
     renderList(); onRecordChanged();
   }
   document.querySelectorAll('[data-mode]').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
@@ -2977,7 +2984,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     if (code) { history.replaceState({}, document.title, location.pathname); setSrc('strava'); stravaFromCode(code); }
     else setSrc(workouts.garmin.length && !workouts.strava.length ? 'garmin' : 'strava');
   })();
-  setLayout('bento');
+  setLayout(LAB ? 'nkN1' : 'bento'); // 테스트 버전은 NIKE RUN 1이 기본
   updateAcgAvailability();
   Promise.all([
     document.fonts.load('40px RMAnton'), document.fonts.load('20px RMMarker'), document.fonts.load('700 20px RMHelv'), document.fonts.load('700 20px RMHerosCn'), document.fonts.load('400 20px RMHelv'), document.fonts.load('20px RMOpera'), document.fonts.load('20px RMEX'), document.fonts.load('20px RMMegan'), document.fonts.load('20px RMImprint'), document.fonts.load('20px RMGothic'),
