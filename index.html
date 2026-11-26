@@ -433,8 +433,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     { id: 'nkN2', name: 'RUN 2', beta: true, run: true },
     { id: 'nkN3', name: 'RUN 3', beta: true, run: true },
     { id: 'nkN4', name: 'RUN 4', beta: true, run: true },
-    { id: 'nkN5', name: 'RUN 5', beta: true, run: true },
     { id: 'nkC1', name: 'RUN C1', beta: true, run: true },
+    { id: 'nkC2', name: 'RUN C2', beta: true, run: true },
     { id: 'poster', name: 'POSTER', map: true },
     { id: 'routeelev', name: 'ROUTE', map: true, trailOnly: true },
     { id: 'acg2', name: 'ACG', acg: true },
@@ -786,7 +786,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         chip(c, f.L, f.T, d.typeLabel + ' · ' + d.mmdd, '#0B0B0B', '#F4F4F0');
         chip(c, f.L + f.BW, f.T, 'RUNIMATE', '#0B0B0B', '#F4F4F0', { alignRight: true });
       });
-      var nfs = R ? 156 : 150, lh = nfs * 0.86, stripH = 60, stripTop = B - stripH;
+      var nfs = R ? 156 : 150, lh = nfs * 0.86, stripH = LAB ? 30 : 60, stripTop = B - stripH;
       var b2 = stripTop - 34, b1 = b2 - lh;
       var parts = v.dist.split('.'), l1 = parts[0].padStart(2, '0') + '.', l2 = parts[1], nc = st.numColor;
       fade(c, eN, (1 - eN) * 30, function () {
@@ -795,6 +795,16 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         text(c, 'KILOMETERS', f.L, b2 + 20, MONO(11, true), nc, 'left', 3.3);
       });
       fade(c, eS, (1 - eS) * 20, function () {
+        if (LAB) {
+          // 패널 없이: 시간 · 페이스 두 개만 거리 아래에 작게 (고도 제외)
+          var items = [['TIME', v.time], ['PACE', v.pace + ' /KM']], x = f.L;
+          items.forEach(function (it) {
+            c.save(); c.globalAlpha *= 0.7; text(c, it[0], x, B - 16, HELV(8), nc, 'left', 0.6); c.restore();
+            text(c, it[1], x, B, HELV(15), nc, 'left', -0.2);
+            x += Math.max(96, measure(c, it[1], HELV(15)) + 28);
+          });
+          return;
+        }
         rr(c, f.L, stripTop, f.BW, stripH, 14); c.fillStyle = 'rgba(11,11,11,0.8)'; c.fill();
         stat3(c, f.L + 14, stripTop + 11, f.BW - 20, tr.labels, tr.values, 22, '#F4F4F0');
       });
@@ -1185,9 +1195,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   var NK_P = ["M2914.61,534.24l-394.18,104.17-4.82,1.28-322.21,85.25L2467.72.22h-196.03s-156.76,415.81-156.76,415.81l-.69-415.95-199.27.15-295.31,784.69,197.53.14,152.23-408.56.49,407.42-1175.46,310.73c-55.54,14.68-110.9,22.54-167.48,25.73-41.75,2.35-80.72-.84-121.12-8.91-105.36-21.04-183.22-105.79-196.52-212.61-15.9-127.72,40.56-259.62,102.98-374.34l-90.72,100.53c-57.96,64.23-111.18,129.57-160.7,200.65C85.69,933.64,18.09,1065.9,3.16,1197.38c-5.84,51.47-4.48,101.81,11.81,151.05,28.57,86.34,96.7,152.09,182.55,181.23,101.04,34.3,220.66,22.95,324.6-2.37,77.81-18.95,154.93-43.34,229.37-74.8l2161.04-913.14c6.19-1.76,7.9-3.84,2.08-5.13Z", "M1114.55,688.67c18.58,68.84,80.4,103.71,149.53,109.57,122.76,10.41,237.79-25.33,313.74-124.91,32.51-42.63,56.62-88.5,75.84-139.35L1855.36.31,1642.94.02l-194.74,516.91c-17.09,46.23-44.99,85.37-95.31,77.49-15.14-2.37-25.5-15.09-24.16-31.18,1.29-15.5,5.29-29.24,11.08-44.5L1535.15.3l-212.42-.3-183.62,483.35c-23.87,65.35-42.57,138.59-24.57,205.32Z", "M799.89,481.1l46.31,304.01,206.06-.2-56.17-325.75c73.58-30.47,139.09-101.97,174.51-171.73,48.81-96.12,42.81-209.6-60-260.6-34.22-15.98-70.12-25.91-109.42-26.03L768.5.1l-295.26,784.69,212.34.35,114.31-304.04ZM909.73,176.26c14.37.7,27.42,2.27,40.03,6.65,22.26,7.74,35.5,28.84,32.42,54.09-8.41,69.01-68.42,128.81-142.08,127.13l69.63-187.87Z"];
   var NK_PATH = null;
   function nkPath() { if (!NK_PATH) { NK_PATH = new Path2D(); NK_P.forEach(function (d) { NK_PATH.addPath(new Path2D(d)); }); } return NK_PATH; }
+  // RUN 컬러 조합 (bg 배경 / fg 글씨·로고) — 순서: 레드/볼트, 블랙/레드, 블랙/볼트, 레드/화이트, 볼트/블랙, 레드/블랙, 화이트/블랙
   var NK_COMBOS = [
-    { bg: '#111111', fg: '#FE1721' }, { bg: '#FE1721', fg: '#111111' }, { bg: '#FFFFFF', fg: '#FF4A00' }, { bg: '#FF4A00', fg: '#FFFFFF' },
-    { bg: '#A0FF00', fg: '#111111' }, { bg: '#FFFFFF', fg: '#FE1721' }, { bg: '#A0FF00', fg: '#FE1721' }, { bg: '#111111', fg: '#A0FF00' }
+    { bg: '#A0FF00', fg: '#FE1721' }, { bg: '#FE1721', fg: '#111111' }, { bg: '#A0FF00', fg: '#111111' }, { bg: '#FFFFFF', fg: '#FE1721' },
+    { bg: '#111111', fg: '#A0FF00' }, { bg: '#111111', fg: '#FE1721' }, { bg: '#111111', fg: '#FFFFFF' }
   ];
   function nkC() { return NK_COMBOS[(st.nk || 0) % NK_COMBOS.length]; }
   // 로고: 왼쪽→오른쪽으로 쓱 그어지며 나타남 (p 0~1)
@@ -1241,39 +1252,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     }
   };
 
-  // N5. DASH — 지도 칸은 포인트 컬러 배경 + 대비 강한 선(흑/백)만. 로고는 거리 칸 왼쪽 위, 포인트 컬러
-  Lay.nkN5 = {
-    draw: function (c, f, t, v, d, P) {
-      var K = nkC(), R = f.key === 'R', L = f.L, W = f.BW, B = f.T + f.BH, vf = vals(d, 1);
-      var acc = accentOf(K), dark = true, page = '#0B0B0B', card = '#1E1A1E', ink = '#F0EEEA', line = contrastOn(acc);
-      c.fillStyle = page; c.fillRect(0, 0, f.W, f.H);
-      var g = 8, h1 = R ? 196 : 176, y2 = f.T + h1 + g, h2 = B - y2, w2 = (W - g) / 2;
-      function cardAt(i, x, y, w, h, col, fn) { var e = ease((t - i * 140) / 500); if (e <= 0) return; c.save(); c.globalAlpha = e; c.translate(0, (1 - e) * 16); rr(c, x, y, w, h, 10); c.fillStyle = col; c.fill(); c.beginPath(); rr(c, x, y, w, h, 10); c.clip(); fn(); c.restore(); }
-      var se = startEnd3(d);
-      cardAt(0, L, f.T, W, h1, card, function () {
-        nkLogo(c, L + 12, f.T + 12, 64, acc, 1);
-        var s = fitFont(c, vf.dist, h1 * 1.0, W - 70, HELV); text(c, v.dist, L + 8, f.T + h1 - 12, HELV(s), ink, 'left', -s * 0.06);
-        text(c, 'km', L + W - 10, f.T + h1 - 14, HELV(34), acc, 'right', -1);
-        text(c, se ? 'START ' + se[0] : nkDate(d).toUpperCase(), L + W - 10, f.T + 20, HELV(8), ink, 'right', 0.4);
-        if (se) text(c, 'FINISH ' + se[1], L + W - 10, f.T + 32, HELV(8), ink, 'right', 0.4);
-      });
-      var h21 = (h2 - g) * 0.55, h22 = h2 - g - h21;
-      cardAt(1, L, y2, w2, h21, card, function () {
-        text(c, 'AVG PACE', L + 10, y2 + 16, HELV(8), ink, 'left', 0.4);
-        var s = fitFont(c, vf.pace, 60, w2 - 20, HELV); text(c, v.pace, L + 10, y2 + h21 - 22, HELV(s), ink, 'left', -s * 0.05);
-        text(c, 'per km', L + 10, y2 + h21 - 8, HELV(9), acc, 'left');
-      });
-      cardAt(2, L, y2 + h21 + g, w2, h22, card, function () {
-        var yy = y2 + h21 + g; text(c, 'TIME', L + 10, yy + 16, HELV(8), ink, 'left', 0.4);
-        var s = fitFont(c, vf.time, 40, w2 - 20, HELV); text(c, v.time, L + 10, yy + h22 - 10, HELV(s), ink, 'left', -s * 0.05);
-      });
-      cardAt(3, L + w2 + g, y2, w2, h2, acc, function () {
-        var x = L + w2 + g, Rt = routeNow() || SAMPLE_ROUTE, F = fitRoute(Rt, [x + 16, y2 + 16, w2 - 32, h2 - 32]);
-        drawRoute(c, F, clamp((t - 700) / 3000, 0, 1), { color: line, ghost: line === '#FFFFFF' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)', w: 2.5 });
-      });
-    }
-  };
-
   // N1 — 기본 흰색, 사용자가 고른 색이 사진/영상을 뺀 모든 요소(숫자·글자·로고)에 적용
   Lay.nkN1 = {
     draw: function (c, f, t, v, d, P) {
@@ -1323,12 +1301,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     draw: function (c, f, t, v, d, P) {
       var K = nkC(), R = f.key === 'R', L = f.L, W = f.BW, vf = vals(d, 1);
       c.fillStyle = K.bg; c.fillRect(0, 0, f.W, f.H);
-      var us = R ? 18 : 16, s = sameSize(c, [vf.dist + ' KM', vf.time, vf.pace + ' /KM'], W - 18, R ? 76 : 70), ls = -s * 0.05, rh = s * 0.82, gap = 6;
+      var us = R ? 18 : 16, s = sameSize(c, [vf.dist + ' KM', vf.time, vf.pace], W - 18, R ? 76 : 70), ls = -s * 0.05, rh = s * 0.82, gap = 6;
       var lh = R ? 52 : 44, y0 = f.T;
       function row(i, y, h, fn) { var e = ease((t - 120 - i * 220) / 500); if (e <= 0) return; c.save(); c.beginPath(); c.rect(L - 4, y - 2, W + 8, h + s * 0.25); c.clip(); c.translate(0, -(1 - e) * h); c.globalAlpha *= e; fn(y); c.restore(); }
       row(0, y0, lh, function (y) { nkLogo(c, L, y, lh * NK_VB[0] / NK_VB[1], K.fg, 1); });
       var ys = [y0 + lh + gap * 2, 0, 0]; ys[1] = ys[0] + rh + gap; ys[2] = ys[1] + rh + gap;
-      [[v.dist, vf.dist, 'KM'], [v.time, vf.time, ''], [v.pace, vf.pace, '/KM']].forEach(function (it, i) {
+      [[v.dist, vf.dist, 'KM'], [v.time, vf.time, ''], [v.pace, vf.pace, '']].forEach(function (it, i) {
         row(i + 1, ys[i], rh, function (y) {
           text(c, it[0], L - 2, y + rh, HELV(s), K.fg, 'left', ls);
           if (it[2]) text(c, it[2], L + measure(c, it[1], HELV(s), ls) + 4, y + rh, HELV(us), K.fg, 'left', 0);
@@ -1348,7 +1326,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     c.fillStyle = K.bg; c.fillRect(0, 0, f.W, f.H);
     c.save(); c.beginPath(); c.rect(lx - 2, 0, (lw + 4) * p, f.H); c.clip();
     var m0 = c.getTransform(); c.save(); c.translate(lx, ly); c.scale(s, s); c.clip(nkPath()); c.setTransform(m0);
-    drawMedia(c, full(f), kenburns(t), false); c.restore(); c.restore();
+    drawMedia(c, full(f), kenburns(t), true); c.restore(); c.restore(); // 사진 어둡게 슬라이더 적용
     return { top: ly, bot: ly + lh * 0.98 };
   }
   function nkDist(c, f, t, v, d, K, maxR, maxF, reserve) { var FUT = HELV; // 메인 숫자: Heros Bold
@@ -1382,6 +1360,19 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         mini(c, L + W, f.T + 2, 'PACE', v.pace, K, 'right');
       });
       nkDist(c, f, t, v, d, K, 80, 66);
+    }
+  };  Lay.nkC2 = {
+    draw: function (c, f, t, v, d, P) {
+      var K = nkC(), g = nkMask(c, f, t, K), L = f.L, W = f.BW, e = ease((t - 900) / 700);
+      fade(c, e, (1 - e) * 10, function () {
+        text(c, nkDate(d), L, f.T + 10, HELV(8), K.fg, 'left', 0.5);
+        var pw = Math.max(measure(c, vals(d, 1).pace, HELV(13)), 30); mini(c, L + W - pw - 16, f.T + 2, 'TIME', v.time, K, 'right');
+        mini(c, L + W, f.T + 2, 'PACE', v.pace, K, 'right');
+      });
+      var R = f.key === 'R'; nkDist(c, f, t, v, d, K, 80, 66, R ? 96 : 104);
+      // 오른쪽 아래: 경로 (글씨 색 선)
+      var ms = R ? 86 : 92, B = f.T + f.BH, Rt = routeNow() || SAMPLE_ROUTE, F = fitRoute(Rt, [L + W - ms, B - ms, ms, ms]);
+      drawRoute(c, F, clamp((t - 1200) / 3000, 0, 1), { color: K.fg, ghost: 'rgba(128,128,128,0.25)', w: 2 });
     }
   };
 
@@ -2433,7 +2424,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     Array.prototype.forEach.call(chipsEl.children, function (x) { x.setAttribute('aria-pressed', x.dataset.id === id ? 'true' : 'false'); });
     // 레이아웃마다 의미 있는 설정만 보이게
     var useAccent = ['scrap', 'bento', 'panel', 'tags', 'poster', 'routeelev', 'acg2', 'acg3', 'mcal', 'mbento', 'mbold', 'mmag', 'macg'].indexOf(id) !== -1;
-    var nkCombo = /^nk(N[2-5]|C1)$/.test(id); // RUN 레이아웃: 정해진 컬러 조합만 / RUN 1은 단색 (기본 흰색)
+    var nkCombo = /^nk(N[2-4]|C[12])$/.test(id); // RUN 레이아웃: 정해진 컬러 조합만 / RUN 1은 단색 (기본 흰색)
     $('accentWrap').classList.toggle('hidden', !useAccent && id !== 'nkN1');
     $('nkComboWrap').classList.toggle('hidden', !nkCombo);
     $('numColorWrap').classList.toggle('hidden', id !== 'big' && id !== 'mbold' && id !== 'mmag');
