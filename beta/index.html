@@ -2467,7 +2467,21 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
     var DS = MP4Box.DataStream || window.DataStream, ds = new DS(undefined, 0, DS.BIG_ENDIAN); box.write(ds);
     return new Uint8Array(ds.buffer, 8);
   }
-  function aacDesc(trak) { try { return new Uint8Array(trak.mdia.minf.stbl.stsd.entries[0].esds.esd.descs[0].descs[0].data); } catch (e) { return null; } }
+  // AAC 설정값(ASC) 찾기: mp4는 바로 esds, 아이폰 .mov는 wave 상자 안에 있음. 그래도 없으면 직접 만들기(AAC-LC)
+  function findEsds(b, depth) {
+    if (!b || depth > 4) return null;
+    if (b.esds) return b.esds;
+    var kids = (b.boxes || []).concat(b.wave ? [b.wave] : []);
+    for (var i = 0; i < kids.length; i++) { var r = findEsds(kids[i], depth + 1); if (r) return r; }
+    return null;
+  }
+  function aacDesc(trak, info) {
+    try { var e = findEsds(trak.mdia.minf.stbl.stsd.entries[0], 0); if (e) return new Uint8Array(e.esd.descs[0].descs[0].data); } catch (x) {}
+    var rates = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350], fi = rates.indexOf(info.audio.sample_rate);
+    if (fi < 0) return null;
+    var v = (2 << 11) | (fi << 7) | (Math.min(info.audio.channel_count, 7) << 3);
+    return new Uint8Array([v >> 8, v & 255]);
+  }
   async function demuxFile(buf) {
     await loadMP4Box();
     return await new Promise(function (res, rej) {
@@ -2525,8 +2539,8 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   // 원본 영상의 AAC 소리를 다시 인코딩하지 않고 그대로 옮겨 담음 (AudioEncoder가 없는 폰에서도 소리 유지)
   function rawAudioPlan(dm) {
     var A = dm && dm.a; if (!A || !/^mp4a/.test(A.info.codec || '')) return null;
-    var desc = aacDesc(A.trak); if (!desc) return null;
-    return { A: A, cfg: { codec: A.info.codec, sampleRate: A.info.audio.sample_rate, numberOfChannels: A.info.audio.channel_count, description: desc } };
+    var desc = aacDesc(A.trak, A.info); if (!desc) return null;
+    return { A: A, cfg: { codec: /^mp4a\.40\.\d+$/.test(A.info.codec) ? A.info.codec : 'mp4a.40.2', sampleRate: A.info.audio.sample_rate, numberOfChannels: A.info.audio.channel_count, description: desc } };
   }
   async function exportFrames(vcfg, audio, opt) {
     opt = opt || {};
