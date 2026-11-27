@@ -102,6 +102,10 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 <style>
 .authorRow{display:flex;justify-content:space-between;align-items:center;border-bottom:var(--bw) solid var(--line);padding-bottom:8px}
 .authorRow .rm-author{border:0;padding:0;margin:0}
+.authorR{display:flex;align-items:center;gap:12px}
+.langWrap{position:relative;display:inline-flex;align-items:center}
+.langWrap::before{content:"";width:13px;height:13px;margin-right:4px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M2.5 12h19M12 2.5c2.6 2.8 3.9 6 3.9 9.5S14.6 18.7 12 21.5M12 2.5C9.4 5.3 8.1 8.5 8.1 12s1.3 6.7 3.9 9.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M2.5 12h19M12 2.5c2.6 2.8 3.9 6 3.9 9.5S14.6 18.7 12 21.5M12 2.5C9.4 5.3 8.1 8.5 8.1 12s1.3 6.7 3.9 9.5'/%3E%3C/svg%3E") center/contain no-repeat}
+#langSel{-webkit-appearance:none;appearance:none;background:none;border:0;padding:4px 14px 4px 0;font:700 12px RMInter,sans-serif;color:var(--fg);cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:right 5px center,right 1px center;background-size:4px 4px;background-repeat:no-repeat}
 .helpLink{background:none;border:0;padding:4px 0;font:700 12px RMInter,sans-serif;color:var(--fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .guideRow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .helpBtn{height:30px;padding:0 10px;border:var(--bw) solid var(--fg);background:var(--bg);color:var(--fg);font:700 12px RMInter,sans-serif;cursor:pointer;border-radius:0;white-space:nowrap}
@@ -139,7 +143,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         <a class="rm-v" href="/v25.html">V2.5</a>
       </nav>
     </div>
-    <div class="authorRow"><p class="rm-author">by @runarchive.js</p><button type="button" class="helpLink" data-help="top">사용 매뉴얼</button></div>
+    <div class="authorRow"><p class="rm-author">by @runarchive.js</p><span class="authorR"><span class="langWrap hidden"><select id="langSel" aria-label="Language"></select></span><button type="button" class="helpLink" data-help="top">사용 매뉴얼</button></span></div>
   </header>
 
   <!-- 인스타그램·카카오톡 등 앱 안 브라우저 안내 (저장이 막히는 경우가 많음) -->
@@ -501,6 +505,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   }
   function setLS(c, ls) { if (!HAS_LS) return; var v = (ls || 0) + 'px'; if (c.letterSpacing !== v) c.letterSpacing = v; }
   function text(c, s, x, y, font, color, align, ls) {
+    if (window.RM_T && typeof s === 'string') s = window.RM_T(s); // 다국어: 캔버스 안내 글자
     setFont(c, font); c.fillStyle = color; c.textAlign = align || 'left'; c.textBaseline = 'alphabetic';
     setLS(c, ls);
     c.fillText(s, x, y);
@@ -3015,5 +3020,6 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
   setInterval(function () { document.querySelectorAll('input[type=range]').forEach(paint); }, 500); // 코드가 값을 바꿀 때도 맞춤
 })();
 </script>
+<script src="./i18n.js"></script>
 </body>
 </html>
