@@ -61,6 +61,12 @@ canvas#view{display:block;width:auto;max-width:100%;max-height:62vh;height:auto;
 label.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
 input[type=text],input[type=date],input[type=email],input[type=password]{background:#0E0E0E;border:1px solid var(--line);border-radius:10px;color:var(--fg);font:500 16px RMInter,sans-serif;padding:10px 12px;min-height:44px;width:100%}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+/* 직접 입력: iOS 날짜칸이 칸 밖으로 넘치거나 높이가 달라지는 문제 방지 + 시간칸은 한 줄 전체 */
+.manGrid input{min-width:0;box-sizing:border-box;height:44px;margin:0}
+.manGrid input[type=date]{-webkit-appearance:none;appearance:none;display:block;text-align:left}
+.manGrid input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.manGrid .manTime{grid-column:1/-1}
+.manGrid input[readonly]{background:transparent;border-style:dashed;color:var(--mute)}
 .stack{display:flex;flex-direction:column;gap:10px}
 input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
 .sw{display:flex;gap:10px;flex-wrap:wrap}
@@ -194,12 +200,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
         <button type="button" data-mt="trail" aria-pressed="true">트레일러닝</button>
         <button type="button" data-mt="hike" aria-pressed="false">하이킹</button>
       </div>
-      <div class="grid2">
+      <div class="grid2 manGrid">
         <label class="fld">날짜<input type="date" id="inDate" value="2026-11-16"></label>
-        <label class="fld">거리 (km)<input type="text" id="inDist" inputmode="decimal" value="21.30"></label>
-        <label class="fld">페이스 (분:초)<input type="text" id="inPace" value="10:26"></label>
-        <label class="fld">시간 (시:분:초)<input type="text" id="inTime" value="3:42:15"></label>
         <label class="fld">획득고도 (m)<input type="text" id="inElev" inputmode="numeric" value="1248"></label>
+        <label class="fld">거리 (km)<input type="text" id="inDist" inputmode="decimal" value="21.30"></label>
+        <label class="fld">페이스 (분:초)<input type="text" id="inPace" inputmode="numeric" value="10:26"></label>
+        <label class="fld manTime">시간 (자동 계산)<input type="text" id="inTime" value="3:42:15" readonly tabindex="-1"></label>
       </div>
     </div>
 
@@ -2263,7 +2269,12 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
       onRecordChanged();
     });
   });
-  ['inDate', 'inDist', 'inPace', 'inTime', 'inElev'].forEach(function (id) { $(id).addEventListener('change', onRecordChanged); });
+  // 직접 입력: 날짜 기본값 = 오늘, 시간 = 거리 × 페이스 자동 계산
+  (function () { var d = new Date(); $('inDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+  function calcManualTime() { var km = num($('inDist').value), ps = parseClock($('inPace').value); $('inTime').value = km > 0 && ps > 0 ? fmtTime(km * ps) : ''; }
+  calcManualTime();
+  ['inDist', 'inPace'].forEach(function (id) { $(id).addEventListener('input', calcManualTime); });
+  ['inDate', 'inDist', 'inPace', 'inTime', 'inElev'].forEach(function (id) { $(id).addEventListener('change', function () { calcManualTime(); onRecordChanged(); }); });
   function loadTitleFont() { try { document.fonts.load('600 19px "Pretendard Variable"', ($('inTitle').value || '') + '러닝트레일하이킹0123456789.'); } catch (e) {} }
   $('inTitle').addEventListener('input', function () { $('inTitle').dataset.touched = '1'; loadTitleFont(); });
   document.querySelectorAll('[data-sf]').forEach(function (b) {
